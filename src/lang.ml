@@ -9,6 +9,15 @@ type term =
   | TAbs of string * term
   | TVar of string
 
+let rec string_of_term = function
+  | TType -> "type"
+  | TBool -> "Bool"
+  | TFalse -> "false"
+  | TTrue -> "true"
+  | TPi (x, a, t) -> Printf.sprintf "(%s : %s) -> %s" x (string_of_term a) (string_of_term t)
+  | TAbs (x, t) -> Printf.sprintf "fun %s -> %s" x (string_of_term t)
+  | TVar x -> x
+
 type value =
   | Type
   | Bool
@@ -72,6 +81,7 @@ let eq k (t:value) (u:value) =
 
 (** Check that term has given type. *)
 let rec check k env ctx (t:term) (a:value) =
+  Printf.printf "CHECK %s\n%!" (string_of_term t);
   match t, a with
   | TBool, Type -> ()
   | TFalse, Bool -> ()
@@ -87,6 +97,7 @@ and check_type k env ctx a =
 
 (** Infer the type of a term. *)
 and infer k env ctx (t:term) =
+  Printf.printf "INFER %s\n%!" (string_of_term t);
   (* TODO *)
   ignore k; ignore env;
   match t with

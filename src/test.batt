@@ -1,1 +1,3 @@
 f : Bool = false
+
+id : Bool -> Bool = fun x -> x

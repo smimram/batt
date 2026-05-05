@@ -5,7 +5,10 @@ open Lang
 %token COLON EQ LPAR RPAR N EOF
 %token TYPE
 %token BOOL FALSE TRUE
+%token TO FUN
 %token<string> IDENT
+
+%right TO
 
 %start main
 %type<Lang.decls> main
@@ -16,6 +19,7 @@ main:
 
 decls:
   | { [] }
+  | N decls { $2 }
   | decl decls { $1::$2 }
 
 decl:
@@ -26,3 +30,7 @@ term:
   | BOOL { TBool }
   | FALSE { TFalse }
   | TRUE { TTrue }
+  | term TO term { TPi ("_", $1, $3) }
+  | LPAR IDENT COLON term RPAR TO term { TPi ($2, $4, $7) }
+  | FUN IDENT TO term { TAbs ($2, $4) }
+  | IDENT { TVar $1 }

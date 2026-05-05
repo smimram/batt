@@ -18,6 +18,8 @@ rule token = parse
   | "=" { EQ }
   | "(" { LPAR }
   | ")" { RPAR }
+  | "->" { TO }
+  | "fun" { FUN }
   | (['A'-'Z''a'-'z''0'-'9']+ as s) { IDENT s }
   | '#'[^'\n']* { token lexbuf }
   | space+ { token lexbuf }
