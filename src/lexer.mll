@@ -24,6 +24,8 @@ rule token = parse
   | "." { DOT }
   | "fun" { FUN }
   | "λ" { utf8 lexbuf; FUN }
+  | "Σ" { utf8 lexbuf; SIGMA }
+  | "×"  { utf8 lexbuf; TIMES }
   | (['A'-'Z''a'-'z''0'-'9']+ as s) { IDENT s }
   | "--"[^'\n']* { token lexbuf }
   | space+ { token lexbuf }

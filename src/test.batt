@@ -1,6 +1,10 @@
 -- a boolean
 b : Bool = false
 
+-- a pair of booleans
+
+bb : Bool × Bool = (false , true)
+
 -- identity on bool
 idBool : Bool -> Bool = fun x -> x
 

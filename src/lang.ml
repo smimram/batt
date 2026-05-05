@@ -120,6 +120,10 @@ let rec check k env ctx (t:term) (a:value) =
        cenv, benv
      in
      check k env ctx t (capp b xv)
+  | TPair (t, u), Sigma (a, b) ->
+     check k env ctx t a;
+     let t = eval env t in
+     check k env ctx u (capp b t)
   | t, a ->
      eq k (infer k env ctx t) a
 
@@ -128,7 +132,8 @@ and check_type k env ctx a =
   Printf.printf "CHECK TYPE %s\n%!" (string_of_term a);
   match a with
   | TType -> ()
-  | TPi (x, a, b) ->
+  | TPi (x, a, b)
+  | TSigma (x, a, b) ->
      check_type k env ctx a;
      let xv = vvar k in
      let k = k+1 in

@@ -5,7 +5,7 @@ open Lang
 %token COLON EQ LPAR RPAR COMMA N EOF
 %token TYPE
 %token BOOL FALSE TRUE
-%token TO FUN DOT
+%token TO FUN DOT SIGMA TIMES
 %token<string> IDENT
 
 %start main
@@ -33,6 +33,7 @@ simple_term:
 term:
   | simple_term { $1 }
   | simple_term TO term { TPi ("_", $1, $3) }
+  | simple_term TIMES term { TSigma ("_", $1, $3) }
   | LPAR IDENT COLON term RPAR TO term { TPi ($2, $4, $7) }
   | FUN IDENT TODOT term { TAbs ($2, $4) }
   | LPAR term COMMA term RPAR { TPair ($2, $4) }
