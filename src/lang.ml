@@ -22,7 +22,7 @@ let string_of_side = function
 type term =
   | TType
   | TIndType of inductive_type
-  | TIndType_ind of inductive_type * term * term * term
+  | TIndType_ind of inductive_type * term * term * term (* type family we eliminate to, arguments, eliminated term *)
   | TIndTerm of inductive_term
   | TPi of bool * string * term * term (** pi-type *) (* boolean indicates whether crisp *)
   | TAbs of string * term
