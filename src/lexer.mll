@@ -21,11 +21,14 @@ rule token = parse
   | "," { COMMA }
   | "->" { TO }
   | "→"  { utf8 ~n:2 lexbuf; TO }
+  | "->l" { ARR Left }
+  | "->r" { ARR Right }
   | "." { DOT }
   | "fun" { FUN }
   | "λ" { utf8 lexbuf; FUN }
   | "Σ" { utf8 lexbuf; SIGMA }
   | "×"  { utf8 lexbuf; TIMES }
+  | "⊗"  { utf8 ~n:2 lexbuf; TENS }
   | (['A'-'Z''a'-'z''0'-'9']+ as s) { IDENT s }
   | "--"[^'\n']* { token lexbuf }
   | space+ { token lexbuf }

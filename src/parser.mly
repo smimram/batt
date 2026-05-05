@@ -5,8 +5,9 @@ open Lang
 %token COLON EQ LPAR RPAR COMMA N EOF
 %token TYPE
 %token BOOL FALSE TRUE
-%token TO FUN DOT SIGMA TIMES
+%token TO FUN DOT SIGMA TIMES TENS
 %token<string> IDENT
+%token<Lang.side> ARR
 
 %start main
 %type<Lang.decls> main
@@ -21,7 +22,7 @@ decls:
   | decl decls { $1::$2 }
 
 decl:
-  | IDENT COLON term EQ term N { ($1, $3, $5) }
+  | IDENT COLON term N IDENT EQ term N { assert ($1 = $5); ($1, $3, $7) }
 
 simple_term:
   | TYPE { TType }

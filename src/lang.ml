@@ -6,6 +6,14 @@ type inductive_type = [`Empty | `Bool]
 (** Basic inductive terms. *)
 type inductive_term = [`Bool of bool]
 
+(** Side for lax arrows. *)
+type side = Left | Right
+
+let string_of_side = function
+  | Left -> "l"
+  | Right -> "r"
+
+(** A term. *)
 type term =
   | TType
   | TIndType of inductive_type
@@ -14,6 +22,8 @@ type term =
   | TAbs of string * term
   | TSigma of string * term * term
   | TPair of term * term
+  | TArr of side * term * term (** lax arrow type *)
+  | TTens of term * term
   | TVar of string
 
 let rec string_of_term = function
@@ -25,8 +35,11 @@ let rec string_of_term = function
   | TAbs (x, t) -> Printf.sprintf "λ%s.%s" x (string_of_term t)
   | TSigma (x, a, t) -> Printf.sprintf "Σ(%s : %s).%s" x (string_of_term a) (string_of_term t)
   | TPair (t, u) -> Printf.sprintf "(%s, %s)" (string_of_term t) (string_of_term u)
+  | TArr (s, a, b) -> Printf.sprintf "%s ->%s %s" (string_of_term a) (string_of_side s) (string_of_term b)
+  | TTens (a, b) -> Printf.sprintf "(%s ⊗ %s)" (string_of_term a) (string_of_term b)
   | TVar x -> x
 
+(** A value. *)
 type value =
   | Type
   | IndType of inductive_type
@@ -35,6 +48,8 @@ type value =
   | Abs of closure
   | Sigma of value * closure
   | Pair of value * value
+  | Arr of side * value * value
+  | Tens of value * value
   | Neu of neutral
 
 and neutral =
@@ -56,6 +71,8 @@ let rec eval (env:environment) = function
   | TAbs (x, t) -> Abs (x, t, env)
   | TSigma (x, a, t) -> Sigma (eval env a, (x, t, env))
   | TPair (t, u) -> Pair (eval env t, eval env u)
+  | TArr (s, a, b) -> Arr (s, eval env a, eval env b)
+  | TTens (a, b) -> Tens (eval env a, eval env b)
   | TVar x -> List.assoc x env
 
 (** Reify a value as a term. *)
@@ -70,6 +87,7 @@ type decl = string * term * term
 
 type decls = decl list
 
+(** A crisp context. *)
 type crisp = (var * term) list
 
 module Bunch = struct
@@ -108,6 +126,7 @@ let eq k (t:value) (u:value) =
 (** Check that term has given type. *)
 let rec check k env ctx (t:term) (a:value) =
   Printf.printf "CHECK %s\n%!" (string_of_term t);
+  let cenv, benv = ctx in
   match t, a with
   | TIndTerm (`Bool _), IndType `Bool -> ()
   | TAbs (x, t), Pi (a, b) ->
@@ -115,7 +134,6 @@ let rec check k env ctx (t:term) (a:value) =
      let k = k+1 in
      let env = (x,xv)::env in
      let ctx =
-       let cenv, benv = ctx in
        let benv = Bunch.Ext (benv, x, a) in
        cenv, benv
      in
@@ -130,6 +148,7 @@ let rec check k env ctx (t:term) (a:value) =
 (** Check that a term is a type. *)
 and check_type k env ctx a =
   Printf.printf "CHECK TYPE %s\n%!" (string_of_term a);
+  let cenv, benv = ctx in
   match a with
   | TType -> ()
   | TPi (x, a, b)
@@ -140,11 +159,13 @@ and check_type k env ctx a =
      let env = (x,xv)::env in
      let a = eval env a in
      let ctx =
-       let cenv, benv = ctx in
        let benv = Bunch.Ext (benv, x, a) in
        cenv, benv
      in
      check_type k env ctx b
+  | TTens (a, b) ->
+     check_type k env (cenv,Empty) a;
+     check_type k env (cenv,Empty) b
   | a -> check k env ctx a Type
 
 (** Infer the type of a term. *)

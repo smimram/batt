@@ -1,12 +1,19 @@
 -- a boolean
-b : Bool = false
+b : Bool
+b = false
 
 -- a pair of booleans
 
-bb : Bool × Bool = (false , true)
+bb : Bool × Bool
+bb = (false , true)
 
 -- identity on bool
-idBool : Bool -> Bool = fun x -> x
+idBool : Bool -> Bool
+idBool = fun x -> x
 
 -- polymorphic identity
-id : (A : U) -> A -> A = fun AA -> fun x -> x
+id : (A : U) -> A -> A
+id = fun A -> fun x -> x
+
+-- linear swap
+-- swap : (A : U) → (B : U) → A ⊗ B → B ⊗ A
