@@ -15,9 +15,9 @@ app = fun A → fun B → fun f → fun x → (f x)
 cstf : Unit → Bool
 cstf = λ u → Unit_ind (x, Bool, false, u)
 
--- terminal arrow
-term : (A : U) → A → Unit
-term = fun A → fun x → tt
+-- -- terminal arrow
+-- term : (A : U) → A → Unit
+-- term = fun A → fun x → tt
 
 -- unflatten : (A :: U) → ♭A → A
 -- unflatten = fun A → fun a → let♭ x = a in x

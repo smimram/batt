@@ -30,10 +30,10 @@ simple_term:
   | TYPE { TType }
   | UNIT { TIndType `Unit }
   | TT { TIndTerm `Unit }
-  | UNIT_IND LPAR x = IDENT COMMA a = term COMMA t = term COMMA u = term RPAR { TIndType_ind (`Unit, x, a, t, u) }
+  | UNIT_IND LPAR x=IDENT COMMA a=term COMMA t=term COMMA u=term RPAR { TIndType_ind (`Unit, x, a, t, u) }
   | BOOL { TIndType `Bool }
   | FALSE { TIndTerm (`Bool false) }
-  | BOOL_IND LPAR x = IDENT a = term COMMA tf = term COMMA tt = term COMMA t = term RPAR { TIndType_ind (`Bool, x, a, TPair (tf, tt), t) }
+  | BOOL_IND LPAR x=IDENT a=term COMMA tf=term COMMA tt=term COMMA t=term RPAR { TIndType_ind (`Bool, x, a, TPair (tf, tt), t) }
   | TRUE { TIndTerm (`Bool true) }
   | IDENT { TVar $1 }
   | LPAR term RPAR { $2 }
@@ -51,7 +51,7 @@ term:
   | LPAR IDENT CCOLON term RPAR TO term { TPi (true, $2, $4, $7) }
   | FUN IDENT TODOT term { TAbs ($2, $4) }
   | LPAR term COMMA term RPAR { TPair ($2, $4) }
-  | LETFLAT IDENT EQ term IN term { TFlat_ind ($2, $4, $6) }
+  /* | LETFLAT x=IDENT EQ u=term IN t=term { TFlat_ind (x, t, y) } */
 
 TODOT:
   | TO | DOT { () }

@@ -34,7 +34,7 @@ type term =
   | TTensPair of term * term
   | TFlat of term
   | TFlatten of term
-  | TFlat_ind of (string * term * term)
+  | TFlat_ind of string * term * term * term (* as ind above *)
   | TVar of string
 
 let rec string_of_term = function
@@ -53,7 +53,7 @@ let rec string_of_term = function
   | TTensPair (t, u) -> Printf.sprintf "(%s ⊗ %s)" (string_of_term t) (string_of_term u)
   | TFlat t -> Printf.sprintf "♭%s" (string_of_term t)
   | TFlatten t -> Printf.sprintf "flatten(%s)" (string_of_term t)
-  | TFlat_ind (x,t,u) -> Printf.sprintf "flat_ind(%s,%s,%s)" x (string_of_term t) (string_of_term u)
+  | TFlat_ind (x,a,t,u) -> Printf.sprintf "flat_ind(%s,%s,%s,%s)" x (string_of_term a) (string_of_term t) (string_of_term u)
   | TVar x -> x
 
 (** A value. *)
@@ -75,7 +75,7 @@ and neutral =
   | Var of int
   | App of neutral * value
   | IndType_ind of inductive_type * value * neutral
-  | Flat_ind of neutral * closure
+  | Flat_ind of closure * neutral
 
 and closure = var * term * environment
 
@@ -112,7 +112,14 @@ let rec eval (env:environment) = function
   | TTensPair (t, u) -> Tens (eval env t, eval env u)
   | TFlat t -> Flat (eval env t)
   | TFlatten t -> Flatten (eval env t)
-  | TFlat_ind (x, t, u) -> vunflatten (eval env t) (x, u, env)
+  | TFlat_ind (x, _, t, u) ->
+     (
+       let t = (x, t, env) in
+       match eval env u with
+       | Flatten u -> capp t u
+       | Neu u -> Neu (Flat_ind (t, u))
+       | _ -> failwith "vunflatten"
+     )
   | TVar x ->
      (
        match List.assoc_opt x env with
@@ -129,12 +136,6 @@ and vapp t u =
   | Abs f, u -> capp f u
   | Neu t, u -> Neu (App (t, u))
   | _ -> failwith "vapp"
-
-and vunflatten t u =
-  match t with
-  | Flatten t -> capp u t
-  | Neu t -> Neu (Flat_ind (t, u))
-  | _ -> failwith "vunflatten"
 
 and vunit = IndType `Unit
 and vunit_term = IndTerm `Unit
