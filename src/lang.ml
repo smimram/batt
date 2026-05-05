@@ -26,6 +26,7 @@ type term =
   | TIndTerm of inductive_term
   | TPi of bool * string * term * term (** pi-type *) (* boolean indicates whether crisp *)
   | TAbs of string * term
+  | TApp of term * term
   | TSigma of string * term * term
   | TPair of term * term
   | TArr of side * term * term (** lax arrow type *)
@@ -44,6 +45,7 @@ let rec string_of_term = function
   | TIndTerm (`Bool b) -> string_of_bool b
   | TPi (c, x, a, t) -> Printf.sprintf "(%s %s %s) → %s" x (if c then "::" else ":") (string_of_term a) (string_of_term t)
   | TAbs (x, t) -> Printf.sprintf "λ%s.%s" x (string_of_term t)
+  | TApp (t, u) -> Printf.sprintf "(%s %s)" (string_of_term t) (string_of_term u)
   | TSigma (x, a, t) -> Printf.sprintf "Σ(%s : %s).%s" x (string_of_term a) (string_of_term t)
   | TPair (t, u) -> Printf.sprintf "(%s, %s)" (string_of_term t) (string_of_term u)
   | TArr (s, a, b) -> Printf.sprintf "%s →%s %s" (string_of_term a) (string_of_side s) (string_of_term b)
@@ -71,6 +73,7 @@ type value =
 
 and neutral =
   | Var of int
+  | App of neutral * value
   | IndType_ind of term * term * neutral
   | Flat_ind of neutral * closure
 
@@ -93,6 +96,7 @@ let rec eval (env:environment) = function
      failwith "TODO"
   | TPi (_, x, a, t) -> Pi (eval env a, (x, t, env))
   | TAbs (x, t) -> Abs (x, t, env)
+  | TApp (t, u) -> vapp (eval env t) (eval env u)
   | TSigma (x, a, t) -> Sigma (eval env a, (x, t, env))
   | TPair (t, u) -> Pair (eval env t, eval env u)
   | TArr (s, a, b) -> Arr (s, eval env a, eval env b)
@@ -110,6 +114,13 @@ let rec eval (env:environment) = function
 
 (** Make a variable. *)
 and vvar k = Neu (Var k)
+
+(** Apply a value to another. *)
+and vapp t u =
+  match t, u with
+  | Abs f, u -> capp f u
+  | Neu t, u -> Neu (App (t, u))
+  | _ -> failwith "vapp"
 
 and vunflatten t u =
   match t with
@@ -236,13 +247,21 @@ and check_type k env ctx a =
   | a -> check k env ctx a Type
 
 (** Infer the type of a term. *)
-and infer _k _env ctx (t:term) =
+and infer k env ctx (t:term) =
   Printf.printf "INFER %s\n%!" (string_of_term t);
   let cenv, benv = ctx in
   match t with
   | TIndType _ -> Type
   | TIndTerm `Unit -> IndType `Unit
   | TIndTerm (`Bool _) -> IndType `Bool
+  | TApp (t, u) ->
+     (
+       match infer k env ctx t with
+       | Pi (a, b) ->
+          check k env ctx u a;
+          capp b (eval env u)
+       | _ -> failwith "infer app"
+     )
   | TVar x ->
      (
        match Bunch.assoc_opt x benv with

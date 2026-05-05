@@ -9,6 +9,9 @@ bb = (false , true)
 bb' : Bool ⨂ Bool
 bb' = (false ⊗ true)
 
+app : (A : U) → (B : U) → (A → B) → A → B
+app = fun A → fun B → fun f → fun x → (f x)
+
 -- terminal arrow
 term : (A : U) → A → Unit
 term = fun A → fun x → tt

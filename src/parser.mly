@@ -40,6 +40,7 @@ simple_term:
 
 term:
   | simple_term { $1 }
+  | LPAR simple_term simple_term RPAR { TApp ($2, $3) }
   | simple_term TO term { TPi (false, "_", $1, $3) }
   | simple_term TIMES term { TSigma ("_", $1, $3) }
   | simple_term TENS term { TTens ($1, $3) }
