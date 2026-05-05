@@ -1,10 +1,10 @@
 type var = string
 
 (** Basic inductive types. *)
-type inductive_type = [`Empty | `Bool]
+type inductive_type = [`Empty | `Unit | `Bool]
 
 (** Basic inductive terms. *)
-type inductive_term = [`Bool of bool]
+type inductive_term = [`Unit | `Bool of bool]
 
 (** Side for lax arrows. *)
 type side = Left | Right
@@ -33,6 +33,8 @@ type term =
 let rec string_of_term = function
   | TType -> "type"
   | TIndType `Empty -> "Empty"
+  | TIndType `Unit -> "Unit"
+  | TIndTerm `Unit -> "tt"
   | TIndType `Bool -> "Bool"
   | TIndTerm (`Bool b) -> string_of_bool b
   | TPi (x, a, t) -> Printf.sprintf "(%s : %s) → %s" x (string_of_term a) (string_of_term t)
