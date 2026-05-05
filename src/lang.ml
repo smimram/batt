@@ -238,7 +238,7 @@ let rec check k env ctx (t:term) (a:value) =
      (* NOTE: things would be simpler if we had products (as opposed to sigma) *)
      let bt =
        let x,b,env = b in
-       "_", b, ((x,IndTerm (`Bool true))::env)
+       "_",b,((x,IndTerm (`Bool true))::env)
      in
      check k env ctx t (Sigma (bf, bt))
   | TFlatten t, Flat a ->
