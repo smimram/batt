@@ -43,6 +43,11 @@ let rec tabss l t =
   | [] -> t
   | x::l -> TAbs (x, tabss l t)
 
+let rec tpis c l a b =
+  match l with
+  | [] -> b
+  | x::l -> TPi (c, x, a, tpis c l a b)
+
 let rec string_of_term = function
   | TType -> "Type"
   | TIndType ind -> string_of_inductive_type ind

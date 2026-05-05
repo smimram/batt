@@ -9,8 +9,8 @@ bb = (false , true)
 bb' : Bool ⨂ Bool
 bb' = (false ⊗ true)
 
-app : (A : U) → (B : U) → (A → B) → A → B
-app = fun A B f x → (f x)
+app : (A B : U) → (A → B) → A → B
+app = fun A B f x → f @ x
 
 cstf : Unit → Bool
 cstf = λ u → Unit_ind (x, Bool, false, u)
@@ -39,5 +39,5 @@ id = fun A x → x
 -- fsb =
 
 -- linear swap
--- swap : (A : U) → (B : U) → A ⊗ B → B ⊗ A
+-- swap : (A B : U) → A ⊗ B → B ⊗ A
 -- swap = fun A B →
