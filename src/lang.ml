@@ -26,6 +26,8 @@ type term =
   | TTens of term * term
   | TTensPair of term * term
   | TFlat of term
+  | TFlatten of term
+  | TFlat_ind of (string * term * term)
   | TVar of string
 
 let rec string_of_term = function
@@ -37,10 +39,12 @@ let rec string_of_term = function
   | TAbs (x, t) -> Printf.sprintf "λ%s.%s" x (string_of_term t)
   | TSigma (x, a, t) -> Printf.sprintf "Σ(%s : %s).%s" x (string_of_term a) (string_of_term t)
   | TPair (t, u) -> Printf.sprintf "(%s, %s)" (string_of_term t) (string_of_term u)
-  | TArr (s, a, b) -> Printf.sprintf "%s ->%s %s" (string_of_term a) (string_of_side s) (string_of_term b)
+  | TArr (s, a, b) -> Printf.sprintf "%s →%s %s" (string_of_term a) (string_of_side s) (string_of_term b)
   | TTens (a, b) -> Printf.sprintf "(%s ⨂ %s)" (string_of_term a) (string_of_term b)
   | TTensPair (t, u) -> Printf.sprintf "(%s ⊗ %s)" (string_of_term t) (string_of_term u)
   | TFlat t -> Printf.sprintf "♭%s" (string_of_term t)
+  | TFlatten t -> Printf.sprintf "flatten(%s)" (string_of_term t)
+  | TFlat_ind (x,t,u) -> Printf.sprintf "flat_ind(%s,%s,%s)" x (string_of_term t) (string_of_term u)
   | TVar x -> x
 
 (** A value. *)
@@ -55,17 +59,16 @@ type value =
   | Arr of side * value * value
   | Tens of value * value
   | Flat of value
+  | Flatten of value
   | Neu of neutral
 
 and neutral =
   | Var of int
+  | Flat_ind of neutral * closure
 
 and closure = var * term * environment
 
 and environment = (var * value) list
-
-(** Make a variable. *)
-let vvar k = Neu (Var k)
 
 (** Evaluate a term to a value. *)
 let rec eval (env:environment) = function
@@ -80,15 +83,26 @@ let rec eval (env:environment) = function
   | TTens (a, b) -> Tens (eval env a, eval env b)
   | TTensPair (t, u) -> Tens (eval env t, eval env u)
   | TFlat t -> Flat (eval env t)
+  | TFlatten t -> Flatten (eval env t)
+  | TFlat_ind (x, t, u) -> vunflatten (eval env t) (x, u, env)
   | TVar x -> List.assoc x env
+
+(** Make a variable. *)
+and vvar k = Neu (Var k)
+
+and vunflatten t u =
+  match t with
+  | Flatten t -> capp u t
+  | Neu t -> Neu (Flat_ind (t, u))
+  | _ -> failwith "vunflatten"
+
+(** Instantiate a closure with a value. *)
+and capp ((x,t,env):closure) (v:value) =
+  eval ((x,v)::env) t
 
 (** Reify a value as a term. *)
 let readback _k _v =
   failwith "TODO"
-
-(** Instantiate a closure with a value. *)
-let capp ((x,t,env):closure) (v:value) =
-  eval ((x,v)::env) t
 
 type decl = string * term * term
 
@@ -153,6 +167,8 @@ let rec check k env ctx (t:term) (a:value) =
      (* TODO: how do we perform weakening? *)
      check k env ctx t a;
      check k env ctx u b
+  | TFlatten t, Flat a ->
+     check k env (cenv,Empty) t a
   | t, a ->
      eq k (infer k env ctx t) a
 
