@@ -74,11 +74,12 @@ type value =
 and neutral =
   | Var of int
   | App of neutral * value
-  | IndType_ind of term * term * neutral
+  | IndType_ind of inductive_type * value * value * neutral
   | Flat_ind of neutral * closure
 
 and closure = var * term * environment
 
+(** An environment. *)
 and environment = (var * value) list
 
 (** Evaluate a term to a value. *)
@@ -86,14 +87,22 @@ let rec eval (env:environment) = function
   | TType -> Type
   | TIndType a -> IndType a
   | TIndTerm t -> IndTerm t
-  | TIndType_ind _  (*(ind, a, args, t)*) ->
-     (*
+  | TIndType_ind (ind, a, args, t) ->
      (
-       match t with
-       | TIndTerm t ->
+       let a = eval env a in
+       let args = eval env args in
+       match eval env t with
+       | Neu t -> Neu (IndType_ind (ind, a, args, t))
+       | IndTerm `Unit -> assert (ind = `Unit); args
+       | IndTerm (`Bool b) ->
+          assert (ind = `Bool);
+          (
+            match args with
+            | Pair (tf, tt) -> if b then tt else tf
+            | _ -> assert false
+          )
+       | _ -> failwith "TODO: eval inductives"
      )
-      *)
-     failwith "TODO"
   | TPi (_, x, a, t) -> Pi (eval env a, (x, t, env))
   | TAbs (x, t) -> Abs (x, t, env)
   | TApp (t, u) -> vapp (eval env t) (eval env u)
