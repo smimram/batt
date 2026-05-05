@@ -22,7 +22,7 @@ decl:
   | IDENT COLON term EQ term N { ($1, $3, $5) }
 
 term:
-  | TYPE { Type }
-  | BOOL { Bool }
-  | FALSE { False }
-  | TRUE { True }
+  | TYPE { TType }
+  | BOOL { TBool }
+  | FALSE { TFalse }
+  | TRUE { TTrue }

@@ -1,19 +1,19 @@
 type var = string
 
 type term =
+  | TType
+  | TBool
+  | TFalse
+  | TTrue
+  | TPi of string * term * term
+  | TVar of string
+
+type value =
   | Type
   | Bool
   | False
   | True
-  | Pi of string * term * term
-  | Var of string
-
-type value =
-  | VType
-  | VBool
-  | VFalse
-  | VTrue
-  | VPi of value * closure
+  | Pi of value * closure
 
 and closure = var * term * environment
 
@@ -21,12 +21,12 @@ and environment = (var * value) list
 
 (** Evaluate a term to a value. *)
 let rec eval (env:environment) = function
-  | Type -> VType
-  | Bool -> VBool
-  | False -> VFalse
-  | True -> VTrue
-  | Pi (x, a, t) -> VPi (eval env a, (x, t, env))
-  | Var x -> List.assoc x env
+  | TType -> Type
+  | TBool -> Bool
+  | TFalse -> False
+  | TTrue -> True
+  | TPi (x, a, t) -> Pi (eval env a, (x, t, env))
+  | TVar x -> List.assoc x env
 
 type decl = string * term * term
 
@@ -70,25 +70,25 @@ let eq k (t:value) (u:value) =
 (** Check that term has given type. *)
 let rec check k env ctx (t:term) (a:value) =
   match t, a with
-  | Bool, VType -> ()
-  | False, VBool -> ()
-  | True, VBool -> ()
+  | TBool, Type -> ()
+  | TFalse, Bool -> ()
+  | TTrue, Bool -> ()
   | t, a ->
      eq k (infer k env ctx t) a
 
 (** Check that a term is a type. *)
 and check_type k env ctx a =
   match a with
-  | Type -> ()
-  | a -> check k env ctx a VType
+  | TType -> ()
+  | a -> check k env ctx a Type
 
 (** Infer the type of a term. *)
 and infer k env ctx (t:term) =
   (* TODO *)
   ignore k; ignore env;
   match t with
-  | Bool -> VType
-  | Var x ->
+  | TBool -> Type
+  | TVar x ->
      (
        let cenv, benv = ctx in
        match Bunch.assoc_opt x benv with
