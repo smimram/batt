@@ -37,6 +37,12 @@ type term =
   | TFlat_ind of string * term * term * term (* as ind above *)
   | TVar of string
 
+(** Multiple abstractions. *)
+let rec tabss l t =
+  match l with
+  | [] -> t
+  | x::l -> TAbs (x, tabss l t)
+
 let rec string_of_term = function
   | TType -> "Type"
   | TIndType ind -> string_of_inductive_type ind

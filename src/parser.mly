@@ -49,7 +49,7 @@ term:
   | simple_term TENSP term { TTensPair ($1, $3) }
   | LPAR IDENT  COLON term RPAR TO term { TPi (false, $2, $4, $7) }
   | LPAR IDENT CCOLON term RPAR TO term { TPi (true, $2, $4, $7) }
-  | FUN IDENT TODOT term { TAbs ($2, $4) }
+  | FUN nonempty_list(IDENT) TODOT term { tabss $2 $4 }
   | LPAR term COMMA term RPAR { TPair ($2, $4) }
   | FLAT_IND LPAR x=IDENT COMMA a=term COMMA t=term COMMA u=term RPAR { TFlat_ind (x, a, t, u) }
 
