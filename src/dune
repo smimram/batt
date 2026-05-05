@@ -12,6 +12,6 @@
 
 (rule
  (alias runtest)
- (deps test.battt)
+ (deps test.batt)
  (action (run ./batt.exe test.batt))
 )
