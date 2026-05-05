@@ -22,7 +22,7 @@ let string_of_side = function
 type term =
   | TType
   | TIndType of inductive_type
-  | TIndType_ind of inductive_type * string * term * term * term (* type family we eliminate to, arguments, eliminated term *)
+  | TIndType_ind of inductive_type * term
   | TIndTerm of inductive_term
   | TPi of bool * string * term * term (** pi-type *) (* boolean indicates whether crisp *)
   | TAbs of string * term
@@ -51,7 +51,7 @@ let rec tpis c l a b =
 let rec string_of_term = function
   | TType -> "Type"
   | TIndType ind -> string_of_inductive_type ind
-  | TIndType_ind (ind, x, a, args, t) -> Printf.sprintf "%s_ind(%s,%s,%s,%s)" (string_of_inductive_type ind) x (string_of_term a) (string_of_term args) (string_of_term t)
+  | TIndType_ind (ind, args) -> Printf.sprintf "%s_ind(%s)" (string_of_inductive_type ind) (string_of_term args)
   | TIndTerm `Unit -> "tt"
   | TIndTerm (`Bool b) -> string_of_bool b
   | TPi (c, x, a, t) -> Printf.sprintf "(%s %s %s) → %s" x (if c then "::" else ":") (string_of_term a) (string_of_term t)
@@ -72,6 +72,7 @@ type value =
   | Type
   | IndType of inductive_type
   | IndTerm of inductive_term
+  | IndType_ind of inductive_type * value
   | Pi of value * closure
   | Abs of closure
   | Sigma of value * closure
@@ -85,7 +86,7 @@ type value =
 and neutral =
   | Var of int
   | App of neutral * value
-  | IndType_ind of inductive_type * value * neutral
+  | NIndType_ind of inductive_type * value * neutral
   | Flat_ind of closure * neutral
 
 and closure = var * term * environment
@@ -98,21 +99,7 @@ let rec eval (env:environment) = function
   | TType -> Type
   | TIndType a -> IndType a
   | TIndTerm t -> IndTerm t
-  | TIndType_ind (ind, _x, _a, args, t) ->
-     (
-       let args = eval env args in
-       match eval env t with
-       | Neu t -> Neu (IndType_ind (ind, args, t))
-       | IndTerm `Unit -> assert (ind = `Unit); args
-       | IndTerm (`Bool b) ->
-          assert (ind = `Bool);
-          (
-            match args with
-            | Pair (tf, tt) -> if b then tt else tf
-            | _ -> assert false
-          )
-       | _ -> failwith "TODO: eval inductives"
-     )
+  | TIndType_ind (ind, args) -> IndType_ind (ind, eval env args)
   | TPi (_, x, a, t) -> Pi (eval env a, (x, t, env))
   | TAbs (x, t) -> Abs (x, t, env)
   | TApp (t, u) -> vapp (eval env t) (eval env u)
@@ -145,6 +132,8 @@ and vvar k = Neu (Var k)
 and vapp t u =
   match t, u with
   | Abs f, u -> capp f u
+  | IndType_ind (`Unit, t), IndTerm `Unit -> t
+  | IndType_ind (ind, t), Neu u -> Neu (NIndType_ind (ind, t, u))
   | Neu t, u -> Neu (App (t, u))
   | _ -> failwith "vapp"
 
@@ -161,16 +150,13 @@ let rec readback k v =
   let rec neutral k = function
     | Var i -> TVar (var i)
     | App (t, u) -> TApp (neutral k t, readback k u)
-    | IndType_ind (ind, args, t) ->
-       (* TODO: we forget about the type... *)
-       let x = "_" in
-       let a = TType in
-       TIndType_ind (ind, x, a, readback k args, neutral k t)
+    | NIndType_ind (ind, args, t) -> TApp (TIndType_ind (ind, readback k args), neutral k t)
     | Flat_ind _ -> failwith "TODO"
   in
   match v with
   | Type -> TType
   | IndType ind -> TIndType ind
+  | IndType_ind (ind, args) -> TIndType_ind (ind, readback k args)
   | IndTerm t -> TIndTerm t
   | Pi (a, b) -> TPi (false, var k, readback k a, readback (k+1) (capp b (vvar k)))
   | Abs f -> TAbs (var k, readback (k+1) (capp f (vvar k)))
@@ -243,6 +229,9 @@ let rec check k env ctx (t:term) (a:value) =
      (* TODO: how do we perform weakening? *)
      check k env ctx t a;
      check k env ctx u b
+  | TIndType_ind (`Unit, t), Pi (a, b) ->
+     eq k vunit a;
+     check k env ctx t (capp b vunit_term)
   | TFlatten t, Flat a ->
      check k env (cenv,Empty) t a
   | t, a ->
@@ -292,18 +281,6 @@ and infer k env ctx (t:term) =
   | TIndType _ -> Type
   | TIndTerm `Unit -> IndType `Unit
   | TIndTerm (`Bool _) -> IndType `Bool
-  | TIndType_ind (`Unit, x, a, args, t) ->
-     let a =
-       let ctx =
-         let benv = Bunch.Ext (benv, x, vunit) in
-         cenv, benv
-       in
-       check_type k env ctx a;
-       (x, a, env)
-     in
-     check k env ctx args (capp a vunit_term);
-     check k env ctx t vunit;
-     capp a (eval env t)
   (* | TFlat_ind (x, a, t, u) -> *)
      (* let a = *)
        (* let ctx = *)

@@ -13,7 +13,7 @@ app : (A B : U) → (A → B) → A → B
 app = fun A B f x → f @ x
 
 cstf : Unit → Bool
-cstf = λ u → Unit_ind (x, Bool, false, u)
+cstf = Unit_ind(false)
 
 -- -- terminal arrow
 -- term : (A : U) → A → Unit
