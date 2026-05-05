@@ -12,6 +12,9 @@ bb' = (false ⊗ true)
 app : (A B : U) → (A → B) → A → B
 app = fun A B f x → f @ x
 
+not : Bool → Bool
+not = Bool_ind(true,false)
+
 cstf : Unit → Bool
 cstf = Unit_ind(false)
 

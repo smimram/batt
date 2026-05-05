@@ -137,9 +137,6 @@ and vapp t u =
   | Neu t, u -> Neu (App (t, u))
   | _ -> failwith "vapp"
 
-and vunit = IndType `Unit
-and vunit_term = IndTerm `Unit
-
 (** Instantiate a closure with a value. *)
 and capp ((x,t,env):closure) (v:value) =
   eval ((x,v)::env) t
@@ -167,6 +164,8 @@ let rec readback k v =
   | Flat a -> TFlat (readback k a)
   | Flatten t -> TFlatten (readback k t)
   | Neu t -> neutral k t
+
+let string_of_value k v = string_of_term @@ readback k v
 
 type decl = string * term * term
 
@@ -209,7 +208,7 @@ let eq k (t:value) (u:value) =
 
 (** Check that term has given type. *)
 let rec check k env ctx (t:term) (a:value) =
-  Printf.printf "CHECK %s\n%!" (string_of_term t);
+  Printf.printf "CHECK %s : %s\n%!" (string_of_term t) (string_of_value k a);
   let cenv, benv = ctx in
   match t, a with
   | TAbs (x, t), Pi (a, b) ->
@@ -230,8 +229,18 @@ let rec check k env ctx (t:term) (a:value) =
      check k env ctx t a;
      check k env ctx u b
   | TIndType_ind (`Unit, t), Pi (a, b) ->
-     eq k vunit a;
-     check k env ctx t (capp b vunit_term)
+     eq k (IndType `Unit) a;
+     check k env ctx t (capp b (IndTerm `Unit))
+  | TIndType_ind (`Bool, t), Pi (a, b) ->
+     eq k (IndType `Bool) a;
+     let bf = capp b (IndTerm (`Bool false)) in
+     (* let bt = capp b (IndTerm (`Bool true)) in *)
+     (* NOTE: things would be simpler if we had products (as opposed to sigma) *)
+     let bt =
+       let x,b,env = b in
+       "_", b, ((x,IndTerm (`Bool true))::env)
+     in
+     check k env ctx t (Sigma (bf, bt))
   | TFlatten t, Flat a ->
      check k env (cenv,Empty) t a
   | t, a ->
@@ -281,18 +290,6 @@ and infer k env ctx (t:term) =
   | TIndType _ -> Type
   | TIndTerm `Unit -> IndType `Unit
   | TIndTerm (`Bool _) -> IndType `Bool
-  (* | TFlat_ind (x, a, t, u) -> *)
-     (* let a = *)
-       (* let ctx = *)
-         (* let benv = Bunch.Ext (benv, x, vunit) in *)
-         (* cenv, benv *)
-       (* in *)
-       (* check_type k env ctx a; *)
-       (* (x, a, env) *)
-     (* in *)
-     (* let t = *)
-  (* in *)
-     (* failwith "TODO" *)
   | TApp (t, u) ->
      (
        match infer k env ctx t with
