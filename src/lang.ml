@@ -2,29 +2,38 @@ type var = string
 
 type term =
   | TType
+  | TEmpty
+  | TEmptyInd
   | TBool
   | TFalse
   | TTrue
   | TPi of string * term * term
   | TAbs of string * term
+  | TSigma of string * term * term
   | TVar of string
 
 let rec string_of_term = function
   | TType -> "type"
+  | TEmpty -> "Empty"
+  | TEmptyInd -> "Empty_ind"
   | TBool -> "Bool"
   | TFalse -> "false"
   | TTrue -> "true"
-  | TPi (x, a, t) -> Printf.sprintf "(%s : %s) -> %s" x (string_of_term a) (string_of_term t)
-  | TAbs (x, t) -> Printf.sprintf "fun %s -> %s" x (string_of_term t)
+  | TPi (x, a, t) -> Printf.sprintf "(%s : %s) → %s" x (string_of_term a) (string_of_term t)
+  | TAbs (x, t) -> Printf.sprintf "λ%s.%s" x (string_of_term t)
+  | TSigma (x, a, t) -> Printf.sprintf "Σ(%s : %s).%s" x (string_of_term a) (string_of_term t)
   | TVar x -> x
 
 type value =
   | Type
+  | Empty
+  | EmptyInd
   | Bool
   | False
   | True
   | Pi of value * closure
   | Abs of closure
+  | Sigma of value * closure
   | Neu of neutral
 
 and neutral =
@@ -40,12 +49,19 @@ let vvar k = Neu (Var k)
 (** Evaluate a term to a value. *)
 let rec eval (env:environment) = function
   | TType -> Type
+  | TEmpty -> Empty
+  | TEmptyInd -> EmptyInd
   | TBool -> Bool
   | TFalse -> False
   | TTrue -> True
   | TPi (x, a, t) -> Pi (eval env a, (x, t, env))
   | TAbs (x, t) -> Abs (x, t, env)
+  | TSigma (x, a, t) -> Sigma (eval env a, (x, t, env))
   | TVar x -> List.assoc x env
+
+(** Reify a value as a term. *)
+let readback _k _v =
+  failwith "TODO"
 
 (** Instantiate a closure with a value. *)
 let capp ((x,t,env):closure) (v:value) =
@@ -86,15 +102,14 @@ type bunch = Bunch.t
 type context = crisp * bunch
 
 let eq k (t:value) (u:value) =
-  (* TODO *)
-  ignore k;
-  assert (t = u)
+  (* TODO: remove *)
+  if t <> u then
+    if readback k t <> readback k u then failwith "eq"
 
 (** Check that term has given type. *)
 let rec check k env ctx (t:term) (a:value) =
   Printf.printf "CHECK %s\n%!" (string_of_term t);
   match t, a with
-  | TBool, Type -> ()
   | TFalse, Bool -> ()
   | TTrue, Bool -> ()
   | TAbs (x, t), Pi (a, b) ->
@@ -131,6 +146,7 @@ and infer k env ctx (t:term) =
   (* TODO *)
   ignore k; ignore env;
   match t with
+  | TEmpty -> Type
   | TBool -> Type
   | TVar x ->
      (

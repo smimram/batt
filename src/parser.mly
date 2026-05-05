@@ -5,7 +5,7 @@ open Lang
 %token COLON EQ LPAR RPAR N EOF
 %token TYPE
 %token BOOL FALSE TRUE
-%token TO FUN
+%token TO FUN DOT
 %token<string> IDENT
 
 %right TO
@@ -33,4 +33,5 @@ term:
   | term TO term { TPi ("_", $1, $3) }
   | LPAR IDENT COLON term RPAR TO term { TPi ($2, $4, $7) }
   | FUN IDENT TO term { TAbs ($2, $4) }
+  | FUN IDENT DOT term { TAbs ($2, $4) }
   | IDENT { TVar $1 }
