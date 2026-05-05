@@ -11,6 +11,7 @@ let space = ' ' | '\t' | '\r'
 
 rule token = parse
   | "U" { TYPE }
+  | "Type" { TYPE }
   | "Unit" { UNIT }
   | "tt" { TT }
   | "Bool" { BOOL }
@@ -33,6 +34,9 @@ rule token = parse
   | "⨂"  { utf8 ~n:2 lexbuf; TENS }
   | "⊗"  { utf8 ~n:2 lexbuf; TENSP }
   | "♭" { utf8 ~n:2 lexbuf; FLAT }
+  | "𝄫" { utf8 ~n:3 lexbuf; FLATTEN }
+  | "let♭" { utf8 ~n:2 lexbuf; LETFLAT }
+  | "in" { IN }
   | (['A'-'Z''a'-'z''0'-'9''\'']+ as s) { IDENT s }
   | "--"[^'\n']* { token lexbuf }
   | space+ { token lexbuf }

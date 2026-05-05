@@ -2,12 +2,12 @@
 open Lang
 %}
 
-%token COLON EQ LPAR RPAR COMMA N EOF
+%token COLON EQ LPAR RPAR COMMA IN N EOF
 %token TYPE
 %token UNIT TT
 %token BOOL FALSE TRUE
 %token TO FUN DOT SIGMA TIMES TENS TENSP
-%token FLAT FLATTEN
+%token FLAT FLATTEN LETFLAT
 %token<string> IDENT
 %token<Lang.side> ARR
 
@@ -36,6 +36,7 @@ simple_term:
   | IDENT { TVar $1 }
   | LPAR term RPAR { $2 }
   | FLAT simple_term { TFlat $2 }
+  | FLATTEN simple_term { TFlatten $2 }
 
 term:
   | simple_term { $1 }
@@ -46,6 +47,7 @@ term:
   | LPAR IDENT COLON term RPAR TO term { TPi ($2, $4, $7) }
   | FUN IDENT TODOT term { TAbs ($2, $4) }
   | LPAR term COMMA term RPAR { TPair ($2, $4) }
+  | LETFLAT IDENT EQ term IN term { TFlat_ind ($2, $4, $6) }
 
 TODOT:
   | TO | DOT { () }

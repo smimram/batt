@@ -31,7 +31,7 @@ type term =
   | TVar of string
 
 let rec string_of_term = function
-  | TType -> "type"
+  | TType -> "Type"
   | TIndType `Empty -> "Empty"
   | TIndType `Unit -> "Unit"
   | TIndTerm `Unit -> "tt"
@@ -87,7 +87,12 @@ let rec eval (env:environment) = function
   | TFlat t -> Flat (eval env t)
   | TFlatten t -> Flatten (eval env t)
   | TFlat_ind (x, t, u) -> vunflatten (eval env t) (x, u, env)
-  | TVar x -> List.assoc x env
+  | TVar x ->
+     (
+       match List.assoc_opt x env with
+       | Some v -> v
+       | None -> failwith @@ Printf.sprintf "eval: could not find %s" x
+     )
 
 (** Make a variable. *)
 and vvar k = Neu (Var k)
@@ -199,24 +204,26 @@ and check_type k env ctx a =
   | a -> check k env ctx a Type
 
 (** Infer the type of a term. *)
-and infer k env ctx (t:term) =
+and infer _k _env ctx (t:term) =
   Printf.printf "INFER %s\n%!" (string_of_term t);
-  (* TODO *)
-  ignore k; ignore env;
+  let cenv, benv = ctx in
   match t with
   | TIndType _ -> Type
   | TIndTerm `Unit -> IndType `Unit
   | TIndTerm (`Bool _) -> IndType `Bool
   | TVar x ->
      (
-       let cenv, benv = ctx in
        match Bunch.assoc_opt x benv with
        | Some a -> a
-       | None -> List.assoc x cenv
+       | None ->
+          match List.assoc_opt x cenv with
+          | Some v -> v
+          | None -> failwith @@ Printf.sprintf "infer: undefined variable %s" x
      )
   | _ -> failwith "infer"
 
 let check_decl k env ctx (x, a, t) =
+  Printf.printf "\nDECL  %s = %s\n%!" x (string_of_term t);
   check_type k env ctx a;
   let a = eval env a in
   check k env ctx t a;

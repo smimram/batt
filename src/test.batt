@@ -13,17 +13,23 @@ bb' = (false ⊗ true)
 term : (A : U) → A → Unit
 term = fun A → fun x → tt
 
+-- flatten : (A : U) → A → ♭A
+-- flatten = fun A → fun a → 𝄫a
+
+-- unflat : (A : U) → ♭A → A
+-- unflat = fun A → fun a → let♭ x = a in x
+
 -- identity on bool
-idBool : Bool -> Bool
-idBool = fun x -> x
+idBool : Bool → Bool
+idBool = fun x → x
 
 -- polymorphic identity
-id : (A : U) -> A -> A
-id = fun A -> fun x -> x
+id : (A : U) → A → A
+id = fun A → fun x → x
 
 -- fstb : Bool ⨂ Bool → Bool
 -- fsb = 
 
 -- linear swap
 -- swap : (A : U) → (B : U) → A ⊗ B → B ⊗ A
--- swap = fun A -> fun B -> 
+-- swap = fun A → fun B → 
