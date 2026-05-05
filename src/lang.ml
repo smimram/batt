@@ -3,6 +3,11 @@ type var = string
 (** Basic inductive types. *)
 type inductive_type = [`Empty | `Unit | `Bool]
 
+let string_of_inductive_type = function
+  | `Empty -> "Empty"
+  | `Unit -> "Unit"
+  | `Bool -> "Bool"
+
 (** Basic inductive terms. *)
 type inductive_term = [`Unit | `Bool of bool]
 
@@ -17,6 +22,7 @@ let string_of_side = function
 type term =
   | TType
   | TIndType of inductive_type
+  | TIndType_ind of inductive_type * term * term * term
   | TIndTerm of inductive_term
   | TPi of bool * string * term * term (** pi-type *) (* boolean indicates whether crisp *)
   | TAbs of string * term
@@ -32,10 +38,9 @@ type term =
 
 let rec string_of_term = function
   | TType -> "Type"
-  | TIndType `Empty -> "Empty"
-  | TIndType `Unit -> "Unit"
+  | TIndType ind -> string_of_inductive_type ind
+  | TIndType_ind (ind, a, _, t) -> Printf.sprintf "%s_ind(%s,...,%s)" (string_of_inductive_type ind) (string_of_term a) (string_of_term t)
   | TIndTerm `Unit -> "tt"
-  | TIndType `Bool -> "Bool"
   | TIndTerm (`Bool b) -> string_of_bool b
   | TPi (c, x, a, t) -> Printf.sprintf "(%s %s %s) → %s" x (if c then "::" else ":") (string_of_term a) (string_of_term t)
   | TAbs (x, t) -> Printf.sprintf "λ%s.%s" x (string_of_term t)
@@ -66,6 +71,7 @@ type value =
 
 and neutral =
   | Var of int
+  | IndType_ind of term * term * neutral
   | Flat_ind of neutral * closure
 
 and closure = var * term * environment
@@ -77,6 +83,14 @@ let rec eval (env:environment) = function
   | TType -> Type
   | TIndType a -> IndType a
   | TIndTerm t -> IndTerm t
+  | TIndType_ind _  (*(ind, a, args, t)*) ->
+     (*
+     (
+       match t with
+       | TIndTerm t ->
+     )
+      *)
+     failwith "TODO"
   | TPi (_, x, a, t) -> Pi (eval env a, (x, t, env))
   | TAbs (x, t) -> Abs (x, t, env)
   | TSigma (x, a, t) -> Sigma (eval env a, (x, t, env))
