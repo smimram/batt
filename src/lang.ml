@@ -34,7 +34,7 @@ type term =
   | TTensPair of term * term
   | TFlat of term
   | TFlatten of term
-  | TFlat_ind of string * term * term * term (* as ind above *)
+  | TFlat_ind of string * term
   | TVar of string
 
 (** Multiple abstractions. *)
@@ -64,7 +64,7 @@ let rec string_of_term = function
   | TTensPair (t, u) -> Printf.sprintf "(%s ⊗ %s)" (string_of_term t) (string_of_term u)
   | TFlat t -> Printf.sprintf "♭%s" (string_of_term t)
   | TFlatten t -> Printf.sprintf "flatten(%s)" (string_of_term t)
-  | TFlat_ind (x,a,t,u) -> Printf.sprintf "flat_ind(%s,%s,%s,%s)" x (string_of_term a) (string_of_term t) (string_of_term u)
+  | TFlat_ind (x,t) -> Printf.sprintf "flat_ind(%s,%s)" x (string_of_term t)
   | TVar x -> x
 
 (** A value. *)
@@ -81,13 +81,14 @@ type value =
   | Tens of value * value
   | Flat of value
   | Flatten of value
+  | Flat_ind of closure
   | Neu of neutral
 
 and neutral =
   | Var of int
   | App of neutral * value
   | NIndType_ind of inductive_type * value * neutral
-  | Flat_ind of closure * neutral
+  | NFlat_ind of closure * neutral
 
 and closure = var * term * environment
 
@@ -110,14 +111,7 @@ let rec eval (env:environment) = function
   | TTensPair (t, u) -> Tens (eval env t, eval env u)
   | TFlat t -> Flat (eval env t)
   | TFlatten t -> Flatten (eval env t)
-  | TFlat_ind (x, _, t, u) ->
-     (
-       let t = (x, t, env) in
-       match eval env u with
-       | Flatten u -> capp t u
-       | Neu u -> Neu (Flat_ind (t, u))
-       | _ -> failwith "vunflatten"
-     )
+  | TFlat_ind (x, t) -> Flat_ind (x,t,env)
   | TVar x ->
      (
        match List.assoc_opt x env with
@@ -148,7 +142,7 @@ let rec readback k v =
     | Var i -> TVar (var i)
     | App (t, u) -> TApp (neutral k t, readback k u)
     | NIndType_ind (ind, args, t) -> TApp (TIndType_ind (ind, readback k args), neutral k t)
-    | Flat_ind _ -> failwith "TODO"
+    | NFlat_ind (t, u) -> TApp (TFlat_ind (var k, readback (k+1) (capp t (vvar k))), neutral k u)
   in
   match v with
   | Type -> TType
@@ -163,6 +157,7 @@ let rec readback k v =
   | Tens (a, b) -> TTens (readback k a, readback k b)
   | Flat a -> TFlat (readback k a)
   | Flatten t -> TFlatten (readback k t)
+  | Flat_ind t -> TFlat_ind (var k, readback (k+1) (capp t (vvar k)))
   | Neu t -> neutral k t
 
 let string_of_value k v = string_of_term @@ readback k v
@@ -243,6 +238,15 @@ let rec check k env ctx (t:term) (a:value) =
      check k env ctx t (Sigma (bf, bt))
   | TFlatten t, Flat a ->
      check k env (cenv,Empty) t a
+  | TFlat_ind (x, t), Pi (a, b) ->
+     let a =
+       match a with
+       | Flat a -> a
+       | _ -> failwith "flat type expected"
+     in
+     let xv = vvar k in
+     let k = k+1 in
+     check k ((x,xv)::env) ((x,a)::cenv,benv) t (capp b xv)
   | t, a ->
      eq k (infer k env ctx t) a
 

@@ -51,7 +51,7 @@ term:
   | LPAR nonempty_list(IDENT) CCOLON term RPAR TO term { tpis true  $2 $4 $7 }
   | FUN nonempty_list(IDENT) TODOT term { tabss $2 $4 }
   | LPAR term COMMA term RPAR { TPair ($2, $4) }
-  | FLAT_IND LPAR x=IDENT COMMA a=term COMMA t=term COMMA u=term RPAR { TFlat_ind (x, a, t, u) }
+  | FLAT_IND LPAR x=IDENT COMMA t=term RPAR { TFlat_ind (x, t) }
 
 TODOT:
   | TO | DOT { () }
