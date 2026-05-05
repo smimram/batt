@@ -1,48 +1,36 @@
-type var = string
-
-type term =
-  | Type
-  | Var of string
-
-type value =
-  | VType
-
-type crisp = (var * term) list
-
-module Bunch = struct
-  type t =
-    | Empty
-    | Ext of t * string * value
-    | L of l
-
-  and l =
-    | One of string * value
-    | Tens of l * t
-
-  let rec assoc_opt x = function
-    | Empty -> None
-    | Ext (env, y, a) -> if x = y then Some a else assoc_opt x env
-    | L l -> assocl_opt x l
-  and assocl_opt x = function
-    | One (y, a) -> if x = y then Some a else None
-    | Tens (lenv, env) ->
-       (
-         match assoc_opt x env with
-         | Some a -> Some a
-         | None -> assocl_opt x lenv
-       )
-end
-
-type bunch = Bunch.t
-
-type context = crisp * bunch
-
-let infer _k (cenv,benv) _env t =
-  match t with
-  | Type -> VType
-  | Var x ->
-     (
-       match Bunch.assoc_opt x benv with
-       | Some a -> a
-       | None -> List.assoc x cenv
-     )
+let () =
+  Printexc.record_backtrace true;
+  Printf.printf "Welcome to BATT!\n\n%!";
+  List.iter
+    (fun fname ->
+      Printf.printf "Checking %s...\n\n%!" fname;
+      let ic = open_in fname in
+      let lexbuf = Lexing.from_channel ic in
+      let decls =
+        try Parser.main Lexer.token lexbuf
+        with
+        | Failure err ->
+           let pos = (Lexing.lexeme_end_p lexbuf) in
+           let err =
+             Printf.sprintf
+               "Lexing error at line %d, character %d: %s"
+               pos.Lexing.pos_lnum
+               (pos.Lexing.pos_cnum - pos.Lexing.pos_bol)
+               err
+           in
+           failwith err
+        | Parser.Error ->
+           let pos = (Lexing.lexeme_end_p lexbuf) in
+           let err =
+             Printf.sprintf
+               "Parse error at word \"%s\", line %d, character %d."
+               (Lexing.lexeme lexbuf)
+               pos.Lexing.pos_lnum
+               (pos.Lexing.pos_cnum - pos.Lexing.pos_bol)
+           in
+           failwith err
+      in
+      close_in ic;
+      ignore decls
+      (* check e One *)
+    ) (List.tl @@ Array.to_list Sys.argv);
