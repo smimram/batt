@@ -2,13 +2,11 @@
 open Lang
 %}
 
-%token COLON EQ LPAR RPAR N EOF
+%token COLON EQ LPAR RPAR COMMA N EOF
 %token TYPE
 %token BOOL FALSE TRUE
 %token TO FUN DOT
 %token<string> IDENT
-
-%right TO
 
 %start main
 %type<Lang.decls> main
@@ -25,15 +23,19 @@ decls:
 decl:
   | IDENT COLON term EQ term N { ($1, $3, $5) }
 
-term:
+simple_term:
   | TYPE { TType }
   | BOOL { TIndType `Bool }
   | FALSE { TIndTerm (`Bool false) }
   | TRUE { TIndTerm (`Bool true) }
-  | term TO term { TPi ("_", $1, $3) }
-  | LPAR IDENT COLON term RPAR TO term { TPi ($2, $4, $7) }
-  | FUN IDENT TO term { TAbs ($2, $4) }
   | IDENT { TVar $1 }
 
-to_dot:
+term:
+  | simple_term { $1 }
+  | simple_term TO term { TPi ("_", $1, $3) }
+  | LPAR IDENT COLON term RPAR TO term { TPi ($2, $4, $7) }
+  | FUN IDENT TODOT term { TAbs ($2, $4) }
+  | LPAR term COMMA term RPAR { TPair ($2, $4) }
+
+TODOT:
   | TO | DOT { () }

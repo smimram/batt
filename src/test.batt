@@ -1,3 +1,8 @@
-f : Bool = false
+-- a boolean
+b : Bool = false
 
-id : Bool -> Bool = fun x -> x
+-- identity on bool
+idBool : Bool -> Bool = fun x -> x
+
+-- polymorphic identity
+id : (A : U) -> A -> A = fun AA -> fun x -> x

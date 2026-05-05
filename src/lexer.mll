@@ -18,13 +18,14 @@ rule token = parse
   | "=" { EQ }
   | "(" { LPAR }
   | ")" { RPAR }
+  | "," { COMMA }
   | "->" { TO }
   | "→"  { utf8 ~n:2 lexbuf; TO }
   | "." { DOT }
   | "fun" { FUN }
   | "λ" { utf8 lexbuf; FUN }
   | (['A'-'Z''a'-'z''0'-'9']+ as s) { IDENT s }
-  | '#'[^'\n']* { token lexbuf }
+  | "--"[^'\n']* { token lexbuf }
   | space+ { token lexbuf }
   | "\n" { new_line lexbuf; N }
   | eof { EOF }

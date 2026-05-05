@@ -13,6 +13,7 @@ type term =
   | TPi of string * term * term
   | TAbs of string * term
   | TSigma of string * term * term
+  | TPair of term * term
   | TVar of string
 
 let rec string_of_term = function
@@ -23,6 +24,7 @@ let rec string_of_term = function
   | TPi (x, a, t) -> Printf.sprintf "(%s : %s) → %s" x (string_of_term a) (string_of_term t)
   | TAbs (x, t) -> Printf.sprintf "λ%s.%s" x (string_of_term t)
   | TSigma (x, a, t) -> Printf.sprintf "Σ(%s : %s).%s" x (string_of_term a) (string_of_term t)
+  | TPair (t, u) -> Printf.sprintf "(%s, %s)" (string_of_term t) (string_of_term u)
   | TVar x -> x
 
 type value =
@@ -32,6 +34,7 @@ type value =
   | Pi of value * closure
   | Abs of closure
   | Sigma of value * closure
+  | Pair of value * value
   | Neu of neutral
 
 and neutral =
@@ -52,6 +55,7 @@ let rec eval (env:environment) = function
   | TPi (x, a, t) -> Pi (eval env a, (x, t, env))
   | TAbs (x, t) -> Abs (x, t, env)
   | TSigma (x, a, t) -> Sigma (eval env a, (x, t, env))
+  | TPair (t, u) -> Pair (eval env t, eval env u)
   | TVar x -> List.assoc x env
 
 (** Reify a value as a term. *)
@@ -121,10 +125,14 @@ let rec check k env ctx (t:term) (a:value) =
 
 (** Check that a term is a type. *)
 and check_type k env ctx a =
+  Printf.printf "CHECK TYPE %s\n%!" (string_of_term a);
   match a with
   | TType -> ()
   | TPi (x, a, b) ->
      check_type k env ctx a;
+     let xv = vvar k in
+     let k = k+1 in
+     let env = (x,xv)::env in
      let a = eval env a in
      let ctx =
        let cenv, benv = ctx in
