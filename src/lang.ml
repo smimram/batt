@@ -24,6 +24,8 @@ type term =
   | TPair of term * term
   | TArr of side * term * term (** lax arrow type *)
   | TTens of term * term
+  | TTensPair of term * term
+  | TFlat of term
   | TVar of string
 
 let rec string_of_term = function
@@ -36,7 +38,9 @@ let rec string_of_term = function
   | TSigma (x, a, t) -> Printf.sprintf "Σ(%s : %s).%s" x (string_of_term a) (string_of_term t)
   | TPair (t, u) -> Printf.sprintf "(%s, %s)" (string_of_term t) (string_of_term u)
   | TArr (s, a, b) -> Printf.sprintf "%s ->%s %s" (string_of_term a) (string_of_side s) (string_of_term b)
-  | TTens (a, b) -> Printf.sprintf "(%s ⊗ %s)" (string_of_term a) (string_of_term b)
+  | TTens (a, b) -> Printf.sprintf "(%s ⨂ %s)" (string_of_term a) (string_of_term b)
+  | TTensPair (t, u) -> Printf.sprintf "(%s ⊗ %s)" (string_of_term t) (string_of_term u)
+  | TFlat t -> Printf.sprintf "♭%s" (string_of_term t)
   | TVar x -> x
 
 (** A value. *)
@@ -50,6 +54,7 @@ type value =
   | Pair of value * value
   | Arr of side * value * value
   | Tens of value * value
+  | Flat of value
   | Neu of neutral
 
 and neutral =
@@ -73,6 +78,8 @@ let rec eval (env:environment) = function
   | TPair (t, u) -> Pair (eval env t, eval env u)
   | TArr (s, a, b) -> Arr (s, eval env a, eval env b)
   | TTens (a, b) -> Tens (eval env a, eval env b)
+  | TTensPair (t, u) -> Tens (eval env t, eval env u)
+  | TFlat t -> Flat (eval env t)
   | TVar x -> List.assoc x env
 
 (** Reify a value as a term. *)
@@ -142,6 +149,10 @@ let rec check k env ctx (t:term) (a:value) =
      check k env ctx t a;
      let t = eval env t in
      check k env ctx u (capp b t)
+  | TTensPair (t, u), Tens (a, b) ->
+     (* TODO: how do we perform weakening? *)
+     check k env ctx t a;
+     check k env ctx u b
   | t, a ->
      eq k (infer k env ctx t) a
 
@@ -166,6 +177,8 @@ and check_type k env ctx a =
   | TTens (a, b) ->
      check_type k env (cenv,Empty) a;
      check_type k env (cenv,Empty) b
+  | TFlat a ->
+     check_type k env (cenv,Empty) a
   | a -> check k env ctx a Type
 
 (** Infer the type of a term. *)

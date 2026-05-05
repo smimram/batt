@@ -28,8 +28,10 @@ rule token = parse
   | "λ" { utf8 lexbuf; FUN }
   | "Σ" { utf8 lexbuf; SIGMA }
   | "×"  { utf8 lexbuf; TIMES }
-  | "⊗"  { utf8 ~n:2 lexbuf; TENS }
-  | (['A'-'Z''a'-'z''0'-'9']+ as s) { IDENT s }
+  | "⨂"  { utf8 ~n:2 lexbuf; TENS }
+  | "⊗"  { utf8 ~n:2 lexbuf; TENSP }
+  | "♭" { utf8 ~n:2 lexbuf; FLAT }
+  | (['A'-'Z''a'-'z''0'-'9''\'']+ as s) { IDENT s }
   | "--"[^'\n']* { token lexbuf }
   | space+ { token lexbuf }
   | "\n" { new_line lexbuf; N }

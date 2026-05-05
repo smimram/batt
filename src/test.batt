@@ -3,9 +3,11 @@ b : Bool
 b = false
 
 -- a pair of booleans
-
 bb : Bool × Bool
 bb = (false , true)
+
+bb' : Bool ⨂ Bool
+bb' = (false ⊗ true)
 
 -- identity on bool
 idBool : Bool -> Bool
@@ -15,5 +17,9 @@ idBool = fun x -> x
 id : (A : U) -> A -> A
 id = fun A -> fun x -> x
 
+-- fstb : Bool ⨂ Bool → Bool
+-- fsb = 
+
 -- linear swap
 -- swap : (A : U) → (B : U) → A ⊗ B → B ⊗ A
+-- swap = fun A -> fun B -> 
