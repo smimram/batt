@@ -22,7 +22,7 @@ let string_of_side = function
 type term =
   | TType
   | TIndType of inductive_type
-  | TIndType_ind of inductive_type * term * term * term (* type family we eliminate to, arguments, eliminated term *)
+  | TIndType_ind of inductive_type * string * term * term * term (* type family we eliminate to, arguments, eliminated term *)
   | TIndTerm of inductive_term
   | TPi of bool * string * term * term (** pi-type *) (* boolean indicates whether crisp *)
   | TAbs of string * term
@@ -40,7 +40,7 @@ type term =
 let rec string_of_term = function
   | TType -> "Type"
   | TIndType ind -> string_of_inductive_type ind
-  | TIndType_ind (ind, a, _, t) -> Printf.sprintf "%s_ind(%s,...,%s)" (string_of_inductive_type ind) (string_of_term a) (string_of_term t)
+  | TIndType_ind (ind, x, a, args, t) -> Printf.sprintf "%s_ind(%s,%s,%s,%s)" (string_of_inductive_type ind) x (string_of_term a) (string_of_term args) (string_of_term t)
   | TIndTerm `Unit -> "tt"
   | TIndTerm (`Bool b) -> string_of_bool b
   | TPi (c, x, a, t) -> Printf.sprintf "(%s %s %s) → %s" x (if c then "::" else ":") (string_of_term a) (string_of_term t)
@@ -74,7 +74,7 @@ type value =
 and neutral =
   | Var of int
   | App of neutral * value
-  | IndType_ind of inductive_type * value * value * neutral
+  | IndType_ind of inductive_type * value * neutral
   | Flat_ind of neutral * closure
 
 and closure = var * term * environment
@@ -87,12 +87,11 @@ let rec eval (env:environment) = function
   | TType -> Type
   | TIndType a -> IndType a
   | TIndTerm t -> IndTerm t
-  | TIndType_ind (ind, a, args, t) ->
+  | TIndType_ind (ind, _x, _a, args, t) ->
      (
-       let a = eval env a in
        let args = eval env args in
        match eval env t with
-       | Neu t -> Neu (IndType_ind (ind, a, args, t))
+       | Neu t -> Neu (IndType_ind (ind, args, t))
        | IndTerm `Unit -> assert (ind = `Unit); args
        | IndTerm (`Bool b) ->
           assert (ind = `Bool);
@@ -147,7 +146,11 @@ let rec readback k v =
   let rec neutral k = function
     | Var i -> TVar (var i)
     | App (t, u) -> TApp (neutral k t, readback k u)
-    | IndType_ind (ind, a, args, t) -> TIndType_ind (ind, readback k a, readback k args, neutral k t)
+    | IndType_ind (ind, args, t) ->
+       (* TODO: we forget about the type... *)
+       let x = "_" in
+       let a = TType in
+       TIndType_ind (ind, x, a, readback k args, neutral k t)
     | Flat_ind _ -> failwith "TODO"
   in
   match v with

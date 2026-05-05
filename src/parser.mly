@@ -30,10 +30,10 @@ simple_term:
   | TYPE { TType }
   | UNIT { TIndType `Unit }
   | TT { TIndTerm `Unit }
-  | UNIT_IND LPAR a = term COMMA t = term COMMA u = term RPAR { TIndType_ind (`Unit, a, t, u) }
+  | UNIT_IND LPAR x = IDENT a = term COMMA t = term COMMA u = term RPAR { TIndType_ind (`Unit, x, a, t, u) }
   | BOOL { TIndType `Bool }
   | FALSE { TIndTerm (`Bool false) }
-  | BOOL_IND LPAR a = term COMMA tf = term COMMA tt = term COMMA t = term RPAR { TIndType_ind (`Bool, a, TPair (tf, tt), t) }
+  | BOOL_IND LPAR x = IDENT a = term COMMA tf = term COMMA tt = term COMMA t = term RPAR { TIndType_ind (`Bool, x, a, TPair (tf, tt), t) }
   | TRUE { TIndTerm (`Bool true) }
   | IDENT { TVar $1 }
   | LPAR term RPAR { $2 }
