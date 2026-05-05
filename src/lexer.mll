@@ -14,9 +14,11 @@ rule token = parse
   | "Type" { TYPE }
   | "Unit" { UNIT }
   | "tt" { TT }
+  | "Unit_ind" { UNIT_IND }
   | "Bool" { BOOL }
   | "false" { FALSE }
   | "true" { TRUE }
+  | "Bool_ind" { BOOL_IND }
   | "::" { CCOLON }
   | ":" { COLON }
   | "=" { EQ }

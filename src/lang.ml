@@ -281,6 +281,9 @@ and infer k env ctx (t:term) =
   | TIndType _ -> Type
   | TIndTerm `Unit -> IndType `Unit
   | TIndTerm (`Bool _) -> IndType `Bool
+  (* | TIndType_ind (`Unit, a, args, t) -> *)
+     (* check k env ctx a (Pi (_, _)); *)
+     (* check k env ctx  *)
   | TApp (t, u) ->
      (
        match infer k env ctx t with

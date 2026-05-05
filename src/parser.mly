@@ -4,8 +4,8 @@ open Lang
 
 %token COLON CCOLON EQ LPAR RPAR COMMA IN N EOF
 %token TYPE
-%token UNIT TT
-%token BOOL FALSE TRUE
+%token UNIT TT UNIT_IND
+%token BOOL FALSE TRUE BOOL_IND
 %token TO FUN DOT SIGMA TIMES TENS TENSP
 %token FLAT FLATTEN LETFLAT
 %token<string> IDENT
@@ -30,8 +30,10 @@ simple_term:
   | TYPE { TType }
   | UNIT { TIndType `Unit }
   | TT { TIndTerm `Unit }
+  | UNIT_IND LPAR a = term COMMA t = term COMMA u = term RPAR { TIndType_ind (`Unit, a, t, u) }
   | BOOL { TIndType `Bool }
   | FALSE { TIndTerm (`Bool false) }
+  | BOOL_IND LPAR a = term COMMA tf = term COMMA tt = term COMMA t = term RPAR { TIndType_ind (`Bool, a, TPair (tf, tt), t) }
   | TRUE { TIndTerm (`Bool true) }
   | IDENT { TVar $1 }
   | LPAR term RPAR { $2 }
