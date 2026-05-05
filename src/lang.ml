@@ -3,15 +3,15 @@ type var = string
 type term =
   | Type
   | Bool
-  | Bfalse
-  | Btrue
+  | False
+  | True
   | Var of string
 
 type value =
   | VType
   | VBool
-  | VBfalse
-  | VBtrue
+  | VFalse
+  | VTrue
 
 type environment = (var * value) list
 
@@ -19,8 +19,8 @@ type environment = (var * value) list
 let eval (env:environment) = function
   | Type -> VType
   | Bool -> VBool
-  | Bfalse -> VBfalse
-  | Btrue -> VBtrue
+  | False -> VFalse
+  | True -> VTrue
   | Var x -> List.assoc x env
 
 type decl = string * term * term
@@ -66,8 +66,8 @@ let eq k (t:value) (u:value) =
 let rec check k env ctx (t:term) (a:value) =
   match t, a with
   | Bool, VType -> ()
-  | Bfalse, VBool -> ()
-  | Btrue, VBool -> ()
+  | False, VBool -> ()
+  | True, VBool -> ()
   | t, a ->
      eq k (infer k env ctx t) a
 

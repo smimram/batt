@@ -4,6 +4,7 @@ open Lang
 
 %token COLON EQ LPAR RPAR N EOF
 %token TYPE
+%token BOOL FALSE TRUE
 %token<string> IDENT
 
 %start main
@@ -22,3 +23,6 @@ decl:
 
 term:
   | TYPE { Type }
+  | BOOL { Bool }
+  | FALSE { False }
+  | TRUE { True }
