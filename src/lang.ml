@@ -5,6 +5,7 @@ type term =
   | Bool
   | False
   | True
+  | Pi of string * term * term
   | Var of string
 
 type value =
@@ -12,15 +13,19 @@ type value =
   | VBool
   | VFalse
   | VTrue
+  | VPi of value * closure
 
-type environment = (var * value) list
+and closure = var * term * environment
+
+and environment = (var * value) list
 
 (** Evaluate a term to a value. *)
-let eval (env:environment) = function
+let rec eval (env:environment) = function
   | Type -> VType
   | Bool -> VBool
   | False -> VFalse
   | True -> VTrue
+  | Pi (x, a, t) -> VPi (eval env a, (x, t, env))
   | Var x -> List.assoc x env
 
 type decl = string * term * term
