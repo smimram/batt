@@ -27,11 +27,13 @@ decl:
 
 term:
   | TYPE { TType }
-  | BOOL { TBool }
-  | FALSE { TFalse }
-  | TRUE { TTrue }
+  | BOOL { TIndType `Bool }
+  | FALSE { TIndTerm (`Bool false) }
+  | TRUE { TIndTerm (`Bool true) }
   | term TO term { TPi ("_", $1, $3) }
   | LPAR IDENT COLON term RPAR TO term { TPi ($2, $4, $7) }
   | FUN IDENT TO term { TAbs ($2, $4) }
-  | FUN IDENT DOT term { TAbs ($2, $4) }
   | IDENT { TVar $1 }
+
+to_dot:
+  | TO | DOT { () }

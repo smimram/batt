@@ -1,12 +1,15 @@
 type var = string
 
+(** Basic inductive types. *)
+type inductive_type = [`Empty | `Bool]
+
+(** Basic inductive terms. *)
+type inductive_term = [`Bool of bool]
+
 type term =
   | TType
-  | TEmpty
-  | TEmptyInd
-  | TBool
-  | TFalse
-  | TTrue
+  | TIndType of inductive_type
+  | TIndTerm of inductive_term
   | TPi of string * term * term
   | TAbs of string * term
   | TSigma of string * term * term
@@ -14,11 +17,9 @@ type term =
 
 let rec string_of_term = function
   | TType -> "type"
-  | TEmpty -> "Empty"
-  | TEmptyInd -> "Empty_ind"
-  | TBool -> "Bool"
-  | TFalse -> "false"
-  | TTrue -> "true"
+  | TIndType `Empty -> "Empty"
+  | TIndType `Bool -> "Bool"
+  | TIndTerm (`Bool b) -> string_of_bool b
   | TPi (x, a, t) -> Printf.sprintf "(%s : %s) → %s" x (string_of_term a) (string_of_term t)
   | TAbs (x, t) -> Printf.sprintf "λ%s.%s" x (string_of_term t)
   | TSigma (x, a, t) -> Printf.sprintf "Σ(%s : %s).%s" x (string_of_term a) (string_of_term t)
@@ -26,11 +27,8 @@ let rec string_of_term = function
 
 type value =
   | Type
-  | Empty
-  | EmptyInd
-  | Bool
-  | False
-  | True
+  | IndType of inductive_type
+  | IndTerm of inductive_term
   | Pi of value * closure
   | Abs of closure
   | Sigma of value * closure
@@ -49,11 +47,8 @@ let vvar k = Neu (Var k)
 (** Evaluate a term to a value. *)
 let rec eval (env:environment) = function
   | TType -> Type
-  | TEmpty -> Empty
-  | TEmptyInd -> EmptyInd
-  | TBool -> Bool
-  | TFalse -> False
-  | TTrue -> True
+  | TIndType a -> IndType a
+  | TIndTerm t -> IndTerm t
   | TPi (x, a, t) -> Pi (eval env a, (x, t, env))
   | TAbs (x, t) -> Abs (x, t, env)
   | TSigma (x, a, t) -> Sigma (eval env a, (x, t, env))
@@ -110,8 +105,7 @@ let eq k (t:value) (u:value) =
 let rec check k env ctx (t:term) (a:value) =
   Printf.printf "CHECK %s\n%!" (string_of_term t);
   match t, a with
-  | TFalse, Bool -> ()
-  | TTrue, Bool -> ()
+  | TIndTerm (`Bool _), IndType `Bool -> ()
   | TAbs (x, t), Pi (a, b) ->
      let xv = vvar k in
      let k = k+1 in
@@ -146,8 +140,7 @@ and infer k env ctx (t:term) =
   (* TODO *)
   ignore k; ignore env;
   match t with
-  | TEmpty -> Type
-  | TBool -> Type
+  | TIndType _ -> Type
   | TVar x ->
      (
        let cenv, benv = ctx in
