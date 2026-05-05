@@ -4,6 +4,7 @@ open Lang
 
 %token COLON EQ LPAR RPAR COMMA N EOF
 %token TYPE
+%token UNIT TT
 %token BOOL FALSE TRUE
 %token TO FUN DOT SIGMA TIMES TENS TENSP
 %token FLAT FLATTEN
@@ -27,6 +28,8 @@ decl:
 
 simple_term:
   | TYPE { TType }
+  | UNIT { TIndType `Unit }
+  | TT { TIndTerm `Unit }
   | BOOL { TIndType `Bool }
   | FALSE { TIndTerm (`Bool false) }
   | TRUE { TIndTerm (`Bool true) }

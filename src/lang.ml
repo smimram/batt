@@ -151,7 +151,6 @@ let rec check k env ctx (t:term) (a:value) =
   Printf.printf "CHECK %s\n%!" (string_of_term t);
   let cenv, benv = ctx in
   match t, a with
-  | TIndTerm (`Bool _), IndType `Bool -> ()
   | TAbs (x, t), Pi (a, b) ->
      let xv = vvar k in
      let k = k+1 in
@@ -206,6 +205,8 @@ and infer k env ctx (t:term) =
   ignore k; ignore env;
   match t with
   | TIndType _ -> Type
+  | TIndTerm `Unit -> IndType `Unit
+  | TIndTerm (`Bool _) -> IndType `Bool
   | TVar x ->
      (
        let cenv, benv = ctx in

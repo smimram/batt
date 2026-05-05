@@ -11,6 +11,8 @@ let space = ' ' | '\t' | '\r'
 
 rule token = parse
   | "U" { TYPE }
+  | "Unit" { UNIT }
+  | "tt" { TT }
   | "Bool" { BOOL }
   | "false" { FALSE }
   | "true" { TRUE }

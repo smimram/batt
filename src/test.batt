@@ -9,6 +9,10 @@ bb = (false , true)
 bb' : Bool ⨂ Bool
 bb' = (false ⊗ true)
 
+-- terminal arrow
+term : (A : U) → A → Unit
+term = fun A → fun x → tt
+
 -- identity on bool
 idBool : Bool -> Bool
 idBool = fun x -> x
