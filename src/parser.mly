@@ -7,7 +7,7 @@ open Lang
 %token UNIT TT UNIT_IND
 %token BOOL FALSE TRUE BOOL_IND
 %token TO FUN DOT SIGMA TIMES TENS TENSP
-%token FLAT FLATTEN LETFLAT
+%token FLAT FLATTEN FLAT_IND
 %token<string> IDENT
 %token<Lang.side> ARR
 
@@ -51,7 +51,7 @@ term:
   | LPAR IDENT CCOLON term RPAR TO term { TPi (true, $2, $4, $7) }
   | FUN IDENT TODOT term { TAbs ($2, $4) }
   | LPAR term COMMA term RPAR { TPair ($2, $4) }
-  /* | LETFLAT x=IDENT EQ u=term IN t=term { TFlat_ind (x, t, y) } */
+  | FLAT_IND LPAR x=IDENT COMMA a=term COMMA t=term COMMA u=term RPAR { TFlat_ind (x, a, t, u) }
 
 TODOT:
   | TO | DOT { () }

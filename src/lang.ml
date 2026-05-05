@@ -255,7 +255,7 @@ and check_type k env ctx a =
      in
      check_type k env ctx b
   | TPi (false, x, a, b)
-  | TSigma (x, a, b) ->
+    | TSigma (x, a, b) ->
      check_type k env ctx a;
      let xv = vvar k in
      let k = k+1 in
@@ -271,13 +271,6 @@ and check_type k env ctx a =
      check_type k env (cenv,Empty) b
   | TFlat a ->
      check_type k env (cenv,Empty) a
-(*
-  | TFlat_ind (x, t, u) ->
-     (
-       match infer k env ctx t with
-       | Flat a ->
-     )
- *)
   | a -> check k env ctx a Type
 
 (** Infer the type of a term. *)
@@ -300,6 +293,18 @@ and infer k env ctx (t:term) =
      check k env ctx args (capp a vunit_term);
      check k env ctx t vunit;
      capp a (eval env t)
+  (* | TFlat_ind (x, a, t, u) -> *)
+     (* let a = *)
+       (* let ctx = *)
+         (* let benv = Bunch.Ext (benv, x, vunit) in *)
+         (* cenv, benv *)
+       (* in *)
+       (* check_type k env ctx a; *)
+       (* (x, a, env) *)
+     (* in *)
+     (* let t = *)
+  (* in *)
+     (* failwith "TODO" *)
   | TApp (t, u) ->
      (
        match infer k env ctx t with

@@ -20,6 +20,7 @@ cstf = λ u → Unit_ind (x, Bool, false, u)
 -- term = fun A → fun x → tt
 
 -- unflatten : (A :: U) → ♭A → A
+-- unflatten = fun A → fun a → ♭_ind(x, A, x, a)
 -- unflatten = fun A → fun a → let♭ x = a in x
 
 -- should not work

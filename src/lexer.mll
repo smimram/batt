@@ -37,8 +37,8 @@ rule token = parse
   | "⨂"  { utf8 ~n:2 lexbuf; TENS }
   | "⊗"  { utf8 ~n:2 lexbuf; TENSP }
   | "♭" { utf8 ~n:2 lexbuf; FLAT }
+  | "♭_ind" { utf8 ~n:2 lexbuf; FLAT_IND }
   | "𝄫" { utf8 ~n:3 lexbuf; FLATTEN }
-  | "let♭" { utf8 ~n:2 lexbuf; LETFLAT }
   | "in" { IN }
   | (['A'-'Z''a'-'z''0'-'9''\'']+ as s) { IDENT s }
   | "--"[^'\n']* { token lexbuf }
