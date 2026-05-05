@@ -2,14 +2,30 @@ type var = string
 
 type term =
   | Type
+  | Bool
+  | Bfalse
+  | Btrue
   | Var of string
+
+type value =
+  | VType
+  | VBool
+  | VBfalse
+  | VBtrue
+
+type environment = (var * value) list
+
+(** Evaluate a term to a value. *)
+let eval (env:environment) = function
+  | Type -> VType
+  | Bool -> VBool
+  | Bfalse -> VBfalse
+  | Btrue -> VBtrue
+  | Var x -> List.assoc x env
 
 type decl = string * term * term
 
 type decls = decl list
-
-type value =
-  | VType
 
 type crisp = (var * term) list
 
@@ -41,12 +57,49 @@ type bunch = Bunch.t
 
 type context = crisp * bunch
 
-let infer (cenv,benv) t =
+let eq k (t:value) (u:value) =
+  (* TODO *)
+  ignore k;
+  assert (t = u)
+
+(** Check that term has given type. *)
+let rec check k env ctx (t:term) (a:value) =
+  match t, a with
+  | Bool, VType -> ()
+  | Bfalse, VBool -> ()
+  | Btrue, VBool -> ()
+  | t, a ->
+     eq k (infer k env ctx t) a
+
+(** Check that a term is a type. *)
+and check_type k env ctx a =
+  match a with
+  | Type -> ()
+  | a -> check k env ctx a VType
+
+(** Infer the type of a term. *)
+and infer k env ctx (t:term) =
+  (* TODO *)
+  ignore k; ignore env;
   match t with
-  | Type -> VType
+  | Bool -> VType
   | Var x ->
      (
+       let cenv, benv = ctx in
        match Bunch.assoc_opt x benv with
        | Some a -> a
        | None -> List.assoc x cenv
      )
+  | _ -> failwith "infer"
+
+let check_decl k env ctx (x, a, t) =
+  check_type k env ctx a;
+  let a = eval env a in
+  check k env ctx t a;
+  let t = eval env t in
+  (x,t)::env
+
+let check_decls k env ctx decls =
+  List.fold_left (fun env decl -> check_decl k env ctx decl) env decls
+
+let check_decls_toplevel decls = ignore @@ check_decls 0 [] ([],Bunch.Empty) decls

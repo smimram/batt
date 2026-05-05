@@ -31,6 +31,5 @@ let () =
            failwith err
       in
       close_in ic;
-      ignore decls
-      (* check e One *)
+      Lang.check_decls_toplevel decls
     ) (List.tl @@ Array.to_list Sys.argv);

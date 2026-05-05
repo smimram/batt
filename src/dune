@@ -9,3 +9,9 @@
 (executable
  (name batt)
 )
+
+(rule
+ (alias runtest)
+ (deps test.battt)
+ (action (run ./batt.exe test.batt))
+)
