@@ -136,6 +136,9 @@ and vunflatten t u =
   | Neu t -> Neu (Flat_ind (t, u))
   | _ -> failwith "vunflatten"
 
+and vunit = IndType `Unit
+and vunit_term = IndTerm `Unit
+
 (** Instantiate a closure with a value. *)
 and capp ((x,t,env):closure) (v:value) =
   eval ((x,v)::env) t
@@ -240,7 +243,7 @@ and check_type k env ctx a =
   match a with
   | TType -> ()
   | TPi (true, x, a, b) ->
-     check_type k env (cenv, Bunch.Empty) a;
+     check_type k env (cenv,Bunch.Empty) a;
      let xv = vvar k in
      let k = k+1 in
      let env = (x,xv)::env in
@@ -284,9 +287,18 @@ and infer k env ctx (t:term) =
   | TIndType _ -> Type
   | TIndTerm `Unit -> IndType `Unit
   | TIndTerm (`Bool _) -> IndType `Bool
-  (* | TIndType_ind (`Unit, a, args, t) -> *)
-     (* check k env ctx a (Pi (_, _)); *)
-     (* check k env ctx  *)
+  | TIndType_ind (`Unit, x, a, args, t) ->
+     let a =
+       let ctx =
+         let benv = Bunch.Ext (benv, x, vunit) in
+         cenv, benv
+       in
+       check_type k env ctx a;
+       (x, a, env)
+     in
+     check k env ctx args (capp a vunit_term);
+     check k env ctx t vunit;
+     capp a (eval env t)
   | TApp (t, u) ->
      (
        match infer k env ctx t with

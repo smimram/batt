@@ -12,8 +12,8 @@ bb' = (false ⊗ true)
 app : (A : U) → (B : U) → (A → B) → A → B
 app = fun A → fun B → fun f → fun x → (f x)
 
--- cstf : Unit → Bool
--- cstf = λ u → Unit_ind (λx.Bool, false, u)
+cstf : Unit → Bool
+cstf = λ u → Unit_ind (x, Bool, false, u)
 
 -- terminal arrow
 term : (A : U) → A → Unit
