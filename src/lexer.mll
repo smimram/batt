@@ -17,6 +17,7 @@ rule token = parse
   | "Bool" { BOOL }
   | "false" { FALSE }
   | "true" { TRUE }
+  | "::" { CCOLON }
   | ":" { COLON }
   | "=" { EQ }
   | "(" { LPAR }

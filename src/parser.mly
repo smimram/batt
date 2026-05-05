@@ -2,7 +2,7 @@
 open Lang
 %}
 
-%token COLON EQ LPAR RPAR COMMA IN N EOF
+%token COLON CCOLON EQ LPAR RPAR COMMA IN N EOF
 %token TYPE
 %token UNIT TT
 %token BOOL FALSE TRUE
@@ -40,11 +40,12 @@ simple_term:
 
 term:
   | simple_term { $1 }
-  | simple_term TO term { TPi ("_", $1, $3) }
+  | simple_term TO term { TPi (false, "_", $1, $3) }
   | simple_term TIMES term { TSigma ("_", $1, $3) }
   | simple_term TENS term { TTens ($1, $3) }
   | simple_term TENSP term { TTensPair ($1, $3) }
-  | LPAR IDENT COLON term RPAR TO term { TPi ($2, $4, $7) }
+  | LPAR IDENT  COLON term RPAR TO term { TPi (false, $2, $4, $7) }
+  | LPAR IDENT CCOLON term RPAR TO term { TPi (true, $2, $4, $7) }
   | FUN IDENT TODOT term { TAbs ($2, $4) }
   | LPAR term COMMA term RPAR { TPair ($2, $4) }
   | LETFLAT IDENT EQ term IN term { TFlat_ind ($2, $4, $6) }

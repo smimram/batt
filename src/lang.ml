@@ -18,7 +18,7 @@ type term =
   | TType
   | TIndType of inductive_type
   | TIndTerm of inductive_term
-  | TPi of string * term * term
+  | TPi of bool * string * term * term (** pi-type *) (* boolean indicates whether crisp *)
   | TAbs of string * term
   | TSigma of string * term * term
   | TPair of term * term
@@ -37,7 +37,7 @@ let rec string_of_term = function
   | TIndTerm `Unit -> "tt"
   | TIndType `Bool -> "Bool"
   | TIndTerm (`Bool b) -> string_of_bool b
-  | TPi (x, a, t) -> Printf.sprintf "(%s : %s) → %s" x (string_of_term a) (string_of_term t)
+  | TPi (c, x, a, t) -> Printf.sprintf "(%s %s %s) → %s" x (if c then "::" else ":") (string_of_term a) (string_of_term t)
   | TAbs (x, t) -> Printf.sprintf "λ%s.%s" x (string_of_term t)
   | TSigma (x, a, t) -> Printf.sprintf "Σ(%s : %s).%s" x (string_of_term a) (string_of_term t)
   | TPair (t, u) -> Printf.sprintf "(%s, %s)" (string_of_term t) (string_of_term u)
@@ -77,7 +77,7 @@ let rec eval (env:environment) = function
   | TType -> Type
   | TIndType a -> IndType a
   | TIndTerm t -> IndTerm t
-  | TPi (x, a, t) -> Pi (eval env a, (x, t, env))
+  | TPi (_, x, a, t) -> Pi (eval env a, (x, t, env))
   | TAbs (x, t) -> Abs (x, t, env)
   | TSigma (x, a, t) -> Sigma (eval env a, (x, t, env))
   | TPair (t, u) -> Pair (eval env t, eval env u)
@@ -184,7 +184,18 @@ and check_type k env ctx a =
   let cenv, benv = ctx in
   match a with
   | TType -> ()
-  | TPi (x, a, b)
+  | TPi (true, x, a, b) ->
+     check_type k env (cenv, Bunch.Empty) a;
+     let xv = vvar k in
+     let k = k+1 in
+     let env = (x,xv)::env in
+     let a = eval env a in
+     let ctx =
+       let cenv = (x,a)::cenv in
+       cenv, benv
+     in
+     check_type k env ctx b
+  | TPi (false, x, a, b)
   | TSigma (x, a, b) ->
      check_type k env ctx a;
      let xv = vvar k in
