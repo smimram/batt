@@ -13,11 +13,12 @@ bb' = (false ⊗ true)
 term : (A : U) → A → Unit
 term = fun A → fun x → tt
 
--- flatten : (A : U) → A → ♭A
--- flatten = fun A → fun a → 𝄫a
-
--- unflatten : (A : U) → ♭A → A
+-- unflatten : (A :: U) → ♭A → A
 -- unflatten = fun A → fun a → let♭ x = a in x
+
+-- should not work
+-- flatten : (A :: U) → A → ♭A
+-- flatten = fun A → fun a → 𝄫a
 
 -- identity on bool
 idBool : Bool → Bool

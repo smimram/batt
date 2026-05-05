@@ -212,6 +212,13 @@ and check_type k env ctx a =
      check_type k env (cenv,Empty) b
   | TFlat a ->
      check_type k env (cenv,Empty) a
+(*
+  | TFlat_ind (x, t, u) ->
+     (
+       match infer k env ctx t with
+       | Flat a ->
+     )
+ *)
   | a -> check k env ctx a Type
 
 (** Infer the type of a term. *)
