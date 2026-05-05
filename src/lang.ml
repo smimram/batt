@@ -142,8 +142,27 @@ and capp ((x,t,env):closure) (v:value) =
   eval ((x,v)::env) t
 
 (** Reify a value as a term. *)
-let readback _k _v =
-  failwith "TODO"
+let rec readback k v =
+  let var k = "x" ^ string_of_int k in
+  let rec neutral k = function
+    | Var i -> TVar (var i)
+    | App (t, u) -> TApp (neutral k t, readback k u)
+    | IndType_ind (ind, a, args, t) -> TIndType_ind (ind, readback k a, readback k args, neutral k t)
+    | Flat_ind _ -> failwith "TODO"
+  in
+  match v with
+  | Type -> TType
+  | IndType ind -> TIndType ind
+  | IndTerm t -> TIndTerm t
+  | Pi (a, b) -> TPi (false, var k, readback k a, readback (k+1) (capp b (vvar k)))
+  | Abs f -> TAbs (var k, readback (k+1) (capp f (vvar k)))
+  | Sigma (a, b) -> TSigma (var k, readback k a, readback (k+1) (capp b (vvar k)))
+  | Pair (t, u) -> TPair (readback k t, readback k u)
+  | Arr (s, a, b) -> TArr (s, readback k a, readback k b)
+  | Tens (a, b) -> TTens (readback k a, readback k b)
+  | Flat a -> TFlat (readback k a)
+  | Flatten t -> TFlatten (readback k t)
+  | Neu t -> neutral k t
 
 type decl = string * term * term
 
@@ -180,10 +199,9 @@ type bunch = Bunch.t
 
 type context = crisp * bunch
 
+(** Comparison of values. *)
 let eq k (t:value) (u:value) =
-  (* TODO: remove *)
-  if t <> u then
-    if readback k t <> readback k u then failwith "eq"
+  if readback k t <> readback k u then failwith "eq"
 
 (** Check that term has given type. *)
 let rec check k env ctx (t:term) (a:value) =
