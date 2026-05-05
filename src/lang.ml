@@ -6,6 +6,7 @@ type term =
   | TFalse
   | TTrue
   | TPi of string * term * term
+  | TAbs of string * term
   | TVar of string
 
 type value =
@@ -14,6 +15,7 @@ type value =
   | False
   | True
   | Pi of value * closure
+  | Abs of closure
 
 and closure = var * term * environment
 
@@ -26,6 +28,7 @@ let rec eval (env:environment) = function
   | TFalse -> False
   | TTrue -> True
   | TPi (x, a, t) -> Pi (eval env a, (x, t, env))
+  | TAbs (x, t) -> Abs (x, t, env)
   | TVar x -> List.assoc x env
 
 type decl = string * term * term
