@@ -16,8 +16,8 @@ term = fun A → fun x → tt
 -- flatten : (A : U) → A → ♭A
 -- flatten = fun A → fun a → 𝄫a
 
--- unflat : (A : U) → ♭A → A
--- unflat = fun A → fun a → let♭ x = a in x
+-- unflatten : (A : U) → ♭A → A
+-- unflatten = fun A → fun a → let♭ x = a in x
 
 -- identity on bool
 idBool : Bool → Bool
@@ -32,4 +32,4 @@ id = fun A → fun x → x
 
 -- linear swap
 -- swap : (A : U) → (B : U) → A ⊗ B → B ⊗ A
--- swap = fun A → fun B → 
+-- swap = fun A → fun B →
