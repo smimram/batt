@@ -25,10 +25,17 @@ type value =
   | True
   | Pi of value * closure
   | Abs of closure
+  | Neu of neutral
+
+and neutral =
+  | Var of int
 
 and closure = var * term * environment
 
 and environment = (var * value) list
+
+(** Make a variable. *)
+let vvar k = Neu (Var k)
 
 (** Evaluate a term to a value. *)
 let rec eval (env:environment) = function
@@ -39,6 +46,10 @@ let rec eval (env:environment) = function
   | TPi (x, a, t) -> Pi (eval env a, (x, t, env))
   | TAbs (x, t) -> Abs (x, t, env)
   | TVar x -> List.assoc x env
+
+(** Instantiate a closure with a value. *)
+let capp ((x,t,env):closure) (v:value) =
+  eval ((x,v)::env) t
 
 type decl = string * term * term
 
@@ -86,6 +97,16 @@ let rec check k env ctx (t:term) (a:value) =
   | TBool, Type -> ()
   | TFalse, Bool -> ()
   | TTrue, Bool -> ()
+  | TAbs (x, t), Pi (a, b) ->
+     let xv = vvar k in
+     let k = k+1 in
+     let env = (x,xv)::env in
+     let ctx =
+       let cenv, benv = ctx in
+       let benv = Bunch.Ext (benv, x, a) in
+       cenv, benv
+     in
+     check k env ctx t (capp b xv)
   | t, a ->
      eq k (infer k env ctx t) a
 
@@ -93,6 +114,15 @@ let rec check k env ctx (t:term) (a:value) =
 and check_type k env ctx a =
   match a with
   | TType -> ()
+  | TPi (x, a, b) ->
+     check_type k env ctx a;
+     let a = eval env a in
+     let ctx =
+       let cenv, benv = ctx in
+       let benv = Bunch.Ext (benv, x, a) in
+       cenv, benv
+     in
+     check_type k env ctx b
   | a -> check k env ctx a Type
 
 (** Infer the type of a term. *)
