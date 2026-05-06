@@ -1,6 +1,7 @@
 let () =
   Printexc.record_backtrace true;
   Printf.printf "Welcome to BATT!\n%!";
+  let files = List.tl @@ Array.to_list Sys.argv in
   List.iter
     (fun fname ->
       Printf.printf "\nChecking %s...\n%!" fname;
@@ -32,4 +33,4 @@ let () =
       in
       close_in ic;
       Lang.check_decls_toplevel decls
-    ) (List.tl @@ Array.to_list Sys.argv);
+    ) files
