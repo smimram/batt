@@ -7,7 +7,8 @@ let utf8 ?(n=1) lexbuf =
   lexbuf.lex_curr_p <- { pos with pos_bol = pos.pos_bol + n }
 }
 
-let space = ' ' | '\t' | '\r'
+let letter = ['A'-'Z''a'-'z']
+let space = [' ''\t''\r']
 
 rule token = parse
   | "U" { TYPE }
@@ -48,7 +49,7 @@ rule token = parse
   | "≡" { utf8 ~n:2 lexbuf; IDEQ }
   | "refl" { REFL }
   | "in" { IN }
-  | (['A'-'Z''a'-'z''0'-'9''\'']+ as s) { IDENT s }
+  | letter(letter|['0'-'9''\'''-'])* as s { IDENT s }
   | "--"[^'\n']* { token lexbuf }
   | space+ { token lexbuf }
   | "\n" { new_line lexbuf; N }
