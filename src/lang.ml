@@ -145,6 +145,8 @@ and vapp t u =
   match t, u with
   | Abs f, u -> capp f u
   | IndType_ind (`Unit, [t]), IndTerm `Unit -> t
+  | IndType_ind (`Bool, [tf;_tt]), IndTerm (`Bool false) -> tf
+  | IndType_ind (`Bool, [_tf;tt]), IndTerm (`Bool true) -> tt
   | IndType_ind (ind, t), Neu u -> Neu (NIndType_ind (ind, t, u))
   | Neu t, u -> Neu (App (t, u))
   | _ -> failwith "vapp"

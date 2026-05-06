@@ -36,8 +36,8 @@ idBool x = x
 idBool' : Bool → Bool
 idBool' = Bool_ind(false,true)
 
--- idBool'IsId : (b : Bool) → (idBool' @ b) ≡ b
--- idBool'IsId = Bool_ind(refl,refl)
+idBool'IsId : (b : Bool) → (idBool' @ b) ≡ b
+idBool'IsId = Bool_ind(refl,refl)
 
 ---
 --- Flat
