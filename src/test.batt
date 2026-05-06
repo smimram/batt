@@ -16,7 +16,7 @@ bnot : Bool → Bool
 bnot = Bool_ind(true,false)
 
 cstf : Unit → Bool
-cstf = Unit_ind(false)
+cstf tt = false
 
 -- terminal arrow
 term : (A : U) → A → Unit

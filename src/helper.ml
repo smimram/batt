@@ -11,6 +11,7 @@ let rec abss l t =
 let abs_pattern x t =
   match x with
   | `Var x -> TAbs (x, t)
+  | `Unit -> TIndType_ind (`Unit, [t])
   | `Tens (x, y) -> TTens_ind (x, y, t)
   | `Flatten x -> TFlat_ind (x, t)
 
