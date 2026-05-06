@@ -343,10 +343,23 @@ let rec check k env ctx (t:term) (a:value) =
       | _ -> failwith "pair_ind"
     )
   | TTensPair (t, u), Tens (a, b) ->
+    (* TODO: fix split *)
     let ctxa, ctxb = Context.split (FV.term t) (FV.term u) ctx in
-     check k env ctxa t a;
-     check k env ctxb u b
-  (* | TTens_ind (x, y, t), Pi (a, b) -> failwith "TODO" *)
+    check k env ctxa t a;
+    check k env ctxb u b
+  | TTens_ind (x, y, t), Pi (a, b) ->
+    (
+      match a with
+      | Tens (a1, a2) ->
+        (* TODO: properly split context *)
+        let x1 = vvar k in
+        let x2 = vvar (k+1) in
+        let k = k+2 in
+        let env = (y,x2)::(x,x1)::env in
+        let ctx = Context.ext (Context.ext ctx x a1) y a2 in
+        check k env ctx t (capp b (Tens (x1, x2)))
+      | _ -> failwith "tens_ind"
+    )
   | TIndType_ind (`Unit, [t]), Pi (a, b) ->
      eq k (IndType `Unit) a;
      check k env ctx t (capp b (IndTerm `Unit))
