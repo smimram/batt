@@ -71,8 +71,8 @@ unflatten A 𝄫x = x
 fstb : Bool ⨂ Bool → Bool
 fstb (x ⊗ y) = x
 
-idt : (A B : U) → A ⊗ B → A ⊗ B
-idt A B (x ⊗ y) = x ⊗ y
+-- idt : (A B : U) → A ⊗ B → A ⊗ B
+-- idt A B (x ⊗ y) = x ⊗ y
 
 -- -- TODO: this is not supposed to work
 -- swap : (A B : U) → A ⊗ B → B ⊗ A
