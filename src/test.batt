@@ -68,12 +68,15 @@ unflatten A 𝄫x = x
 --- Bunch
 ---
 
-fstb : (Bool ⨂ Bool) → Bool
-fstb (x⊗y) = x
+fstb : Bool ⨂ Bool → Bool
+fstb (x ⊗ y) = x
 
--- linear swap
+-- idt : (A B : U) → A ⊗ B → A ⊗ B
+-- idt A B (x ⊗ y) = x ⊗ y
+
+-- -- TODO: this is not supposed to work
 -- swap : (A B : U) → A ⊗ B → B ⊗ A
--- swap = fun A B →
+-- swap A B (x ⊗ y) = y ⊗ x
 
 not : (A : Type) → Type
 not A = Empty

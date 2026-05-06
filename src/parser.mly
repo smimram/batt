@@ -14,6 +14,13 @@ open Helper
 %token<string> IDENT
 %token<Lang.side> ARR
 
+%nonassoc FUN
+%right TO
+%nonassoc DOT
+%right TIMES
+%right TENSP
+%right TENS
+
 %start main
 %type<Lang.decls> main
 %%
@@ -51,12 +58,12 @@ term:
   | simple_term { $1 }
   | t=simple_term IDEQ u=simple_term { TEq (t, u) }
   | t=simple_term AT u=simple_term { TApp (t, u) }
-  | simple_term TO term { TPi (false, "_", $1, $3) }
+  | term TO term { TPi (false, "_", $1, $3) }
   | simple_term TIMES term { TSigma ("_", $1, $3) }
   | simple_term TENS term { TTens ($1, $3) }
   | simple_term TENSP term { TTensPair ($1, $3) }
   | abs=nonempty_list(piabs) TO b=term { pis abs b }
-  | FUN nonempty_list(pattern) TODOT term { abss_pattern $2 $4 }
+  | FUN x=nonempty_list(pattern) to_dot t=term { abss_pattern x t }
   | LPAR term COMMA term RPAR { TPair ($2, $4) }
 
 pattern:
@@ -73,5 +80,5 @@ ccolon:
   | COLON { false }
   | CCOLON { true }
 
-TODOT:
+to_dot:
   | TO | DOT { () }
