@@ -233,6 +233,8 @@ type bunch = Bunch.t
 module Context = struct
   type t = crisp * bunch
 
+  let empty : t = [],Bunch.Empty
+
   let ext ((cenv,benv):t) x a : t = cenv,Bunch.Ext(benv,x,a)
 end
 
@@ -376,4 +378,4 @@ let check_decl k env ctx (x, a, t) =
 let check_decls k env ctx decls =
   List.fold_left (fun (env,ctx) decl -> check_decl k env ctx decl) (env,ctx) decls
 
-let check_decls_toplevel decls = ignore @@ check_decls 0 [] ([],Bunch.Empty) decls
+let check_decls_toplevel decls = ignore @@ check_decls 0 [] Context.empty decls
