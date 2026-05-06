@@ -4,13 +4,13 @@ let () =
   let files = List.tl @@ Array.to_list Sys.argv in
   List.iter
     (fun fname ->
-      Printf.printf "\nChecking %s...\n%!" fname;
-      let ic = open_in fname in
-      let lexbuf = Lexing.from_channel ic in
-      let decls =
-        try Parser.main Lexer.token lexbuf
-        with
-        | Failure err ->
+       Printf.printf "\nChecking %s...\n%!" fname;
+       let ic = open_in fname in
+       let lexbuf = Lexing.from_channel ic in
+       let decls =
+         try Parser.main Lexer.token lexbuf
+         with
+         | Failure err ->
            let pos = (Lexing.lexeme_end_p lexbuf) in
            let err =
              Printf.sprintf
@@ -20,7 +20,7 @@ let () =
                err
            in
            failwith err
-        | Parser.Error ->
+         | Parser.Error ->
            let pos = (Lexing.lexeme_end_p lexbuf) in
            let err =
              Printf.sprintf
@@ -30,7 +30,7 @@ let () =
                (pos.Lexing.pos_cnum - pos.Lexing.pos_bol)
            in
            failwith err
-      in
-      close_in ic;
-      Lang.check_decls_toplevel decls
+       in
+       close_in ic;
+       Lang.check_decls_toplevel decls
     ) files

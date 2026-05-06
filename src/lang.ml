@@ -154,11 +154,11 @@ let rec eval (env:environment) = function
   | TEq (t, u) -> Eq (eval env t, eval env u)
   | TRefl -> Refl
   | TVar x ->
-     (
-       match List.assoc_opt x env with
-       | Some v -> v
-       | None -> failwith @@ Printf.sprintf "eval: could not find %s" x
-     )
+    (
+      match List.assoc_opt x env with
+      | Some v -> v
+      | None -> failwith @@ Printf.sprintf "eval: could not find %s" x
+    )
 
 (** Make a variable. *)
 and vvar k = Neu (Var k)
@@ -287,8 +287,8 @@ module Bunch = struct
     | L l -> Pair.map (fun l -> L l) (fun l -> L l) @@ splitl fv l
        *)
 
-    (* TODO *)
-    let split _fvl _fvr b = b, b
+  (* TODO *)
+  let split _fvl _fvr b = b, b
 end
 
 (** A bunched context. *)
