@@ -406,7 +406,7 @@ let rec check k env ctx (t:term) (a:value) =
   | t, a ->
     let a' = infer k env ctx t in
     if not @@ is_eq k a' a then
-      failwith @@ Printf.sprintf "%s: got %s but %s expected" (string_of_term t) (string_of_value k a') (string_of_value k a)
+      failwith @@ Printf.sprintf "%s has type %s but %s expected" (string_of_term t) (string_of_value k a') (string_of_value k a)
 
 (** Check that a term is a type. *)
 and check_type k env ctx a =
