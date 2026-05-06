@@ -16,6 +16,7 @@ open Helper
 
 %nonassoc FUN
 %right TO
+%nonassoc IDEQ
 %right TIMES
 %right TENSP
 %right TENS
@@ -56,7 +57,7 @@ simple_term:
 
 term:
   | simple_term { $1 }
-  | t=simple_term IDEQ u=simple_term { TEq (t, u) }
+  | t=term IDEQ u=term { TEq (t, u) }
   | t=term AT u=term { TApp (t, u) }
   | term TO term { TPi (false, "_", $1, $3) }
   | term TIMES term { TSigma ("_", $1, $3) }
