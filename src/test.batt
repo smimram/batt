@@ -39,7 +39,10 @@ idBool' = Bool_ind(false,true)
 idBool'IsId : (b : Bool) → idBool' @ b ≡ b
 idBool'IsId = Bool_ind(refl,refl)
 
-fst : (A B : U) → A × B → A
+-- fst : (A B : U) → A × B → A
+-- fst A B (x,y) = x
+
+fst : (A : U) (B : A → U) → (Σ (x : A) . B @ x) → A
 fst A B (x,y) = x
 
 snd : (A B : U) → A × B → B

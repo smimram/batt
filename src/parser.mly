@@ -14,6 +14,7 @@ open Helper
 %token LEFT RIGHT
 %token<string> IDENT
 
+%nonassoc DOT
 %nonassoc FUN
 %right TO
 %nonassoc IDEQ
@@ -68,6 +69,7 @@ term:
   | term TENS term { TTens ($1, $3) }
   | term TENSP term { TTensPair ($1, $3) }
   | abs=nonempty_list(piabs) TO b=term { pis abs b }
+  | SIGMA LPAR x=IDENT COLON a=term RPAR DOT b=term { TSigma (x, a, b) }
   | FUN x=nonempty_list(pattern) to_dot t=term { abss_pattern x t }
   | LPAR term COMMA term RPAR { TPair ($2, $4) }
 
