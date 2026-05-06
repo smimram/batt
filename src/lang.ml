@@ -84,12 +84,14 @@ type value =
   | Flat_ind of closure
   | Neu of neutral
 
+(** A neutral term. *)
 and neutral =
   | Var of int
   | App of neutral * value
   | NIndType_ind of inductive_type * value * neutral
   | NFlat_ind of closure * neutral
 
+(** A closure. *)
 and closure = var * term * environment
 
 (** An environment. *)
@@ -162,6 +164,7 @@ let rec readback k v =
 
 let string_of_value k v = string_of_term @@ readback k v
 
+(** A declaration. *)
 type decl = string * term * term
 
 type decls = decl list
@@ -169,7 +172,9 @@ type decls = decl list
 (** A crisp context. *)
 type crisp = (var * term) list
 
+(** Operation on bunched contexts. *)
 module Bunch = struct
+  (** A bunched context. *)
   type t =
     | Empty
     | Ext of t * string * value
@@ -179,6 +184,15 @@ module Bunch = struct
     | One of string * value
     | Tens of l * t
 
+  let rec to_string k = function
+    | Empty -> "()"
+    | Ext (env,x,a) -> Printf.sprintf "%s,%s:%s" (to_string k env) x (string_of_value k a)
+    | L l -> Printf.sprintf "(%s)" (to_stringl k l)
+  and to_stringl k = function
+    | One (x,a) -> Printf.sprintf "%s:%s" x (string_of_value k a)
+    | Tens (l,env) -> Printf.sprintf "%s⊗(%s)" (to_stringl k l) (to_string k env)
+
+  (** Find the type of a variable. *)
   let rec assoc_opt x = function
     | Empty -> None
     | Ext (env, y, a) -> if x = y then Some a else assoc_opt x env
@@ -193,8 +207,10 @@ module Bunch = struct
        )
 end
 
+(** A bunched context. *)
 type bunch = Bunch.t
 
+(** A context. *)
 type context = crisp * bunch
 
 (** Comparison of values. *)
@@ -205,6 +221,7 @@ let eq k (t:value) (u:value) =
 let rec check k env ctx (t:term) (a:value) =
   Printf.printf "CHECK %s : %s\n%!" (string_of_term t) (string_of_value k a);
   let cenv, benv = ctx in
+  (* Printf.printf ". cenv: %s\n" (String.concat ", " @@ List.map (fun (x,a) -> x ^ ":" ^ string_of_value k a) cenv); *)
   match t, a with
   | TAbs (x, t), Pi (a, b) ->
      let xv = vvar k in
@@ -254,6 +271,7 @@ let rec check k env ctx (t:term) (a:value) =
 and check_type k env ctx a =
   Printf.printf "CHECK TYPE %s\n%!" (string_of_term a);
   let cenv, benv = ctx in
+  (* Printf.printf ". benv: %s\n%!" (Bunch.to_string k benv); *)
   match a with
   | TType -> ()
   | TPi (true, x, a, b) ->
@@ -284,7 +302,15 @@ and check_type k env ctx a =
      check_type k env (cenv,Empty) b
   | TFlat a ->
      check_type k env (cenv,Empty) a
-  | a -> check k env ctx a Type
+  | a ->
+     check k env ctx a Type
+     (*
+     (
+       match infer k env ctx a with
+       | Type | Flat Type -> ()
+       | _ -> failwith "check type"
+     )
+     *)
 
 (** Infer the type of a term. *)
 and infer k env ctx (t:term) =
