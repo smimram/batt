@@ -302,6 +302,15 @@ module Context = struct
 
   let ext ((cenv,benv):t) x a : t = cenv,Bunch.Ext(benv,x,a)
 
+  let ext_crisp ((cenv,benv):t) x a : t = ((x,a)::cenv),benv
+
+  let crisp (cenv,_) : t = cenv,Bunch.Empty
+
+  let assoc_opt x (cenv,benv) =
+    match Bunch.assoc_opt x benv with
+    | Some a -> Some a
+    | None -> List.assoc_opt x cenv
+
   let split fvl fvr (cenv,benv) =
     let l, r = Bunch.split fvl fvr benv in
     (cenv,l),(cenv,r)
@@ -317,7 +326,7 @@ let eq k (t:value) (u:value) =
 (** Check that term has given type. *)
 let rec check k env ctx (t:term) (a:value) =
   Printf.printf "CHECK %s : %s\n%!" (string_of_term t) (string_of_value k a);
-  let cenv, benv = ctx in
+  (* let cenv, benv = ctx in *)
   (* Printf.printf ". cenv: %s\n" (String.concat ", " @@ List.map (fun (x,a) -> x ^ ":" ^ string_of_value k a) cenv); *)
   match t, a with
   | TAbs (x, t), Pi (a, b) ->
@@ -368,7 +377,7 @@ let rec check k env ctx (t:term) (a:value) =
     check k env ctx tf (capp b (IndTerm (`Bool false)));
     check k env ctx tt (capp b (IndTerm (`Bool true)));
   | TFlatten t, Flat a ->
-    check k env (cenv,Empty) t a
+    check k env (Context.crisp ctx) t a
   | TFlat_ind (x, t), Pi (a, b) ->
     let a =
       match a with
@@ -377,7 +386,7 @@ let rec check k env ctx (t:term) (a:value) =
     in
     let xv = vvar k in
     let k = k+1 in
-    check k ((x,xv)::env) ((x,a)::cenv,benv) t (capp b xv)
+    check k ((x,xv)::env) (Context.ext_crisp ctx x a) t (capp b xv)
   | TRefl, Eq (t, u) -> eq k t u
   | t, a ->
     eq k (infer k env ctx t) a
@@ -385,20 +394,17 @@ let rec check k env ctx (t:term) (a:value) =
 (** Check that a term is a type. *)
 and check_type k env ctx a =
   Printf.printf "CHECK TYPE %s\n%!" (string_of_term a);
-  let cenv, benv = ctx in
+  (* let cenv, benv = ctx in *)
   (* Printf.printf ". benv: %s\n%!" (Bunch.to_string k benv); *)
   match a with
   | TType -> ()
   | TPi (true, x, a, b) ->
-    check_type k env (cenv,Bunch.Empty) a;
+    check_type k env (Context.crisp ctx) a;
     let xv = vvar k in
     let k = k+1 in
     let env = (x,xv)::env in
     let a = eval env a in
-    let ctx =
-      let cenv = (x,a)::cenv in
-      cenv, benv
-    in
+    let ctx = Context.ext_crisp ctx x a in
     check_type k env ctx b
   | TPi (false, x, a, b)
   | TSigma (x, a, b) ->
@@ -407,16 +413,13 @@ and check_type k env ctx a =
     let k = k+1 in
     let env = (x,xv)::env in
     let a = eval env a in
-    let ctx =
-      let benv = Bunch.Ext (benv, x, a) in
-      cenv, benv
-    in
+    let ctx = Context.ext ctx x a in
     check_type k env ctx b
   | TTens (a, b) ->
-    check_type k env (cenv,Empty) a;
-    check_type k env (cenv,Empty) b
+    check_type k env (Context.crisp ctx) a;
+    check_type k env (Context.crisp ctx) b
   | TFlat a ->
-    check_type k env (cenv,Empty) a
+    check_type k env (Context.crisp ctx) a
   | TEq (t, u) ->
     let a = infer k env ctx t in
     check k env ctx u a
@@ -433,7 +436,7 @@ and check_type k env ctx a =
 (** Infer the type of a term. *)
 and infer k env ctx (t:term) =
   Printf.printf "INFER %s\n%!" (string_of_term t);
-  let cenv, benv = ctx in
+  (* let cenv, benv = ctx in *)
   match t with
   | TIndType _ -> Type
   | TIndTerm `Unit -> IndType `Unit
@@ -448,17 +451,14 @@ and infer k env ctx (t:term) =
     )
   | TVar x ->
     (
-      match Bunch.assoc_opt x benv with
+      match Context.assoc_opt x ctx with
       | Some a -> a
-      | None ->
-        match List.assoc_opt x cenv with
-        | Some v -> v
-        | None -> failwith @@ Printf.sprintf "infer: undefined variable %s" x
+      | None -> failwith @@ Printf.sprintf "infer: undefined variable %s" x
     )
   | _ -> failwith "infer"
 
 let check_decl k env ctx (x, a, t) =
-  Printf.printf "\nDECL  %s = %s\n%!" x (string_of_term t);
+  Printf.printf "\nDECL  %s = %s : %s\n%!" x (string_of_term t) (string_of_term a);
   check_type k env ctx a;
   let a = eval env a in
   check k env ctx t a;
