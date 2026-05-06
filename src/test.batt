@@ -24,10 +24,10 @@ term A x = tt
 
 -- polymorphic identity
 id : (A : U) → A → A
-id = fun A x → x
+id A x = x
 
 r : (A : U) (x : A) → (x ≡ x)
-r = fun A x → refl
+r A x = refl
 
 -- identity on bool
 idBool : Bool → Bool

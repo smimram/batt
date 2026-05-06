@@ -27,7 +27,7 @@ decls:
   | decl decls { $1::$2 }
 
 decl:
-  | x=IDENT COLON a=term N y=IDENT args=list(IDENT) EQ t=term N { assert (x = y); (x, a, abss args t) }
+  | x=IDENT COLON a=term N y=IDENT args=list(pattern) EQ t=term N { assert (x = y); (x, a, abss_pattern args t) }
 
 simple_term:
   | TYPE { TType }
@@ -56,8 +56,12 @@ term:
   | simple_term TENS term { TTens ($1, $3) }
   | simple_term TENSP term { TTensPair ($1, $3) }
   | abs=nonempty_list(piabs) TO b=term { pis abs b }
-  | FUN nonempty_list(IDENT) TODOT term { abss $2 $4 }
+  | FUN nonempty_list(pattern) TODOT term { abss_pattern $2 $4 }
   | LPAR term COMMA term RPAR { TPair ($2, $4) }
+
+pattern:
+  | x=IDENT { `Var x }
+  | x=IDENT TENS y=IDENT { `Tens (x,y) }
 
 piabs:
   | LPAR x=nonempty_list(IDENT) c=ccolon a=term RPAR { c,x,a }
