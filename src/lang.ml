@@ -90,8 +90,8 @@ let rec string_of_term = function
   | TTensPair (t, u) -> Printf.sprintf "(%s ⊗ %s)" (string_of_term t) (string_of_term u)
   | TTens_ind (x, y, t) -> Printf.sprintf "(λ(%s⊗%s).%s)" x y (string_of_term t)
   | TFlat t -> Printf.sprintf "♭%s" (string_of_term t)
-  | TFlatten t -> Printf.sprintf "flatten(%s)" (string_of_term t)
-  | TFlat_ind (x,t) -> Printf.sprintf "flat_ind(%s,%s)" x (string_of_term t)
+  | TFlatten t -> Printf.sprintf "𝄫%s" (string_of_term t)
+  | TFlat_ind (x,t) -> Printf.sprintf "♭_ind(%s,%s)" x (string_of_term t)
   | TEq (t,u) -> Printf.sprintf "%s = %s" (string_of_term t) (string_of_term u)
   | TRefl -> Printf.sprintf "refl"
   | TVar x -> x
@@ -322,8 +322,11 @@ end
 type context = Context.t
 
 (** Comparison of values. *)
-let eq k (t:value) (u:value) =
-  if readback k t <> readback k u then failwith "eq"
+let is_eq k (t:value) (u:value) =
+  readback k t = readback k u
+
+let eq k t u =
+  if not @@ is_eq k t u then failwith "eq"
 
 (** Check that term has given type. *)
 let rec check k env ctx (t:term) (a:value) =
@@ -401,7 +404,9 @@ let rec check k env ctx (t:term) (a:value) =
     check k ((x,xv)::env) (Context.ext_crisp ctx x a) t (capp b xv)
   | TRefl, Eq (t, u) -> eq k t u
   | t, a ->
-    eq k (infer k env ctx t) a
+    let a' = infer k env ctx t in
+    if not @@ is_eq k a' a then
+      failwith @@ Printf.sprintf "%s: got %s but %s expected" (string_of_term t) (string_of_value k a') (string_of_value k a)
 
 (** Check that a term is a type. *)
 and check_type k env ctx a =
