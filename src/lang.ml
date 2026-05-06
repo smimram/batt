@@ -35,6 +35,8 @@ type term =
   | TFlat of term
   | TFlatten of term
   | TFlat_ind of string * term
+  | TEq of term * term
+  | TRefl
   | TVar of string
 
 (** Multiple abstractions. *)
@@ -65,6 +67,8 @@ let rec string_of_term = function
   | TFlat t -> Printf.sprintf "♭%s" (string_of_term t)
   | TFlatten t -> Printf.sprintf "flatten(%s)" (string_of_term t)
   | TFlat_ind (x,t) -> Printf.sprintf "flat_ind(%s,%s)" x (string_of_term t)
+  | TEq (t,u) -> Printf.sprintf "%s = %s" (string_of_term t) (string_of_term u)
+  | TRefl -> Printf.sprintf "refl"
   | TVar x -> x
 
 (** A value. *)
@@ -82,6 +86,8 @@ type value =
   | Flat of value
   | Flatten of value
   | Flat_ind of closure
+  | Eq of value * value
+  | Refl
   | Neu of neutral
 
 (** A neutral term. *)
@@ -114,6 +120,8 @@ let rec eval (env:environment) = function
   | TFlat t -> Flat (eval env t)
   | TFlatten t -> Flatten (eval env t)
   | TFlat_ind (x, t) -> Flat_ind (x,t,env)
+  | TEq (t, u) -> Eq (eval env t, eval env u)
+  | TRefl -> Refl
   | TVar x ->
      (
        match List.assoc_opt x env with
@@ -160,6 +168,8 @@ let rec readback k v =
   | Flat a -> TFlat (readback k a)
   | Flatten t -> TFlatten (readback k t)
   | Flat_ind t -> TFlat_ind (var k, readback (k+1) (capp t (vvar k)))
+  | Eq (t, u) -> TEq (readback k t, readback k u)
+  | Refl -> TRefl
   | Neu t -> neutral k t
 
 let string_of_value k v = string_of_term @@ readback k v
@@ -264,6 +274,7 @@ let rec check k env ctx (t:term) (a:value) =
      let xv = vvar k in
      let k = k+1 in
      check k ((x,xv)::env) ((x,a)::cenv,benv) t (capp b xv)
+  | TRefl, Eq (t, u) -> eq k t u
   | t, a ->
      eq k (infer k env ctx t) a
 
@@ -302,6 +313,9 @@ and check_type k env ctx a =
      check_type k env (cenv,Empty) b
   | TFlat a ->
      check_type k env (cenv,Empty) a
+  | TEq (t, u) ->
+     let a = infer k env ctx t in
+     check k env ctx u a
   | a ->
      check k env ctx a Type
      (*

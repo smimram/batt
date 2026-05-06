@@ -44,6 +44,9 @@ idBool = fun x → x
 id : (A : U) → A → A
 id = fun A x → x
 
+r : (A : U) → (x : A) → (x ≡ x)
+r = fun A x → refl
+
 -- fstb : Bool ⨂ Bool → Bool
 -- fsb =
 

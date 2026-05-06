@@ -40,6 +40,8 @@ rule token = parse
   | "♭" { utf8 ~n:2 lexbuf; FLAT }
   | "♭_ind" { utf8 ~n:2 lexbuf; FLAT_IND }
   | "𝄫" { utf8 ~n:3 lexbuf; FLATTEN }
+  | "≡" { utf8 ~n:2 lexbuf; IDEQ }
+  | "refl" { REFL }
   | "in" { IN }
   | (['A'-'Z''a'-'z''0'-'9''\'']+ as s) { IDENT s }
   | "--"[^'\n']* { token lexbuf }

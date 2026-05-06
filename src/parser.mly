@@ -8,6 +8,7 @@ open Lang
 %token BOOL FALSE TRUE BOOL_IND
 %token TO FUN DOT AT SIGMA TIMES TENS TENSP
 %token FLAT FLATTEN FLAT_IND
+%token IDEQ REFL
 %token<string> IDENT
 %token<Lang.side> ARR
 
@@ -40,9 +41,11 @@ simple_term:
   | FLAT simple_term { TFlat $2 }
   | FLATTEN simple_term { TFlatten $2 }
   | FLAT_IND LPAR x=IDENT COMMA t=term RPAR { TFlat_ind (x, t) }
+  | REFL { TRefl }
 
 term:
   | simple_term { $1 }
+  | t=simple_term IDEQ u=simple_term { TEq (t, u) }
   | t=simple_term AT u=simple_term { TApp (t, u) }
   | simple_term TO term { TPi (false, "_", $1, $3) }
   | simple_term TIMES term { TSigma ("_", $1, $3) }
