@@ -250,11 +250,11 @@ module Bunch = struct
   and assocl_opt x = function
     | One -> None
     | Tens (lenv, env) ->
-       (
-         match assoc_opt x env with
-         | Some a -> Some a
-         | None -> assocl_opt x lenv
-       )
+      (
+        match assoc_opt x env with
+        | Some a -> Some a
+        | None -> assocl_opt x lenv
+      )
 
   (** Domain of a bunch. *)
   let rec dom b =
@@ -321,15 +321,15 @@ let rec check k env ctx (t:term) (a:value) =
   (* Printf.printf ". cenv: %s\n" (String.concat ", " @@ List.map (fun (x,a) -> x ^ ":" ^ string_of_value k a) cenv); *)
   match t, a with
   | TAbs (x, t), Pi (a, b) ->
-     let xv = vvar k in
-     let k = k+1 in
-     let env = (x,xv)::env in
-     let ctx = Context.ext ctx x a in
-     check k env ctx t (capp b xv)
+    let xv = vvar k in
+    let k = k+1 in
+    let env = (x,xv)::env in
+    let ctx = Context.ext ctx x a in
+    check k env ctx t (capp b xv)
   | TPair (t, u), Sigma (a, b) ->
-     check k env ctx t a;
-     let t = eval env t in
-     check k env ctx u (capp b t)
+    check k env ctx t a;
+    let t = eval env t in
+    check k env ctx u (capp b t)
   | TPair_ind (x, y, t), Pi (a, b) ->
     (
       match a with
@@ -361,26 +361,26 @@ let rec check k env ctx (t:term) (a:value) =
       | _ -> failwith "tens_ind"
     )
   | TIndType_ind (`Unit, [t]), Pi (a, b) ->
-     eq k (IndType `Unit) a;
-     check k env ctx t (capp b (IndTerm `Unit))
+    eq k (IndType `Unit) a;
+    check k env ctx t (capp b (IndTerm `Unit))
   | TIndType_ind (`Bool, [tf;tt]), Pi (a, b) ->
-     eq k (IndType `Bool) a;
-     check k env ctx tf (capp b (IndTerm (`Bool false)));
-     check k env ctx tt (capp b (IndTerm (`Bool true)));
+    eq k (IndType `Bool) a;
+    check k env ctx tf (capp b (IndTerm (`Bool false)));
+    check k env ctx tt (capp b (IndTerm (`Bool true)));
   | TFlatten t, Flat a ->
-     check k env (cenv,Empty) t a
+    check k env (cenv,Empty) t a
   | TFlat_ind (x, t), Pi (a, b) ->
-     let a =
-       match a with
-       | Flat a -> a
-       | _ -> failwith "flat type expected"
-     in
-     let xv = vvar k in
-     let k = k+1 in
-     check k ((x,xv)::env) ((x,a)::cenv,benv) t (capp b xv)
+    let a =
+      match a with
+      | Flat a -> a
+      | _ -> failwith "flat type expected"
+    in
+    let xv = vvar k in
+    let k = k+1 in
+    check k ((x,xv)::env) ((x,a)::cenv,benv) t (capp b xv)
   | TRefl, Eq (t, u) -> eq k t u
   | t, a ->
-     eq k (infer k env ctx t) a
+    eq k (infer k env ctx t) a
 
 (** Check that a term is a type. *)
 and check_type k env ctx a =
@@ -390,38 +390,38 @@ and check_type k env ctx a =
   match a with
   | TType -> ()
   | TPi (true, x, a, b) ->
-     check_type k env (cenv,Bunch.Empty) a;
-     let xv = vvar k in
-     let k = k+1 in
-     let env = (x,xv)::env in
-     let a = eval env a in
-     let ctx =
-       let cenv = (x,a)::cenv in
-       cenv, benv
-     in
-     check_type k env ctx b
+    check_type k env (cenv,Bunch.Empty) a;
+    let xv = vvar k in
+    let k = k+1 in
+    let env = (x,xv)::env in
+    let a = eval env a in
+    let ctx =
+      let cenv = (x,a)::cenv in
+      cenv, benv
+    in
+    check_type k env ctx b
   | TPi (false, x, a, b)
-    | TSigma (x, a, b) ->
-     check_type k env ctx a;
-     let xv = vvar k in
-     let k = k+1 in
-     let env = (x,xv)::env in
-     let a = eval env a in
-     let ctx =
-       let benv = Bunch.Ext (benv, x, a) in
-       cenv, benv
-     in
-     check_type k env ctx b
+  | TSigma (x, a, b) ->
+    check_type k env ctx a;
+    let xv = vvar k in
+    let k = k+1 in
+    let env = (x,xv)::env in
+    let a = eval env a in
+    let ctx =
+      let benv = Bunch.Ext (benv, x, a) in
+      cenv, benv
+    in
+    check_type k env ctx b
   | TTens (a, b) ->
-     check_type k env (cenv,Empty) a;
-     check_type k env (cenv,Empty) b
+    check_type k env (cenv,Empty) a;
+    check_type k env (cenv,Empty) b
   | TFlat a ->
-     check_type k env (cenv,Empty) a
+    check_type k env (cenv,Empty) a
   | TEq (t, u) ->
-     let a = infer k env ctx t in
-     check k env ctx u a
+    let a = infer k env ctx t in
+    check k env ctx u a
   | a ->
-     check k env ctx a Type
+    check k env ctx a Type
      (*
      (
        match infer k env ctx a with
@@ -439,22 +439,22 @@ and infer k env ctx (t:term) =
   | TIndTerm `Unit -> IndType `Unit
   | TIndTerm (`Bool _) -> IndType `Bool
   | TApp (t, u) ->
-     (
-       match infer k env ctx t with
-       | Pi (a, b) ->
-          check k env ctx u a;
-          capp b (eval env u)
-       | _ -> failwith "infer app"
-     )
+    (
+      match infer k env ctx t with
+      | Pi (a, b) ->
+        check k env ctx u a;
+        capp b (eval env u)
+      | _ -> failwith "infer app"
+    )
   | TVar x ->
-     (
-       match Bunch.assoc_opt x benv with
-       | Some a -> a
-       | None ->
-          match List.assoc_opt x cenv with
-          | Some v -> v
-          | None -> failwith @@ Printf.sprintf "infer: undefined variable %s" x
-     )
+    (
+      match Bunch.assoc_opt x benv with
+      | Some a -> a
+      | None ->
+        match List.assoc_opt x cenv with
+        | Some v -> v
+        | None -> failwith @@ Printf.sprintf "infer: undefined variable %s" x
+    )
   | _ -> failwith "infer"
 
 let check_decl k env ctx (x, a, t) =
