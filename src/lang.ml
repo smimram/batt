@@ -29,6 +29,8 @@ type term =
   | TApp of term * term
   | TSigma of string * term * term
   | TPair of term * term
+  | TFst of term
+  | TSnd of term
   | TArr of side * term * term (** lax arrow type *)
   | TTens of term * term
   | TTensPair of term * term
@@ -57,7 +59,7 @@ let rec tpis l b =
   | [] -> b
   | (c,x,a)::l -> tpis' c x a (tpis l b)
 
-
+(** String representation of a term. *)
 let rec string_of_term = function
   | TType -> "Type"
   | TIndType ind -> string_of_inductive_type ind
@@ -69,6 +71,8 @@ let rec string_of_term = function
   | TApp (t, u) -> Printf.sprintf "(%s %s)" (string_of_term t) (string_of_term u)
   | TSigma (x, a, t) -> Printf.sprintf "Σ(%s : %s).%s" x (string_of_term a) (string_of_term t)
   | TPair (t, u) -> Printf.sprintf "(%s, %s)" (string_of_term t) (string_of_term u)
+  | TFst (t) -> Printf.sprintf "fst(%s)" (string_of_term t)
+  | TSnd (t) -> Printf.sprintf "snd(%s)" (string_of_term t)
   | TArr (s, a, b) -> Printf.sprintf "%s →%s %s" (string_of_term a) (string_of_side s) (string_of_term b)
   | TTens (a, b) -> Printf.sprintf "(%s ⨂ %s)" (string_of_term a) (string_of_term b)
   | TTensPair (t, u) -> Printf.sprintf "(%s ⊗ %s)" (string_of_term t) (string_of_term u)
@@ -102,6 +106,8 @@ type value =
 and neutral =
   | Var of int
   | App of neutral * value
+  | Fst of neutral
+  | Snd of neutral
   | NIndType_ind of inductive_type * value list * neutral
   | NFlat_ind of closure * neutral
 
@@ -122,6 +128,20 @@ let rec eval (env:environment) = function
   | TApp (t, u) -> vapp (eval env t) (eval env u)
   | TSigma (x, a, t) -> Sigma (eval env a, (x, t, env))
   | TPair (t, u) -> Pair (eval env t, eval env u)
+  | TFst (t) ->
+     (
+       match eval env t with
+       | Pair (t,_) -> t
+       | Neu t -> Neu (Fst t)
+       | _ -> failwith "fst"
+     )
+  | TSnd (t) ->
+     (
+       match eval env t with
+       | Pair (_,t) -> t
+       | Neu t -> Neu (Snd t)
+       | _ -> failwith "snd"
+     )
   | TArr (s, a, b) -> Arr (s, eval env a, eval env b)
   | TTens (a, b) -> Tens (eval env a, eval env b)
   | TTensPair (t, u) -> Tens (eval env t, eval env u)
@@ -161,6 +181,8 @@ let rec readback k v =
   let rec neutral k = function
     | Var i -> TVar (var i)
     | App (t, u) -> TApp (neutral k t, readback k u)
+    | Fst (t) -> TFst (neutral k t)
+    | Snd (t) -> TSnd (neutral k t)
     | NIndType_ind (ind, args, t) -> TApp (TIndType_ind (ind, List.map (readback k) args), neutral k t)
     | NFlat_ind (t, u) -> TApp (TFlat_ind (var k, readback (k+1) (capp t (vvar k))), neutral k u)
   in
@@ -230,6 +252,7 @@ end
 (** A bunched context. *)
 type bunch = Bunch.t
 
+(** Contexts. *)
 module Context = struct
   type t = crisp * bunch
 

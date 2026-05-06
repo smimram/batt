@@ -48,7 +48,7 @@ unflatten A = ♭_ind(x, x)
 -- unflatten = fun A a → let♭ x = a in x
 
 -- unflatten : (A : U) → ♭A → A
--- unflatten = fun A → ♭_ind(A,♭_ind(x, x)) @ (𝄫 A)
+-- unflatten = fun A → ♭_ind(A,♭_ind(x, x)) @ 𝄫A
 
 -- unflatten : (A : ♭U) → ♭A → A
 -- unflatten = ♭_ind(A,♭_ind(x, x))
@@ -58,11 +58,11 @@ unflatten A = ♭_ind(x, x)
 -- flatten = fun A → fun a → 𝄫a
 
 ---
---- Bucnh
+--- Bunch
 ---
 
 -- fstb : Bool ⨂ Bool → Bool
--- fsb =
+-- fstb =
 
 -- linear swap
 -- swap : (A B : U) → A ⊗ B → B ⊗ A
