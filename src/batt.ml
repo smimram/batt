@@ -1,9 +1,9 @@
 let () =
   Printexc.record_backtrace true;
-  Printf.printf "Welcome to BATT!\n\n%!";
+  Printf.printf "Welcome to BATT!\n%!";
   List.iter
     (fun fname ->
-      Printf.printf "Checking %s...\n\n%!" fname;
+      Printf.printf "\nChecking %s...\n%!" fname;
       let ic = open_in fname in
       let lexbuf = Lexing.from_channel ic in
       let decls =
