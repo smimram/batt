@@ -26,7 +26,7 @@ decls:
   | decl decls { $1::$2 }
 
 decl:
-  | IDENT COLON term N IDENT EQ term N { assert ($1 = $5); ($1, $3, $7) }
+  | x=IDENT COLON a=term N y=IDENT args=list(IDENT) EQ t=term N { assert (x = y); (x, a, tabss args t) }
 
 simple_term:
   | TYPE { TType }

@@ -10,7 +10,7 @@ bb' : Bool ⨂ Bool
 bb' = (false ⊗ true)
 
 app : (A B : U) → (A → B) → A → B
-app = fun A B f x → f @ x
+app A B f x = f @ x
 
 not : Bool → Bool
 not = Bool_ind(true,false)
@@ -20,10 +20,10 @@ cstf = Unit_ind(false)
 
 -- terminal arrow
 term : (A : U) → A → Unit
-term = fun A x → tt
+term A x = tt
 
 unflatten : (A :: U) → ♭A → A
-unflatten = fun A → ♭_ind(x, x)
+unflatten A = ♭_ind(x, x)
 -- unflatten = fun A a → let♭ x = a in x
 
 -- unflatten : (A : U) → ♭A → A
@@ -38,7 +38,7 @@ unflatten = fun A → ♭_ind(x, x)
 
 -- identity on bool
 idBool : Bool → Bool
-idBool = fun x → x
+idBool x = x
 
 -- polymorphic identity
 id : (A : U) → A → A
@@ -55,4 +55,4 @@ r = fun A x → refl
 -- swap = fun A B →
 
 not : (A : Type) → Type
-not = fun A → Empty
+not A = Empty
