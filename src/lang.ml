@@ -45,10 +45,18 @@ let rec tabss l t =
   | [] -> t
   | x::l -> TAbs (x, tabss l t)
 
-let rec tpis c l a b =
+(** Multiple pi abstractions. *)
+let rec tpis l b =
+  (* Multiple pi abstractions of the same type. *)
+  let rec tpis' c l a b =
+    match l with
+    | [] -> b
+    | x::l -> TPi (c, x, a, tpis' c l a b)
+  in
   match l with
   | [] -> b
-  | x::l -> TPi (c, x, a, tpis c l a b)
+  | (c,x,a)::l -> tpis' c x a (tpis l b)
+
 
 let rec string_of_term = function
   | TType -> "Type"
