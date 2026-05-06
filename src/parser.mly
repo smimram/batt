@@ -61,8 +61,9 @@ term:
 
 pattern:
   | x=IDENT { `Var x }
-  | LPAR x=IDENT TENSP y=IDENT RPAR { `Tens (x,y) }
   | TT { `Unit }
+  | LPAR x=IDENT COMMA y=IDENT RPAR { `Pair (x,y) }
+  | LPAR x=IDENT TENSP y=IDENT RPAR { `Tens (x,y) }
   | FLATTEN x=IDENT { `Flatten x }
 
 piabs:

@@ -29,8 +29,7 @@ type term =
   | TApp of term * term
   | TSigma of string * term * term
   | TPair of term * term
-  | TFst of term
-  | TSnd of term
+  | TPair_ind of string * string * term
   | TArr of side * term * term (** lax arrow type *)
   | TTens of term * term
   | TTensPair of term * term
@@ -57,7 +56,7 @@ module FV = struct
     | TAbs (x, t) -> remove x (term t)
     | TApp (t, u)
     | TPair (t, u) -> union (term t) (term u)
-    | TFst t | TSnd t -> term t
+    | TPair_ind (x, y, t) -> remove x (remove y (term t))
     | TArr (_, a, b)
     | TTens (a, b) -> union (term a) (term b)
     | TTensPair (t, u) -> union (term t) (term u)
@@ -80,10 +79,9 @@ let rec string_of_term = function
   | TPi (c, x, a, t) -> Printf.sprintf "(%s %s %s) → %s" x (if c then "::" else ":") (string_of_term a) (string_of_term t)
   | TAbs (x, t) -> Printf.sprintf "λ%s.%s" x (string_of_term t)
   | TApp (t, u) -> Printf.sprintf "(%s %s)" (string_of_term t) (string_of_term u)
-  | TSigma (x, a, t) -> Printf.sprintf "Σ(%s : %s).%s" x (string_of_term a) (string_of_term t)
+  | TSigma (x, a, t) -> Printf.sprintf "(Σ(%s : %s).%s)" x (string_of_term a) (string_of_term t)
   | TPair (t, u) -> Printf.sprintf "(%s, %s)" (string_of_term t) (string_of_term u)
-  | TFst (t) -> Printf.sprintf "fst(%s)" (string_of_term t)
-  | TSnd (t) -> Printf.sprintf "snd(%s)" (string_of_term t)
+  | TPair_ind (x, y, t) -> Printf.sprintf "(λ(%s,%s).%s)" x y (string_of_term t)
   | TArr (s, a, b) -> Printf.sprintf "%s →%s %s" (string_of_term a) (string_of_side s) (string_of_term b)
   | TTens (a, b) -> Printf.sprintf "(%s ⨂ %s)" (string_of_term a) (string_of_term b)
   | TTensPair (t, u) -> Printf.sprintf "(%s ⊗ %s)" (string_of_term t) (string_of_term u)
@@ -105,6 +103,7 @@ type value =
   | Abs of closure
   | Sigma of value * closure
   | Pair of value * value
+  | Pair_ind of closure2
   | Arr of side * value * value
   | Tens of value * value
   | Tens_ind of closure2
@@ -119,8 +118,7 @@ type value =
 and neutral =
   | Var of int
   | App of neutral * value
-  | Fst of neutral
-  | Snd of neutral
+  | NPair_ind of closure2 * neutral
   | NTens_ind of closure2 * neutral
   | NIndType_ind of inductive_type * value list * neutral
   | NFlat_ind of closure * neutral
@@ -145,20 +143,7 @@ let rec eval (env:environment) = function
   | TApp (t, u) -> vapp (eval env t) (eval env u)
   | TSigma (x, a, t) -> Sigma (eval env a, (x, t, env))
   | TPair (t, u) -> Pair (eval env t, eval env u)
-  | TFst (t) ->
-     (
-       match eval env t with
-       | Pair (t,_) -> t
-       | Neu t -> Neu (Fst t)
-       | _ -> failwith "fst"
-     )
-  | TSnd (t) ->
-     (
-       match eval env t with
-       | Pair (_,t) -> t
-       | Neu t -> Neu (Snd t)
-       | _ -> failwith "snd"
-     )
+  | TPair_ind (x, y, t) -> Pair_ind (x, y, t, env)
   | TArr (s, a, b) -> Arr (s, eval env a, eval env b)
   | TTens (a, b) -> Tens (eval env a, eval env b)
   | TTensPair (t, u) -> Tens (eval env t, eval env u)
@@ -202,11 +187,10 @@ let rec readback k v =
   let rec neutral k = function
     | Var i -> TVar (var i)
     | App (t, u) -> TApp (neutral k t, readback k u)
-    | Fst (t) -> TFst (neutral k t)
-    | Snd (t) -> TSnd (neutral k t)
-    | NTens_ind (t, u) -> TApp (readback k (Tens_ind (t)), neutral k u)
-    | NIndType_ind (ind, args, t) -> TApp (readback k (IndType_ind (ind, args)), neutral k t)
-    | NFlat_ind (t, u) -> TApp (readback k (Flat_ind (t)), neutral k u)
+    | NPair_ind (t, u) -> TApp (readback k @@ Pair_ind t, neutral k u)
+    | NTens_ind (t, u) -> TApp (readback k @@ Tens_ind t, neutral k u)
+    | NIndType_ind (ind, args, t) -> TApp (readback k @@ IndType_ind (ind, args), neutral k t)
+    | NFlat_ind (t, u) -> TApp (readback k @@ Flat_ind t, neutral k u)
   in
   match v with
   | Type -> TType
@@ -217,6 +201,7 @@ let rec readback k v =
   | Abs f -> TAbs (var k, readback (k+1) (capp f (vvar k)))
   | Sigma (a, b) -> TSigma (var k, readback k a, readback (k+1) (capp b (vvar k)))
   | Pair (t, u) -> TPair (readback k t, readback k u)
+  | Pair_ind t -> TPair_ind (var k, var (k+1), readback (k+2) @@ capp2 t (vvar k) (vvar (k+1)))
   | Arr (s, a, b) -> TArr (s, readback k a, readback k b)
   | Tens (a, b) -> TTens (readback k a, readback k b)
   | Tens_ind (t) -> TTens_ind (var k, var (k+1), readback (k+2) @@ capp2 t (vvar k) (vvar (k+1)))
@@ -339,15 +324,24 @@ let rec check k env ctx (t:term) (a:value) =
      let xv = vvar k in
      let k = k+1 in
      let env = (x,xv)::env in
-     let ctx =
-       let benv = Bunch.Ext (benv, x, a) in
-       cenv, benv
-     in
+     let ctx = Context.ext ctx x a in
      check k env ctx t (capp b xv)
   | TPair (t, u), Sigma (a, b) ->
      check k env ctx t a;
      let t = eval env t in
      check k env ctx u (capp b t)
+  | TPair_ind (x, y, t), Pi (a, b) ->
+    (
+      match a with
+      | Sigma (a1, a2) ->
+        let x1 = vvar k in
+        let x2 = vvar (k+1) in
+        let k = k+2 in
+        let env = (y,x2)::(x,x1)::env in
+        let ctx = Context.ext (Context.ext ctx x a1) y (capp a2 x1) in
+        check k env ctx t (capp b (Pair (x1, x2)))
+      | _ -> failwith "pair_ind"
+    )
   | TTensPair (t, u), Tens (a, b) ->
     let ctxa, ctxb = Context.split (FV.term t) (FV.term u) ctx in
      check k env ctxa t a;

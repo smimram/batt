@@ -12,6 +12,7 @@ let abs_pattern x t =
   match x with
   | `Var x -> TAbs (x, t)
   | `Unit -> TIndType_ind (`Unit, [t])
+  | `Pair (x, y) -> TPair_ind (x, y, t)
   | `Tens (x, y) -> TTens_ind (x, y, t)
   | `Flatten x -> TFlat_ind (x, t)
 
