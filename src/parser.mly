@@ -62,6 +62,7 @@ term:
 pattern:
   | x=IDENT { `Var x }
   | x=IDENT TENS y=IDENT { `Tens (x,y) }
+  | FLATTEN x=IDENT { `Flatten x }
 
 piabs:
   | LPAR x=nonempty_list(IDENT) c=ccolon a=term RPAR { c,x,a }
