@@ -16,7 +16,6 @@ open Helper
 
 %nonassoc FUN
 %right TO
-%nonassoc DOT
 %right TIMES
 %right TENSP
 %right TENS
@@ -59,9 +58,9 @@ term:
   | t=simple_term IDEQ u=simple_term { TEq (t, u) }
   | t=simple_term AT u=simple_term { TApp (t, u) }
   | term TO term { TPi (false, "_", $1, $3) }
-  | simple_term TIMES term { TSigma ("_", $1, $3) }
-  | simple_term TENS term { TTens ($1, $3) }
-  | simple_term TENSP term { TTensPair ($1, $3) }
+  | term TIMES term { TSigma ("_", $1, $3) }
+  | term TENS term { TTens ($1, $3) }
+  | term TENSP term { TTensPair ($1, $3) }
   | abs=nonempty_list(piabs) TO b=term { pis abs b }
   | FUN x=nonempty_list(pattern) to_dot t=term { abss_pattern x t }
   | LPAR term COMMA term RPAR { TPair ($2, $4) }
