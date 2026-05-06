@@ -31,13 +31,13 @@ decl:
 simple_term:
   | TYPE { TType }
   | EMPTY { TIndType `Empty }
-  | EMPTY_IND { TIndType_ind (`Empty, TIndTerm `Unit) }
+  | EMPTY_IND { TIndType_ind (`Empty, []) }
   | UNIT { TIndType `Unit }
   | TT { TIndTerm `Unit }
-  | UNIT_IND LPAR t=term RPAR { TIndType_ind (`Unit, t) }
+  | UNIT_IND LPAR t=term RPAR { TIndType_ind (`Unit, [t]) }
   | BOOL { TIndType `Bool }
   | FALSE { TIndTerm (`Bool false) }
-  | BOOL_IND LPAR tf=term COMMA tt=term RPAR { TIndType_ind (`Bool, TPair (tf, tt)) }
+  | BOOL_IND LPAR tf=term COMMA tt=term RPAR { TIndType_ind (`Bool, [tf;tt]) }
   | TRUE { TIndTerm (`Bool true) }
   | IDENT { TVar $1 }
   | LPAR term RPAR { $2 }

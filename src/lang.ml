@@ -22,7 +22,7 @@ let string_of_side = function
 type term =
   | TType
   | TIndType of inductive_type
-  | TIndType_ind of inductive_type * term
+  | TIndType_ind of inductive_type * term list
   | TIndTerm of inductive_term
   | TPi of bool * string * term * term (** pi-type *) (* boolean indicates whether crisp *)
   | TAbs of string * term
@@ -61,7 +61,7 @@ let rec tpis l b =
 let rec string_of_term = function
   | TType -> "Type"
   | TIndType ind -> string_of_inductive_type ind
-  | TIndType_ind (ind, args) -> Printf.sprintf "%s_ind(%s)" (string_of_inductive_type ind) (string_of_term args)
+  | TIndType_ind (ind, args) -> Printf.sprintf "%s_ind(%s)" (string_of_inductive_type ind) (String.concat "," @@ List.map string_of_term args)
   | TIndTerm `Unit -> "tt"
   | TIndTerm (`Bool b) -> string_of_bool b
   | TPi (c, x, a, t) -> Printf.sprintf "(%s %s %s) → %s" x (if c then "::" else ":") (string_of_term a) (string_of_term t)
@@ -84,7 +84,7 @@ type value =
   | Type
   | IndType of inductive_type
   | IndTerm of inductive_term
-  | IndType_ind of inductive_type * value
+  | IndType_ind of inductive_type * value list
   | Pi of value * closure
   | Abs of closure
   | Sigma of value * closure
@@ -102,7 +102,7 @@ type value =
 and neutral =
   | Var of int
   | App of neutral * value
-  | NIndType_ind of inductive_type * value * neutral
+  | NIndType_ind of inductive_type * value list * neutral
   | NFlat_ind of closure * neutral
 
 (** A closure. *)
@@ -116,7 +116,7 @@ let rec eval (env:environment) = function
   | TType -> Type
   | TIndType a -> IndType a
   | TIndTerm t -> IndTerm t
-  | TIndType_ind (ind, args) -> IndType_ind (ind, eval env args)
+  | TIndType_ind (ind, args) -> IndType_ind (ind, List.map (eval env) args)
   | TPi (_, x, a, t) -> Pi (eval env a, (x, t, env))
   | TAbs (x, t) -> Abs (x, t, env)
   | TApp (t, u) -> vapp (eval env t) (eval env u)
@@ -144,7 +144,7 @@ and vvar k = Neu (Var k)
 and vapp t u =
   match t, u with
   | Abs f, u -> capp f u
-  | IndType_ind (`Unit, t), IndTerm `Unit -> t
+  | IndType_ind (`Unit, [t]), IndTerm `Unit -> t
   | IndType_ind (ind, t), Neu u -> Neu (NIndType_ind (ind, t, u))
   | Neu t, u -> Neu (App (t, u))
   | _ -> failwith "vapp"
@@ -159,13 +159,13 @@ let rec readback k v =
   let rec neutral k = function
     | Var i -> TVar (var i)
     | App (t, u) -> TApp (neutral k t, readback k u)
-    | NIndType_ind (ind, args, t) -> TApp (TIndType_ind (ind, readback k args), neutral k t)
+    | NIndType_ind (ind, args, t) -> TApp (TIndType_ind (ind, List.map (readback k) args), neutral k t)
     | NFlat_ind (t, u) -> TApp (TFlat_ind (var k, readback (k+1) (capp t (vvar k))), neutral k u)
   in
   match v with
   | Type -> TType
   | IndType ind -> TIndType ind
-  | IndType_ind (ind, args) -> TIndType_ind (ind, readback k args)
+  | IndType_ind (ind, args) -> TIndType_ind (ind, List.map (readback k) args)
   | IndTerm t -> TIndTerm t
   | Pi (a, b) -> TPi (false, var k, readback k a, readback (k+1) (capp b (vvar k)))
   | Abs f -> TAbs (var k, readback (k+1) (capp f (vvar k)))
@@ -258,19 +258,13 @@ let rec check k env ctx (t:term) (a:value) =
      (* TODO: how do we perform weakening? *)
      check k env ctx t a;
      check k env ctx u b
-  | TIndType_ind (`Unit, t), Pi (a, b) ->
+  | TIndType_ind (`Unit, [t]), Pi (a, b) ->
      eq k (IndType `Unit) a;
      check k env ctx t (capp b (IndTerm `Unit))
-  | TIndType_ind (`Bool, t), Pi (a, b) ->
+  | TIndType_ind (`Bool, [tf;tt]), Pi (a, b) ->
      eq k (IndType `Bool) a;
-     let bf = capp b (IndTerm (`Bool false)) in
-     (* let bt = capp b (IndTerm (`Bool true)) in *)
-     (* NOTE: things would be simpler if we had products (as opposed to sigma) *)
-     let bt =
-       let x,b,env = b in
-       "_",b,((x,IndTerm (`Bool true))::env)
-     in
-     check k env ctx t (Sigma (bf, bt))
+     check k env ctx tf (capp b (IndTerm (`Bool false)));
+     check k env ctx tt (capp b (IndTerm (`Bool true)));
   | TFlatten t, Flat a ->
      check k env (cenv,Empty) t a
   | TFlat_ind (x, t), Pi (a, b) ->
