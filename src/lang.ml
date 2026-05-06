@@ -432,13 +432,6 @@ and check_type k env ctx a =
     check k env ctx u a
   | a ->
     check k env ctx a Type
-     (*
-     (
-       match infer k env ctx a with
-       | Type | Flat Type -> ()
-       | _ -> failwith "check type"
-     )
-     *)
 
 (** Infer the type of a term. *)
 and infer k env ctx (t:term) =
