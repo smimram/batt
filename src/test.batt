@@ -83,3 +83,6 @@ fstb (x ⊗ y) = x
 -- -- TODO: this is not supposed to work
 -- swap : (A B : U) → A ⨂ B → B ⨂ A
 -- swap A B (x ⊗ y) = y ⊗ x
+
+-- curry : (A B C : U) → (A ⨂ B → C) → (A → B →ᵣ C)
+-- curry A B C f a bᵣ = f @ (a ⊗ b)

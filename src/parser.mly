@@ -11,8 +11,8 @@ open Helper
 %token TO FUN DOT AT SIGMA TIMES TENS TENSP
 %token FLAT FLATTEN FLAT_IND
 %token IDEQ REFL
+%token LEFT RIGHT
 %token<string> IDENT
-%token<Lang.side> ARR
 
 %nonassoc FUN
 %right TO
@@ -63,7 +63,7 @@ term:
   | simple_term { $1 }
   | t=term IDEQ u=term { TEq (t, u) }
   | t=term AT u=term { TApp (t, u) }
-  | term TO term { TPi (false, "_", $1, $3) }
+  | a=term TO d=option(dir) b=term { match d with None -> TPi (false, "_", a, b) | Some d -> TArr (d, a, b) }
   | term TIMES term { TSigma ("_", $1, $3) }
   | term TENS term { TTens ($1, $3) }
   | term TENSP term { TTensPair ($1, $3) }
@@ -72,7 +72,7 @@ term:
   | LPAR term COMMA term RPAR { TPair ($2, $4) }
 
 pattern:
-  | x=IDENT { `Var x }
+  | x=IDENT d=option(dir) { `Var (x,d) }
   | TT { `Unit }
   | LPAR x=IDENT COMMA y=IDENT RPAR { `Pair (x,y) }
   | LPAR x=IDENT TENSP y=IDENT RPAR { `Tens (x,y) }
@@ -80,6 +80,10 @@ pattern:
 
 piabs:
   | LPAR x=nonempty_list(IDENT) c=ccolon a=term RPAR { c,x,a }
+
+dir:
+  | LEFT { Left }
+  | RIGHT { Right }
 
 ccolon:
   | COLON { false }

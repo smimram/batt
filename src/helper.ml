@@ -6,11 +6,11 @@ open Lang
 let rec abss l t =
   match l with
   | [] -> t
-  | x::l -> TAbs (x, abss l t)
+  | x::l -> TAbs (None, x, abss l t)
 
 let abs_pattern x t =
   match x with
-  | `Var x -> TAbs (x, t)
+  | `Var (x,d) -> TAbs (d, x, t)
   | `Unit -> TIndType_ind (`Unit, [t])
   | `Pair (x, y) -> TPair_ind (x, y, t)
   | `Tens (x, y) -> TTens_ind (x, y, t)

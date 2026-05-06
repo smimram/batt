@@ -15,8 +15,8 @@ type inductive_term = [`Unit | `Bool of bool]
 type side = Left | Right
 
 let string_of_side = function
-  | Left -> "l"
-  | Right -> "r"
+  | Left -> "ₗ"
+  | Right -> "ᵣ"
 
 (** A term. *)
 type term =
@@ -25,7 +25,7 @@ type term =
   | TIndType_ind of inductive_type * term list
   | TIndTerm of inductive_term
   | TPi of bool * string * term * term (** pi-type *) (* boolean indicates whether crisp *)
-  | TAbs of string * term
+  | TAbs of side option * string * term
   | TApp of term * term
   | TSigma of string * term * term
   | TPair of term * term
@@ -53,7 +53,7 @@ module FV = struct
     | TIndTerm _ -> empty
     | TPi (_, x, a, b)
     | TSigma (x, a, b) -> union (term a) (remove x (term b))
-    | TAbs (x, t) -> remove x (term t)
+    | TAbs (_, x, t) -> remove x (term t)
     | TApp (t, u)
     | TPair (t, u) -> union (term t) (term u)
     | TPair_ind (x, y, t) -> remove x (remove y (term t))
@@ -77,7 +77,7 @@ let rec string_of_term = function
   | TIndTerm `Unit -> "tt"
   | TIndTerm (`Bool b) -> string_of_bool b
   | TPi (c, x, a, t) -> Printf.sprintf "(%s %s %s) → %s" x (if c then "::" else ":") (string_of_term a) (string_of_term t)
-  | TAbs (x, t) -> Printf.sprintf "λ%s.%s" x (string_of_term t)
+  | TAbs (s, x, t) -> Printf.sprintf "λ%s%s.%s" x (Option.value ~default:"" @@ Option.map string_of_side s) (string_of_term t)
   | TApp (t, u) -> Printf.sprintf "(%s %s)" (string_of_term t) (string_of_term u)
   | TSigma (x, a, t) -> Printf.sprintf "(Σ(%s : %s).%s)" x (string_of_term a) (string_of_term t)
   | TPair (t, u) -> Printf.sprintf "(%s, %s)" (string_of_term t) (string_of_term u)
@@ -100,7 +100,7 @@ type value =
   | IndTerm of inductive_term
   | IndType_ind of inductive_type * value list
   | Pi of value * closure
-  | Abs of closure
+  | Abs of side option * closure
   | Sigma of value * closure
   | Pair of value * value
   | Pair_ind of closure2
@@ -139,7 +139,7 @@ let rec eval (env:environment) = function
   | TIndTerm t -> IndTerm t
   | TIndType_ind (ind, args) -> IndType_ind (ind, List.map (eval env) args)
   | TPi (_, x, a, t) -> Pi (eval env a, (x, t, env))
-  | TAbs (x, t) -> Abs (x, t, env)
+  | TAbs (s, x, t) -> Abs (s, (x, t, env))
   | TApp (t, u) -> vapp (eval env t) (eval env u)
   | TSigma (x, a, t) -> Sigma (eval env a, (x, t, env))
   | TPair (t, u) -> Pair (eval env t, eval env u)
@@ -166,7 +166,7 @@ and vvar k = Neu (Var k)
 (** Apply a value to another. *)
 and vapp t u =
   match t, u with
-  | Abs f, u -> capp f u
+  | Abs (_, f), u -> capp f u
   | IndType_ind (`Unit, [t]), IndTerm `Unit -> t
   | IndType_ind (`Bool, [tf;_tt]), IndTerm (`Bool false) -> tf
   | IndType_ind (`Bool, [_tf;tt]), IndTerm (`Bool true) -> tt
@@ -198,7 +198,7 @@ let rec readback k v =
   | IndType_ind (ind, args) -> TIndType_ind (ind, List.map (readback k) args)
   | IndTerm t -> TIndTerm t
   | Pi (a, b) -> TPi (false, var k, readback k a, readback (k+1) (capp b (vvar k)))
-  | Abs f -> TAbs (var k, readback (k+1) (capp f (vvar k)))
+  | Abs (s, f) -> TAbs (s, var k, readback (k+1) (capp f (vvar k)))
   | Sigma (a, b) -> TSigma (var k, readback k a, readback (k+1) (capp b (vvar k)))
   | Pair (t, u) -> TPair (readback k t, readback k u)
   | Pair_ind t -> TPair_ind (var k, var (k+1), readback (k+2) @@ capp2 t (vvar k) (vvar (k+1)))
@@ -228,44 +228,36 @@ module Bunch = struct
   type t =
     | Empty
     | Ext of t * string * value
-    | L of l
-
-  and l =
-    | One
-    | Tens of l * t
+    | Tens of t * t
 
   let rec to_string k = function
     | Empty -> "()"
     | Ext (env,x,a) -> Printf.sprintf "%s,%s:%s" (to_string k env) x (string_of_value k a)
-    | L l -> Printf.sprintf "(%s)" (to_stringl k l)
-  and to_stringl k = function
-    | One -> "()"
-    | Tens (l,env) -> Printf.sprintf "%s⊗(%s)" (to_stringl k l) (to_string k env)
+    | Tens (l,r) -> Printf.sprintf "%s⊗%s" (to_string k l) (to_string k r)
+
+  let ext_tens ctx s x a =
+    let ext = Ext (Empty, x, a) in
+    match s with
+    | Left -> Tens (ext, ctx)
+    | Right -> Tens (ctx, ext)
 
   (** Find the type of a variable. *)
   let rec assoc_opt x = function
     | Empty -> None
     | Ext (env, y, a) -> if x = y then Some a else assoc_opt x env
-    | L l -> assocl_opt x l
-  and assocl_opt x = function
-    | One -> None
-    | Tens (lenv, env) ->
+    | Tens (l, r) ->
       (
-        match assoc_opt x env with
+        match assoc_opt x r with
         | Some a -> Some a
-        | None -> assocl_opt x lenv
+        | None -> assoc_opt x l
       )
 
   (** Domain of a bunch. *)
   let rec dom b =
-    let rec doml = function
-      | One -> FV.empty
-      | Tens (l,b) -> FV.union (doml l) (dom b)
-    in
     match b with
     | Empty -> FV.empty
     | Ext (b,x,_) -> FV.add x (dom b)
-    | L l -> doml l
+    | Tens (l,r) -> FV.union (dom l) (dom r)
 
       (*
   (** Split a buch so that we have the given free variables. *)
@@ -305,9 +297,11 @@ module Context = struct
 
   let empty : t = [],Bunch.Empty
 
-  let ext ((cenv,benv):t) x a : t = cenv,Bunch.Ext(benv,x,a)
+  let ext ((cenv,benv):t) x a : t = cenv, Bunch.Ext(benv,x,a)
 
-  let ext_crisp ((cenv,benv):t) x a : t = ((x,a)::cenv),benv
+  let ext_tens (cenv,benv) s x a = cenv, Bunch.ext_tens benv s x a
+
+  let ext_crisp ((cenv,benv):t) x a : t = ((x,a)::cenv), benv
 
   let crisp (cenv,_) : t = cenv,Bunch.Empty
 
@@ -334,12 +328,20 @@ let rec check k env ctx (t:term) (a:value) =
   (* let cenv, benv = ctx in *)
   (* Printf.printf ". cenv: %s\n" (String.concat ", " @@ List.map (fun (x,a) -> x ^ ":" ^ string_of_value k a) cenv); *)
   match t, a with
-  | TAbs (x, t), Pi (a, b) ->
+  | TAbs (None, x, t), Pi (a, b) ->
     let xv = vvar k in
     let k = k+1 in
     let env = (x,xv)::env in
     let ctx = Context.ext ctx x a in
     check k env ctx t (capp b xv)
+  | TAbs (Some s, x, t), Arr (s', a, b) ->
+    assert (s = s');
+    (* TODO: fix this *)
+    let xv = vvar k in
+    let k = k+1 in
+    let env = (x,xv)::env in
+    let ctx = Context.ext_tens ctx s x a in
+    check k env ctx t b
   | TPair (t, u), Sigma (a, b) ->
     check k env ctx t a;
     let t = eval env t in

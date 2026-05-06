@@ -32,8 +32,8 @@ rule token = parse
   | "," { COMMA }
   | "->" { TO }
   | "→"  { utf8 ~n:2 lexbuf; TO }
-  | "->l" { ARR Left }
-  | "->r" { ARR Right }
+  | "ₗ" { utf8 ~n:2 lexbuf; LEFT }
+  | "ᵣ" { utf8 ~n:2 lexbuf; RIGHT }
   | "." { DOT }
   | "fun" { FUN }
   | "λ" { utf8 lexbuf; FUN }
