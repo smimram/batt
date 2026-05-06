@@ -4,6 +4,7 @@ open Lang
 
 %token COLON CCOLON EQ LPAR RPAR COMMA IN N EOF
 %token TYPE
+%token EMPTY EMPTY_IND
 %token UNIT TT UNIT_IND
 %token BOOL FALSE TRUE BOOL_IND
 %token TO FUN DOT AT SIGMA TIMES TENS TENSP
@@ -29,6 +30,8 @@ decl:
 
 simple_term:
   | TYPE { TType }
+  | EMPTY { TIndType `Empty }
+  | EMPTY_IND { TIndType_ind (`Empty, TIndTerm `Unit) }
   | UNIT { TIndType `Unit }
   | TT { TIndTerm `Unit }
   | UNIT_IND LPAR t=term RPAR { TIndType_ind (`Unit, t) }
