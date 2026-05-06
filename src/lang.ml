@@ -174,6 +174,7 @@ and vapp t u =
   | IndType_ind (`Bool, [tf;_tt]), IndTerm (`Bool false) -> tf
   | IndType_ind (`Bool, [_tf;tt]), IndTerm (`Bool true) -> tt
   | IndType_ind (ind, t), Neu u -> Neu (NIndType_ind (ind, t, u))
+  | Flat_ind t, Flatten u -> capp t u
   | Neu t, u -> Neu (App (None, t, u))
   | _ -> failwith "vapp"
 
