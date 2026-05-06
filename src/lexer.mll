@@ -13,8 +13,10 @@ rule token = parse
   | "U" { TYPE }
   | "Type" { TYPE }
   | "Empty" { EMPTY }
+  | "⊥" { utf8 ~n:2 lexbuf; EMPTY }
   | "Empty_ind" { EMPTY_IND }
   | "Unit" { UNIT }
+  | "⊤" { utf8 ~n:2 lexbuf; UNIT }
   | "tt" { TT }
   | "Unit_ind" { UNIT_IND }
   | "Bool" { BOOL }
