@@ -34,6 +34,7 @@ type term =
   | TArr of side * term * term (** lax arrow type *)
   | TTens of term * term
   | TTensPair of term * term
+  | TTens_ind of string * string * term
   | TFlat of term
   | TFlatten of term
   | TFlat_ind of string * term
@@ -76,6 +77,7 @@ let rec string_of_term = function
   | TArr (s, a, b) -> Printf.sprintf "%s →%s %s" (string_of_term a) (string_of_side s) (string_of_term b)
   | TTens (a, b) -> Printf.sprintf "(%s ⨂ %s)" (string_of_term a) (string_of_term b)
   | TTensPair (t, u) -> Printf.sprintf "(%s ⊗ %s)" (string_of_term t) (string_of_term u)
+  | TTens_ind (x, y, t) -> Printf.sprintf "(λ(%s⊗%s).%s)" x y (string_of_term t)
   | TFlat t -> Printf.sprintf "♭%s" (string_of_term t)
   | TFlatten t -> Printf.sprintf "flatten(%s)" (string_of_term t)
   | TFlat_ind (x,t) -> Printf.sprintf "flat_ind(%s,%s)" x (string_of_term t)
@@ -95,6 +97,7 @@ type value =
   | Pair of value * value
   | Arr of side * value * value
   | Tens of value * value
+  | Tens_ind of closure2
   | Flat of value
   | Flatten of value
   | Flat_ind of closure
@@ -108,11 +111,15 @@ and neutral =
   | App of neutral * value
   | Fst of neutral
   | Snd of neutral
+  | NTens_ind of closure2 * neutral
   | NIndType_ind of inductive_type * value list * neutral
   | NFlat_ind of closure * neutral
 
 (** A closure. *)
 and closure = var * term * environment
+
+(** A binary closure. *)
+and closure2 = var * var * term * environment
 
 (** An environment. *)
 and environment = (var * value) list
@@ -145,6 +152,7 @@ let rec eval (env:environment) = function
   | TArr (s, a, b) -> Arr (s, eval env a, eval env b)
   | TTens (a, b) -> Tens (eval env a, eval env b)
   | TTensPair (t, u) -> Tens (eval env t, eval env u)
+  | TTens_ind (x, y, t) -> Tens_ind (x, y, t, env)
   | TFlat t -> Flat (eval env t)
   | TFlatten t -> Flatten (eval env t)
   | TFlat_ind (x, t) -> Flat_ind (x,t,env)
@@ -175,6 +183,9 @@ and vapp t u =
 and capp ((x,t,env):closure) (v:value) =
   eval ((x,v)::env) t
 
+and capp2 ((x,y,t,env):closure2) (u:value) (v:value) =
+  eval ((y,v)::(x,u)::env) t
+
 (** Reify a value as a term. *)
 let rec readback k v =
   let var k = "x" ^ string_of_int k in
@@ -183,8 +194,9 @@ let rec readback k v =
     | App (t, u) -> TApp (neutral k t, readback k u)
     | Fst (t) -> TFst (neutral k t)
     | Snd (t) -> TSnd (neutral k t)
-    | NIndType_ind (ind, args, t) -> TApp (TIndType_ind (ind, List.map (readback k) args), neutral k t)
-    | NFlat_ind (t, u) -> TApp (TFlat_ind (var k, readback (k+1) (capp t (vvar k))), neutral k u)
+    | NTens_ind (t, u) -> TApp (readback k (Tens_ind (t)), neutral k u)
+    | NIndType_ind (ind, args, t) -> TApp (readback k (IndType_ind (ind, args)), neutral k t)
+    | NFlat_ind (t, u) -> TApp (readback k (Flat_ind (t)), neutral k u)
   in
   match v with
   | Type -> TType
@@ -197,6 +209,7 @@ let rec readback k v =
   | Pair (t, u) -> TPair (readback k t, readback k u)
   | Arr (s, a, b) -> TArr (s, readback k a, readback k b)
   | Tens (a, b) -> TTens (readback k a, readback k b)
+  | Tens_ind (t) -> TTens_ind (var k, var (k+1), readback (k+2) @@ capp2 t (vvar k) (vvar (k+1)))
   | Flat a -> TFlat (readback k a)
   | Flatten t -> TFlatten (readback k t)
   | Flat_ind t -> TFlat_ind (var k, readback (k+1) (capp t (vvar k)))
