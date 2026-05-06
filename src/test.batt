@@ -45,6 +45,12 @@ fst A B (x,y) = x
 snd : (A B : U) → A × B → B
 snd A B (x,y) = y
 
+not : (A : Type) → Type
+not A = Empty
+
+exfalso : (A : Type) → ⊥ → A
+exfalso A ()
+
 ---
 --- Flat
 ---
@@ -77,6 +83,3 @@ fstb (x ⊗ y) = x
 -- -- TODO: this is not supposed to work
 -- swap : (A B : U) → A ⨂ B → B ⨂ A
 -- swap A B (x ⊗ y) = y ⊗ x
-
-not : (A : Type) → Type
-not A = Empty

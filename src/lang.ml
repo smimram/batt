@@ -298,6 +298,11 @@ type bunch = Bunch.t
 module Context = struct
   type t = crisp * bunch
 
+  let to_string k (cenv,benv) =
+    let cenv = String.concat ", " @@ List.map (fun (x,a) -> Printf.sprintf "%s:%s" x (string_of_value k a)) cenv in
+    let benv = Bunch.to_string k benv in
+    Printf.sprintf "%s / %s" cenv benv
+
   let empty : t = [],Bunch.Empty
 
   let ext ((cenv,benv):t) x a : t = cenv,Bunch.Ext(benv,x,a)
@@ -369,6 +374,8 @@ let rec check k env ctx (t:term) (a:value) =
         check k env ctx t (capp b (Tens (x1, x2)))
       | _ -> failwith "tens_ind"
     )
+  | TIndType_ind (`Empty, []), Pi (a, _) ->
+    eq k (IndType `Empty) a
   | TIndType_ind (`Unit, [t]), Pi (a, b) ->
     eq k (IndType `Unit) a;
     check k env ctx t (capp b (IndTerm `Unit))
@@ -395,7 +402,7 @@ let rec check k env ctx (t:term) (a:value) =
 and check_type k env ctx a =
   Printf.printf "CHECK TYPE %s\n%!" (string_of_term a);
   (* let cenv, benv = ctx in *)
-  (* Printf.printf ". benv: %s\n%!" (Bunch.to_string k benv); *)
+  (* Printf.printf ". ctx: %s\n%!" (Context.to_string k ctx); *)
   match a with
   | TType -> ()
   | TPi (true, x, a, b) ->

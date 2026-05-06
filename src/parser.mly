@@ -3,7 +3,7 @@ open Lang
 open Helper
 %}
 
-%token COLON CCOLON EQ LPAR RPAR COMMA IN N EOF
+%token COLON CCOLON EQ LPAR RPAR LRPAR COMMA IN N EOF
 %token TYPE
 %token EMPTY EMPTY_IND
 %token UNIT TT UNIT_IND
@@ -35,7 +35,11 @@ decls:
   | decl decls { $1::$2 }
 
 decl:
-  | x=IDENT COLON a=term N y=IDENT args=list(pattern) EQ t=term N { assert (x = y); (x, a, abss_pattern args t) }
+  | x=IDENT COLON a=term N def=def N { let y, t = def in assert (x = y); (x, a, t) }
+
+def:
+  | y=IDENT args=list(pattern) EQ t=term { y, abss_pattern args t }
+  | y=IDENT args=list(pattern) LRPAR { y, abss_pattern args (TIndType_ind (`Empty, [])) }
 
 simple_term:
   | TYPE { TType }
