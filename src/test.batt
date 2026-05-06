@@ -63,7 +63,7 @@ unflatten A 𝄫x = x
 ---
 
 -- fstb : Bool ⨂ Bool → Bool
--- fstb =
+-- fstb (x⊗y) = x
 
 -- linear swap
 -- swap : (A B : U) → A ⊗ B → B ⊗ A

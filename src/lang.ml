@@ -42,6 +42,34 @@ type term =
   | TRefl
   | TVar of string
 
+module FV = struct
+  include Set.Make(String)
+
+  let rec term t =
+    let list l = List.fold_left (fun fv t -> union fv (term t)) empty l in
+    match t with
+    | TType
+    | TIndType _ -> empty
+    | TIndType_ind (_, l) -> list l
+    | TIndTerm _ -> empty
+    | TPi (_, x, a, b)
+    | TSigma (x, a, b) -> union (term a) (remove x (term b))
+    | TAbs (x, t) -> remove x (term t)
+    | TApp (t, u)
+    | TPair (t, u) -> union (term t) (term u)
+    | TFst t | TSnd t -> term t
+    | TArr (_, a, b)
+    | TTens (a, b) -> union (term a) (term b)
+    | TTensPair (t, u) -> union (term t) (term u)
+    | TTens_ind (x, y, t) -> remove x (remove y (term t))
+    | TFlat a -> term a
+    | TFlatten t -> term t
+    | TFlat_ind (x, t) -> remove x (term t)
+    | TEq (t, u) -> union (term t) (term u)
+    | TRefl -> empty
+    | TVar x -> singleton x
+end
+
 (** String representation of a term. *)
 let rec string_of_term = function
   | TType -> "Type"
@@ -218,7 +246,7 @@ module Bunch = struct
     | L of l
 
   and l =
-    | One of string * value
+    | One
     | Tens of l * t
 
   let rec to_string k = function
@@ -226,7 +254,7 @@ module Bunch = struct
     | Ext (env,x,a) -> Printf.sprintf "%s,%s:%s" (to_string k env) x (string_of_value k a)
     | L l -> Printf.sprintf "(%s)" (to_stringl k l)
   and to_stringl k = function
-    | One (x,a) -> Printf.sprintf "%s:%s" x (string_of_value k a)
+    | One -> "()"
     | Tens (l,env) -> Printf.sprintf "%s⊗(%s)" (to_stringl k l) (to_string k env)
 
   (** Find the type of a variable. *)
@@ -235,13 +263,47 @@ module Bunch = struct
     | Ext (env, y, a) -> if x = y then Some a else assoc_opt x env
     | L l -> assocl_opt x l
   and assocl_opt x = function
-    | One (y, a) -> if x = y then Some a else None
+    | One -> None
     | Tens (lenv, env) ->
        (
          match assoc_opt x env with
          | Some a -> Some a
          | None -> assocl_opt x lenv
        )
+
+  (** Domain of a bunch. *)
+  let rec dom b =
+    let rec doml = function
+      | One -> FV.empty
+      | Tens (l,b) -> FV.union (doml l) (dom b)
+    in
+    match b with
+    | Empty -> FV.empty
+    | Ext (b,x,_) -> FV.add x (dom b)
+    | L l -> doml l
+
+      (*
+  (** Split a buch so that we have the given free variables. *)
+  (* TODO: do we only want to split at toplevel? *)
+  let rec splitl fvl fvr l =
+    if FV.is_empty fvl then One, l
+    else if FV.is_empty fvr then l, One
+    else
+      match l with
+      | One -> failwith "splitl"
+      | Tens (l, b) ->
+         let fv = FV.diff fv (dom b) in
+         let l1, l2 = splitl fv l in
+         l1, Tens (l2, b)
+
+  let split fv = function
+    | Empty -> Empty, Empty
+    | Ext _ as b -> Empty, b (* TODO: can we do better? *)
+    | L l -> Pair.map (fun l -> L l) (fun l -> L l) @@ splitl fv l
+       *)
+
+    (* TODO *)
+    let split _fvl _fvr b = b, b
 end
 
 (** A bunched context. *)
@@ -254,6 +316,10 @@ module Context = struct
   let empty : t = [],Bunch.Empty
 
   let ext ((cenv,benv):t) x a : t = cenv,Bunch.Ext(benv,x,a)
+
+  let split fvl fvr (cenv,benv) =
+    let l, r = Bunch.split fvl fvr benv in
+    (cenv,l),(cenv,r)
 end
 
 (** A context. *)
@@ -283,9 +349,10 @@ let rec check k env ctx (t:term) (a:value) =
      let t = eval env t in
      check k env ctx u (capp b t)
   | TTensPair (t, u), Tens (a, b) ->
-     (* TODO: how do we perform weakening? *)
-     check k env ctx t a;
-     check k env ctx u b
+    let ctxa, ctxb = Context.split (FV.term t) (FV.term u) ctx in
+     check k env ctxa t a;
+     check k env ctxb u b
+  (* | TTens_ind (x, y, t), Pi (a, b) -> failwith "TODO" *)
   | TIndType_ind (`Unit, [t]), Pi (a, b) ->
      eq k (IndType `Unit) a;
      check k env ctx t (capp b (IndTerm `Unit))

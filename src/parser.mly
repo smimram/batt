@@ -61,7 +61,7 @@ term:
 
 pattern:
   | x=IDENT { `Var x }
-  | x=IDENT TENS y=IDENT { `Tens (x,y) }
+  | LPAR x=IDENT TENSP y=IDENT RPAR { `Tens (x,y) }
   | TT { `Unit }
   | FLATTEN x=IDENT { `Flatten x }
 
