@@ -18,9 +18,9 @@ not = Bool_ind(true,false)
 cstf : Unit → Bool
 cstf = Unit_ind(false)
 
--- -- terminal arrow
--- term : (A : U) → A → Unit
--- term = fun A → fun x → tt
+-- terminal arrow
+term : (A : U) → A → Unit
+term = fun A x → tt
 
 unflatten : (A :: U) → ♭A → A
 unflatten = fun A → ♭_ind(x, x)
@@ -53,3 +53,6 @@ r = fun A x → refl
 -- linear swap
 -- swap : (A B : U) → A ⊗ B → B ⊗ A
 -- swap = fun A B →
+
+not : (A : Type) → Type
+not = fun A → Empty
