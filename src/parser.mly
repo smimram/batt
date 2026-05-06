@@ -19,6 +19,7 @@ open Helper
 %right TIMES
 %right TENSP
 %right TENS
+%left AT
 
 %start main
 %type<Lang.decls> main
@@ -56,7 +57,7 @@ simple_term:
 term:
   | simple_term { $1 }
   | t=simple_term IDEQ u=simple_term { TEq (t, u) }
-  | t=simple_term AT u=simple_term { TApp (t, u) }
+  | t=term AT u=term { TApp (t, u) }
   | term TO term { TPi (false, "_", $1, $3) }
   | term TIMES term { TSigma ("_", $1, $3) }
   | term TENS term { TTens ($1, $3) }
