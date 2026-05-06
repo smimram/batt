@@ -109,6 +109,7 @@ type value =
   | Pair_ind of closure2
   | Arr of side * value * value
   | Tens of value * value
+  | TensPair of value * value
   | Tens_ind of closure2
   | Flat of value
   | Flatten of value
@@ -149,7 +150,7 @@ let rec eval (env:environment) = function
   | TPair_ind (x, y, t) -> Pair_ind (x, y, t, env)
   | TArr (s, a, b) -> Arr (s, eval env a, eval env b)
   | TTens (a, b) -> Tens (eval env a, eval env b)
-  | TTensPair (t, u) -> Tens (eval env t, eval env u)
+  | TTensPair (t, u) -> TensPair (eval env t, eval env u)
   | TTens_ind (x, y, t) -> Tens_ind (x, y, t, env)
   | TFlat t -> Flat (eval env t)
   | TFlatten t -> Flatten (eval env t)
@@ -174,6 +175,8 @@ and vapp t u =
   | IndType_ind (`Bool, [tf;_tt]), IndTerm (`Bool false) -> tf
   | IndType_ind (`Bool, [_tf;tt]), IndTerm (`Bool true) -> tt
   | IndType_ind (ind, t), Neu u -> Neu (NIndType_ind (ind, t, u))
+  | Pair_ind t, Pair (u, v) -> capp2 t u v
+  | Tens_ind t, TensPair (u, v) -> capp2 t u v
   | Flat_ind t, Flatten u -> capp t u
   | Neu t, u -> Neu (App (None, t, u))
   | _ -> failwith "vapp"
@@ -208,6 +211,7 @@ let rec readback k v =
   | Pair_ind t -> TPair_ind (var k, var (k+1), readback (k+2) @@ capp2 t (vvar k) (vvar (k+1)))
   | Arr (s, a, b) -> TArr (s, readback k a, readback k b)
   | Tens (a, b) -> TTens (readback k a, readback k b)
+  | TensPair (t, u) -> TTensPair (readback k t, readback k u)
   | Tens_ind (t) -> TTens_ind (var k, var (k+1), readback (k+2) @@ capp2 t (vvar k) (vvar (k+1)))
   | Flat a -> TFlat (readback k a)
   | Flatten t -> TFlatten (readback k t)
