@@ -188,7 +188,7 @@ type decl = string * term * term
 type decls = decl list
 
 (** A crisp context. *)
-type crisp = (var * term) list
+type crisp = (var * value) list
 
 (** Operation on bunched contexts. *)
 module Bunch = struct
@@ -228,8 +228,14 @@ end
 (** A bunched context. *)
 type bunch = Bunch.t
 
+module Context = struct
+  type t = crisp * bunch
+
+  let ext ((cenv,benv):t) x a : t = cenv,Bunch.Ext(benv,x,a)
+end
+
 (** A context. *)
-type context = crisp * bunch
+type context = Context.t
 
 (** Comparison of values. *)
 let eq k (t:value) (u:value) =
@@ -361,9 +367,11 @@ let check_decl k env ctx (x, a, t) =
   let a = eval env a in
   check k env ctx t a;
   let t = eval env t in
-  (x,t)::env
+  let env = (x,t)::env in
+  let ctx = Context.ext ctx x a in
+  env, ctx
 
 let check_decls k env ctx decls =
-  List.fold_left (fun env decl -> check_decl k env ctx decl) env decls
+  List.fold_left (fun (env,ctx) decl -> check_decl k env ctx decl) (env,ctx) decls
 
 let check_decls_toplevel decls = ignore @@ check_decls 0 [] ([],Bunch.Empty) decls

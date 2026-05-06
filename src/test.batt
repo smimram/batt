@@ -12,8 +12,8 @@ bb' = (false ⊗ true)
 app : (A B : U) → (A → B) → A → B
 app A B f x = f @ x
 
-not : Bool → Bool
-not = Bool_ind(true,false)
+bnot : Bool → Bool
+bnot = Bool_ind(true,false)
 
 cstf : Unit → Bool
 cstf = Unit_ind(false)
@@ -21,6 +21,27 @@ cstf = Unit_ind(false)
 -- terminal arrow
 term : (A : U) → A → Unit
 term A x = tt
+
+-- polymorphic identity
+id : (A : U) → A → A
+id = fun A x → x
+
+r : (A : U) (x : A) → (x ≡ x)
+r = fun A x → refl
+
+-- identity on bool
+idBool : Bool → Bool
+idBool x = x
+
+idBool' : Bool → Bool
+idBool' = Bool_ind(false,true)
+
+-- idBool'IsId : (b : Bool) → (idBool' @ b) ≡ b
+-- idBool'IsId = Bool_ind(refl,refl)
+
+---
+--- Flat
+---
 
 unflatten : (A :: U) → ♭A → A
 unflatten A = ♭_ind(x, x)
@@ -36,16 +57,9 @@ unflatten A = ♭_ind(x, x)
 -- flatten : (A :: U) → A → ♭A
 -- flatten = fun A → fun a → 𝄫a
 
--- identity on bool
-idBool : Bool → Bool
-idBool x = x
-
--- polymorphic identity
-id : (A : U) → A → A
-id = fun A x → x
-
-r : (A : U) (x : A) → (x ≡ x)
-r = fun A x → refl
+---
+--- Bucnh
+---
 
 -- fstb : Bool ⨂ Bool → Bool
 -- fsb =

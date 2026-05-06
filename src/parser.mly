@@ -40,11 +40,11 @@ simple_term:
   | BOOL_IND LPAR tf=term COMMA tt=term RPAR { TIndType_ind (`Bool, [tf;tt]) }
   | TRUE { TIndTerm (`Bool true) }
   | IDENT { TVar $1 }
-  | LPAR term RPAR { $2 }
   | FLAT simple_term { TFlat $2 }
   | FLATTEN simple_term { TFlatten $2 }
   | FLAT_IND LPAR x=IDENT COMMA t=term RPAR { TFlat_ind (x, t) }
   | REFL { TRefl }
+  | LPAR term RPAR { $2 }
 
 term:
   | simple_term { $1 }
