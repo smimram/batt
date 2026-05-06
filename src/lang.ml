@@ -401,7 +401,7 @@ let rec check k env ctx (t:term) (a:value) =
     in
     let xv = vvar k in
     let k = k+1 in
-    check k ((x,xv)::env) (Context.ext_crisp ctx x a) t (capp b xv)
+    check k ((x,xv)::env) (Context.ext_crisp ctx x a) t (capp b (Flatten xv))
   | TRefl, Eq (t, u) -> eq k t u
   | t, a ->
     let a' = infer k env ctx t in

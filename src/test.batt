@@ -73,9 +73,9 @@ unflatten A 𝄫x = x
 -- flatten : (A :: U) → A → ♭A
 -- flatten = fun A → fun a → 𝄫a
 
--- -- Lemma 4.4 in Sulman 2017
--- flat-eta : (A :: Type) (C : ♭A → Type) (f : (x : ♭A) → C @ x) (x : ♭A) → C @ x
--- flat-eta A C f 𝄫x = f @ 𝄫x
+-- Lemma 4.4 in Sulman 2017
+flat-eta : (A :: Type) (C : ♭A → Type) (f : (x : ♭A) → C @ x) (x : ♭A) → C @ x
+flat-eta A C f 𝄫x = f @ 𝄫x
 
 -- flat-unique : (A :: Type) (C : ♭A → Type) (f : (x : ♭A) → C @ x) (x : ♭A) → flat-eta A C f x ≡ f @ x
 
