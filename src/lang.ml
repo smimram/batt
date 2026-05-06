@@ -18,6 +18,9 @@ let string_of_side = function
   | Left -> "ₗ"
   | Right -> "ᵣ"
 
+let string_of_opt_side s =
+  Option.value ~default:"" @@ Option.map string_of_side s
+
 (** A term. *)
 type term =
   | TType
@@ -26,7 +29,7 @@ type term =
   | TIndTerm of inductive_term
   | TPi of bool * string * term * term (** pi-type *) (* boolean indicates whether crisp *)
   | TAbs of side option * string * term
-  | TApp of term * term
+  | TApp of side option * term * term
   | TSigma of string * term * term
   | TPair of term * term
   | TPair_ind of string * string * term
@@ -54,7 +57,7 @@ module FV = struct
     | TPi (_, x, a, b)
     | TSigma (x, a, b) -> union (term a) (remove x (term b))
     | TAbs (_, x, t) -> remove x (term t)
-    | TApp (t, u)
+    | TApp (_, t, u)
     | TPair (t, u) -> union (term t) (term u)
     | TPair_ind (x, y, t) -> remove x (remove y (term t))
     | TArr (_, a, b)
@@ -77,8 +80,8 @@ let rec string_of_term = function
   | TIndTerm `Unit -> "tt"
   | TIndTerm (`Bool b) -> string_of_bool b
   | TPi (c, x, a, t) -> Printf.sprintf "(%s %s %s) → %s" x (if c then "::" else ":") (string_of_term a) (string_of_term t)
-  | TAbs (s, x, t) -> Printf.sprintf "λ%s%s.%s" x (Option.value ~default:"" @@ Option.map string_of_side s) (string_of_term t)
-  | TApp (t, u) -> Printf.sprintf "(%s %s)" (string_of_term t) (string_of_term u)
+  | TAbs (s, x, t) -> Printf.sprintf "λ%s%s.%s" x (string_of_opt_side s) (string_of_term t)
+  | TApp (s, t, u) -> Printf.sprintf "(%s @%s %s)" (string_of_term t) (string_of_opt_side s) (string_of_term u)
   | TSigma (x, a, t) -> Printf.sprintf "(Σ(%s : %s).%s)" x (string_of_term a) (string_of_term t)
   | TPair (t, u) -> Printf.sprintf "(%s, %s)" (string_of_term t) (string_of_term u)
   | TPair_ind (x, y, t) -> Printf.sprintf "(λ(%s,%s).%s)" x y (string_of_term t)
@@ -117,7 +120,7 @@ type value =
 (** A neutral term. *)
 and neutral =
   | Var of int
-  | App of neutral * value
+  | App of side option * neutral * value
   | NPair_ind of closure2 * neutral
   | NTens_ind of closure2 * neutral
   | NIndType_ind of inductive_type * value list * neutral
@@ -140,7 +143,7 @@ let rec eval (env:environment) = function
   | TIndType_ind (ind, args) -> IndType_ind (ind, List.map (eval env) args)
   | TPi (_, x, a, t) -> Pi (eval env a, (x, t, env))
   | TAbs (s, x, t) -> Abs (s, (x, t, env))
-  | TApp (t, u) -> vapp (eval env t) (eval env u)
+  | TApp (_, t, u) -> vapp (eval env t) (eval env u)
   | TSigma (x, a, t) -> Sigma (eval env a, (x, t, env))
   | TPair (t, u) -> Pair (eval env t, eval env u)
   | TPair_ind (x, y, t) -> Pair_ind (x, y, t, env)
@@ -171,7 +174,7 @@ and vapp t u =
   | IndType_ind (`Bool, [tf;_tt]), IndTerm (`Bool false) -> tf
   | IndType_ind (`Bool, [_tf;tt]), IndTerm (`Bool true) -> tt
   | IndType_ind (ind, t), Neu u -> Neu (NIndType_ind (ind, t, u))
-  | Neu t, u -> Neu (App (t, u))
+  | Neu t, u -> Neu (App (None, t, u))
   | _ -> failwith "vapp"
 
 (** Instantiate a closure with a value. *)
@@ -186,11 +189,11 @@ let rec readback k v =
   let var k = "x" ^ string_of_int k in
   let rec neutral k = function
     | Var i -> TVar (var i)
-    | App (t, u) -> TApp (neutral k t, readback k u)
-    | NPair_ind (t, u) -> TApp (readback k @@ Pair_ind t, neutral k u)
-    | NTens_ind (t, u) -> TApp (readback k @@ Tens_ind t, neutral k u)
-    | NIndType_ind (ind, args, t) -> TApp (readback k @@ IndType_ind (ind, args), neutral k t)
-    | NFlat_ind (t, u) -> TApp (readback k @@ Flat_ind t, neutral k u)
+    | App (s, t, u) -> TApp (s, neutral k t, readback k u)
+    | NPair_ind (t, u) -> TApp (None, readback k @@ Pair_ind t, neutral k u)
+    | NTens_ind (t, u) -> TApp (None, readback k @@ Tens_ind t, neutral k u)
+    | NIndType_ind (ind, args, t) -> TApp (None, readback k @@ IndType_ind (ind, args), neutral k t)
+    | NFlat_ind (t, u) -> TApp (None, readback k @@ Flat_ind t, neutral k u)
   in
   match v with
   | Type -> TType
@@ -443,7 +446,7 @@ and infer k env ctx (t:term) =
   | TIndType _ -> Type
   | TIndTerm `Unit -> IndType `Unit
   | TIndTerm (`Bool _) -> IndType `Bool
-  | TApp (t, u) ->
+  | TApp (None, t, u) ->
     (
       match infer k env ctx t with
       | Pi (a, b) ->

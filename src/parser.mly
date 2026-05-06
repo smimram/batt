@@ -62,8 +62,8 @@ simple_term:
 term:
   | simple_term { $1 }
   | t=term IDEQ u=term { TEq (t, u) }
-  | t=term AT u=term { TApp (t, u) }
-  | a=term TO d=option(dir) b=term { match d with None -> TPi (false, "_", a, b) | Some d -> TArr (d, a, b) }
+  | t=term AT s=option(dir) u=term { TApp (s, t, u) }
+  | a=term TO s=option(dir) b=term { match s with None -> TPi (false, "_", a, b) | Some s -> TArr (s, a, b) }
   | term TIMES term { TSigma ("_", $1, $3) }
   | term TENS term { TTens ($1, $3) }
   | term TENSP term { TTensPair ($1, $3) }
