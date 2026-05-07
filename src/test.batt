@@ -76,8 +76,8 @@ cong A B f refl = refl
 transport : (A B : Type) → A ≡ B → A → B
 transport refl A = A
 
--- subst : (A : Type) (P : A → Type) (x y : A) → x ≡ y → P x → P y
--- subst A P refl z = z
+subst : (A : Type) (P : A → Type) (x y : A) → x ≡ y → P @ x → P @ y
+subst A P refl z = z
 
 ---
 --- Flat
