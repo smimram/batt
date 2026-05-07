@@ -82,14 +82,17 @@ unflatten A 𝄫x = x
 --- Formalizing Shulman 2017
 
 -- Lemma 4.4
+-- flat-unique : (A :: Type) (C : ♭A → Type) (f : (x : ♭A) → C @ x) (x : ♭A) → ((λ 𝄫u → f @ 𝄫 u) @ x) ≡ f @ x
+-- flat-unique A C f 𝄫x = refl
+
 flat-eta : (A :: Type) (C : ♭A → Type) (f : (x : ♭A) → C @ x) (x : ♭A) → C @ x
 flat-eta A C f 𝄫x = f @ 𝄫x
 
 flat-unique : (A :: Type) (C : ♭A → Type) (f : (x : ♭A) → C @ x) (x : ♭A) → flat-eta @ A @ C @ f @ x ≡ f @ x
 flat-unique A C f 𝄫x = refl
 
--- -- Lemma 4.5
--- flat-comm : (A B :: Type) (C : ♭A → ♭B → Type)
+-- -- Lemma 5.2
+-- flat-commutation : (A : Type) (B : ♭A → Type) (M : ♭A) (N : (u : A) → B @ 𝄫u) →
 
 ---
 --- Bunch
