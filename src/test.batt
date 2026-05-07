@@ -94,6 +94,10 @@ unflatten A 𝄫x = x
 -- unflatten : (A : ♭U) → ♭A → A
 -- unflatten = ♭_ind(A,♭_ind(x, x))
 
+-- TODO: this should work!
+-- unflatten' : (A : ♭Type) → let f : ♭Type → Type = λ 𝄫B → (♭B → B) in f @ A
+-- unflatten' A 𝄫x = x
+
 -- should not work
 -- flatten : (A :: U) → A → ♭A
 -- flatten = fun A → fun a → 𝄫a

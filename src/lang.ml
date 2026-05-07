@@ -448,6 +448,7 @@ let rec check k env ctx (t:term) (a:value) =
     let _, d = unpi (capp c x) in
     let d = capp d Refl in
     check k env ctx r d
+  | TPi _, Type -> check_type k env ctx t
   | t, a ->
     let a' = infer k env ctx t in
     if not @@ is_eq k a' a then
