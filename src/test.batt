@@ -26,9 +26,6 @@ term A x = tt
 id : (A : U) → A → A
 id A x = x
 
-r : (A : U) (x : A) → (x ≡ x)
-r A x = refl
-
 -- identity on bool
 idBool : Bool → Bool
 idBool x = x
@@ -59,6 +56,16 @@ n : Bool
 n =
   let id : (A : Type) → A → A = λ A x → x in
   id @ Bool @ false
+
+---
+--- Identity types
+---
+
+r : (A : U) (x : A) → (x ≡ x)
+r A x = refl
+
+-- sym : (A : Type) (x y : A) → x ≡ y → y ≡ x
+-- sym A x y p = J(A,λ x y p → y ≡ x,refl) @ x @ y @ p
 
 ---
 --- Flat
