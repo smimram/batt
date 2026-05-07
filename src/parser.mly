@@ -3,7 +3,7 @@ open Lang
 open Helper
 %}
 
-%token COLON CCOLON EQ LPAR RPAR LRPAR COMMA IN N EOF
+%token COLON CCOLON EQ LPAR RPAR LRPAR COMMA LET IN N EOF
 %token TYPE
 %token EMPTY EMPTY_IND
 %token UNIT TT UNIT_IND
@@ -14,6 +14,7 @@ open Helper
 %token LEFT RIGHT
 %token<string> IDENT
 
+%nonassoc IN
 %nonassoc DOT
 %nonassoc FUN
 %right TO
@@ -59,6 +60,7 @@ simple_term:
   | FLAT_IND LPAR x=IDENT COMMA t=term RPAR { TFlat_ind (x, t) }
   | REFL { TRefl }
   | LPAR term RPAR { $2 }
+  | LPAR term COMMA term RPAR { TPair ($2, $4) }
 
 term:
   | simple_term { $1 }
@@ -71,7 +73,7 @@ term:
   | abs=nonempty_list(piabs) TO b=term { pis abs b }
   | SIGMA LPAR x=IDENT COLON a=term RPAR DOT b=term { TSigma (x, a, b) }
   | FUN x=nonempty_list(pattern) to_dot t=term { abss_pattern x t }
-  | LPAR term COMMA term RPAR { TPair ($2, $4) }
+  | LET x=IDENT COLON a=term EQ t=term IN u=term { TLet (x, a, t, u) }
 
 pattern:
   | x=IDENT d=option(dir) { `Var (x,d) }

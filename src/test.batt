@@ -54,6 +54,12 @@ not A = Empty
 exfalso : (A : Type) → ⊥ → A
 exfalso A ()
 
+-- testing let
+n : Bool
+n =
+  let id : (A : Type) → A → A = λ A x → x in
+  false
+
 ---
 --- Flat
 ---
@@ -73,14 +79,17 @@ unflatten A 𝄫x = x
 -- flatten : (A :: U) → A → ♭A
 -- flatten = fun A → fun a → 𝄫a
 
--- Lemma 4.4 in Sulman 2017
+--- Formalizing Shulman 2017
+
+-- Lemma 4.4
 flat-eta : (A :: Type) (C : ♭A → Type) (f : (x : ♭A) → C @ x) (x : ♭A) → C @ x
 flat-eta A C f 𝄫x = f @ 𝄫x
+
 flat-unique : (A :: Type) (C : ♭A → Type) (f : (x : ♭A) → C @ x) (x : ♭A) → flat-eta @ A @ C @ f @ x ≡ f @ x
 flat-unique A C f 𝄫x = refl
 
 -- -- Lemma 4.5
--- flat-comm
+-- flat-comm : (A B :: Type) (C : ♭A → ♭B → Type)
 
 ---
 --- Bunch

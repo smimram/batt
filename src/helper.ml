@@ -2,11 +2,15 @@
 
 open Lang
 
+let abs x t = TAbs(None, x, t)
+
+let app t u = TApp(None, t, u)
+
 (** Multiple abstractions. *)
 let rec abss l t =
   match l with
   | [] -> t
-  | x::l -> TAbs (None, x, abss l t)
+  | x::l -> abs x (abss l t)
 
 let abs_pattern x t =
   match x with
@@ -32,3 +36,4 @@ let rec pis l b =
   match l with
   | [] -> b
   | (c,x,a)::l -> pis' c x a (pis l b)
+  

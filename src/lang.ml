@@ -43,6 +43,7 @@ type term =
   | TEq of term * term
   | TRefl
   | TVar of string
+  | TLet of string * term * term * term
 
 module FV = struct
   include Set.Make(String)
@@ -70,6 +71,7 @@ module FV = struct
     | TEq (t, u) -> union (term t) (term u)
     | TRefl -> empty
     | TVar x -> singleton x
+    | TLet (_x, a, t, u) -> union (term a) @@ union (term t) (term u)
 end
 
 (** String representation of a term. *)
@@ -95,6 +97,7 @@ let rec string_of_term = function
   | TEq (t,u) -> Printf.sprintf "%s = %s" (string_of_term t) (string_of_term u)
   | TRefl -> Printf.sprintf "refl"
   | TVar x -> x
+  | TLet (x,a,t,u) -> Printf.sprintf "let %s : %s = %s in %s" x (string_of_term a) (string_of_term t) (string_of_term u)
 
 (** A value. *)
 type value =
@@ -163,6 +166,8 @@ let rec eval (env:environment) = function
       | Some v -> v
       | None -> failwith @@ Printf.sprintf "eval: could not find %s" x
     )
+  | TLet (x,_a,t,u) ->
+    eval env (TApp (None, TAbs(None, x, u), t))
 
 (** Make a variable. *)
 and vvar k = Neu (Var k)
@@ -356,6 +361,14 @@ let rec check k env ctx (t:term) (a:value) =
     let env = (x,xv)::env in
     let ctx = Context.ext_tens ctx s x a in
     check k env ctx t b
+  | TLet (x, a, t, u), b ->
+    let a = eval env a in
+    check k env ctx t a;
+    let xv = vvar k in
+    let k = k+1 in
+    let env = (x,xv)::env in
+    let ctx = Context.ext ctx x a in
+    check k env ctx u b
   | TPair (t, u), Sigma (a, b) ->
     check k env ctx t a;
     let t = eval env t in

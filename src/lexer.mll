@@ -48,10 +48,12 @@ rule token = parse
   | "𝄫" { utf8 ~n:3 lexbuf; FLATTEN }
   | "≡" { utf8 ~n:2 lexbuf; IDEQ }
   | "refl" { REFL }
+  | "let" { LET }
   | "in" { IN }
   | letter(letter|['0'-'9''\'''-'])* as s { IDENT s }
   | "--"[^'\n']* { token lexbuf }
   | space+ { token lexbuf }
+  | "\n " { token lexbuf } (* quick hack, we should properly handle indentation *)
   | "\n" { new_line lexbuf; N }
   | eof { EOF }
 
