@@ -3,9 +3,9 @@
 (defvar batt-font-lock-keywords
  '(
    ("--.*" . 'font-lock-comment-face)
-   ("\\<\\(let\\|in\\)\\>\\|:\\|=" . font-lock-keyword-face)
+   ("\\<\\(let\\|in\\)\\>\\|@\\|:\\|=" . font-lock-keyword-face)
    ("\\<\\(true\\|false\\|tt\\|refl\\)\\>" . font-lock-constant-face)
-   ("\\<\\(U\\|Type\\|Bool\\|Unit\\|Empty\\)\\>\\|->\\|→\\|⨂\\|⊗\\|@\\|≡\\|⊥\\|♭\\|𝄫" . font-lock-builtin-face)
+   ("\\<\\(U\\|Type\\|Bool\\|Unit\\|Empty\\)\\>\\|->\\|→\\|⨂\\|⊗\\|≡\\|⊥\\|♭\\|𝄫" . font-lock-builtin-face)
    ("\\<\\(\\)\\>" . font-lock-constant-face)
    ("^\\([^ (=]*\\)" 1 'font-lock-function-name-face)
   )
