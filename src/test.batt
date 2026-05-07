@@ -58,7 +58,7 @@ exfalso A ()
 n : Bool
 n =
   let id : (A : Type) → A → A = λ A x → x in
-  false
+  id @ Bool @ false
 
 ---
 --- Flat
