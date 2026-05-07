@@ -253,16 +253,20 @@ module Bunch = struct
   (** A bunched context. *)
   type t =
     | Empty
-    | Ext  of t * string * value
+    | Decl of string * value
+    | Prod of t * t
     | Tens of t * t
 
   let rec to_string k = function
     | Empty -> "()"
-    | Ext (env,x,a) -> Printf.sprintf "%s,%s:%s" (to_string k env) x (string_of_value k a)
+    | Decl (x, a) -> Printf.sprintf "%s:%s" x (string_of_value k a)
+    | Prod (l,r) -> Printf.sprintf "%s,%s" (to_string k l) (to_string k r)
     | Tens (l,r) -> Printf.sprintf "%s⊗%s" (to_string k l) (to_string k r)
 
+  let ext ctx x a = Prod (ctx,Decl(x,a))
+  
   let ext_tens ctx s x a =
-    let ext = Ext (Empty, x, a) in
+    let ext = Decl (x, a) in
     match s with
     | Left -> Tens (ext, ctx)
     | Right -> Tens (ctx, ext)
@@ -270,7 +274,8 @@ module Bunch = struct
   (** Find the type of a variable. *)
   let rec assoc_opt x = function
     | Empty -> None
-    | Ext (env, y, a) -> if x = y then Some a else assoc_opt x env
+    | Decl (y, a) -> if x = y then Some a else None
+    | Prod (l, r)
     | Tens (l, r) ->
       (
         match assoc_opt x r with
@@ -282,7 +287,8 @@ module Bunch = struct
   let rec dom b =
     match b with
     | Empty -> FV.empty
-    | Ext (b,x,_) -> FV.add x (dom b)
+    | Decl (x,_) -> FV.singleton x
+    | Prod (l,r)
     | Tens (l,r) -> FV.union (dom l) (dom r)
 
   (** Split a buch so that we have the given free variables. *)
@@ -303,7 +309,10 @@ module Bunch = struct
         let b2', b2'' = split (FV.diff fvl fv1) fvr b2 in
         Tens (b1, b2'), b2''
       else failwith "split"
-    | Ext _ -> failwith "TODO: split"
+    | Prod (Empty, b)
+    | Prod (b, Empty) -> split fvl fvr b
+    | Decl _ -> failwith "TODO: split decl"
+    | Prod _ -> failwith @@ Printf.sprintf "TODO: split prod: %s" @@ to_string 0 b
 end
 
 (** A bunched context. *)
@@ -320,7 +329,7 @@ module Context = struct
 
   let empty : t = [],Bunch.Empty
 
-  let ext ((cenv,benv):t) x a : t = cenv, Bunch.Ext(benv,x,a)
+  let ext ((cenv,benv):t) x a : t = cenv, Bunch.ext benv x a
 
   let ext_tens (cenv,benv) s x a = cenv, Bunch.ext_tens benv s x a
 
