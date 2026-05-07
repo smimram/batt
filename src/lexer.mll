@@ -15,11 +15,9 @@ rule token = parse
   | "Type" { TYPE }
   | "Empty" { EMPTY }
   | "⊥" { utf8 ~n:2 lexbuf; EMPTY }
-  | "Empty_ind" { EMPTY_IND }
   | "Unit" { UNIT }
   | "⊤" { utf8 ~n:2 lexbuf; UNIT }
   | "tt" { TT }
-  | "Unit_ind" { UNIT_IND }
   | "Bool" { BOOL }
   | "false" { FALSE }
   | "true" { TRUE }
@@ -44,9 +42,9 @@ rule token = parse
   | "⨂"  { utf8 ~n:2 lexbuf; TENS }
   | "⊗"  { utf8 ~n:2 lexbuf; TENSP }
   | "♭" { utf8 ~n:2 lexbuf; FLAT }
-  | "♭_ind" { utf8 ~n:2 lexbuf; FLAT_IND }
   | "𝄫" { utf8 ~n:3 lexbuf; FLATTEN }
   | "≡" { utf8 ~n:2 lexbuf; IDEQ }
+  | "J" { J }
   | "refl" { REFL }
   | "let" { LET }
   | "in" { IN }

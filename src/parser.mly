@@ -5,12 +5,12 @@ open Helper
 
 %token COLON CCOLON EQ LPAR RPAR LRPAR COMMA LET IN N EOF
 %token TYPE
-%token EMPTY EMPTY_IND
-%token UNIT TT UNIT_IND
+%token EMPTY
+%token UNIT TT
 %token BOOL FALSE TRUE BOOL_IND
 %token TO FUN DOT AT SIGMA TIMES TENS TENSP
-%token FLAT FLATTEN FLAT_IND
-%token IDEQ REFL
+%token FLAT FLATTEN
+%token IDEQ REFL J
 %token LEFT RIGHT
 %token<string> IDENT
 
@@ -46,10 +46,8 @@ def:
 simple_term:
   | TYPE { TType }
   | EMPTY { TIndType `Empty }
-  | EMPTY_IND { TIndType_ind (`Empty, []) }
   | UNIT { TIndType `Unit }
   | TT { TIndTerm `Unit }
-  | UNIT_IND LPAR t=term RPAR { TIndType_ind (`Unit, [t]) }
   | BOOL { TIndType `Bool }
   | FALSE { TIndTerm (`Bool false) }
   | BOOL_IND LPAR tf=term COMMA tt=term RPAR { TIndType_ind (`Bool, [tf;tt]) }
@@ -57,8 +55,8 @@ simple_term:
   | IDENT { TVar $1 }
   | FLAT simple_term { TFlat $2 }
   | FLATTEN simple_term { TFlatten $2 }
-  | FLAT_IND LPAR x=IDENT COMMA t=term RPAR { TFlat_ind (x, t) }
   | REFL { TRefl }
+  | J LPAR a=term COMMA b=term COMMA r=term RPAR { TJ (a, b, r) }
   | LPAR term RPAR { $2 }
   | LPAR term COMMA term RPAR { TPair ($2, $4) }
 

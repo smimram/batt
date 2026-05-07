@@ -42,6 +42,7 @@ type term =
   | TFlat_ind of string * term
   | TEq of term * term
   | TRefl
+  | TJ of term * term * term
   | TVar of string
   | TLet of string * term * term * term
 
@@ -70,6 +71,7 @@ module FV = struct
     | TFlat_ind (x, t) -> remove x (term t)
     | TEq (t, u) -> union (term t) (term u)
     | TRefl -> empty
+    | TJ (a, b, r) -> union (term a) @@ union (term b) (term r)
     | TVar x -> singleton x
     | TLet (_x, a, t, u) -> union (term a) @@ union (term t) (term u)
 end
@@ -96,6 +98,7 @@ let rec string_of_term = function
   | TFlat_ind (x,t) -> Printf.sprintf "♭_ind(%s,%s)" x (string_of_term t)
   | TEq (t,u) -> Printf.sprintf "%s = %s" (string_of_term t) (string_of_term u)
   | TRefl -> Printf.sprintf "refl"
+  | TJ (a, b, r) -> Printf.sprintf "J(%s,%s,%s)" (string_of_term a) (string_of_term b) (string_of_term r)
   | TVar x -> x
   | TLet (x,a,t,u) -> Printf.sprintf "let %s : %s = %s in %s" x (string_of_term a) (string_of_term t) (string_of_term u)
 
@@ -119,6 +122,7 @@ type value =
   | Flat_ind of closure
   | Eq of value * value
   | Refl
+  | J of value * value * value
   | Neu of neutral
 
 (** A neutral term. *)
@@ -129,6 +133,7 @@ and neutral =
   | NTens_ind of closure2 * neutral
   | NIndType_ind of inductive_type * value list * neutral
   | NFlat_ind of closure * neutral
+  | NJ of value * value * value * neutral
 
 (** A closure. *)
 and closure = var * term * environment
@@ -160,6 +165,7 @@ let rec eval (env:environment) = function
   | TFlat_ind (x, t) -> Flat_ind (x,t,env)
   | TEq (t, u) -> Eq (eval env t, eval env u)
   | TRefl -> Refl
+  | TJ (a, b, r) -> J (eval env a, eval env b, eval env r)
   | TVar x ->
     (
       match List.assoc_opt x env with
@@ -186,6 +192,8 @@ and vapp t u =
   | Tens_ind t, Neu u -> Neu (NTens_ind (t, u))
   | Flat_ind t, Flatten u -> capp t u
   | Flat_ind t, Neu u -> Neu (NFlat_ind (t, u))
+  | J (_, _, r), Refl -> r
+  | J (a, b, r), Neu t -> Neu (NJ(a, b, r, t))
   | Neu t, u -> Neu (App (None, t, u))
   | _ -> failwith "vapp"
 
@@ -206,6 +214,7 @@ let rec readback k v =
     | NTens_ind (t, u) -> TApp (None, readback k @@ Tens_ind t, neutral k u)
     | NIndType_ind (ind, args, t) -> TApp (None, readback k @@ IndType_ind (ind, args), neutral k t)
     | NFlat_ind (t, u) -> TApp (None, readback k @@ Flat_ind t, neutral k u)
+    | NJ (a, b, r, t) -> TApp (None, readback k @@ J (a, b, r), neutral k t)
   in
   match v with
   | Type -> TType
@@ -226,6 +235,7 @@ let rec readback k v =
   | Flat_ind t -> TFlat_ind (var k, readback (k+1) (capp t (vvar k)))
   | Eq (t, u) -> TEq (readback k t, readback k u)
   | Refl -> TRefl
+  | J (a, b, r) -> TJ (readback k a, readback k b, readback k r)
   | Neu t -> neutral k t
 
 let string_of_value k v = string_of_term @@ readback k v
