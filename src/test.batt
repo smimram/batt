@@ -64,8 +64,11 @@ n =
 r : (A : U) (x : A) → (x ≡ x)
 r A x = refl
 
--- sym : (A : Type) (x y : A) → x ≡ y → y ≡ x
--- sym A x y p = J(A,λ x y p → y ≡ x,refl) @ x @ y @ p
+sym : (A : Type) (x y : A) → x ≡ y → y ≡ x
+sym A refl = refl
+
+trans : (A : Type) (x y : A) → x ≡ y → (z : A) → y ≡ z → x ≡ z
+trans A refl z p = p
 
 ---
 --- Flat

@@ -10,7 +10,7 @@ open Helper
 %token BOOL FALSE TRUE BOOL_IND
 %token TO FUN DOT AT SIGMA TIMES TENS TENSP
 %token FLAT FLATTEN
-%token IDEQ REFL J
+%token IDEQ REFL
 %token LEFT RIGHT
 %token<string> IDENT
 
@@ -56,7 +56,6 @@ simple_term:
   | FLAT simple_term { TFlat $2 }
   | FLATTEN simple_term { TFlatten $2 }
   | REFL { TRefl }
-  | J LPAR a=term COMMA b=term COMMA r=term RPAR { TJ (a, b, r) }
   | LPAR term RPAR { $2 }
   | LPAR term COMMA term RPAR { TPair ($2, $4) }
 
@@ -79,6 +78,7 @@ pattern:
   | LPAR x=IDENT COMMA y=IDENT RPAR { `Pair (x,y) }
   | LPAR x=IDENT TENSP y=IDENT RPAR { `Tens (x,y) }
   | FLATTEN x=IDENT { `Flatten x }
+  | REFL { `Refl }
 
 piabs:
   | LPAR x=nonempty_list(IDENT) c=ccolon a=term RPAR { c,x,a }

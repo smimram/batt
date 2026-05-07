@@ -19,6 +19,7 @@ let abs_pattern x t =
   | `Pair (x, y) -> TPair_ind (x, y, t)
   | `Tens (x, y) -> TTens_ind (x, y, t)
   | `Flatten x -> TFlat_ind (x, t)
+  | `Refl -> TJ t
 
 let rec abss_pattern l t =
   match l with
