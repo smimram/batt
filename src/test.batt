@@ -83,6 +83,9 @@ subst A P refl z = z
 --- Flat
 ---
 
+flat : ♭U → U
+flat 𝄫A = A
+
 unflatten : (A :: U) → ♭A → A
 unflatten A 𝄫x = x
 -- unflatten A = ♭_ind(x, x)
@@ -96,6 +99,9 @@ unflatten A 𝄫x = x
 
 -- TODO: this should work!
 -- unflatten' : (A : ♭Type) → let f : ♭Type → Type = λ 𝄫B → (♭B → B) in f @ A
+-- unflatten' A 𝄫x = x
+
+-- unflatten' : (A : ♭Type) → flat @ A → unflatten @ U @ A
 -- unflatten' A 𝄫x = x
 
 -- should not work
@@ -121,10 +127,13 @@ flat-unique A C f 𝄫x = refl
 --- Bunch
 ---
 
-fstb : Bool ⨂ Bool → Bool
-fstb (x ⊗ y) = x
+-- fstb : Bool ⨂ Bool → Bool
+-- fstb (x ⊗ y) = x
 
--- idt : (A B : U) → A ⨂ B → A ⨂ B
+-- sndb : Bool ⨂ Bool → Bool
+-- sndb (x ⊗ y) = y
+
+-- idt : (A B :: U) → A ⨂ B → A ⨂ B
 -- idt A B (x ⊗ y) = x ⊗ y
 
 -- -- TODO: this is not supposed to work

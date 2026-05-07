@@ -253,7 +253,7 @@ module Bunch = struct
   (** A bunched context. *)
   type t =
     | Empty
-    | Ext of t * string * value
+    | Ext  of t * string * value
     | Tens of t * t
 
   let rec to_string k = function
@@ -285,28 +285,25 @@ module Bunch = struct
     | Ext (b,x,_) -> FV.add x (dom b)
     | Tens (l,r) -> FV.union (dom l) (dom r)
 
-      (*
   (** Split a buch so that we have the given free variables. *)
   (* TODO: do we only want to split at toplevel? *)
-  let rec splitl fvl fvr l =
-    if FV.is_empty fvl then One, l
-    else if FV.is_empty fvr then l, One
-    else
-      match l with
-      | One -> failwith "splitl"
-      | Tens (l, b) ->
-         let fv = FV.diff fv (dom b) in
-         let l1, l2 = splitl fv l in
-         l1, Tens (l2, b)
-
-  let split fv = function
+  let rec split fvl fvr b =
+    match b with
+    | b when FV.is_empty fvl -> Empty, b
+    | b when FV.is_empty fvr -> b, Empty
     | Empty -> Empty, Empty
-    | Ext _ as b -> Empty, b (* TODO: can we do better? *)
-    | L l -> Pair.map (fun l -> L l) (fun l -> L l) @@ splitl fv l
-       *)
-
-  (* TODO *)
-  let split _fvl _fvr b = b, b
+    | Tens (b1, b2) ->
+      let fv1 = dom b1 in
+      let fv2 = dom b2 in
+      if FV.subset fvl fv1 && FV.subset fvr fv2 then b1, b2
+      else if FV.subset fvl fv1 then
+        let b1', b1'' = split fvl (FV.diff fvr fv2) b1 in
+        b1', Tens (b1'', b2)
+      else if FV.subset fvr fv2 then
+        let b2', b2'' = split (FV.diff fvl fv1) fvr b2 in
+        Tens (b1, b2'), b2''
+      else failwith "split"
+    | Ext _ -> failwith "TODO: split"
 end
 
 (** A bunched context. *)
@@ -355,7 +352,7 @@ let eq k t u =
 let rec check k env ctx (t:term) (a:value) =
   Printf.printf "CHECK %s : %s\n%!" (string_of_term t) (string_of_value k a);
   (* let cenv, benv = ctx in *)
-  (* Printf.printf ". cenv: %s\n" (String.concat ", " @@ List.map (fun (x,a) -> x ^ ":" ^ string_of_value k a) cenv); *)
+  (* Printf.printf ". cenv: %s\n%!" (Context.to_string k ctx); *)
   match t, a with
   | TAbs (None, x, t), Pi (a, b) ->
     let xv = vvar k in
@@ -396,7 +393,6 @@ let rec check k env ctx (t:term) (a:value) =
       | _ -> failwith "pair_ind"
     )
   | TTensPair (t, u), Tens (a, b) ->
-    (* TODO: fix split *)
     let ctxa, ctxb = Context.split (FV.term t) (FV.term u) ctx in
     check k env ctxa t a;
     check k env ctxb u b
@@ -405,12 +401,12 @@ let rec check k env ctx (t:term) (a:value) =
       match a with
       | Tens (a1, a2) ->
         (* TODO: properly split context *)
-        let x1 = vvar k in
-        let x2 = vvar (k+1) in
+        let x' = vvar k in
+        let y' = vvar (k+1) in
         let k = k+2 in
-        let env = (y,x2)::(x,x1)::env in
+        let env = (y,y')::(x,x')::env in
         let ctx = Context.ext (Context.ext ctx x a1) y a2 in
-        check k env ctx t (capp b (Tens (x1, x2)))
+        check k env ctx t (capp b (Tens (x', y')))
       | _ -> failwith "tens_ind"
     )
   | TIndType_ind (`Empty, []), Pi (a, _) ->
