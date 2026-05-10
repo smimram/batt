@@ -23,7 +23,7 @@ term : (A : U) → A → Unit
 term A x = tt
 
 -- polymorphic identity
-id : (A : U) → A → A
+id :: (A : U) → A → A
 id A x = x
 
 -- identity on bool

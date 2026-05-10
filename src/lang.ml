@@ -21,13 +21,15 @@ let string_of_side = function
 let string_of_opt_side s =
   Option.value ~default:"" @@ Option.map string_of_side s
 
+type crispness = Crisp | Normal
+
 (** A term. *)
 type term =
   | TType
   | TIndType of inductive_type
   | TIndType_ind of inductive_type * term list
   | TIndTerm of inductive_term
-  | TPi of [`Crisp | `Normal] * string * term * term (** pi-type *)
+  | TPi of crispness * string * term * term (** pi-type *)
   | TAbs of side option * string * term
   | TApp of side option * term * term
   | TSigma of string * term * term
@@ -83,7 +85,7 @@ let rec string_of_term = function
   | TIndType_ind (ind, args) -> Printf.sprintf "%s_ind(%s)" (string_of_inductive_type ind) (String.concat "," @@ List.map string_of_term args)
   | TIndTerm `Unit -> "tt"
   | TIndTerm (`Bool b) -> string_of_bool b
-  | TPi (c, x, a, t) -> Printf.sprintf "(%s %s %s) → %s" x (if c = `Crisp then "::" else ":") (string_of_term a) (string_of_term t)
+  | TPi (c, x, a, t) -> Printf.sprintf "(%s %s %s) → %s" x (match c with Crisp -> "::" | Normal -> ":") (string_of_term a) (string_of_term t)
   | TAbs (s, x, t) -> Printf.sprintf "λ%s%s.%s" x (string_of_opt_side s) (string_of_term t)
   | TApp (s, t, u) -> Printf.sprintf "(%s @%s %s)" (string_of_term t) (string_of_opt_side s) (string_of_term u)
   | TSigma (x, a, t) -> Printf.sprintf "(Σ(%s : %s).%s)" x (string_of_term a) (string_of_term t)
@@ -221,7 +223,7 @@ let rec readback k v =
   | IndType ind -> TIndType ind
   | IndType_ind (ind, args) -> TIndType_ind (ind, List.map (readback k) args)
   | IndTerm t -> TIndTerm t
-  | Pi (a, b) -> TPi (`Normal, var k, readback k a, readback (k+1) (capp b (vvar k)))
+  | Pi (a, b) -> TPi (Normal, var k, readback k a, readback (k+1) (capp b (vvar k)))
   | Abs (s, f) -> TAbs (s, var k, readback (k+1) (capp f (vvar k)))
   | Sigma (a, b) -> TSigma (var k, readback k a, readback (k+1) (capp b (vvar k)))
   | Pair (t, u) -> TPair (readback k t, readback k u)
@@ -241,7 +243,7 @@ let rec readback k v =
 let string_of_value k v = string_of_term @@ readback k v
 
 (** A declaration. *)
-type decl = string * term * term
+type decl = string * crispness * term * term
 
 type decls = decl list
 
@@ -466,7 +468,7 @@ and check_type k env ctx a =
   (* Printf.printf ". ctx: %s\n%!" (Context.to_string k ctx); *)
   match a with
   | TType -> ()
-  | TPi (`Crisp, x, a, b) ->
+  | TPi (Crisp, x, a, b) ->
     check_type k env (Context.crisp ctx) a;
     let xv = vvar k in
     let k = k+1 in
@@ -474,7 +476,7 @@ and check_type k env ctx a =
     let a = eval env a in
     let ctx = Context.ext_crisp ctx x a in
     check_type k env ctx b
-  | TPi (`Normal, x, a, b)
+  | TPi (Normal, x, a, b)
   | TSigma (x, a, b) ->
     check_type k env ctx a;
     let xv = vvar k in
@@ -518,17 +520,20 @@ and infer k env ctx (t:term) =
     )
   | _ -> failwith "infer"
 
-let check_decl k env ctx (x, a, t) =
-  Printf.printf "\nDECL  %s = %s : %s\n%!" x (string_of_term t) (string_of_term a);
+let check_decl k env ctx (x, c, a, t) =
+  Printf.printf "\nDECL  %s = %s %s %s\n%!" x (string_of_term t) (match c with Normal -> ":" | Crisp -> "::") (string_of_term a);
   check_type k env ctx a;
   let a = eval env a in
-  check k env ctx t a;
+  let () =
+    let ctx = match c with Crisp -> Context.crisp ctx | Normal -> ctx in
+    check k env ctx t a
+  in
   let t = eval env t in
   let env = (x,t)::env in
   let ctx = Context.ext ctx x a in
   env, ctx
 
-let check_decls k env ctx decls =
+let check_decls k env ctx (decls:decls) =
   List.fold_left (fun (env,ctx) decl -> check_decl k env ctx decl) (env,ctx) decls
 
 let check_decls_toplevel decls = ignore @@ check_decls 0 [] Context.empty decls

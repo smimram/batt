@@ -37,7 +37,7 @@ decls:
   | decl decls { $1::$2 }
 
 decl:
-  | x=IDENT COLON a=term N def=def N { let y, t = def in assert (x = y); (x, a, t) }
+  | x=IDENT c=ccolon a=term N def=def N { let y, t = def in assert (x = y); (x, c, a, t) }
 
 def:
   | y=IDENT args=list(pattern) EQ t=term { y, abss_pattern args t }
@@ -63,7 +63,7 @@ term:
   | simple_term { $1 }
   | t=term IDEQ u=term { TEq (t, u) }
   | t=term AT s=option(dir) u=term { TApp (s, t, u) }
-  | a=term TO s=option(dir) b=term { match s with None -> TPi (`Normal, "_", a, b) | Some s -> TArr (s, a, b) }
+  | a=term TO s=option(dir) b=term { match s with None -> TPi (Normal, "_", a, b) | Some s -> TArr (s, a, b) }
   | term TIMES term { TSigma ("_", $1, $3) }
   | term TENS term { TTens ($1, $3) }
   | term TENSP term { TTensPair ($1, $3) }
@@ -88,8 +88,8 @@ dir:
   | RIGHT { Right }
 
 ccolon:
-  | COLON { `Normal }
-  | CCOLON { `Crisp }
+  | COLON { Normal }
+  | CCOLON { Crisp }
 
 to_dot:
   | TO | DOT { () }
