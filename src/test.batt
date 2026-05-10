@@ -39,13 +39,13 @@ idBool'IsId = Bool_ind(refl,refl)
 -- fst : (A B : U) → A × B → A
 -- fst A B (x,y) = x
 
-fst : (A : U) (B : A → U) → (Σ (x : A) . B @ x) → A
+fst :: (A : U) (B : A → U) → (Σ (x : A) . B @ x) → A
 fst A B (x,y) = x
 
-snd : (A B : U) → A × B → B
+snd :: (A B : U) → A × B → B
 snd A B (x,y) = y
 
-not : (A : Type) → Type
+not :: (A : Type) → Type
 not A = Empty
 
 exfalso : (A : Type) → ⊥ → A
