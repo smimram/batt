@@ -51,7 +51,7 @@ type term =
 module FV = struct
   include Set.Make(String)
 
-  let to_string fv = String.concat "," @@ to_list fv
+  let to_string fv = String.concat "," @@ List.of_seq @@ to_seq fv
 
   let rec term t =
     let list l = List.fold_left (fun fv t -> union fv (term t)) empty l in
