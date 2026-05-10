@@ -110,7 +110,7 @@ type value =
   | IndType of inductive_type
   | IndTerm of inductive_term
   | IndType_ind of inductive_type * value list
-  | Pi of value * closure
+  | Pi of crispness * value * closure
   | Abs of side option * closure
   | Sigma of value * closure
   | Pair of value * value
@@ -152,7 +152,7 @@ let rec eval (env:environment) = function
   | TIndType a -> IndType a
   | TIndTerm t -> IndTerm t
   | TIndType_ind (ind, args) -> IndType_ind (ind, List.map (eval env) args)
-  | TPi (_, x, a, t) -> Pi (eval env a, (x, t, env))
+  | TPi (c, x, a, t) -> Pi (c, eval env a, (x, t, env))
   | TAbs (s, x, t) -> Abs (s, (x, t, env))
   | TApp (_, t, u) -> vapp (eval env t) (eval env u)
   | TSigma (x, a, t) -> Sigma (eval env a, (x, t, env))
@@ -223,7 +223,7 @@ let rec readback k v =
   | IndType ind -> TIndType ind
   | IndType_ind (ind, args) -> TIndType_ind (ind, List.map (readback k) args)
   | IndTerm t -> TIndTerm t
-  | Pi (a, b) -> TPi (Normal, var k, readback k a, readback (k+1) (capp b (vvar k)))
+  | Pi (c, a, b) -> TPi (c, var k, readback k a, readback (k+1) (capp b (vvar k)))
   | Abs (s, f) -> TAbs (s, var k, readback (k+1) (capp f (vvar k)))
   | Sigma (a, b) -> TSigma (var k, readback k a, readback (k+1) (capp b (vvar k)))
   | Pair (t, u) -> TPair (readback k t, readback k u)
@@ -337,7 +337,17 @@ module Context = struct
 
   let ext_crisp ((cenv,benv):t) x a : t = ((x,a)::cenv), benv
 
+  let ext ctx ?(crispness=Normal) x a =
+    match crispness with
+    | Normal -> ext ctx x a
+    | Crisp -> ext_crisp ctx x a
+
   let crisp (cenv,_) : t = cenv,Bunch.Empty
+
+  let crisp ?(crispness=Crisp) ctx =
+    match crispness with
+    | Crisp -> crisp ctx
+    | Normal -> ctx
 
   let assoc_opt x (cenv,benv) =
     match Bunch.assoc_opt x benv with
@@ -365,11 +375,11 @@ let rec check k env ctx (t:term) (a:value) =
   (* let cenv, benv = ctx in *)
   (* Printf.printf ". cenv: %s\n%!" (Context.to_string k ctx); *)
   match t, a with
-  | TAbs (None, x, t), Pi (a, b) ->
+  | TAbs (None, x, t), Pi (c, a, b) ->
     let xv = vvar k in
     let k = k+1 in
     let env = (x,xv)::env in
-    let ctx = Context.ext ctx x a in
+    let ctx = Context.ext ~crispness:c ctx x a in
     check k env ctx t (capp b xv)
   | TAbs (Some s, x, t), Arr (s', a, b) ->
     assert (s = s');
@@ -391,7 +401,7 @@ let rec check k env ctx (t:term) (a:value) =
     check k env ctx t a;
     let t = eval env t in
     check k env ctx u (capp b t)
-  | TPair_ind (x, y, t), Pi (a, b) ->
+  | TPair_ind (x, y, t), Pi (Normal, a, b) ->
     (
       match a with
       | Sigma (a1, a2) ->
@@ -407,7 +417,7 @@ let rec check k env ctx (t:term) (a:value) =
     let ctxa, ctxb = Context.split (FV.term t) (FV.term u) ctx in
     check k env ctxa t a;
     check k env ctxb u b
-  | TTens_ind (x, y, t), Pi (a, b) ->
+  | TTens_ind (x, y, t), Pi (Normal, a, b) ->
     (
       match a with
       | Tens (a1, a2) ->
@@ -420,18 +430,18 @@ let rec check k env ctx (t:term) (a:value) =
         check k env ctx t (capp b (Tens (x', y')))
       | _ -> failwith "tens_ind"
     )
-  | TIndType_ind (`Empty, []), Pi (a, _) ->
+  | TIndType_ind (`Empty, []), Pi (Normal, a, _) ->
     eq k (IndType `Empty) a
-  | TIndType_ind (`Unit, [t]), Pi (a, b) ->
+  | TIndType_ind (`Unit, [t]), Pi (Normal, a, b) ->
     eq k (IndType `Unit) a;
     check k env ctx t (capp b (IndTerm `Unit))
-  | TIndType_ind (`Bool, [tf;tt]), Pi (a, b) ->
+  | TIndType_ind (`Bool, [tf;tt]), Pi (Normal, a, b) ->
     eq k (IndType `Bool) a;
     check k env ctx tf (capp b (IndTerm (`Bool false)));
     check k env ctx tt (capp b (IndTerm (`Bool true)));
   | TFlatten t, Flat a ->
     check k env (Context.crisp ctx) t a
-  | TFlat_ind (x, t), Pi (a, b) ->
+  | TFlat_ind (x, t), Pi (Normal, a, b) ->
     let a =
       match a with
       | Flat a -> a
@@ -441,9 +451,9 @@ let rec check k env ctx (t:term) (a:value) =
     let k = k+1 in
     check k ((x,xv)::env) (Context.ext_crisp ctx x a) t (capp b (Flatten xv))
   | TRefl, Eq (t, u) -> eq k t u
-  | TJ r, Pi (a, b) ->
+  | TJ r, Pi (Normal, a, b) ->
     let unpi = function
-      | Pi (a, b) -> a, b
+      | Pi (_, a, b) -> a, b
       | _ -> assert false
     in
     let x, k = vvar k, k+1 in
@@ -507,8 +517,8 @@ and infer k env ctx (t:term) =
   | TApp (None, t, u) ->
     (
       match infer k env ctx t with
-      | Pi (a, b) ->
-        check k env ctx u a;
+      | Pi (c, a, b) ->
+        check k env (Context.crisp ~crispness:c ctx) u a;
         capp b (eval env u)
       | _ -> failwith "infer app"
     )
@@ -524,10 +534,7 @@ let check_decl k env ctx (x, c, a, t) =
   Printf.printf "\nDECL  %s = %s %s %s\n%!" x (string_of_term t) (match c with Normal -> ":" | Crisp -> "::") (string_of_term a);
   check_type k env ctx a;
   let a = eval env a in
-  let () =
-    let ctx = match c with Crisp -> Context.crisp ctx | Normal -> ctx in
-    check k env ctx t a
-  in
+  check k env (Context.crisp ~crispness:c ctx) t a;
   let t = eval env t in
   let env = (x,t)::env in
   let ctx = Context.ext ctx x a in
