@@ -51,6 +51,8 @@ type term =
 module FV = struct
   include Set.Make(String)
 
+  let to_string fv = String.concat "," @@ to_list fv
+
   let rec term t =
     let list l = List.fold_left (fun fv t -> union fv (term t)) empty l in
     match t with
@@ -314,7 +316,15 @@ module Bunch = struct
     | Prod (Empty, b)
     | Prod (b, Empty) -> split fvl fvr b
     | Decl _ -> failwith "TODO: split decl"
-    | Prod _ -> failwith @@ Printf.sprintf "TODO: split prod: %s" @@ to_string 0 b
+    | Prod _ (* (b1, b2) *) ->
+      (* let fv = FV.union fvl fvr in *)
+      (* if FV.subset fv (dom b1) then split fvl fvr b1 *)
+      (* else if FV.subset fv (dom b2) then *)
+      (* TODO: we should check that b2 does not depend on b1... *)
+      (* split fvl fvr b2 *)
+      (* else *)
+      failwith @@ Printf.sprintf "TODO: split prod: %s" @@ to_string 0 b
+
 end
 
 (** A bunched context. *)
@@ -401,7 +411,7 @@ let rec check k env ctx (t:term) (a:value) =
     check k env ctx t a;
     let t = eval env t in
     check k env ctx u (capp b t)
-  | TPair_ind (x, y, t), Pi (Normal, a, b) ->
+  | TPair_ind (x, y, t), Pi (c, a, b) ->
     (
       match a with
       | Sigma (a1, a2) ->
@@ -409,7 +419,7 @@ let rec check k env ctx (t:term) (a:value) =
         let x2 = vvar (k+1) in
         let k = k+2 in
         let env = (y,x2)::(x,x1)::env in
-        let ctx = Context.ext (Context.ext ctx x a1) y (capp a2 x1) in
+        let ctx = Context.ext ~crispness:c (Context.ext ctx x a1) y (capp a2 x1) in
         check k env ctx t (capp b (Pair (x1, x2)))
       | _ -> failwith "pair_ind"
     )
@@ -417,7 +427,7 @@ let rec check k env ctx (t:term) (a:value) =
     let ctxa, ctxb = Context.split (FV.term t) (FV.term u) ctx in
     check k env ctxa t a;
     check k env ctxb u b
-  | TTens_ind (x, y, t), Pi (Normal, a, b) ->
+  | TTens_ind (x, y, t), Pi (c, a, b) ->
     (
       match a with
       | Tens (a1, a2) ->
@@ -426,16 +436,23 @@ let rec check k env ctx (t:term) (a:value) =
         let y' = vvar (k+1) in
         let k = k+2 in
         let env = (y,y')::(x,x')::env in
-        let ctx = Context.ext (Context.ext ctx x a1) y a2 in
+        let ctx =
+          match c with
+          | Normal ->
+            let cctx, bctx = ctx in
+            let bctx = Bunch.Prod (bctx, Bunch.Tens (Bunch.Decl (x, a1), Bunch.Decl (y, a2))) in
+            cctx, bctx
+          | Crisp -> Context.ext_crisp (Context.ext_crisp ctx x a1) y a2
+        in
         check k env ctx t (capp b (Tens (x', y')))
       | _ -> failwith "tens_ind"
     )
-  | TIndType_ind (`Empty, []), Pi (Normal, a, _) ->
+  | TIndType_ind (`Empty, []), Pi (_, a, _) ->
     eq k (IndType `Empty) a
-  | TIndType_ind (`Unit, [t]), Pi (Normal, a, b) ->
+  | TIndType_ind (`Unit, [t]), Pi (_, a, b) ->
     eq k (IndType `Unit) a;
     check k env ctx t (capp b (IndTerm `Unit))
-  | TIndType_ind (`Bool, [tf;tt]), Pi (Normal, a, b) ->
+  | TIndType_ind (`Bool, [tf;tt]), Pi (_, a, b) ->
     eq k (IndType `Bool) a;
     check k env ctx tf (capp b (IndTerm (`Bool false)));
     check k env ctx tt (capp b (IndTerm (`Bool true)));
