@@ -27,7 +27,7 @@ type term =
   | TIndType of inductive_type
   | TIndType_ind of inductive_type * term list
   | TIndTerm of inductive_term
-  | TPi of bool * string * term * term (** pi-type *) (* boolean indicates whether crisp *)
+  | TPi of [`Crisp | `Normal] * string * term * term (** pi-type *)
   | TAbs of side option * string * term
   | TApp of side option * term * term
   | TSigma of string * term * term
@@ -83,7 +83,7 @@ let rec string_of_term = function
   | TIndType_ind (ind, args) -> Printf.sprintf "%s_ind(%s)" (string_of_inductive_type ind) (String.concat "," @@ List.map string_of_term args)
   | TIndTerm `Unit -> "tt"
   | TIndTerm (`Bool b) -> string_of_bool b
-  | TPi (c, x, a, t) -> Printf.sprintf "(%s %s %s) → %s" x (if c then "::" else ":") (string_of_term a) (string_of_term t)
+  | TPi (c, x, a, t) -> Printf.sprintf "(%s %s %s) → %s" x (if c = `Crisp then "::" else ":") (string_of_term a) (string_of_term t)
   | TAbs (s, x, t) -> Printf.sprintf "λ%s%s.%s" x (string_of_opt_side s) (string_of_term t)
   | TApp (s, t, u) -> Printf.sprintf "(%s @%s %s)" (string_of_term t) (string_of_opt_side s) (string_of_term u)
   | TSigma (x, a, t) -> Printf.sprintf "(Σ(%s : %s).%s)" x (string_of_term a) (string_of_term t)
@@ -221,7 +221,7 @@ let rec readback k v =
   | IndType ind -> TIndType ind
   | IndType_ind (ind, args) -> TIndType_ind (ind, List.map (readback k) args)
   | IndTerm t -> TIndTerm t
-  | Pi (a, b) -> TPi (false, var k, readback k a, readback (k+1) (capp b (vvar k)))
+  | Pi (a, b) -> TPi (`Normal, var k, readback k a, readback (k+1) (capp b (vvar k)))
   | Abs (s, f) -> TAbs (s, var k, readback (k+1) (capp f (vvar k)))
   | Sigma (a, b) -> TSigma (var k, readback k a, readback (k+1) (capp b (vvar k)))
   | Pair (t, u) -> TPair (readback k t, readback k u)
@@ -466,7 +466,7 @@ and check_type k env ctx a =
   (* Printf.printf ". ctx: %s\n%!" (Context.to_string k ctx); *)
   match a with
   | TType -> ()
-  | TPi (true, x, a, b) ->
+  | TPi (`Crisp, x, a, b) ->
     check_type k env (Context.crisp ctx) a;
     let xv = vvar k in
     let k = k+1 in
@@ -474,7 +474,7 @@ and check_type k env ctx a =
     let a = eval env a in
     let ctx = Context.ext_crisp ctx x a in
     check_type k env ctx b
-  | TPi (false, x, a, b)
+  | TPi (`Normal, x, a, b)
   | TSigma (x, a, b) ->
     check_type k env ctx a;
     let xv = vvar k in
