@@ -46,7 +46,7 @@ type term =
   | TRefl
   | TJ of term
   | TVar of string
-  | TLet of string * term * term * term
+  | TLet of crispness * string * term * term * term
 
 module FV = struct
   include Set.Make(String)
@@ -77,17 +77,22 @@ module FV = struct
     | TRefl -> empty
     | TJ (r) -> term r
     | TVar x -> singleton x
-    | TLet (_x, a, t, u) -> union (term a) @@ union (term t) (term u)
+    | TLet (_c, _x, a, t, u) -> union (term a) @@ union (term t) (term u)
 end
 
 (** String representation of a term. *)
-let rec string_of_term = function
+let rec string_of_term t =
+  let colon = function
+    | Normal -> ":"
+    | Crisp -> "::"
+  in
+  match t with
   | TType -> "Type"
   | TIndType ind -> string_of_inductive_type ind
   | TIndType_ind (ind, args) -> Printf.sprintf "%s_ind(%s)" (string_of_inductive_type ind) (String.concat "," @@ List.map string_of_term args)
   | TIndTerm `Unit -> "tt"
   | TIndTerm (`Bool b) -> string_of_bool b
-  | TPi (c, x, a, t) -> Printf.sprintf "(%s %s %s) → %s" x (match c with Crisp -> "::" | Normal -> ":") (string_of_term a) (string_of_term t)
+  | TPi (c, x, a, t) -> Printf.sprintf "(%s %s %s) → %s" x (colon c) (string_of_term a) (string_of_term t)
   | TAbs (s, x, t) -> Printf.sprintf "λ%s%s.%s" x (string_of_opt_side s) (string_of_term t)
   | TApp (s, t, u) -> Printf.sprintf "(%s @%s %s)" (string_of_term t) (string_of_opt_side s) (string_of_term u)
   | TSigma (x, a, t) -> Printf.sprintf "(Σ(%s : %s).%s)" x (string_of_term a) (string_of_term t)
@@ -104,7 +109,7 @@ let rec string_of_term = function
   | TRefl -> Printf.sprintf "refl"
   | TJ (r) -> Printf.sprintf "J(%s)" (string_of_term r)
   | TVar x -> x
-  | TLet (x,a,t,u) -> Printf.sprintf "let %s : %s = %s in %s" x (string_of_term a) (string_of_term t) (string_of_term u)
+  | TLet (c,x,a,t,u) -> Printf.sprintf "let %s %s %s = %s in %s" x (colon c) (string_of_term a) (string_of_term t) (string_of_term u)
 
 (** A value. *)
 type value =
@@ -176,7 +181,7 @@ let rec eval (env:environment) = function
       | Some v -> v
       | None -> failwith @@ Printf.sprintf "eval: could not find %s" x
     )
-  | TLet (x,_a,t,u) ->
+  | TLet (_c,x,_a,t,u) ->
     eval env (TApp (None, TAbs(None, x, u), t))
 
 (** Make a variable. *)
@@ -405,13 +410,13 @@ let rec check k env ctx (t:term) (a:value) =
     let env = (x,xv)::env in
     let ctx = Context.ext_tens ctx s x a in
     check k env ctx t b
-  | TLet (x, a, t, u), b ->
+  | TLet (c, x, a, t, u), b ->
     let a = eval env a in
-    check k env ctx t a;
+    check k env (Context.crisp ~crispness:c ctx) t a;
     let xv = vvar k in
     let k = k+1 in
     let env = (x,xv)::env in
-    let ctx = Context.ext ctx x a in
+    let ctx = Context.ext ~crispness:c ctx x a in
     check k env ctx u b
   | TPair (t, u), Sigma (a, b) ->
     check k env ctx t a;

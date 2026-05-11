@@ -35,6 +35,11 @@ tens-to-pair A B (a ⊗ b) = (a , b)
 -- assoc :: (A B C :: U) → (A ⨂ B) ⨂ C → A ⨂ (B ⨂ C)
 -- assoc A B C (ab ⊗ c) = fst @ ab ⊗ (snd @ ab ⊗ c)
 
+-- assoc :: (A B C :: U) → (A ⨂ B) ⨂ C → A ⨂ (B ⨂ C)
+-- assoc A B C (ab ⊗ c) =
+  -- let f :: A ⨂ B → A ⨂ (B ⨂ C) = fun (a ⊗ b) → a ⊗ (b ⊗ c) in
+  -- f @ ab
+
 curry-left :: (A B C :: U) → (A ⨂ B → C) → (B → A →ₗ C)
 curry-left A B C f a bₗ = f @ (b ⊗ a)
 
