@@ -63,6 +63,7 @@ term:
   | simple_term { $1 }
   | t=term IDEQ u=term { TEq (t, u) }
   | t=term AT s=option(dir) u=term { TApp (s, t, u) }
+  /* | t=term u=term { TApp (None, t, u) } */
   | a=term TO s=option(dir) b=term { match s with None -> TPi (Normal, "_", a, b) | Some s -> TArr (s, a, b) }
   | term TIMES term { TSigma ("_", $1, $3) }
   | term TENS term { TTens ($1, $3) }
