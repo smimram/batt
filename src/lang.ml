@@ -394,7 +394,7 @@ let eq k t u =
 let rec check k env ctx (t:term) (a:value) =
   Printf.printf "CHECK %s : %s\n%!" (string_of_term t) (string_of_value k a);
   (* let cenv, benv = ctx in *)
-  (* Printf.printf ". cenv: %s\n%!" (Context.to_string k ctx); *)
+  (* Printf.printf "      %s\n%!" (Context.to_string k ctx); *)
   match t, a with
   | TAbs (None, x, t), Pi (c, a, b) ->
     let xv = vvar k in
@@ -552,6 +552,15 @@ and infer k env ctx (t:term) =
         check k env (Context.crisp ~crispness:c ctx) u a;
         capp b (eval env u)
       | _ -> failwith "infer app"
+    )
+  | TApp (Some s, t, u) ->
+    (
+      match infer k env ctx t with
+      | Arr (s', a, b) ->
+        assert (s = s');
+        check k env ctx u a;
+        b
+      | _ -> failwith "infer sided app"
     )
   | TVar x ->
     (

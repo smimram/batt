@@ -49,3 +49,9 @@ curry-right A B C f a bᵣ = f @ (a ⊗ b)
 -- -- Not supposed to work
 -- curry-bad :: (A B C :: U) → (A ⨂ B → C) → (B → A →ᵣ C)
 -- curry-bad A B C f a bᵣ = f @ (b ⊗ a)
+
+uncurry-left :: (A B C :: U) → (B → A →ₗ C) → (A ⨂ B → C)
+uncurry-left A B C f (a ⊗ b) = f @ b @ₗ a
+
+uncurry-right :: (A B C :: U) → (A → B →ᵣ C) → (A ⨂ B → C)
+uncurry-right A B C f (a ⊗ b) = f @ a @ᵣ b
