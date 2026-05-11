@@ -25,6 +25,7 @@ rule token = parse
   | "::" { CCOLON }
   | ":" { COLON }
   | "=" { EQ }
+  | "?" { HOLE }
   | "()" { LRPAR }
   | "(" { LPAR }
   | ")" { RPAR }

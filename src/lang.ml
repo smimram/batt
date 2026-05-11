@@ -47,6 +47,7 @@ type term =
   | TJ of term
   | TVar of string
   | TLet of crispness * string * term * term * term
+  | THole of Pos.t
 
 module FV = struct
   include Set.Make(String)
@@ -78,6 +79,7 @@ module FV = struct
     | TJ (r) -> term r
     | TVar x -> singleton x
     | TLet (_c, _x, a, t, u) -> union (term a) @@ union (term t) (term u)
+    | THole _ -> empty
 end
 
 (** String representation of a term. *)
@@ -110,6 +112,7 @@ let rec string_of_term t =
   | TJ (r) -> Printf.sprintf "J(%s)" (string_of_term r)
   | TVar x -> x
   | TLet (c,x,a,t,u) -> Printf.sprintf "let %s %s %s = %s in %s" x (colon c) (string_of_term a) (string_of_term t) (string_of_term u)
+  | THole _ -> "?"
 
 (** A value. *)
 type value =
@@ -137,6 +140,7 @@ type value =
 (** A neutral term. *)
 and neutral =
   | Var of int
+  | Hole of Pos.t
   | App of side option * neutral * value
   | NPair_ind of closure2 * neutral
   | NTens_ind of closure2 * neutral
@@ -183,6 +187,7 @@ let rec eval (env:environment) = function
     )
   | TLet (_c,x,_a,t,u) ->
     eval env (TApp (None, TAbs(None, x, u), t))
+  | THole pos -> Neu (Hole pos)
 
 (** Make a variable. *)
 and vvar k = Neu (Var k)
@@ -219,6 +224,7 @@ let rec readback k v =
   let rec neutral k = function
     | Var i -> TVar (var i)
     | App (s, t, u) -> TApp (s, neutral k t, readback k u)
+    | Hole pos -> THole pos
     | NPair_ind (t, u) -> TApp (None, readback k @@ Pair_ind t, neutral k u)
     | NTens_ind (t, u) -> TApp (None, readback k @@ Tens_ind t, neutral k u)
     | NIndType_ind (ind, args, t) -> TApp (None, readback k @@ IndType_ind (ind, args), neutral k t)
@@ -494,6 +500,8 @@ let rec check k env ctx (t:term) (a:value) =
     let d = capp d Refl in
     check k env ctx r d
   | TPi _, Type -> check_type k env ctx t
+  | THole pos, a ->
+    Printf.printf "HOLE at %s : %s\n%!" (Pos.to_string pos) (string_of_value k a)
   | t, a ->
     let a' = infer k env ctx t in
     if not @@ is_eq k a' a then

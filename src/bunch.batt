@@ -56,4 +56,5 @@ uncurry-left A B C f (a ⊗ b) = f b @ₗ a
 uncurry-right :: (A B C :: U) → (A → B →ᵣ C) → (A ⨂ B → C)
 uncurry-right A B C f (a ⊗ b) = f a @ᵣ b
 
--- eta-left :: (A B C :: U) → curry A B
+curry-uncurry-left :: (A B C :: U) (f : B → A →ₗ C) → curry-left A B C (uncurry-left A B C f) ≡ f
+curry-uncurry-left A B C f = ?

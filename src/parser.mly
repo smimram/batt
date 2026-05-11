@@ -3,7 +3,7 @@ open Lang
 open Helper
 %}
 
-%token COLON CCOLON EQ LPAR RPAR LRPAR COMMA LET IN N EOF
+%token COLON CCOLON EQ LPAR RPAR LRPAR COMMA LET IN HOLE N EOF
 %token TYPE
 %token EMPTY
 %token UNIT TT
@@ -51,6 +51,7 @@ atom:
   | TRUE { TIndTerm (`Bool true) }
   | IDENT %prec VAR { TVar $1 }
   | REFL { TRefl }
+  | HOLE { THole $loc }
   | LPAR term RPAR { $2 }
   | LPAR term COMMA term RPAR { TPair ($2, $4) }
 
