@@ -20,6 +20,9 @@ fst A B (a ⊗ b) = a
 snd :: (A B :: U) → A ⨂ B → A
 snd A B (a ⊗ b) = a
 
+tens-to-pair : (A B :: U) → A ⨂ B → A × B
+tens-to-pair A B (a ⊗ b) = (a , b)
+
 -- unit-left :: (A :: U) → ⊤ ⨂ A → A
 -- unit-left
 

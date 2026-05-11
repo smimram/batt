@@ -298,6 +298,7 @@ module Bunch = struct
   (** Split a buch so that we have the given free variables. *)
   (* TODO: do we only want to split at toplevel? *)
   let split fvl fvr crisp b =
+    assert (FV.is_empty @@ FV.inter fvl fvr);
     let fvc = FV.of_list @@ List.map fst crisp in
     (* Printf.printf "crisp: %s\n%!" @@ FV.to_string fvc; *)
     let rec aux fvl fvr b =
@@ -319,7 +320,7 @@ module Bunch = struct
         else failwith "split"
       | Prod (Empty, b)
       | Prod (b, Empty) -> aux fvl fvr b
-      | Decl _ -> failwith "TODO: split decl"
+      | Decl _ -> failwith @@ Printf.sprintf "trying to split %s as %s / %s" (to_string 0 b) (FV.to_string fvl) (FV.to_string fvr)
       | Prod _ (* (b1, b2) *) ->
         (* let fv = FV.union fvl fvr in *)
         (* if FV.subset fv (dom b1) then split fvl fvr b1 *)
