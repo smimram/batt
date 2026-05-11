@@ -515,6 +515,9 @@ and check_type k env ctx a =
   | TTens (a, b) ->
     check_type k env (Context.crisp ctx) a;
     check_type k env (Context.crisp ctx) b
+  | TArr (_, a, b) ->
+    check_type k env (Context.crisp ctx) a;
+    check_type k env (Context.crisp ctx) b    
   | TFlat a ->
     check_type k env (Context.crisp ctx) a
   | TEq (t, u) ->

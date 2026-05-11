@@ -11,8 +11,15 @@ sndb (x ⊗ y) = y
 -- idt A B (x ⊗ y) = x ⊗ y
 
 -- -- TODO: this is not supposed to work
--- swap : (A B :: U) → A ⨂ B → B ⨂ A
+-- swap :: (A B :: U) → A ⨂ B → B ⨂ A
 -- swap A B (x ⊗ y) = y ⊗ x
 
--- curry :: (A B C :: U) → (A ⨂ B → C) → (A → B →ᵣ C)
--- curry A B C f a bᵣ = f @ (a ⊗ b)
+curry-left :: (A B C :: U) → (A ⨂ B → C) → (B → A →ₗ C)
+curry-left A B C f a bₗ = f @ (b ⊗ a)
+
+curry-right :: (A B C :: U) → (A ⨂ B → C) → (A → B →ᵣ C)
+curry-right A B C f a bᵣ = f @ (a ⊗ b)
+
+-- -- Not supposed to work
+-- curry-bad :: (A B C :: U) → (A ⨂ B → C) → (B → A →ᵣ C)
+-- curry-bad A B C f a bᵣ = f @ (b ⊗ a)
