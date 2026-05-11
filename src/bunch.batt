@@ -33,27 +33,27 @@ tens-to-pair A B (a ⊗ b) = (a , b)
 -- unit-right
 
 -- assoc :: (A B C :: U) → (A ⨂ B) ⨂ C → A ⨂ (B ⨂ C)
--- assoc A B C (ab ⊗ c) = fst @ ab ⊗ (snd @ ab ⊗ c)
+-- assoc A B C (ab ⊗ c) = fst ab ⊗ (snd ab ⊗ c)
 
 -- assoc :: (A B C :: U) → (A ⨂ B) ⨂ C → A ⨂ (B ⨂ C)
 -- assoc A B C (ab ⊗ c) =
   -- let f :: A ⨂ B → A ⨂ (B ⨂ C) = fun (a ⊗ b) → a ⊗ (b ⊗ c) in
-  -- f @ ab
+  -- f ab
 
 curry-left :: (A B C :: U) → (A ⨂ B → C) → (B → A →ₗ C)
-curry-left A B C f a bₗ = f @ (b ⊗ a)
+curry-left A B C f a bₗ = f (b ⊗ a)
 
 curry-right :: (A B C :: U) → (A ⨂ B → C) → (A → B →ᵣ C)
-curry-right A B C f a bᵣ = f @ (a ⊗ b)
+curry-right A B C f a bᵣ = f (a ⊗ b)
 
 -- -- Not supposed to work
 -- curry-bad :: (A B C :: U) → (A ⨂ B → C) → (B → A →ᵣ C)
--- curry-bad A B C f a bᵣ = f @ (b ⊗ a)
+-- curry-bad A B C f a bᵣ = f (b ⊗ a)
 
 uncurry-left :: (A B C :: U) → (B → A →ₗ C) → (A ⨂ B → C)
-uncurry-left A B C f (a ⊗ b) = f @ b @ₗ a
+uncurry-left A B C f (a ⊗ b) = f b @ₗ a
 
 uncurry-right :: (A B C :: U) → (A → B →ᵣ C) → (A ⨂ B → C)
-uncurry-right A B C f (a ⊗ b) = f @ a @ᵣ b
+uncurry-right A B C f (a ⊗ b) = f a @ᵣ b
 
--- eta-left :: (A B C :: U) → curry @ A @ B @ 
+-- eta-left :: (A B C :: U) → curry A B

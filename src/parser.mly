@@ -14,15 +14,12 @@ open Helper
 %token LEFT RIGHT
 %token<string> IDENT
 
-%nonassoc IN
-%nonassoc DOT
-%nonassoc FUN
-%right TO
 %nonassoc IDEQ
 %right TIMES
 %right TENSP
 %right TENS
-%left AT
+%nonassoc VAR
+%nonassoc IDENT
 
 %start main
 %type<Lang.decls> main
@@ -43,7 +40,7 @@ def:
   | y=IDENT args=list(pattern) EQ t=term { y, abss_pattern args t }
   | y=IDENT args=list(pattern) LRPAR { y, abss_pattern args (TIndType_ind (`Empty, [])) }
 
-simple_term:
+atom:
   | TYPE { TType }
   | EMPTY { TIndType `Empty }
   | UNIT { TIndType `Unit }
@@ -52,22 +49,31 @@ simple_term:
   | FALSE { TIndTerm (`Bool false) }
   | BOOL_IND LPAR tf=term COMMA tt=term RPAR { TIndType_ind (`Bool, [tf;tt]) }
   | TRUE { TIndTerm (`Bool true) }
-  | IDENT { TVar $1 }
-  | FLAT simple_term { TFlat $2 }
-  | FLATTEN simple_term { TFlatten $2 }
+  | IDENT %prec VAR { TVar $1 }
   | REFL { TRefl }
   | LPAR term RPAR { $2 }
   | LPAR term COMMA term RPAR { TPair ($2, $4) }
 
+prefix_term:
+  | atom { $1 }
+  | FLAT prefix_term { TFlat $2 }
+  | FLATTEN prefix_term { TFlatten $2 }
+
+expr:
+  | app_term { $1 }
+  | a=expr TENS b=expr { TTens (a, b) }
+  | a=expr TENSP b=expr { TTensPair (a, b) }
+  | a=expr TIMES b=expr { TSigma ("_", a, b) }
+  | t=expr IDEQ u=expr { TEq (t, u) }
+
+app_term:
+  | prefix_term { $1 }
+  | t=app_term u=prefix_term { TApp (None, t, u) }
+  | t=app_term AT s=option(dir) u=prefix_term { TApp (s, t, u) }
+
 term:
-  | simple_term { $1 }
-  | t=term IDEQ u=term { TEq (t, u) }
-  | t=term AT s=option(dir) u=term { TApp (s, t, u) }
-  /* | t=term u=term { TApp (None, t, u) } */
-  | a=term TO s=option(dir) b=term { match s with None -> TPi (Normal, "_", a, b) | Some s -> TArr (s, a, b) }
-  | term TIMES term { TSigma ("_", $1, $3) }
-  | term TENS term { TTens ($1, $3) }
-  | term TENSP term { TTensPair ($1, $3) }
+  | expr { $1 }
+  | a=expr TO s=option(dir) b=term { match s with None -> TPi (Normal, "_", a, b) | Some s -> TArr (s, a, b) }
   | abs=nonempty_list(piabs) TO b=term { pis abs b }
   | SIGMA LPAR x=IDENT COLON a=term RPAR DOT b=term { TSigma (x, a, b) }
   | FUN x=nonempty_list(pattern) to_dot t=term { abss_pattern x t }

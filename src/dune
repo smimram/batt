@@ -1,5 +1,6 @@
 (menhir
  (modules parser)
+ (flags --strict)
 )
 
 (ocamllex
