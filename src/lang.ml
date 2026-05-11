@@ -297,35 +297,39 @@ module Bunch = struct
 
   (** Split a buch so that we have the given free variables. *)
   (* TODO: do we only want to split at toplevel? *)
-  let rec split fvl fvr b =
-    match b with
-    | b when FV.is_empty fvl -> Empty, b
-    | b when FV.is_empty fvr -> b, Empty
-    | Empty -> Empty, Empty
-    | Tens (b1, b2) ->
-      let fv1 = dom b1 in
-      let fv2 = dom b2 in
-      if FV.subset fvl fv1 && FV.subset fvr fv2 then b1, b2
-      else if FV.subset fvl fv1 then
-        let b1', b1'' = split fvl (FV.diff fvr fv2) b1 in
-        b1', Tens (b1'', b2)
-      else if FV.subset fvr fv2 then
-        let b2', b2'' = split (FV.diff fvl fv1) fvr b2 in
-        Tens (b1, b2'), b2''
-      else if not @@ FV.subset (FV.union fvl fvr) (FV.union fv1 fv2) then failwith @@ Printf.sprintf "split: undefined variables: %s" @@ FV.to_string (FV.diff (FV.union fvl fvr) (FV.union fv1 fv2))
-      else failwith "split"
-    | Prod (Empty, b)
-    | Prod (b, Empty) -> split fvl fvr b
-    | Decl _ -> failwith "TODO: split decl"
-    | Prod _ (* (b1, b2) *) ->
-      (* let fv = FV.union fvl fvr in *)
-      (* if FV.subset fv (dom b1) then split fvl fvr b1 *)
-      (* else if FV.subset fv (dom b2) then *)
-      (* TODO: we should check that b2 does not depend on b1... *)
-      (* split fvl fvr b2 *)
-      (* else *)
-      failwith @@ Printf.sprintf "TODO: split prod: %s" @@ to_string 0 b
-
+  let split fvl fvr crisp b =
+    let fvc = FV.of_list @@ List.map fst crisp in
+    (* Printf.printf "crisp: %s\n%!" @@ FV.to_string fvc; *)
+    let rec aux fvl fvr b =
+      match b with
+      | b when FV.is_empty fvl -> Empty, b
+      | b when FV.is_empty fvr -> b, Empty
+      | Empty -> Empty, Empty
+      | Tens (b1, b2) ->
+        let fv1 = FV.union fvc @@ dom b1 in
+        let fv2 = FV.union fvc @@ dom b2 in
+        if FV.subset fvl fv1 && FV.subset fvr fv2 then b1, b2
+        else if FV.subset fvl fv1 then
+          let b1', b1'' = aux fvl (FV.diff fvr fv2) b1 in
+          b1', Tens (b1'', b2)
+        else if FV.subset fvr fv2 then
+          let b2', b2'' = aux (FV.diff fvl fv1) fvr b2 in
+          Tens (b1, b2'), b2''
+        else if not @@ FV.subset (FV.union fvl fvr) (FV.union fv1 fv2) then failwith @@ Printf.sprintf "split: undefined variables: %s" @@ FV.to_string (FV.diff (FV.union fvl fvr) (FV.union fv1 fv2))
+        else failwith "split"
+      | Prod (Empty, b)
+      | Prod (b, Empty) -> aux fvl fvr b
+      | Decl _ -> failwith "TODO: split decl"
+      | Prod _ (* (b1, b2) *) ->
+        (* let fv = FV.union fvl fvr in *)
+        (* if FV.subset fv (dom b1) then split fvl fvr b1 *)
+        (* else if FV.subset fv (dom b2) then *)
+        (* TODO: we should check that b2 does not depend on b1... *)
+        (* split fvl fvr b2 *)
+        (* else *)
+        failwith @@ Printf.sprintf "TODO: split prod: %s" @@ to_string 0 b
+    in
+    aux fvl fvr b
 end
 
 (** A bunched context. *)
@@ -366,7 +370,7 @@ module Context = struct
     | None -> List.assoc_opt x cenv
 
   let split fvl fvr (cenv,benv) =
-    let l, r = Bunch.split fvl fvr benv in
+    let l, r = Bunch.split fvl fvr cenv benv in
     (cenv,l),(cenv,r)
 end
 
@@ -558,7 +562,7 @@ let check_decl k env ctx (x, c, a, t) =
   check k env (Context.crisp ~crispness:c ctx) t a;
   let t = eval env t in
   let env = (x,t)::env in
-  let ctx = Context.ext ctx x a in
+  let ctx = Context.ext ~crispness:c ctx x a in
   env, ctx
 
 let check_decls k env ctx (decls:decls) =

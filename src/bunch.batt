@@ -20,6 +20,7 @@ fst A B (a ⊗ b) = a
 snd :: (A B :: U) → A ⨂ B → A
 snd A B (a ⊗ b) = a
 
+-- unit-left :: (A :: U) → ⊤ ⨂ A → A
 -- unit-left
 
 -- unit-right
