@@ -312,6 +312,7 @@ module Bunch = struct
       else if FV.subset fvr fv2 then
         let b2', b2'' = split (FV.diff fvl fv1) fvr b2 in
         Tens (b1, b2'), b2''
+      else if not @@ FV.subset (FV.union fvl fvr) (FV.union fv1 fv2) then failwith @@ Printf.sprintf "split: undefined variables: %s" @@ FV.to_string (FV.diff (FV.union fvl fvr) (FV.union fv1 fv2))
       else failwith "split"
     | Prod (Empty, b)
     | Prod (b, Empty) -> split fvl fvr b

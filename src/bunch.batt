@@ -14,6 +14,19 @@ sndb (x ⊗ y) = y
 -- swap :: (A B :: U) → A ⨂ B → B ⨂ A
 -- swap A B (x ⊗ y) = y ⊗ x
 
+fst :: (A B :: U) → A ⨂ B → A
+fst A B (a ⊗ b) = a
+
+snd :: (A B :: U) → A ⨂ B → A
+snd A B (a ⊗ b) = a
+
+-- unit-left
+
+-- unit-right
+
+-- assoc :: (A B C :: U) → (A ⨂ B) ⨂ C → A ⨂ (B ⨂ C)
+-- assoc A B C (ab ⊗ c) = fst @ ab ⊗ (snd @ ab ⊗ c)
+
 curry-left :: (A B C :: U) → (A ⨂ B → C) → (B → A →ₗ C)
 curry-left A B C f a bₗ = f @ (b ⊗ a)
 
