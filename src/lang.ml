@@ -410,7 +410,6 @@ let rec check k env ctx (t:term) (a:value) =
     check k env ctx t (capp b xv)
   | TAbs (Some s, x, t), Arr (s', a, b) ->
     assert (s = s');
-    (* TODO: fix this *)
     let xv = vvar k in
     let k = k+1 in
     let env = (x,xv)::env in
@@ -448,7 +447,6 @@ let rec check k env ctx (t:term) (a:value) =
     (
       match a with
       | Tens (a1, a2) ->
-        (* TODO: properly split context *)
         let x' = vvar k in
         let y' = vvar (k+1) in
         let k = k+2 in
@@ -459,7 +457,8 @@ let rec check k env ctx (t:term) (a:value) =
             let cctx, bctx = ctx in
             let bctx = Bunch.Prod (bctx, Bunch.Tens (Bunch.Decl (x, a1), Bunch.Decl (y, a2))) in
             cctx, bctx
-          | Crisp -> Context.ext_crisp (Context.ext_crisp ctx x a1) y a2
+          | Crisp ->
+            Context.ext_crisp (Context.ext_crisp ctx x a1) y a2
         in
         check k env ctx t (capp b (TensPair (x', y')))
       | _ -> failwith "tens_ind"
