@@ -1,0 +1,3 @@
+-- polymorphic identity
+id :: (A : U) → A → A
+id A x = x

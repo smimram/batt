@@ -1,0 +1,5 @@
+not :: (A : Type) → Type
+not A = A → ⊥
+
+exfalso : (A : Type) → ⊥ → A
+exfalso A ()

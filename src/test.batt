@@ -20,14 +20,6 @@ bnot = Bool_ind(true,false)
 cstf : Unit → Bool
 cstf tt = false
 
--- terminal arrow
-term : (A : U) → A → Unit
-term A x = tt
-
--- polymorphic identity
-id :: (A : U) → A → A
-id A x = x
-
 -- identity on bool
 idBool : Bool → Bool
 idBool x = x
@@ -40,18 +32,6 @@ idBool'IsId = Bool_ind(refl,refl)
 
 -- fst : (A B : U) → A × B → A
 -- fst A B (x,y) = x
-
-fst :: (A : U) (B : A → U) → (Σ (x : A) . B x) → A
-fst A B (x,y) = x
-
-snd :: (A B : U) → A × B → B
-snd A B (x,y) = y
-
-not :: (A : Type) → Type
-not A = Empty
-
-exfalso : (A : Type) → ⊥ → A
-exfalso A ()
 
 -- testing let
 n : Bool
@@ -79,67 +59,8 @@ sndb (x ⊗ y) = y
 -- swap :: (A B :: U) → A ⨂ B → B ⨂ A
 -- swap A B (x ⊗ y) = y ⊗ x
 
-fst :: (A B :: U) → A ⨂ B → A
-fst A B (a ⊗ b) = a
-
-snd :: (A B :: U) → A ⨂ B → A
-snd A B (a ⊗ b) = a
-
-tens-to-prod :: (A B :: U) → A ⨂ B → A × B
-tens-to-prod A B (a ⊗ b) = (a , b)
-
 pi-to-arr :: (A B :: U) → (A → B) → (A →ₗ B)
 pi-to-arr A B f aₗ = f a
-
-assoc :: (A B C :: U) → (A ⨂ B) ⨂ C → A ⨂ (B ⨂ C)
-assoc A B C (ab ⊗ c) =
-  let f : A ⨂ B → C →ᵣ A ⨂ (B ⨂ C) = fun (a ⊗ b) cᵣ → a ⊗ (b ⊗ c) in
-  f ab c
-
-coassoc :: (A B C :: U) → A ⨂ (B ⨂ C) → (A ⨂ B) ⨂ C
-coassoc A B C (a ⊗ bc) =
-  let f : B ⨂ C → A →ₗ (A ⨂ B) ⨂ C = fun (b ⊗ c) aₗ → (a ⊗ b) ⊗ c in
-  f bc a
-
-curry-left :: (A B C :: U) → (A ⨂ B → C) → (B → A →ₗ C)
-curry-left A B C f b aₗ = f (a ⊗ b)
-
-uncurry-left :: (A B C :: U) → (B → A →ₗ C) → (A ⨂ B → C)
-uncurry-left A B C f (a ⊗ b) = f b a
-
-curry-right :: (A B C :: U) → (A ⨂ B → C) → (A → B →ᵣ C)
-curry-right A B C f a bᵣ = f (a ⊗ b)
-
-uncurry-right :: (A B C :: U) → (A → B →ᵣ C) → (A ⨂ B → C)
-uncurry-right A B C f (a ⊗ b) = f a b
-
--- stronger version with a →ₗ
-curry-left-l :: (A B C :: U) → (A ⨂ B →ₗ C) → (B →ₗ A →ₗ C)
-curry-left-l A B C f bₗ aₗ = f (a ⊗ b)
-
-uncurry-left-l :: (A B C :: U) → (B →ₗ A →ₗ C) → (A ⨂ B →ₗ C)
-uncurry-left-l A B C f abₗ =
-  let g : A ⨂ B → C = λ (a ⊗ b) → f b a in
-  g ab
-
-uncurry-right-r :: (A B C :: U) → (A →ᵣ B →ᵣ C) → (A ⨂ B →ᵣ C)
-uncurry-right-r A B C f abᵣ =
-  let g : A ⨂ B → C = fun (a ⊗ b) → f a b in
-  g ab
-
--- version of assoc using curry-l/r
-assoc :: (A B C :: U) → (A ⨂ B) ⨂ C → A ⨂ (B ⨂ C)
-assoc A B C =
-  uncurry-right (A ⨂ B) C (A ⨂ (B ⨂ C))
-    (uncurry-right A B (C →ᵣ A ⨂ (B ⨂ C))
-      (λ a bᵣ cᵣ → a ⊗ (b ⊗ c)))
-
-uncurry-curry-left :: (A B C :: U) (f : A ⨂ B → C) (u : A ⨂ B) → uncurry-left A B C (curry-left A B C f) u ≡ f u
-uncurry-curry-left A B C f (a ⊗ b) = refl
-
-curry-uncurry-left :: (A B C :: U) (f : B → A →ₗ C) → curry-left A B C (uncurry-left A B C f) ≡ (λ b aₗ → f b a)
-curry-uncurry-left A B C f = refl
-
 
 comp-left :: (A B C :: U) → (A →ₗ B) →ₗ (B →ₗ C) →ₗ (A →ₗ C)
 comp-left A B C fₗ gₗ aₗ = g (f a)
