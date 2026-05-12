@@ -177,32 +177,44 @@ coassoc A B C (a ⊗ bc) =
   f bc a
 
 curry-left :: (A B C :: U) → (A ⨂ B → C) → (B → A →ₗ C)
-curry-left A B C f a bₗ = f (b ⊗ a)
-
-curry-right :: (A B C :: U) → (A ⨂ B → C) → (A → B →ᵣ C)
-curry-right A B C f a bᵣ = f (a ⊗ b)
-
--- -- Not supposed to work
--- curry-bad :: (A B C :: U) → (A ⨂ B → C) → (B → A →ᵣ C)
--- curry-bad A B C f a bᵣ = f (b ⊗ a)
+curry-left A B C f b aₗ = f (a ⊗ b)
 
 uncurry-left :: (A B C :: U) → (B → A →ₗ C) → (A ⨂ B → C)
 uncurry-left A B C f (a ⊗ b) = f b a
 
--- stronger version with a →ₗ
-uncurry-left-left :: (A B C :: U) → (B →ₗ A →ₗ C) → (A ⨂ B →ₗ C)
-uncurry-left-left A B C f uₗ =
-  let g : A ⨂ B → C = λ (a ⊗ b) → f b a in
-  g u
+curry-right :: (A B C :: U) → (A ⨂ B → C) → (A → B →ᵣ C)
+curry-right A B C f a bᵣ = f (a ⊗ b)
 
 uncurry-right :: (A B C :: U) → (A → B →ᵣ C) → (A ⨂ B → C)
 uncurry-right A B C f (a ⊗ b) = f a b
+
+-- stronger version with a →ₗ
+curry-left-l :: (A B C :: U) → (A ⨂ B →ₗ C) → (B →ₗ A →ₗ C)
+curry-left-l A B C f bₗ aₗ = f (a ⊗ b)
+
+uncurry-left-l :: (A B C :: U) → (B →ₗ A →ₗ C) → (A ⨂ B →ₗ C)
+uncurry-left-l A B C f abₗ =
+  let g : A ⨂ B → C = λ (a ⊗ b) → f b a in
+  g ab
+
+uncurry-right-r :: (A B C :: U) → (A →ᵣ B →ᵣ C) → (A ⨂ B →ᵣ C)
+uncurry-right-r A B C f abᵣ =
+  let g : A ⨂ B → C = fun (a ⊗ b) → f a b in
+  g ab
+
+-- version of assoc using curry-l/r
+assoc :: (A B C :: U) → (A ⨂ B) ⨂ C → A ⨂ (B ⨂ C)
+assoc A B C =
+  uncurry-right (A ⨂ B) C (A ⨂ (B ⨂ C))
+    (uncurry-right A B (C →ᵣ A ⨂ (B ⨂ C))
+      (λ a bᵣ cᵣ → a ⊗ (b ⊗ c)))
 
 uncurry-curry-left :: (A B C :: U) (f : A ⨂ B → C) (u : A ⨂ B) → uncurry-left A B C (curry-left A B C f) u ≡ f u
 uncurry-curry-left A B C f (a ⊗ b) = refl
 
 curry-uncurry-left :: (A B C :: U) (f : B → A →ₗ C) → curry-left A B C (uncurry-left A B C f) ≡ (λ b aₗ → f b a)
 curry-uncurry-left A B C f = refl
+
 
 comp-left :: (A B C :: U) → (A →ₗ B) →ₗ (B →ₗ C) →ₗ (A →ₗ C)
 comp-left A B C fₗ gₗ aₗ = g (f a)

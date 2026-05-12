@@ -498,7 +498,9 @@ let rec check k env ctx (t:term) (a:value) =
     let _, d = unpi (capp c x) in
     let d = capp d Refl in
     check k env ctx r d
-  | TPi _, Type -> check_type k env ctx t
+  | TPi _, Type
+  | TArr _, Type
+  | TTens _, Type -> check_type k env ctx t
   | THole pos, a ->
     important "HOLE at %s : %s\n%!" (Pos.to_string pos) (string_of_value k a)
   | t, a ->
