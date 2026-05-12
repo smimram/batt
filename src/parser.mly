@@ -30,11 +30,12 @@ main:
 
 decls:
   | { [] }
+  | decl { [$1] }
   | N decls { $2 }
-  | decl decls { $1::$2 }
+  | decl N decls { $1::$3 }
 
 decl:
-  | x=IDENT c=ccolon a=term N def=def N { let y, t = def in assert (x = y); (x, c, a, t) }
+  | x=IDENT c=ccolon a=term N def=def { let y, t = def in assert (x = y); (x, c, a, t) }
 
 def:
   | y=IDENT args=list(pattern) EQ t=term { y, abss_pattern args t }
