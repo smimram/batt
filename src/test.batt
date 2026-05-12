@@ -125,11 +125,15 @@ unflatten A 𝄫x = x
 -- flat-unique : (A :: Type) (C : ♭A → Type) (f : (x : ♭A) → C x) (x : ♭A) → ((λ 𝄫u → f 𝄫 u) x) ≡ f x
 -- flat-unique A C f 𝄫x = refl
 
-flat-eta : (A :: Type) (C : ♭A → Type) (f : (x : ♭A) → C x) (x : ♭A) → C x
+flat-eta :: (A :: Type) (C : ♭A → Type) (f : (x : ♭A) → C x) (x : ♭A) → C x
 flat-eta A C f 𝄫x = f 𝄫x
 
-flat-unique : (A :: Type) (C : ♭A → Type) (f : (x : ♭A) → C x) (x : ♭A) → flat-eta A C f x ≡ f x
+flat-unique :: (A :: Type) (C : ♭A → Type) (f : (x : ♭A) → C x) (x : ♭A) → flat-eta A C f x ≡ f x
 flat-unique A C f 𝄫x = refl
+
+-- TODO: dependent version?
+flat-map :: (A :: Type) (B :: Type) (f :: A → B) → ♭A → ♭B
+flat-map A B f 𝄫a = 𝄫(f a)
 
 -- -- Lemma 5.2
 -- flat-commutation : (A : Type) (B : ♭A → Type) (M : ♭A) (N : (u : A) → B 𝄫u) →
@@ -233,3 +237,19 @@ counitl-unitl A (t ⊗ a) =
   -- let tt = t in refl
   let f : (t : ⊤) → counitl A (unitl A (t ⊗ a)) ≡ (t ⊗ a) = λ tt → refl in
   f t
+
+flat-tens-to-prod :: (A B :: U) → ♭(A ⨂ B) → ♭(A × B)
+flat-tens-to-prod A B = flat-map (A ⨂ B) (A × B) (tens-to-prod A B)
+-- flat-tens-to-prod A B 𝄫ab =
+--   let f : (ab ∷ A ⨂ B) → ♭(A × B) = fun (a ⊗ b) → 𝄫 (a , b) in
+--   f ab
+
+flat-prod-to-tens :: (A B ∷ U) → ♭(A × B) → ♭(A ⨂ B)
+flat-prod-to-tens A B 𝄫ab =
+  let f : (ab :: A × B) → ♭(A ⨂ B) = fun (a , b) → 𝄫(a ⊗ b) in
+  f ab
+
+-- flat-prod-to-tens-to-prod :: (A B :: U) (x : ♭(A × B)) → flat-tens-to-prod A B (flat-prod-to-tens A B x) ≡ x
+-- flat-prod-to-tens-to-prod A B 𝄫x =
+  -- let f : (x : A × B) → flat-tens-to-prod A B (flat-prod-to-tens A B x) ≡ x = fun (a , b) → refl in
+  -- f x

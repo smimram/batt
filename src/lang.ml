@@ -138,6 +138,7 @@ type value =
   | Refl
   | J of value
   | Neu of neutral
+[@@deriving show]
 
 (** A neutral term. *)
 and neutral =
@@ -351,10 +352,15 @@ type bunch = Bunch.t
 module Context = struct
   type t = crisp * bunch
 
-  let to_string k (cenv,benv) =
-    let cenv = String.concat ", " @@ List.map (fun (x,a) -> Printf.sprintf "%s:%s" x (string_of_value k a)) cenv in
-    let benv = Bunch.to_string k benv in
-    Printf.sprintf "%s / %s" cenv benv
+  let to_string ?(multiline=false) k (cenv,benv) =
+    if multiline then
+      let cenv = String.concat "\n" @@ List.rev_map (fun (x,a) -> Printf.sprintf "%s : %s" x (string_of_value k a)) cenv in
+      let benv = Bunch.to_string k benv in
+      Printf.sprintf "%s\n%s" cenv benv
+    else
+      let cenv = String.concat ", " @@ List.rev_map (fun (x,a) -> Printf.sprintf "%s:%s" x (string_of_value k a)) cenv in
+      let benv = Bunch.to_string k benv in
+      Printf.sprintf "%s / %s" cenv benv
 
   let empty : t = [],Bunch.Empty
 
@@ -435,7 +441,7 @@ let rec check k env ctx (t:term) (a:value) =
         let x2 = vvar (k+1) in
         let k = k+2 in
         let env = (y,x2)::(x,x1)::env in
-        let ctx = Context.ext ~crispness:c (Context.ext ctx x a1) y (capp a2 x1) in
+        let ctx = Context.ext ~crispness:c (Context.ext ~crispness:c ctx x a1) y (capp a2 x1) in
         check k env ctx t (capp b (Pair (x1, x2)))
       | _ -> failwith "pair_ind"
     )
@@ -499,10 +505,11 @@ let rec check k env ctx (t:term) (a:value) =
     let d = capp d Refl in
     check k env ctx r d
   | TPi _, Type
+  | TSigma _, Type
   | TArr _, Type
   | TTens _, Type -> check_type k env ctx t
   | THole pos, a ->
-    important "HOLE at %s : %s\n%!" (Pos.to_string pos) (string_of_value k a)
+    important "HOLE at %s : %s IN\n%s\n%!" (Pos.to_string pos) (string_of_value k a) (Context.to_string ~multiline:true k ctx)
   | t, a ->
     let a' = infer k env ctx t in
     if not @@ is_eq k a' a then
