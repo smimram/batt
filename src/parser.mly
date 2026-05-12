@@ -79,7 +79,7 @@ term:
   | SIGMA LPAR x=IDENT COLON a=term RPAR DOT b=term { TSigma (x, a, b) }
   | FUN x=nonempty_list(pattern) to_dot t=term { abss_pattern x t }
   | LET x=IDENT c=ccolon a=term EQ t=term IN u=term { TLet (c, x, a, t, u) }
-  /* | LET x=pattern EQ t=term IN u=term { app () () } */
+  | LET x=pattern EQ t=term IN u=term { app (abs_pattern x u) t }
 
 pattern:
   | x=IDENT d=option(dir) { `Var (x,d) }

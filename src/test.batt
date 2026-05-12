@@ -216,5 +216,6 @@ unitl-counitl A a = refl
 
 counitl-unitl :: (A :: U) (x : ⊤ ⨂ A) → counitl A (unitl A x) ≡ x
 counitl-unitl A (t ⊗ a) =
+  -- let tt = t in refl
   let f : (t : ⊤) → counitl A (unitl A (t ⊗ a)) ≡ (t ⊗ a) = λ tt → refl in
   f t
