@@ -463,7 +463,7 @@ let rec check k env ctx (t:term) (a:value) =
             cctx, bctx
           | Crisp -> Context.ext_crisp (Context.ext_crisp ctx x a1) y a2
         in
-        check k env ctx t (capp b (Tens (x', y')))
+        check k env ctx t (capp b (TensPair (x', y')))
       | _ -> failwith "tens_ind"
     )
   | TIndType_ind (`Empty, []), Pi (_, a, _) ->
@@ -503,7 +503,7 @@ let rec check k env ctx (t:term) (a:value) =
     check k env ctx r d
   | TPi _, Type -> check_type k env ctx t
   | THole pos, a ->
-    Printf.printf "HOLE at %s : %s\n%!" (Pos.to_string pos) (string_of_value k a)
+    important "HOLE at %s : %s\n%!" (Pos.to_string pos) (string_of_value k a)
   | t, a ->
     let a' = infer k env ctx t in
     if not @@ is_eq k a' a then
