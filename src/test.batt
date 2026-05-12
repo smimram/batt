@@ -58,6 +58,12 @@ n =
   id Bool false
 
 ---
+--- Unit
+---
+
+
+
+---
 --- Identity types
 ---
 
@@ -152,6 +158,9 @@ snd A B (a ⊗ b) = a
 tens-to-prod :: (A B :: U) → A ⨂ B → A × B
 tens-to-prod A B (a ⊗ b) = (a , b)
 
+pi-to-arr :: (A B :: U) → (A → B) → (A →ₗ B)
+pi-to-arr A B f aₗ = f a
+
 -- unit-left :: (A :: U) → ⊤ ⨂ A → A
 -- unit-left
 
@@ -178,6 +187,12 @@ curry-right A B C f a bᵣ = f (a ⊗ b)
 uncurry-left :: (A B C :: U) → (B → A →ₗ C) → (A ⨂ B → C)
 uncurry-left A B C f (a ⊗ b) = f b a
 
+-- stronger version with a →ₗ
+uncurry-left-left :: (A B C :: U) → (B →ₗ A →ₗ C) → (A ⨂ B →ₗ C)
+uncurry-left-left A B C f uₗ =
+  let g : A ⨂ B → C = λ (a ⊗ b) → f b a in
+  g u
+
 uncurry-right :: (A B C :: U) → (A → B →ᵣ C) → (A ⨂ B → C)
 uncurry-right A B C f (a ⊗ b) = f a b
 
@@ -189,3 +204,17 @@ curry-uncurry-left A B C f = refl
 
 comp-left :: (A B C :: U) → (A →ₗ B) →ₗ (B →ₗ C) →ₗ (A →ₗ C)
 comp-left A B C fₗ gₗ aₗ = g (f a)
+
+unitl :: (A :: U) → ⊤ ⨂ A → A
+unitl A (x ⊗ a) = a
+
+counitl :: (A :: U) → A → ⊤ ⨂ A
+counitl A a = (tt ⊗ a)
+
+unitl-counitl :: (A :: U) (a : A) → unitl A (counitl A a) ≡ a
+unitl-counitl A a = refl
+
+counitl-unitl :: (A :: U) (x : ⊤ ⨂ A) → counitl A (unitl A x) ≡ x
+counitl-unitl A (t ⊗ a) =
+  let f : (t : ⊤) → counitl A (unitl A (t ⊗ a)) ≡ (t ⊗ a) = λ tt → refl in
+  f t
