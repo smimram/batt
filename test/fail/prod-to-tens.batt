@@ -1,0 +1,2 @@
+prod-to-tens :: (A B :: U) → A × B → A ⨂ B
+prod-to-tens A B (a , b) = (a ⊗ b)
