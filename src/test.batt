@@ -1,3 +1,5 @@
+open import stdlib
+
 -- a boolean
 b : Bool
 b = false
@@ -56,87 +58,6 @@ n : Bool
 n =
   let id : (A : Type) → A → A = λ A x → x in
   id Bool false
-
----
---- Unit
----
-
-unit-ind : (A :: ⊤ → U) → A tt → (x : ⊤) → A x
-unit-ind A a tt = a
-
-unit-ind-l : (A :: U) → A → ⊤ →ₗ A
-unit-ind-l A a tₗ =
-  let f : ⊤ → A = λ tt → a in f t
-
----
---- Identity types
----
-
-r : (A : U) (x : A) → (x ≡ x)
-r A x = refl
-
-sym : (A : Type) (x y : A) → x ≡ y → y ≡ x
-sym A refl = refl
-
-trans : (A : Type) (x y : A) → x ≡ y → (z : A) → y ≡ z → x ≡ z
-trans A refl z p = p
-
-cong : (A B : Type) (f : A → B) (x y : A) → x ≡ y → f x ≡ f y
-cong A B f refl = refl
-
-transport : (A B : Type) → A ≡ B → A → B
-transport refl A = A
-
-subst : (A : Type) (P : A → Type) (x y : A) → x ≡ y → P x → P y
-subst A P refl z = z
-
----
---- Flat
----
-
-flat : ♭U → U
-flat 𝄫A = A
-
-unflatten : (A :: U) → ♭A → A
-unflatten A 𝄫x = x
--- unflatten A = ♭_ind(x, x)
--- unflatten = fun A a → let♭ x = a in x
-
--- unflatten : (A : U) → ♭A → A
--- unflatten = fun A → ♭_ind(A,♭_ind(x, x)) 𝄫A
-
--- unflatten : (A : ♭U) → ♭A → A
--- unflatten = ♭_ind(A,♭_ind(x, x))
-
--- TODO: this should work!
--- unflatten' : (A : ♭Type) → let f : ♭Type → Type = λ 𝄫B → (♭B → B) in f A
--- unflatten' A 𝄫x = x
-
--- unflatten' : (A : ♭Type) → flat A → unflatten U A
--- unflatten' A 𝄫x = x
-
--- should not work
--- flatten : (A :: U) → A → ♭A
--- flatten = fun A → fun a → 𝄫a
-
---- Formalizing Shulman 2017
-
--- Lemma 4.4
--- flat-unique : (A :: Type) (C : ♭A → Type) (f : (x : ♭A) → C x) (x : ♭A) → ((λ 𝄫u → f 𝄫 u) x) ≡ f x
--- flat-unique A C f 𝄫x = refl
-
-flat-eta :: (A :: Type) (C : ♭A → Type) (f : (x : ♭A) → C x) (x : ♭A) → C x
-flat-eta A C f 𝄫x = f 𝄫x
-
-flat-unique :: (A :: Type) (C : ♭A → Type) (f : (x : ♭A) → C x) (x : ♭A) → flat-eta A C f x ≡ f x
-flat-unique A C f 𝄫x = refl
-
--- TODO: dependent version?
-flat-map :: (A :: Type) (B :: Type) (f :: A → B) → ♭A → ♭B
-flat-map A B f 𝄫a = 𝄫(f a)
-
--- -- Lemma 5.2
--- flat-commutation : (A : Type) (B : ♭A → Type) (M : ♭A) (N : (u : A) → B 𝄫u) →
 
 ---
 --- Bunches

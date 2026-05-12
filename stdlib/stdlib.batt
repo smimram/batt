@@ -1,2 +1,4 @@
 open import empty
 open import unit
+open import equality
+open import flat

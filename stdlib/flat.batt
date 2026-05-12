@@ -1,0 +1,43 @@
+flat : ♭U → U
+flat 𝄫A = A
+
+unflatten : (A :: U) → ♭A → A
+unflatten A 𝄫x = x
+-- unflatten A = ♭_ind(x, x)
+-- unflatten = fun A a → let♭ x = a in x
+
+-- unflatten : (A : U) → ♭A → A
+-- unflatten = fun A → ♭_ind(A,♭_ind(x, x)) 𝄫A
+
+-- unflatten : (A : ♭U) → ♭A → A
+-- unflatten = ♭_ind(A,♭_ind(x, x))
+
+-- TODO: this should work!
+-- unflatten' : (A : ♭Type) → let f : ♭Type → Type = λ 𝄫B → (♭B → B) in f A
+-- unflatten' A 𝄫x = x
+
+-- unflatten' : (A : ♭Type) → flat A → unflatten U A
+-- unflatten' A 𝄫x = x
+
+-- should not work
+-- flatten : (A :: U) → A → ♭A
+-- flatten = fun A → fun a → 𝄫a
+
+--- Formalizing Shulman 2017
+
+-- Lemma 4.4
+-- flat-unique : (A :: Type) (C : ♭A → Type) (f : (x : ♭A) → C x) (x : ♭A) → ((λ 𝄫u → f 𝄫 u) x) ≡ f x
+-- flat-unique A C f 𝄫x = refl
+
+-- -- Lemma 5.2
+-- flat-commutation : (A : Type) (B : ♭A → Type) (M : ♭A) (N : (u : A) → B 𝄫u) →
+
+flat-eta :: (A :: Type) (C : ♭A → Type) (f : (x : ♭A) → C x) (x : ♭A) → C x
+flat-eta A C f 𝄫x = f 𝄫x
+
+flat-unique :: (A :: Type) (C : ♭A → Type) (f : (x : ♭A) → C x) (x : ♭A) → flat-eta A C f x ≡ f x
+flat-unique A C f 𝄫x = refl
+
+-- TODO: dependent version?
+flat-map :: (A :: Type) (B :: Type) (f :: A → B) → ♭A → ♭B
+flat-map A B f 𝄫a = 𝄫(f a)

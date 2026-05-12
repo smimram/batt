@@ -1,7 +1,17 @@
 let () =
   Printexc.record_backtrace true;
   Printf.printf "Welcome to BATT!\n%!";
-  let files = List.tl @@ Array.to_list Sys.argv in
+  let incdirs = ref [] in
+  let files = ref [] in
+  Arg.parse
+    (Arg.align
+       [
+         "-I", Arg.String (fun s -> incdirs := s :: !incdirs), " Include directory"
+       ]
+    )
+    (fun s -> files := s :: !files) "batt [options] files";
+  let files = List.rev !files in
+  let incdirs = "." :: List.rev !incdirs in
   try
     List.iter
       (fun fname ->
@@ -10,7 +20,7 @@ let () =
          let lexbuf = Lexing.from_channel ic in
          Lexing.set_filename lexbuf fname;
          let decls =
-           try Parser.main (Lexer.token |> Preprocessor.inline_include) lexbuf
+           try Parser.main (Lexer.token |> Preprocessor.inline_include incdirs) lexbuf
            with
            | Failure err ->
              let pos = Lexing.lexeme_start_p lexbuf, Lexing.lexeme_end_p lexbuf in

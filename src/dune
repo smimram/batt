@@ -14,5 +14,5 @@
 (rule
  (alias runtest)
  (deps test.batt)
- (action (run ./batt.exe test.batt))
+ (action (run ./batt.exe -I ../stdlib test.batt))
 )

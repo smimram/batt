@@ -1,12 +1,13 @@
 (** Inline include tokens. *)
-let inline_include token =
+let inline_include dirs token =
   let stack = Stack.create () in
   let current_lexbuf = ref None in
   let rec aux () =
     let lexbuf = Option.get !current_lexbuf in
     match token lexbuf with
     | Parser.INCLUDE fname ->
-      let fname = if Sys.file_exists (fname ^ ".batt") then fname ^ ".batt" else fname in
+      let fname = fname ^ ".batt" in
+      let fname = Option.get @@ List.find_map (fun dir -> let fname = Filename.concat dir fname in if Sys.file_exists fname then Some fname else None) dirs in
       Printf.printf "Include %s...\n%!" fname;
       let ic = open_in fname in
       let new_lexbuf = Lexing.from_channel ic in
