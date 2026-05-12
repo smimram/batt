@@ -1,0 +1,3 @@
+-- Mixed left/right curryfication
+curry-bad :: (A B C :: U) → (A ⨂ B → C) → (B → A →ᵣ C)
+curry-bad A B C f a bᵣ = f (b ⊗ a)

@@ -1,0 +1,10 @@
+#!/bin/sh
+for f in *.batt; do
+    echo -n "Testing $f... "
+    if dune exec ../../src/batt.exe -- $f > /dev/null 2>&1; then
+        echo "did not fail but was expected to!"
+        exit 1
+    else
+        echo "failed as expected."
+    fi
+done

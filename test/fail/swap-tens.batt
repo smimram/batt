@@ -1,0 +1,3 @@
+-- Tensor is not commutative
+swap :: (A B :: U) → A ⨂ B → B ⨂ A
+swap A B (x ⊗ y) = y ⊗ x
