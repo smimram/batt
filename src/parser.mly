@@ -13,6 +13,7 @@ open Helper
 %token IDEQ REFL
 %token LEFT RIGHT
 %token<string> IDENT
+%token<string> INCLUDE
 
 %nonassoc IDEQ
 %right TIMES

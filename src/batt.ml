@@ -8,28 +8,17 @@ let () =
          Printf.printf "\nChecking %s...\n%!" fname;
          let ic = open_in fname in
          let lexbuf = Lexing.from_channel ic in
+         Lexing.set_filename lexbuf fname;
          let decls =
-           try Parser.main Lexer.token lexbuf
+           try Parser.main (Lexer.token |> Preprocessor.inline_include) lexbuf
            with
            | Failure err ->
-             let pos = (Lexing.lexeme_end_p lexbuf) in
-             let err =
-               Printf.sprintf
-                 "Lexing error at line %d, character %d: %s"
-                 pos.Lexing.pos_lnum
-                 (pos.Lexing.pos_cnum - pos.Lexing.pos_bol)
-                 err
-             in
+             let pos = Lexing.lexeme_start_p lexbuf, Lexing.lexeme_end_p lexbuf in
+             let err = Printf.sprintf "Lexing error %s: %s" (Pos.to_string pos) err in
              failwith err
            | Parser.Error ->
-             let pos = (Lexing.lexeme_end_p lexbuf) in
-             let err =
-               Printf.sprintf
-                 "Parse error at word \"%s\", line %d, character %d."
-                 (Lexing.lexeme lexbuf)
-                 pos.Lexing.pos_lnum
-                 (pos.Lexing.pos_cnum - pos.Lexing.pos_bol)
-             in
+             let pos = Lexing.lexeme_start_p lexbuf, Lexing.lexeme_end_p lexbuf in
+             let err = Printf.sprintf "Parsing error %s" (Pos.to_string pos) in
              failwith err
          in
          close_in ic;

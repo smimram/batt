@@ -2,6 +2,8 @@
 b : Bool
 b = false
 
+open import small
+
 -- a pair of booleans
 bb : Bool × Bool
 bb = (false , true)
