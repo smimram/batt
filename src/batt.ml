@@ -38,6 +38,6 @@ let () =
   with
   | Failure err ->
     let bt = Printexc.raw_backtrace_to_string @@ Printexc.get_raw_backtrace () in
-    Printf.printf "\nError: %s\n\n%s%!" err bt;
+    Common.error "\nError: %s\n\n%s%!" err bt;
     exit 1
 
