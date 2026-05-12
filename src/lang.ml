@@ -33,7 +33,7 @@ type term =
   | TIndTerm of inductive_term
   | TPi of crispness * string * term * term (** pi-type *)
   | TAbs of side option * string * term
-  | TApp of side option * term * term
+  | TApp of term * term
   | TSigma of string * term * term
   | TPair of term * term
   | TPair_ind of string * string * term
@@ -66,7 +66,7 @@ module FV = struct
     | TPi (_, x, a, b)
     | TSigma (x, a, b) -> union (term a) (remove x (term b))
     | TAbs (_, x, t) -> remove x (term t)
-    | TApp (_, t, u)
+    | TApp (t, u)
     | TPair (t, u) -> union (term t) (term u)
     | TPair_ind (x, y, t) -> remove x (remove y (term t))
     | TArr (_, a, b)
@@ -98,7 +98,7 @@ let rec string_of_term t =
   | TIndTerm (`Bool b) -> string_of_bool b
   | TPi (c, x, a, t) -> Printf.sprintf "(%s %s %s) → %s" x (colon c) (string_of_term a) (string_of_term t)
   | TAbs (s, x, t) -> Printf.sprintf "λ%s%s.%s" x (string_of_opt_side s) (string_of_term t)
-  | TApp (s, t, u) -> Printf.sprintf "(%s @%s %s)" (string_of_term t) (string_of_opt_side s) (string_of_term u)
+  | TApp (t, u) -> Printf.sprintf "(%s %s)" (string_of_term t) (string_of_term u)
   | TSigma (x, a, t) -> Printf.sprintf "(Σ(%s : %s).%s)" x (string_of_term a) (string_of_term t)
   | TPair (t, u) -> Printf.sprintf "(%s, %s)" (string_of_term t) (string_of_term u)
   | TPair_ind (x, y, t) -> Printf.sprintf "(λ(%s,%s).%s)" x y (string_of_term t)
@@ -143,7 +143,7 @@ type value =
 and neutral =
   | Var of int
   | Hole of Pos.t
-  | App of side option * neutral * value
+  | App of neutral * value
   | NPair_ind of closure2 * neutral
   | NTens_ind of closure2 * neutral
   | NIndType_ind of inductive_type * value list * neutral
@@ -167,7 +167,7 @@ let rec eval (env:environment) = function
   | TIndType_ind (ind, args) -> IndType_ind (ind, List.map (eval env) args)
   | TPi (c, x, a, t) -> Pi (c, eval env a, (x, t, env))
   | TAbs (s, x, t) -> Abs (s, (x, t, env))
-  | TApp (_, t, u) -> vapp (eval env t) (eval env u)
+  | TApp (t, u) -> vapp (eval env t) (eval env u)
   | TSigma (x, a, t) -> Sigma (eval env a, (x, t, env))
   | TPair (t, u) -> Pair (eval env t, eval env u)
   | TPair_ind (x, y, t) -> Pair_ind (x, y, t, env)
@@ -188,7 +188,7 @@ let rec eval (env:environment) = function
       | None -> failwith @@ Printf.sprintf "eval: could not find %s" x
     )
   | TLet (_c,x,_a,t,u) ->
-    eval env (TApp (None, TAbs(None, x, u), t))
+    eval env (TApp (TAbs(None, x, u), t))
   | THole pos -> Neu (Hole pos)
 
 (** Make a variable. *)
@@ -210,7 +210,7 @@ and vapp t u =
   | Flat_ind t, Neu u -> Neu (NFlat_ind (t, u))
   | J r, Refl -> r
   | J r, Neu t -> Neu (NJ (r, t))
-  | Neu t, u -> Neu (App (None, t, u))
+  | Neu t, u -> Neu (App (t, u))
   | _ -> failwith "vapp"
 
 (** Instantiate a closure with a value. *)
@@ -225,13 +225,13 @@ let rec readback k v =
   let var k = "x" ^ string_of_int k in
   let rec neutral k = function
     | Var i -> TVar (var i)
-    | App (s, t, u) -> TApp (s, neutral k t, readback k u)
+    | App (t, u) -> TApp (neutral k t, readback k u)
     | Hole pos -> THole pos
-    | NPair_ind (t, u) -> TApp (None, readback k @@ Pair_ind t, neutral k u)
-    | NTens_ind (t, u) -> TApp (None, readback k @@ Tens_ind t, neutral k u)
-    | NIndType_ind (ind, args, t) -> TApp (None, readback k @@ IndType_ind (ind, args), neutral k t)
-    | NFlat_ind (t, u) -> TApp (None, readback k @@ Flat_ind t, neutral k u)
-    | NJ (r, t) -> TApp (None, readback k @@ J r, neutral k t)
+    | NPair_ind (t, u) -> TApp (readback k @@ Pair_ind t, neutral k u)
+    | NTens_ind (t, u) -> TApp (readback k @@ Tens_ind t, neutral k u)
+    | NIndType_ind (ind, args, t) -> TApp (readback k @@ IndType_ind (ind, args), neutral k t)
+    | NFlat_ind (t, u) -> TApp (readback k @@ Flat_ind t, neutral k u)
+    | NJ (r, t) -> TApp (readback k @@ J r, neutral k t)
   in
   match v with
   | Type -> TType
@@ -555,22 +555,16 @@ and infer k env ctx (t:term) =
   | TIndType _ -> Type
   | TIndTerm `Unit -> IndType `Unit
   | TIndTerm (`Bool _) -> IndType `Bool
-  | TApp (None, t, u) ->
+  | TApp (t, u) ->
     (
       match infer k env ctx t with
       | Pi (c, a, b) ->
         check k env (Context.crisp ~crispness:c ctx) u a;
         capp b (eval env u)
-      | _ -> failwith "infer app"
-    )
-  | TApp (Some s, t, u) ->
-    (
-      match infer k env ctx t with
-      | Arr (s', a, b) ->
-        assert (s = s');
+      | Arr (_s, a, b) ->
         check k env ctx u a;
         b
-      | _ -> failwith "infer sided app"
+      | _ -> failwith "infer app"
     )
   | TVar x ->
     (

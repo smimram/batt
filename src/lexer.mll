@@ -37,7 +37,6 @@ rule token = parse
   | "." { DOT }
   | "fun" { FUN }
   | "λ" { utf8 lexbuf; FUN }
-  | "@" { AT }
   | "Σ" { utf8 lexbuf; SIGMA }
   | "×"  { utf8 lexbuf; TIMES }
   | "⨂"  { utf8 ~n:2 lexbuf; TENS }

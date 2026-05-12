@@ -4,7 +4,7 @@ open Lang
 
 let abs x t = TAbs(None, x, t)
 
-let app t u = TApp(None, t, u)
+let app t u = TApp(t, u)
 
 (** Multiple abstractions. *)
 let rec abss l t =

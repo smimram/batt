@@ -51,15 +51,15 @@ curry-right A B C f a bᵣ = f (a ⊗ b)
 -- curry-bad A B C f a bᵣ = f (b ⊗ a)
 
 uncurry-left :: (A B C :: U) → (B → A →ₗ C) → (A ⨂ B → C)
-uncurry-left A B C f (a ⊗ b) = f b @ₗ a
+uncurry-left A B C f (a ⊗ b) = f b a
 
 uncurry-right :: (A B C :: U) → (A → B →ᵣ C) → (A ⨂ B → C)
-uncurry-right A B C f (a ⊗ b) = f a @ᵣ b
+uncurry-right A B C f (a ⊗ b) = f a b
 
 uncurry-curry-left :: (A B C :: U) (f : A ⨂ B → C) (u : A ⨂ B) → uncurry-left A B C (curry-left A B C f) u ≡ f u
 uncurry-curry-left A B C f (a ⊗ b) = refl
 
-curry-uncurry-left :: (A B C :: U) (f : B → A →ₗ C) → curry-left A B C (uncurry-left A B C f) ≡ (λ b aₗ → f b @ₗ a)
+curry-uncurry-left :: (A B C :: U) (f : B → A →ₗ C) → curry-left A B C (uncurry-left A B C f) ≡ (λ b aₗ → f b a)
 curry-uncurry-left A B C f = refl
 
 -- comp-left :: (A B C :: U) → (A →ₗ B) →ₗ (B →ₗ C) →ₗ (A →ₗ C)

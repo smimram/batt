@@ -8,7 +8,7 @@ open Helper
 %token EMPTY
 %token UNIT TT
 %token BOOL FALSE TRUE BOOL_IND
-%token TO FUN DOT AT SIGMA TIMES TENS TENSP
+%token TO FUN DOT SIGMA TIMES TENS TENSP
 %token FLAT FLATTEN
 %token IDEQ REFL
 %token LEFT RIGHT
@@ -63,8 +63,7 @@ prefix_term:
 
 app_term:
   | prefix_term { $1 }
-  | t=app_term u=prefix_term { TApp (None, t, u) }
-  | t=app_term AT s=option(dir) u=prefix_term { TApp (s, t, u) }
+  | t=app_term u=prefix_term { TApp (t, u) }
 
 expr:
   | app_term { $1 }
