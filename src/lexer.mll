@@ -22,8 +22,9 @@ rule token = parse
   | "false" { FALSE }
   | "true" { TRUE }
   | "Bool_ind" { BOOL_IND }
-  | "::" { CCOLON }
   | ":" { COLON }
+  | "::" { CCOLON }
+  | "∷" { utf8 ~n:2 lexbuf; CCOLON }
   | "=" { EQ }
   | "?" { HOLE }
   | "()" { LRPAR }

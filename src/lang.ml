@@ -88,7 +88,7 @@ end
 let rec string_of_term t =
   let colon = function
     | Normal -> ":"
-    | Crisp -> "::"
+    | Crisp -> "∷"
   in
   match t with
   | TType -> "Type"
