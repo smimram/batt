@@ -61,3 +61,6 @@ uncurry-curry-left A B C f (a ⊗ b) = refl
 
 curry-uncurry-left :: (A B C :: U) (f : B → A →ₗ C) → curry-left A B C (uncurry-left A B C f) ≡ (λ b aₗ → f b @ₗ a)
 curry-uncurry-left A B C f = refl
+
+-- comp-left :: (A B C :: U) → (A →ₗ B) →ₗ (B →ₗ C) →ₗ (A →ₗ C)
+-- comp-left
