@@ -61,7 +61,12 @@ n =
 --- Unit
 ---
 
+unit-ind : (A :: ⊤ → U) → A tt → (x : ⊤) → A x
+unit-ind A a tt = a
 
+unit-ind-l : (A :: U) → A → ⊤ →ₗ A
+unit-ind-l A a tₗ =
+  let f : ⊤ → A = λ tt → a in f t
 
 ---
 --- Identity types
@@ -161,18 +166,15 @@ tens-to-prod A B (a ⊗ b) = (a , b)
 pi-to-arr :: (A B :: U) → (A → B) → (A →ₗ B)
 pi-to-arr A B f aₗ = f a
 
--- unit-left :: (A :: U) → ⊤ ⨂ A → A
--- unit-left
+assoc :: (A B C :: U) → (A ⨂ B) ⨂ C → A ⨂ (B ⨂ C)
+assoc A B C (ab ⊗ c) =
+  let f : A ⨂ B → C →ᵣ A ⨂ (B ⨂ C) = fun (a ⊗ b) cᵣ → a ⊗ (b ⊗ c) in
+  f ab c
 
--- unit-right
-
--- assoc :: (A B C :: U) → (A ⨂ B) ⨂ C → A ⨂ (B ⨂ C)
--- assoc A B C (ab ⊗ c) = fst ab ⊗ (snd ab ⊗ c)
-
--- assoc :: (A B C :: U) → (A ⨂ B) ⨂ C → A ⨂ (B ⨂ C)
--- assoc A B C (ab ⊗ c) =
-  -- let f :: A ⨂ B → A ⨂ (B ⨂ C) = fun (a ⊗ b) → a ⊗ (b ⊗ c) in
-  -- f ab
+coassoc :: (A B C :: U) → A ⨂ (B ⨂ C) → (A ⨂ B) ⨂ C
+coassoc A B C (a ⊗ bc) =
+  let f : B ⨂ C → A →ₗ (A ⨂ B) ⨂ C = fun (b ⊗ c) aₗ → (a ⊗ b) ⊗ c in
+  f bc a
 
 curry-left :: (A B C :: U) → (A ⨂ B → C) → (B → A →ₗ C)
 curry-left A B C f a bₗ = f (b ⊗ a)

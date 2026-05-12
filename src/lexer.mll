@@ -48,7 +48,7 @@ rule token = parse
   | "refl" { REFL }
   | "let" { LET }
   | "in" { IN }
-  | letter(letter|['0'-'9''\'''-'])* as s { IDENT s }
+  | letter(letter|['0'-'9''\'''-''_'])* as s { IDENT s }
   | "--"[^'\n']* { token lexbuf }
   | space+ { token lexbuf }
   | "\n " { new_line lexbuf; token lexbuf } (* quick hack, we should properly handle indentation *)

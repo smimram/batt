@@ -277,8 +277,8 @@ module Bunch = struct
   let rec to_string k = function
     | Empty -> "()"
     | Decl (x, a) -> Printf.sprintf "%s:%s" x (string_of_value k a)
-    | Prod (l,r) -> Printf.sprintf "%s,%s" (to_string k l) (to_string k r)
-    | Tens (l,r) -> Printf.sprintf "%s⊗%s" (to_string k l) (to_string k r)
+    | Prod (l,r) -> Printf.sprintf "(%s,%s)" (to_string k l) (to_string k r)
+    | Tens (l,r) -> Printf.sprintf "(%s⊗%s)" (to_string k l) (to_string k r)
 
   let ext ctx x a = Prod (ctx,Decl(x,a))
   
@@ -315,6 +315,7 @@ module Bunch = struct
     let fvc = FV.of_list @@ List.map fst crisp in
     (* Printf.printf "crisp: %s\n%!" @@ FV.to_string fvc; *)
     let rec aux fvl fvr b =
+      (* Printf.printf "split %s as %s / %s\n%!" (to_string 0 b) (FV.to_string fvl) (FV.to_string fvr); *)
       match b with
       | b when FV.is_empty fvl -> Empty, b
       | b when FV.is_empty fvr -> b, Empty
@@ -334,14 +335,11 @@ module Bunch = struct
       | Prod (Empty, b)
       | Prod (b, Empty) -> aux fvl fvr b
       | Decl _ -> failwith @@ Printf.sprintf "trying to split %s as %s / %s" (to_string 0 b) (FV.to_string fvl) (FV.to_string fvr)
-      | Prod _ (* (b1, b2) *) ->
-        (* let fv = FV.union fvl fvr in *)
-        (* if FV.subset fv (dom b1) then split fvl fvr b1 *)
-        (* else if FV.subset fv (dom b2) then *)
-        (* TODO: we should check that b2 does not depend on b1... *)
-        (* split fvl fvr b2 *)
-        (* else *)
-        failwith @@ Printf.sprintf "TODO: split prod: %s" @@ to_string 0 b
+      | Prod (b1, b2) ->
+        let fv = FV.union fvl fvr in
+        if FV.subset fv (dom b1) then aux fvl fvr b1
+        else if FV.subset fv (dom b2) then aux fvl fvr b2
+        else failwith @@ Printf.sprintf "TODO: split prod: %s as %s / %s" (to_string 0 b) (FV.to_string fvl) (FV.to_string fvr)
     in
     aux fvl fvr b
 end
