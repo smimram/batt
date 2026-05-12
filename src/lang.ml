@@ -1,3 +1,5 @@
+open Common
+
 type var = string
 
 (** Basic inductive types. *)
@@ -398,7 +400,7 @@ let eq k t u =
 
 (** Check that term has given type. *)
 let rec check k env ctx (t:term) (a:value) =
-  Printf.printf "CHECK %s : %s\n%!" (string_of_term t) (string_of_value k a);
+  debug "CHECK %s : %s\n%!" (string_of_term t) (string_of_value k a);
   (* let cenv, benv = ctx in *)
   (* Printf.printf "      %s\n%!" (Context.to_string k ctx); *)
   match t, a with
@@ -509,7 +511,7 @@ let rec check k env ctx (t:term) (a:value) =
 
 (** Check that a term is a type. *)
 and check_type k env ctx a =
-  Printf.printf "CHECK TYPE %s\n%!" (string_of_term a);
+  debug "CHECK TYPE %s\n%!" (string_of_term a);
   (* let cenv, benv = ctx in *)
   (* Printf.printf ". ctx: %s\n%!" (Context.to_string k ctx); *)
   match a with
@@ -547,7 +549,7 @@ and check_type k env ctx a =
 
 (** Infer the type of a term. *)
 and infer k env ctx (t:term) =
-  Printf.printf "INFER %s\n%!" (string_of_term t);
+  debug "INFER %s\n%!" (string_of_term t);
   (* let cenv, benv = ctx in *)
   match t with
   | TIndType _ -> Type
