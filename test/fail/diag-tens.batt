@@ -1,0 +1,2 @@
+diag-tens :: (A :: U) → A → A ⨂ A
+diag-tens A a = (a ⊗ a)
