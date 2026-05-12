@@ -60,17 +60,17 @@ prefix_term:
   | FLAT prefix_term { TFlat $2 }
   | FLATTEN prefix_term { TFlatten $2 }
 
+app_term:
+  | prefix_term { $1 }
+  | t=app_term u=prefix_term { TApp (None, t, u) }
+  | t=app_term AT s=option(dir) u=prefix_term { TApp (s, t, u) }
+
 expr:
   | app_term { $1 }
   | a=expr TENS b=expr { TTens (a, b) }
   | a=expr TENSP b=expr { TTensPair (a, b) }
   | a=expr TIMES b=expr { TSigma ("_", a, b) }
   | t=expr IDEQ u=expr { TEq (t, u) }
-
-app_term:
-  | prefix_term { $1 }
-  | t=app_term u=prefix_term { TApp (None, t, u) }
-  | t=app_term AT s=option(dir) u=prefix_term { TApp (s, t, u) }
 
 term:
   | expr { $1 }
