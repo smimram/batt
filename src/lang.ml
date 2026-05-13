@@ -109,7 +109,7 @@ let rec string_of_term t =
   | TFlat t -> Printf.sprintf "♭%s" (string_of_term t)
   | TFlatten t -> Printf.sprintf "𝄫%s" (string_of_term t)
   | TFlat_ind (x,t) -> Printf.sprintf "♭_ind(%s,%s)" x (string_of_term t)
-  | TEq (t,u) -> Printf.sprintf "%s = %s" (string_of_term t) (string_of_term u)
+  | TEq (t,u) -> Printf.sprintf "%s ≡ %s" (string_of_term t) (string_of_term u)
   | TRefl -> Printf.sprintf "refl"
   | TJ (r) -> Printf.sprintf "J(%s)" (string_of_term r)
   | TVar x -> x
@@ -354,9 +354,8 @@ module Context = struct
 
   let to_string ?(multiline=false) k (cenv,benv) =
     if multiline then
-      let cenv = String.concat "\n" @@ List.rev_map (fun (x,a) -> Printf.sprintf "%s : %s" x (string_of_value k a)) cenv in
       let benv = Bunch.to_string k benv in
-      Printf.sprintf "%s\n%s" cenv benv
+      String.concat "\n" @@ (List.rev_map (fun (x,a) -> Printf.sprintf "%s : %s" x (string_of_value k a)) cenv @ [benv])
     else
       let cenv = String.concat ", " @@ List.rev_map (fun (x,a) -> Printf.sprintf "%s:%s" x (string_of_value k a)) cenv in
       let benv = Bunch.to_string k benv in
@@ -510,7 +509,7 @@ let rec check k env ctx (t:term) (a:value) =
   | TArr _, Type
   | TTens _, Type -> check_type k env ctx t
   | THole pos, a ->
-    important "HOLE at %s : %s IN\n%s\n%!" (Pos.to_string pos) (string_of_value k a) (Context.to_string ~multiline:true k ctx)
+    important "HOLE %s : %s IN\n%s\n%!" (Pos.to_string pos) (string_of_value k a) (Context.to_string ~multiline:true k ctx)
   | t, a ->
     let a' = infer k env ctx t in
     if not @@ is_eq k a' a then
