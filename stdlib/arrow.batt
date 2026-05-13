@@ -1,0 +1,9 @@
+---
+--- left/right arrows
+---
+
+pi-to-arr-left :: (A B :: U) → (A → B) → (A →ₗ B)
+pi-to-arr-left A B f aₗ = f a
+
+arr-comp-left :: (A B C :: U) → (A →ₗ B) →ₗ (B →ₗ C) →ₗ (A →ₗ C)
+arr-comp-left A B C fₗ gₗ aₗ = g (f a)

@@ -1,3 +1,10 @@
+---
+--- Regular functions
+---
+
 -- polymorphic identity
 id :: (A : U) → A → A
 id A x = x
+
+circ :: (A B C : U) → (B → C) → (A → B) → (A → C)
+circ A B C g f a = g (f a)

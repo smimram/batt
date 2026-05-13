@@ -1,7 +1,8 @@
 open import empty
 open import unit
 open import product
-open import tensor
 open import function
 open import equality
+open import tensor
+open import arrow
 open import flat
