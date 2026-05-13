@@ -490,11 +490,13 @@ let rec check k env ctx (t:term) (a:value) =
     let k = k+1 in
     check k ((x,xv)::env) (Context.ext_crisp ctx x a) t (capp b (Flatten xv))
   | TRefl, Eq (t, u) -> eq k t u
-  | TJ r, Pi (Normal, a, b) ->
+  | TJ r, Pi (Normal, _a, b) ->
+    (* we should make sure that b := (y : a) (p : x ≡ y) → P[x,y,p] *)
     let unpi = function
       | Pi (_, a, b) -> a, b
       | _ -> assert false
     in
+    (*
     let x, k = vvar k, k+1 in
     let b, c = unpi (capp b x) in
     eq k a b;
@@ -504,6 +506,16 @@ let rec check k env ctx (t:term) (a:value) =
     let _, d = unpi (capp c x) in
     let d = capp d Refl in
     check k env ctx r d
+    *)
+    let y, k = vvar k, k+1 in
+    let b', _ = unpi (capp b y) in
+    let x =
+      match b' with
+      | Eq (x, y') when y' = y -> x
+      | _ -> assert false
+    in
+    let c = capp (snd @@ unpi @@ capp b x) Refl in
+    check k env ctx r c
   | TPi _, Type
   | TSigma _, Type
   | TArr _, Type
