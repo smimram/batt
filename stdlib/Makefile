@@ -1,4 +1,4 @@
 all: test
 
 test:
-	@dune runtest
+	@dune exec ../src/batt.exe -- stdlib.batt

@@ -1,3 +1,15 @@
+---
+--- Identity types
+---
+
+-- J' : (A : Type) (P : (x y : A) → x ≡ y → Type) (x : A) (y : A) (p : x ≡ y) → P x x refl → P x y p
+-- J' A P refl r = r
+
+-- J : (A : Type) (x : A) (P : (y : A) → x ≡ y → Type) → P x refl → (y : A) (p : x ≡ y) → P y p
+-- J A x P r y p =
+  -- let D : (x y : A) → x ≡ y → Type = fun x y p → (P : (y : A) → x ≡ y → Type) → P x refl → P y p in
+  -- J' A D x (λ x P r → r) p P r
+
 sym : (A : Type) (x y : A) → x ≡ y → y ≡ x
 sym A refl = refl
 
