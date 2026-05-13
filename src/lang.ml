@@ -424,9 +424,8 @@ let rec check k env ctx (t:term) (a:value) =
     check_type k env (Context.crisp ~crispness:c ctx) a;
     let a = eval env a in
     check k env (Context.crisp ~crispness:c ctx) t a;
-    let xv = vvar k in
-    let k = k+1 in
-    let env = (x,xv)::env in
+    let t = eval env t in
+    let env = (x,t)::env in
     let ctx = Context.ext ~crispness:c ctx x a in
     check k env ctx u b
   | TPair (t, u), Sigma (a, b) ->
