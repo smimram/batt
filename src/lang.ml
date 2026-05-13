@@ -495,17 +495,6 @@ let rec check k env ctx (t:term) (a:value) =
       | Pi (_, a, b) -> a, b
       | _ -> assert false
     in
-    (*
-    let x, k = vvar k, k+1 in
-    let b, c = unpi (capp b x) in
-    eq k a b;
-    let y, k = vvar k, k+1 in
-    let c', _ = unpi (capp c y) in
-    eq k c' (Eq (x, y));
-    let _, d = unpi (capp c x) in
-    let d = capp d Refl in
-    check k env ctx r d
-    *)
     let y, k = vvar k, k+1 in
     let b', _ = unpi (capp b y) in
     let x =
