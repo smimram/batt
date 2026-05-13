@@ -138,7 +138,6 @@ type value =
   | Refl
   | J of value
   | Neu of neutral
-[@@deriving show]
 
 (** A neutral term. *)
 and neutral =
