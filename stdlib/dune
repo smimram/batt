@@ -3,3 +3,8 @@
  (deps (glob_files *.batt))
  (action (run ../src/batt.exe stdlib.batt))
 )
+
+(install
+ (section share)
+ (files (glob_files (*.batt with_prefix stdlib)))
+)
