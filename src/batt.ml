@@ -12,7 +12,8 @@ let () =
   Arg.parse
     (Arg.align
        [
-         "-I", Arg.String (fun s -> incdirs := s :: !incdirs), " Include directory"
+         "-I", Arg.String (fun s -> incdirs := s :: !incdirs), " Include directory";
+         "--no-colors", Arg.Unit (fun () -> Terminal.enable_colors := false), " Disable colors";
        ]
     )
     (fun s -> files := s :: !files) "batt [options] files";

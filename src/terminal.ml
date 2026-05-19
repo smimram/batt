@@ -1,3 +1,5 @@
+let enable_colors = ref true
+
 let color ?(bold=false) c = Printf.sprintf "\027["^string_of_int c^(if bold then ";1" else "")^"m"
 
 let bold s = color ~bold:true 0 ^ s ^ color 0
