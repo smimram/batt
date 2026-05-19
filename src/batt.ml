@@ -13,6 +13,7 @@ let () =
        [
          "-I", Arg.String (fun s -> incdirs := s :: !incdirs), " Include directory";
          "--no-colors", Arg.Unit (fun () -> Terminal.enable_colors := false), " Disable colors";
+         "--no-debug", Arg.Unit (fun () -> Common.show_debug := false), " Hide debug messages";
        ]
     )
     (fun s -> files := s :: !files) "batt [options] files";

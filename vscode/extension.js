@@ -220,7 +220,7 @@ function formatResult(fileName, result) {
 function runBatt(workspaceRoot, fileName) {
   return new Promise((resolve, reject) => {
     const command = "batt";
-    const commandArgs = ["--no-colors", fileName];
+    const commandArgs = ["--no-colors", "--no-debug", fileName];
 
     cp.execFile(command, commandArgs, { cwd: workspaceRoot, maxBuffer: 1024 * 1024 }, (error, stdout, stderr) => {
       if (error && typeof error.code !== 'number') {
