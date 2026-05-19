@@ -1,0 +1,27 @@
+{
+  "name": "batt",
+  "displayName": "BATT support",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.80.0"
+  },
+  "categories": [
+    "Programming Languages"
+  ],
+  "contributes": {
+    "languages": [
+      {
+        "id": "batt",
+        "aliases": ["BATT", "batt"],
+        "extensions": [".batt"]
+      }
+    ],
+    "grammars": [
+      {
+        "language": "batt",
+        "scopeName": "source.batt",
+        "path": "./syntaxes/batt.tmLanguage.json"
+      }
+    ]
+  }
+}
