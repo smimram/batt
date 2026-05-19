@@ -1,7 +1,12 @@
 let () =
   Printexc.record_backtrace true;
   Printf.printf "Welcome to BATT!\n%!";
-  let incdirs = ref [] in
+  let incdirs =
+    let prefix = Filename.dirname @@ Filename.dirname Sys.executable_name in
+    let share = Filename.concat (Filename.concat prefix "share") "batt" in
+    List.filter Sys.file_exists ["stdlib"; Filename.concat share "stdlib"]
+  in
+  let incdirs = ref incdirs in
   let files = ref [] in
   Arg.parse
     (Arg.align
