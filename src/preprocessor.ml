@@ -7,7 +7,11 @@ let inline_include dirs token =
     match token lexbuf with
     | Parser.INCLUDE fname ->
       let fname = fname ^ ".batt" in
-      let fname = Option.get @@ List.find_map (fun dir -> let fname = Filename.concat dir fname in if Sys.file_exists fname then Some fname else None) dirs in
+      let fname =
+        match List.find_map (fun dir -> let fname = Filename.concat dir fname in if Sys.file_exists fname then Some fname else None) dirs with
+        | Some fname -> fname
+        | None -> failwith @@ Printf.sprintf "Could not find library file %s" fname
+      in
       Printf.printf "Include %s...\n%!" fname;
       let ic = open_in fname in
       let new_lexbuf = Lexing.from_channel ic in
