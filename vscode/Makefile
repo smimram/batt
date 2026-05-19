@@ -1,0 +1,4 @@
+all:
+
+code:
+	code --extensionDevelopmentPath=. ..
