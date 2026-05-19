@@ -2,6 +2,7 @@
   "name": "batt",
   "displayName": "BATT support",
   "version": "0.0.1",
+  "main": "./extension.js",
   "engines": {
     "vscode": "^1.80.0"
   },
@@ -9,6 +10,31 @@
     "Programming Languages"
   ],
   "contributes": {
+    "commands": [
+      {
+        "command": "batt.refresh",
+        "title": "BATT: Refresh Output"
+      }
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "battContainer",
+          "title": "BATT",
+          "icon": "./media/batt.svg"
+        }
+      ]
+    },
+    "views": {
+      "battContainer": [
+        {
+          "id": "batt.output",
+          "name": "Current File Output",
+          "type": "webview",
+          "icon": "./media/batt.svg"
+        }
+      ]
+    },
     "languages": [
       {
         "id": "batt",
