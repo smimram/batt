@@ -206,7 +206,8 @@ function formatResult(fileName, result) {
   const stdout = result.stdout.trim();
   const stderr = result.stderr.trim();
   if (result.code === 0) {
-    return `batt succeeded for ${path.basename(fileName)}\n\n${stdout || '(no output)'}`;
+    //return `batt succeeded for ${path.basename(fileName)}\n\n${stdout || '(no output)'}`;
+    return (stdout || '(no output)');
   }
   const pieces = [
     `batt failed for ${path.basename(fileName)} (exit ${result.code})`,
