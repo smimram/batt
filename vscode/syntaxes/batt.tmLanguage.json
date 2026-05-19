@@ -1,0 +1,59 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "BATT",
+  "patterns": [
+    { "include": "#comments" },
+    { "include": "#declarations" },
+    { "include": "#keywords" },
+    { "include": "#constants" },
+    { "include": "#builtins" }
+  ],
+  "repository": {
+    "comments": {
+      "patterns": [
+        {
+          "name": "comment.line.double-dash.batt",
+          "match": "--.*$"
+        }
+      ]
+    },
+    "declarations": {
+      "patterns": [
+        {
+          "name": "entity.name.function.batt",
+          "match": "^\\s*([^\\s(=]+)",
+          "captures": {
+            "1": {
+              "name": "entity.name.function.batt"
+            }
+          }
+        }
+      ]
+    },
+    "keywords": {
+      "patterns": [
+        {
+          "name": "keyword.control.batt",
+          "match": "\\b(let|in|fun|open|import)\\b|λ|:|∷|="
+        }
+      ]
+    },
+    "constants": {
+      "patterns": [
+        {
+          "name": "constant.language.batt",
+          "match": "\\b(true|false|tt|refl)\\b"
+        }
+      ]
+    },
+    "builtins": {
+      "patterns": [
+        {
+          "name": "support.type.batt",
+          "match": "\\b(U|Type|Bool|Unit|Empty)\\b|->|→|⨂|⊗|@|≡|⊥|♭|𝄫"
+        }
+      ]
+    }
+  },
+  "scopeName": "source.batt"
+}
