@@ -2,8 +2,12 @@ let enable_colors = ref true
 
 let color ?(bold=false) c = Printf.sprintf "\027["^string_of_int c^(if bold then ";1" else "")^"m"
 
-let bold s = color ~bold:true 0 ^ s ^ color 0
-let red ?bold s = color ?bold 31 ^ s ^ color 0
-let green s = color 32 ^ s ^ color 0
-let yellow s = color 33 ^ s ^ color 0
-let blue ?bold s = color ?bold 34 ^ s ^ color 0
+let colorize c ?bold s =
+  if !enable_colors then color ?bold c ^ s ^ color 0
+  else s
+
+let bold = colorize ~bold:true 0
+let red = colorize 31
+let green = colorize 32
+let yellow = colorize 33
+let blue = colorize 34
