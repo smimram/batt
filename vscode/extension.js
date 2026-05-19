@@ -218,12 +218,8 @@ function formatResult(fileName, result) {
 
 function runBatt(workspaceRoot, fileName) {
   return new Promise((resolve, reject) => {
-    const builtExe = path.join(workspaceRoot, '_build', 'default', 'src', 'batt.exe');
-    const args = fs.existsSync(builtExe)
-      ? [builtExe, '-I', 'stdlib', fileName]
-      : ['exec', 'batt', fileName];
-    const command = fs.existsSync(builtExe) ? builtExe : 'dune';
-    const commandArgs = fs.existsSync(builtExe) ? ['-I', 'stdlib', fileName] : args;
+    const command = "batt";
+    const commandArgs = [fileName];
 
     cp.execFile(command, commandArgs, { cwd: workspaceRoot, maxBuffer: 1024 * 1024 }, (error, stdout, stderr) => {
       if (error && typeof error.code !== 'number') {
