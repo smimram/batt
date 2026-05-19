@@ -1,0 +1,4 @@
+postulate pushout-obj : (X A B : Type) (f : X → A) (g : X → B) → Type
+postulate pushout-inl : (X A B : Type) (f : X → A) (g : X → B) → A → pushout-obj X A B f g
+postulate pushout-inr : (X A B : Type) (f : X → A) (g : X → B) → B → pushout-obj X A B f g
+postulate pushout-eq : (X A B : Type) (f : X → A) (g : X → B) (x : X) → pushout-inl X A B f g (f x) ≡ pushout-inr X A B f g (g x)
