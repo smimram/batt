@@ -20,7 +20,7 @@
       {
         "language": "batt",
         "scopeName": "source.batt",
-        "path": "./syntaxes/batt.json"
+        "path": "./syntaxes/batt.tmLanguage.json"
       }
     ]
   }
