@@ -3,7 +3,7 @@ open Lang
 open Helper
 %}
 
-%token COLON CCOLON EQ LPAR RPAR LRPAR COMMA LET IN HOLE N EOF
+%token COLON CCOLON EQ LPAR RPAR LRPAR COMMA LET IN POSTULATE HOLE N EOF
 %token TYPE
 %token EMPTY
 %token UNIT TT
@@ -37,6 +37,7 @@ decls:
 
 decl:
   | x=IDENT c=ccolon a=term N def=def { let y, t = def in assert (x = y); (x, c, a, t) }
+  | POSTULATE x=IDENT c=ccolon a=term { (x, c, a, TPostulate) }
 
 def:
   | y=IDENT args=list(pattern) EQ t=term { y, abss_pattern args t }

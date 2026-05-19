@@ -49,6 +49,7 @@ type term =
   | TJ of term
   | TVar of string
   | TLet of crispness * string * term * term * term
+  | TPostulate (** a postulate *)
   | THole of Pos.t
 
 module FV = struct
@@ -81,6 +82,7 @@ module FV = struct
     | TJ (r) -> term r
     | TVar x -> singleton x
     | TLet (_c, _x, a, t, u) -> union (term a) @@ union (term t) (term u)
+    | TPostulate -> empty
     | THole _ -> empty
 end
 
@@ -114,6 +116,7 @@ let rec string_of_term t =
   | TJ (r) -> Printf.sprintf "J(%s)" (string_of_term r)
   | TVar x -> x
   | TLet (c,x,a,t,u) -> Printf.sprintf "let %s %s %s = %s in %s" x (colon c) (string_of_term a) (string_of_term t) (string_of_term u)
+  | TPostulate -> "postulate"
   | THole _ -> "?"
 
 (** A value. *)
@@ -143,6 +146,7 @@ type value =
 and neutral =
   | Var of int
   | Hole of Pos.t
+  | Postulate
   | App of neutral * value
   | NPair_ind of closure2 * neutral
   | NTens_ind of closure2 * neutral
@@ -189,6 +193,7 @@ let rec eval (env:environment) = function
     )
   | TLet (_c,x,_a,t,u) ->
     eval env (TApp (TAbs(None, x, u), t))
+  | TPostulate -> Neu Postulate
   | THole pos -> Neu (Hole pos)
 
 (** Make a variable. *)
@@ -226,6 +231,7 @@ let rec readback k v =
   let rec neutral k = function
     | Var i -> TVar (var i)
     | App (t, u) -> TApp (neutral k t, readback k u)
+    | Postulate -> TPostulate
     | Hole pos -> THole pos
     | NPair_ind (t, u) -> TApp (readback k @@ Pair_ind t, neutral k u)
     | NTens_ind (t, u) -> TApp (readback k @@ Tens_ind t, neutral k u)
@@ -507,6 +513,8 @@ let rec check k env ctx (t:term) (a:value) =
   | TSigma _, Type
   | TArr _, Type
   | TTens _, Type -> check_type k env ctx t
+  | TPostulate, a ->
+    important "POSTULATE %s\n%!" (string_of_value k a)
   | THole pos, a ->
     important "HOLE %s : %s IN\n%s\n%!" (Pos.to_string pos) (string_of_value k a) (Context.to_string ~multiline:true k ctx)
   | t, a ->
