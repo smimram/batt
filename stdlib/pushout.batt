@@ -2,3 +2,6 @@ postulate pushout-obj : (X A B : Type) (f : X → A) (g : X → B) → Type
 postulate pushout-inl : (X A B : Type) (f : X → A) (g : X → B) → A → pushout-obj X A B f g
 postulate pushout-inr : (X A B : Type) (f : X → A) (g : X → B) → B → pushout-obj X A B f g
 postulate pushout-eq : (X A B : Type) (f : X → A) (g : X → B) (x : X) → pushout-inl X A B f g (f x) ≡ pushout-inr X A B f g (g x)
+postulate pushout-univ : (X A B : Type) (f : X → A) (g : X → B) (Y : Type) (f' : A → Y) (g' : B → Y) (p : (x : X) → f' (f x) ≡ g' (g x)) → pushout-obj X A B f g → Y
+postulate pushout-univl : (X A B : Type) (f : X → A) (g : X → B) (Y : Type) (f' : A → Y) (g' : B → Y) (p : (x : X) → f' (f x) ≡ g' (g x)) → (a : A) → pushout-univ X A B f g Y f' g' p (pushout-inl X A B f g a) ≡ f' a
+postulate pushout-univr : (X A B : Type) (f : X → A) (g : X → B) (Y : Type) (f' : A → Y) (g' : B → Y) (p : (x : X) → f' (f x) ≡ g' (g x)) → (b : B) → pushout-univ X A B f g Y f' g' p (pushout-inr X A B f g b) ≡ g' b
