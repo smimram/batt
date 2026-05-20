@@ -1,25 +1,28 @@
 
 open import set
+open import empty
 
-postulate I : U
-postulate is-set-I : is-set I
-postulate min : I → I → I
-postulate max : I → I → I
-postulate I0 : I
-postulate I1 : I
+postulate I :: U
+postulate is-set-I :: is-set I
+postulate min :: I → I → I
+postulate max :: I → I → I
+postulate I0 :: I
+postulate I1 :: I
 
-postulate max-diag : (s : I) → max s s ≡ s
-postulate max-sym : (s t : I) → max s t ≡ max t s
-postulate max-assoc : (s t u : I) → max (max s t) u ≡ max s (max t u)
-postulate max-0 : (s : I) → max s I0 ≡ s
+postulate neq-0-1 :: not (I0 ≡ I1)
 
-postulate min-diag : (s : I) → min s s ≡ s
-postulate min-sym : (s t : I) → min s t ≡ min t s
-postulate min-assoc : (s t u : I) → min (min s t) u ≡ min s (min t u)
-postulate min-1 : (s : I) → min s I1 ≡ s
+postulate max-diag :: (s : I) → max s s ≡ s
+postulate max-sym :: (s t : I) → max s t ≡ max t s
+postulate max-assoc :: (s t u : I) → max (max s t) u ≡ max s (max t u)
+postulate max-0 :: (s : I) → max s I0 ≡ s
+
+postulate min-diag :: (s : I) → min s s ≡ s
+postulate min-sym :: (s t : I) → min s t ≡ min t s
+postulate min-assoc :: (s t u : I) → min (min s t) u ≡ min s (min t u)
+postulate min-1 :: (s : I) → min s I1 ≡ s
 
 -- these axioms are not minimal
-postulate max-min : (s t : I) → max s (min s t) ≡ s
-postulate min-max : (s t : I) → min s (max s t) ≡ s
-postulate min-max-dist : (s t u : I) → min s (max t u) ≡ max (min s t) (min s u)
-postulate max-min-dist : (s t u : I) → max s (min t u) ≡ min (max s t) (max s u)
+postulate max-min :: (s t : I) → max s (min s t) ≡ s
+postulate min-max :: (s t : I) → min s (max s t) ≡ s
+postulate min-max-dist :: (s t u : I) → min s (max t u) ≡ max (min s t) (min s u)
+postulate max-min-dist :: (s t u : I) → max s (min t u) ≡ min (max s t) (max s u)

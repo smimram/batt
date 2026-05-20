@@ -7,3 +7,6 @@ open import tensor
 open import arrow
 open import flat
 open import pushout
+open import contr
+open import prop
+open import set

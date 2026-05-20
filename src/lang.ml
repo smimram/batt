@@ -581,8 +581,8 @@ and infer k env ctx (t:term) =
     )
   | TEq (t, u) ->
     (
-      match infer k env ctx t, infer (k+1) env ctx u with
-      | v1, v2 when v1 = v2 -> Type
+      match infer k env ctx t, infer k env ctx u with
+      | v1, v2 when is_eq k v1 v2 -> Type
       | _ -> failwith "infer eq"
     )  
   | TVar x ->
