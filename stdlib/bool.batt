@@ -1,0 +1,8 @@
+bnot : Bool → Bool
+bnot = Bool_ind(true,false)
+
+band : Bool → Bool → Bool
+band = Bool_ind(fun _ → false,fun b → b)
+
+bor : Bool → Bool → Bool
+bor = Bool_ind(fun b → b,fun _ → true)
