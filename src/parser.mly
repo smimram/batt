@@ -3,7 +3,7 @@ open Lang
 open Helper
 %}
 
-%token COLON CCOLON EQ LPAR RPAR LRPAR COMMA LET IN POSTULATE HOLE N EOF
+%token COLON CCOLON EQ LPAR RPAR LRPAR COMMA LET IN POSTULATE META HOLE N EOF
 %token TYPE
 %token EMPTY
 %token UNIT TT
@@ -87,12 +87,16 @@ term:
   | t=fun_term COMMA u=term { TPair (t, u) }
 
 pattern:
-  | x=IDENT d=option(dir) { `Var (x,d) }
+  | x=identm d=option(dir) { `Var (x,d) }
   | TT { `Unit }
-  | LPAR x=IDENT COMMA y=IDENT RPAR { `Pair (x,y) }
-  | LPAR x=IDENT TENSP y=IDENT RPAR { `Tens (x,y) }
-  | FLATTEN x=IDENT { `Flatten x }
+  | LPAR x=identm COMMA y=identm RPAR { `Pair (x,y) }
+  | LPAR x=identm TENSP y=identm RPAR { `Tens (x,y) }
+  | FLATTEN x=identm { `Flatten x }
   | REFL { `Refl }
+
+identm:
+  | IDENT { $1 }
+  | META { "_" }
 
 piabs:
   | LPAR x=nonempty_list(IDENT) c=ccolon a=term RPAR { c,x,a }
