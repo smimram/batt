@@ -50,7 +50,7 @@ atom:
   | TT { TIndTerm `Unit }
   | BOOL { TIndType `Bool }
   | FALSE { TIndTerm (`Bool false) }
-  | BOOL_IND LPAR tf=term_no_pair COMMA tt=term RPAR { TIndType_ind (`Bool, [tf;tt]) }
+  | BOOL_IND LPAR tf=fun_term COMMA tt=term RPAR { TIndType_ind (`Bool, [tf;tt]) }
   | TRUE { TIndTerm (`Bool true) }
   | IDENT %prec VAR { TVar $1 }
   | REFL { TRefl }
@@ -66,25 +66,25 @@ app_term:
   | prefix_term { $1 }
   | t=app_term u=prefix_term { TApp (t, u) }
 
-expr:
+prod_term:
   | app_term { $1 }
-  | a=expr TENS b=expr { TTens (a, b) }
-  | a=expr TENSP b=expr { TTensPair (a, b) }
-  | a=expr TIMES b=expr { TSigma ("_", a, b) }
-  | t=expr IDEQ u=expr { TEq (t, u) }
+  | a=prod_term TENS b=prod_term { TTens (a, b) }
+  | a=prod_term TENSP b=prod_term { TTensPair (a, b) }
+  | a=prod_term TIMES b=prod_term { TSigma ("_", a, b) }
+  | t=prod_term IDEQ u=prod_term { TEq (t, u) }
 
-term_no_pair:
-  | expr { $1 }
-  | a=expr TO s=option(dir) b=term_no_pair { match s with None -> TPi (Normal, "_", a, b) | Some s -> TArr (s, a, b) }
-  | abs=nonempty_list(piabs) TO b=term_no_pair { pis abs b }
-  | SIGMA LPAR x=IDENT COLON a=term RPAR DOT b=term_no_pair { TSigma (x, a, b) }
-  | FUN x=nonempty_list(pattern) to_dot t=term_no_pair { abss_pattern x t }
-  | LET x=IDENT c=ccolon a=term EQ t=term IN u=term_no_pair { TLet (c, x, a, t, u) }
+fun_term:
+  | prod_term { $1 }
+  | a=prod_term TO s=option(dir) b=fun_term { match s with None -> TPi (Normal, "_", a, b) | Some s -> TArr (s, a, b) }
+  | abs=nonempty_list(piabs) TO b=fun_term { pis abs b }
+  | SIGMA LPAR x=IDENT COLON a=term RPAR DOT b=fun_term { TSigma (x, a, b) }
+  | FUN x=nonempty_list(pattern) to_dot t=fun_term { abss_pattern x t }
+  | LET x=IDENT c=ccolon a=term EQ t=term IN u=fun_term { TLet (c, x, a, t, u) }
   /* | LET x=pattern EQ t=term IN u=term { app (abs_pattern x u) t } */
 
 term:
-  | t=term_no_pair { t }
-  | t=term_no_pair COMMA u=term { TPair (t, u) }
+  | t=fun_term { t }
+  | t=fun_term COMMA u=term { TPair (t, u) }
 
 pattern:
   | x=IDENT d=option(dir) { `Var (x,d) }
