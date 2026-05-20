@@ -45,6 +45,7 @@ rule token = parse
   | "♭" { utf8 ~n:2 lexbuf; FLAT }
   | "𝄫" { utf8 ~n:3 lexbuf; FLATTEN }
   | "≡" { utf8 ~n:2 lexbuf; IDEQ }
+  | "_" { META }
   | "refl" { REFL }
   | "let" { LET }
   | "in" { IN }
