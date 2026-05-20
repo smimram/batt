@@ -47,10 +47,11 @@ type term =
   | TEq of term * term
   | TRefl
   | TJ of term
-  | TVar of string
+  | TVar of var
   | TLet of crispness * string * term * term * term
   | TPostulate (** a postulate *)
   | THole of Pos.t
+  | TMeta of (int * var list) option
 
 module FV = struct
   include Set.Make(String)
@@ -84,6 +85,7 @@ module FV = struct
     | TLet (_c, _x, a, t, u) -> union (term a) @@ union (term t) (term u)
     | TPostulate -> empty
     | THole _ -> empty
+    | TMeta _ -> empty
 end
 
 (** String representation of a term. *)
@@ -118,6 +120,8 @@ let rec string_of_term t =
   | TLet (c,x,a,t,u) -> Printf.sprintf "let %s %s %s = %s in %s" x (colon c) (string_of_term a) (string_of_term t) (string_of_term u)
   | TPostulate -> "postulate"
   | THole _ -> "?"
+  | TMeta None -> "_"
+  | TMeta (Some (n, _)) -> Printf.sprintf "?%d" n
 
 (** A value. *)
 type value =
@@ -146,6 +150,7 @@ type value =
 and neutral =
   | Var of int
   | Hole of Pos.t
+  | Meta of meta
   | Postulate
   | App of neutral * value
   | NPair_ind of closure2 * neutral
@@ -162,6 +167,29 @@ and closure2 = var * var * term * environment
 
 (** An environment. *)
 and environment = (var * value) list
+
+(** A metavariable. *)
+and meta =
+  {
+    id : int;
+    mutable value : value option;
+  }
+
+module Meta = struct
+  type t = meta
+
+  let variables = Dynarray.create ()
+
+  (** Generate a fresh metavariable. *)
+  let fresh () =
+    let m = { id = Dynarray.length variables; value = None } in
+    Dynarray.add_last variables m;
+    m
+
+  (** Get metavariable with given id. *)
+  let get id =
+    Dynarray.get variables id
+end
 
 (** Evaluate a term to a value. *)
 let rec eval (env:environment) = function
@@ -195,6 +223,10 @@ let rec eval (env:environment) = function
     eval env (TApp (TAbs(None, x, u), t))
   | TPostulate -> Neu Postulate
   | THole pos -> Neu (Hole pos)
+  | TMeta None -> Neu (Meta (Meta.fresh ()))
+  | TMeta (Some (id, vars)) ->
+    let l = List.map (eval env) @@ List.map (fun x -> TVar x) vars in
+    vapps (Neu (Meta (Meta.get id))) l
 
 (** Make a variable. *)
 and vvar k = Neu (Var k)
@@ -218,6 +250,11 @@ and vapp t u =
   | Neu t, u -> Neu (App (t, u))
   | _ -> failwith "vapp"
 
+(** Apply a value to a list of values. *)
+and vapps t = function
+  | u::uu -> vapps (vapp t u) uu
+  | [] -> t
+
 (** Instantiate a closure with a value. *)
 and capp ((x,t,env):closure) (v:value) =
   eval ((x,v)::env) t
@@ -233,6 +270,7 @@ let rec readback k v =
     | App (t, u) -> TApp (neutral k t, readback k u)
     | Postulate -> TPostulate
     | Hole pos -> THole pos
+    | Meta m -> TMeta (Some (m.id, []))
     | NPair_ind (t, u) -> TApp (readback k @@ Pair_ind t, neutral k u)
     | NTens_ind (t, u) -> TApp (readback k @@ Tens_ind t, neutral k u)
     | NIndType_ind (ind, args, t) -> TApp (readback k @@ IndType_ind (ind, args), neutral k t)
@@ -398,6 +436,12 @@ end
 
 (** A context. *)
 type context = Context.t
+
+(** Generate a fresh metavariable term. *)
+let fresh_meta (cenv,benv) =
+  let m = Meta.fresh () in
+  let vars = (FV.to_list @@ Bunch.dom benv) @ List.map fst cenv in
+  TMeta (Some (m.id, vars))
 
 (** Comparison of values. *)
 let is_eq k (t:value) (u:value) =
@@ -592,6 +636,9 @@ and infer k env ctx (t:term) =
       | Some a -> a
       | None -> failwith @@ Printf.sprintf "infer: undefined variable %s" x
     )
+  | TMeta None ->
+    let a = eval env @@ fresh_meta ctx in
+    a
   | _ -> failwith "infer"
 
 let check_decl k env ctx (x, c, a, t) =
