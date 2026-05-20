@@ -50,13 +50,12 @@ atom:
   | TT { TIndTerm `Unit }
   | BOOL { TIndType `Bool }
   | FALSE { TIndTerm (`Bool false) }
-  | BOOL_IND LPAR tf=term COMMA tt=term RPAR { TIndType_ind (`Bool, [tf;tt]) }
+  | BOOL_IND LPAR tf=term_no_pair COMMA tt=term RPAR { TIndType_ind (`Bool, [tf;tt]) }
   | TRUE { TIndTerm (`Bool true) }
   | IDENT %prec VAR { TVar $1 }
   | REFL { TRefl }
   | HOLE { THole $loc }
   | LPAR t=term RPAR { t }
-  | LPAR t=term COMMA u=term RPAR { TPair (t, u) }
 
 prefix_term:
   | atom { $1 }
@@ -74,14 +73,18 @@ expr:
   | a=expr TIMES b=expr { TSigma ("_", a, b) }
   | t=expr IDEQ u=expr { TEq (t, u) }
 
-term:
+term_no_pair:
   | expr { $1 }
-  | a=expr TO s=option(dir) b=term { match s with None -> TPi (Normal, "_", a, b) | Some s -> TArr (s, a, b) }
-  | abs=nonempty_list(piabs) TO b=term { pis abs b }
-  | SIGMA LPAR x=IDENT COLON a=term RPAR DOT b=term { TSigma (x, a, b) }
-  | FUN x=nonempty_list(pattern) to_dot t=term { abss_pattern x t }
-  | LET x=IDENT c=ccolon a=term EQ t=term IN u=term { TLet (c, x, a, t, u) }
+  | a=expr TO s=option(dir) b=term_no_pair { match s with None -> TPi (Normal, "_", a, b) | Some s -> TArr (s, a, b) }
+  | abs=nonempty_list(piabs) TO b=term_no_pair { pis abs b }
+  | SIGMA LPAR x=IDENT COLON a=term RPAR DOT b=term_no_pair { TSigma (x, a, b) }
+  | FUN x=nonempty_list(pattern) to_dot t=term_no_pair { abss_pattern x t }
+  | LET x=IDENT c=ccolon a=term EQ t=term IN u=term_no_pair { TLet (c, x, a, t, u) }
   /* | LET x=pattern EQ t=term IN u=term { app (abs_pattern x u) t } */
+
+term:
+  | t=term_no_pair { t }
+  | t=term_no_pair COMMA u=term { TPair (t, u) }
 
 pattern:
   | x=IDENT d=option(dir) { `Var (x,d) }

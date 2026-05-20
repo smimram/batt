@@ -6,7 +6,7 @@ b = false
 
 -- a pair of booleans
 bb : Bool × Bool
-bb = (false , true)
+bb = false , true
 
 bb' : Bool ⨂ Bool
 bb' = (false ⊗ true)
@@ -54,3 +54,6 @@ sndb (x ⊗ y) = y
 
 -- idt :: (A B :: U) → A ⨂ B → A ⨂ B
 -- idt A B (x ⊗ y) = x ⊗ y
+
+x : Bool × Bool
+x = id Bool false, true
