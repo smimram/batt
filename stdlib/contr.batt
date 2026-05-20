@@ -2,7 +2,7 @@ is-contr :: U → U
 is-contr A = Σ (a : A) . (x : A) → (a ≡ x)
 
 center :: (A : U) → is-contr A → A
-center A (a , _) = a
+center A (a, _) = a
 
 Contr :: U
 Contr = Σ (A : U) . is-contr A

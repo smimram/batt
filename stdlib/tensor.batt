@@ -70,3 +70,6 @@ tens-uncurry-curry-left A B C f (a ⊗ b) = refl
 
 tens-curry-uncurry-left :: (A B C :: U) (f : B → A →ₗ C) → tens-curry-left A B C (tens-uncurry-left A B C f) ≡ (λ b aₗ → f b a)
 tens-curry-uncurry-left A B C f = refl
+
+tens-map :: (A B C D :: U) (f :: A → B) (g :: C → D) → A ⨂ C → B ⨂ D
+tens-map A B C D f g (a ⊗ c) = (f(a) ⊗ g(c))

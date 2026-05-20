@@ -28,4 +28,8 @@ postulate min-max-dist :: (s t u : I) → min s (max t u) ≡ max (min s t) (min
 postulate max-min-dist :: (s t u : I) → max s (min t u) ≡ min (max s t) (max s u)
 
 -- the order is total
-postulate 
+-- postulate min-or : (s t : I) → or (min s t ≡ s) (min s t ≡ t)
+-- postulate max-or : (s t : I) → or (max s t ≡ s) (max s t ≡ t)
+
+boundary-inclusion : Bool → I
+boundary-inclusion = Bool_ind(I0,I1)
