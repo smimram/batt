@@ -1,0 +1,5 @@
+open import stdlib
+open import interval
+
+susp :: (X :: U) → U
+susp X = pushout-obj (X ⨂ Bool) (X ⨂ I) Bool (tens-map X Bool (λx.x) boundary-inclusion) (tens-snd X Bool)

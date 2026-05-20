@@ -1,0 +1,6 @@
+
+rec-bool :: (C : Bool → U) → C false → C true → (b : Bool) → C b
+rec-bool C cf ct = Bool_ind(cf,ct)
+
+ind-bool :: (C : U) → C → C → Bool → C
+ind-bool C cf ct = Bool_ind(cf,ct)
