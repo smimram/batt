@@ -49,7 +49,7 @@ rule token = parse
   | "let" { LET }
   | "in" { IN }
   | "postulate" { POSTULATE }
-  | "open import "(letter* as s) { INCLUDE s }
+  | "open import "((letter|['-''_'])* as s) { INCLUDE s }
   | letter(letter|['0'-'9''\'''-''_'])* as s { IDENT s }
   | "--"[^'\n']* { token lexbuf }
   | space+ { token lexbuf }
