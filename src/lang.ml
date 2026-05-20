@@ -175,8 +175,18 @@ and meta =
     mutable value : value option;
   }
 
+(** Metavariables. *)
 module Meta = struct
   type t = meta
+
+  (* Backward compatibility. *)
+  module Dynarray = struct
+    type 'a t = 'a array ref
+    let create () : 'a t = ref [||]
+    let length (a : 'a t) = Array.length !a
+    let add_last (a : 'a t) x = a := Array.append !a [|x|]
+    let get (a : 'a t) i = Array.get !a i
+  end
 
   let variables = Dynarray.create ()
 
@@ -247,6 +257,7 @@ and vapp t u =
   | Flat_ind t, Neu u -> Neu (NFlat_ind (t, u))
   | J r, Refl -> r
   | J r, Neu t -> Neu (NJ (r, t))
+  | Neu (Meta m), u when m.value <> None -> vapp (Option.get m.value) u
   | Neu t, u -> Neu (App (t, u))
   | _ -> failwith "vapp"
 
@@ -270,7 +281,9 @@ let rec readback k v =
     | App (t, u) -> TApp (neutral k t, readback k u)
     | Postulate -> TPostulate
     | Hole pos -> THole pos
-    | Meta m -> TMeta (Some (m.id, []))
+    | Meta m ->
+      if m.value = None then TMeta (Some (m.id, []))
+      else readback k (Option.get m.value)
     | NPair_ind (t, u) -> TApp (readback k @@ Pair_ind t, neutral k u)
     | NTens_ind (t, u) -> TApp (readback k @@ Tens_ind t, neutral k u)
     | NIndType_ind (ind, args, t) -> TApp (readback k @@ IndType_ind (ind, args), neutral k t)
@@ -442,6 +455,26 @@ let fresh_meta (cenv,benv) =
   let m = Meta.fresh () in
   let vars = (FV.to_list @@ Bunch.dom benv) @ List.map fst cenv in
   TMeta (Some (m.id, vars))
+
+exception Unification
+
+(** Unify two values. *)
+let rec unify k (t:value) (u:value) =
+  let neutral _k t u =
+    match t, u with
+    | Meta m, Meta m' when m.id = m'.id -> ()
+    | _ -> raise Unification
+  in
+  match t, u with
+  | Type, Type -> ()
+  | IndType i, IndType j ->
+    if i <> j then raise Unification
+  | Pi (s, a, b), Pi (s', a', b') ->
+    if s <> s' then raise Unification;
+    unify k a a';
+    unify (k+1) (capp b (vvar k)) (capp b' (vvar k))
+  | Neu t, Neu u -> neutral k t u
+  | _ -> raise Unification
 
 (** Comparison of values. *)
 let is_eq k (t:value) (u:value) =
