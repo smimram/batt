@@ -1,1 +1,11 @@
-open import trunc_pst
+open import prop
+
+postulate type-prop-trunc :: U → U
+postulate is-prop-type-prop-trunc :: (X : U) → is-prop (type-prop-trunc X)
+
+prop-trunc :: U → Prop
+prop-trunc X = (type-prop-trunc(X) , is-prop-type-prop-trunc X)
+
+postulate unit-prop-trunc :: (X : U) → X → type-prop-trunc X
+postulate rec-prop-trunc :: (X : U) (P : type-prop-trunc(X) → Prop) → ((x : X) → type-Prop (P (unit-prop-trunc X x))) → (u : type-prop-trunc X) → type-Prop (P u)
+postulate rec-prop-trunc-unit-prop-trunc :: (X : U) (P : type-prop-trunc(X) → Prop) → (f : (x : X) → type-Prop (P (unit-prop-trunc X x))) → (x : X) → rec-prop-trunc X P f (unit-prop-trunc X x) ≡ f x
