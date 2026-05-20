@@ -1,0 +1,9 @@
+is-contr : U → U
+is-contr A = Σ (a : A) . (x : A) → (a ≡ x)
+
+center : (A : U) → is-contr A → A
+center A (a , p) = a
+-- maybe we should allow to pattern match with wildcard
+
+Contr : U
+Contr = Σ (A : U) . is-contr A

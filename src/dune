@@ -9,6 +9,7 @@
 
 (executable
  (public_name batt)
+ (promote (until-clean))
 )
 
 (rule
