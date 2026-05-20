@@ -55,13 +55,13 @@ atom:
   | IDENT %prec VAR { TVar $1 }
   | REFL { TRefl }
   | HOLE { THole $loc }
-  | LPAR term RPAR { $2 }
-  | LPAR term COMMA term RPAR { TPair ($2, $4) }
+  | LPAR t=term RPAR { t }
+  | LPAR t=term COMMA u=term RPAR { TPair (t, u) }
 
 prefix_term:
   | atom { $1 }
-  | FLAT prefix_term { TFlat $2 }
-  | FLATTEN prefix_term { TFlatten $2 }
+  | FLAT t=prefix_term { TFlat t }
+  | FLATTEN t=prefix_term { TFlatten t }
 
 app_term:
   | prefix_term { $1 }
