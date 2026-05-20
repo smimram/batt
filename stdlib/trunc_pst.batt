@@ -1,0 +1,4 @@
+open import prop
+
+postulate type-prop-trunc :: U → U
+postulate is-prop-type-prop-trunc :: (X : U) → is-prop (type-prop-trunc X)

@@ -26,3 +26,6 @@ postulate max-min :: (s t : I) → max s (min s t) ≡ s
 postulate min-max :: (s t : I) → min s (max s t) ≡ s
 postulate min-max-dist :: (s t u : I) → min s (max t u) ≡ max (min s t) (min s u)
 postulate max-min-dist :: (s t u : I) → max s (min t u) ≡ min (max s t) (max s u)
+
+-- the order is total
+postulate 
