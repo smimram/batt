@@ -1,0 +1,5 @@
+-- testing let
+n : Bool
+n =
+  let id : (A : Type) → A → A = λ A x → x in
+  id Bool false
