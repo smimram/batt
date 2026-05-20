@@ -1,7 +1,12 @@
-flat : ♭U → U
+open import tensor
+open import empty
+open import unit
+open import bool
+
+flat :: ♭U → U
 flat 𝄫A = A
 
-unflatten : (A :: U) → ♭A → A
+unflatten :: (A :: U) → ♭A → A
 unflatten A 𝄫x = x
 -- unflatten A = ♭_ind(x, x)
 -- unflatten = fun A a → let♭ x = a in x
@@ -62,3 +67,21 @@ flat-tens-to-prod-to-tens :: (A B :: U) (x : ♭(A ⨂ B)) → flat-prod-to-tens
 flat-tens-to-prod-to-tens A B 𝄫x =
   let f : (x : A ⨂ B) → flat-prod-to-tens A B (flat-tens-to-prod A B 𝄫x) ≡ 𝄫x = fun (a ⊗ b) → refl in
   f x
+
+crispify-empty :: ⊥ → ♭⊥
+crispify-empty ()
+
+is-section-crispify-empty :: (t : ⊥) → unflatten ⊥ (crispify-empty t) ≡ t
+is-section-crispify-empty ()
+
+crispify-unit :: ⊤ → ♭⊤
+crispify-unit tt = 𝄫tt
+
+is-section-crispify-unit :: (t : ⊤) → unflatten ⊤ (crispify-unit t) ≡ t 
+is-section-crispify-unit tt = refl
+
+crispify-bool :: Bool → ♭Bool
+crispify-bool = Bool_ind(𝄫false, 𝄫true)
+
+is-section-crispify-bool :: (b : Bool) → unflatten Bool (crispify-bool b) ≡ b 
+is-section-crispify-bool = rec-bool (λb. unflatten Bool (crispify-bool b) ≡ b) refl refl

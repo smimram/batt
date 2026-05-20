@@ -1,0 +1,4 @@
+open import Prop
+
+-- or :: Prop → Prop → Prop
+-- or P Q = prop-trunc (type-prop P + type-prop Q)
