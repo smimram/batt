@@ -1,3 +1,9 @@
-postulate
-  I : U
-  
+
+open import set
+
+postulate I : U
+postulate is-set-I : is-set I
+postulate min : I → I → I
+postulate max : I → I → I
+postulate I0 : I
+postulate I1 : I

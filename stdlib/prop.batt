@@ -1,4 +1,10 @@
 open import contr
 
-is-prop : U → U
+is-prop :: U → U
 is-prop A = (a b : A) → is-contr (a ≡ b)
+
+Prop :: U
+Prop = Σ (A : U) . is-prop A
+
+type-Prop :: Prop → U
+type-Prop (A, p) = A
