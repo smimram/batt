@@ -1,0 +1,27 @@
+open import stdlib
+open import bipointed
+open import suspension
+open import hom
+
+--
+-- The adjunction susp ⊣ hom 
+--
+
+-- unit
+susphom-unit :: (X ∷ U) → X → hom' (susp' X)
+susphom-unit = merid'
+
+-- couint
+susphom-counit :: (X' ∷ Ubipt) → mapbipt (susp' (hom' X')) X'
+susphom-counit X' =
+  let X ∷ U = type-Ubipt X' in
+  let x0 ∷ X = leftpt X' in
+  let x1 ∷ X = rightpt X' in
+  let leg-cyl ∷ hom' X' ⨂ I → X = λ (f ⊗ s) . oplax-oplaxbipt I' X' f s in
+  let leg-bool ∷ Bool → X = ind-bool X x0 x1 in
+  let ho-legs ∷ (u : hom' X' ⨂ Bool) → leg-cyl (cylbnd-inclusion (hom' X') u) ≡ leg-bool (tens-snd (hom' X') Bool u) =
+    λ (f ⊗ b) . rec-bool (λb. leg-cyl (cylbnd-inclusion (hom' X') (f ⊗ b)) ≡ leg-bool (tens-snd (hom' X') Bool (f ⊗ b)))
+      (oplaxleftcoh I' X' f) (oplaxrightcoh I' X' f) b
+  in
+  let counit-map : susp (hom' X') → X = pushout-univ (hom' X' ⨂ Bool) (hom' X' ⨂ I) Bool (cylbnd-inclusion (hom' X')) (tens-snd (hom' X') Bool) X leg-cyl leg-bool ho-legs in
+  ?

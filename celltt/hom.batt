@@ -2,8 +2,8 @@ open import stdlib
 open import interval
 open import bipointed
 
-hom' : (X' ∷ Ubipt) → U
+hom' :: (X' ∷ Ubipt) → U
 hom' X' = oplaxbipt I' X'
 
-hom : (X ∷ U) (x0 x1 ∷ X) → U
+hom :: (X ∷ U) (x0 x1 ∷ X) → U
 hom X x0 x1 = hom' (X, (x0, x1))

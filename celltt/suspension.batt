@@ -27,8 +27,8 @@ right-susp :: (X :: U) → susp X
 right-susp X = pushout-inr (X ⨂ Bool) (X ⨂ I) Bool (cylbnd-inclusion X) (tens-snd X Bool) true
 
 -- bipointed suspension type
-biptsusp :: (X ∷ U) → Ubipt
-biptsusp X = (susp(X), (left-susp(X), right-susp(X)))
+susp' :: (X ∷ U) → Ubipt
+susp' X = (susp(X), (left-susp(X), right-susp(X)))
 
 --
 -- canonical projection (susp X → I)
@@ -42,3 +42,22 @@ ho-susp-to-I X (x ⊗ b) = rec-bool (λb. tens-snd X I (cylbnd-inclusion X (x �
 susp-to-I :: (X :: U) → susp X → I
 susp-to-I X = pushout-univ (X ⨂ Bool) (X ⨂ I) Bool (cylbnd-inclusion X) (tens-snd X Bool) I
   (tens-snd X I) (boundary-inclusion) (ho-susp-to-I X)
+
+--
+-- map from the Gray cylinder (quotient map)
+--
+cyl-to-susp :: (X ∷ U) → X ⨂ I → susp X
+cyl-to-susp X = pushout-inl (X ⨂ Bool) (X ⨂ I) Bool (cylbnd-inclusion X) (tens-snd X Bool)
+
+-- meridian map
+merid :: (X ∷ U) (x : X) → (I →ᵣ susp X)
+merid X x sᵣ = cyl-to-susp X (x ⊗ s)
+
+lcoh-merid :: (X ∷ U) (x : X) → merid X x I0 ≡ left-susp X
+lcoh-merid X x = pushout-eq (X ⨂ Bool) (X ⨂ I) Bool (cylbnd-inclusion X) (tens-snd X Bool) (x ⊗ false)
+
+rcoh-merid :: (X ∷ U) (x : X) → merid X x I0 ≡ right-susp X
+rcoh-merid X x = pushout-eq (X ⨂ Bool) (X ⨂ I) Bool (cylbnd-inclusion X) (tens-snd X Bool) (x ⊗ true)
+
+merid' :: (X ∷ U) (x : X) → oplaxbipt I' (susp' X)
+merid' X x = (merid(X)(x), (lcoh-merid(X)(x), rcoh-merid(X)(x)))
