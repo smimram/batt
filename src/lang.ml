@@ -657,31 +657,34 @@ let rec check k env ctx (t:term) (a:value) : term =
   match t, a with
   | TAbs (i, None, x, t), Pi (i', c, a, b) ->
     assert (i = i');
-    let xv = vvar k in
+    let xk = k in
+    let xv = vvar xk in
     let k = k+1 in
     let env = (x,xv)::env in
     let ctx = Context.ext ~crispness:c ctx x a in
     let t = check k env ctx t (capp b xv) in
-    TAbs (i, None, varn k, t)
+    TAbs (i, None, varn xk, t)
   | TAbs (i, Some s, x, t), Arr (s', a, b) ->
     assert (i = Explicit);
     assert (s = s');
-    let xv = vvar k in
+    let xk = k in
+    let xv = vvar xk in
     let k = k+1 in
     let env = (x,xv)::env in
     let ctx = Context.ext_tens ctx s x a in
     let t = check k env ctx t b in
-    TAbs (i, Some s, varn k, t)
+    TAbs (i, Some s, varn xk, t)
   | TLet (c, x, a, t, u), b ->
     let a = check_type k env (Context.crisp ~crispness:c ctx) a in
     let av = eval env a in
     let t = check k env (Context.crisp ~crispness:c ctx) t av in
-    let xv = vvar k in
+    let xk = k in
+    let xv = vvar xk in
     let k = k+1 in
     let env = (x,xv)::env in
     let ctx = Context.ext ~crispness:c ctx x av in
     let u = check k env ctx u b in
-    TLet (c, varn k, a, t, u)
+    TLet (c, varn xk, a, t, u)
   | TPair (t, u), Sigma (a, b) ->
     let t = check k env ctx t a in
     let u =
@@ -693,13 +696,15 @@ let rec check k env ctx (t:term) (a:value) : term =
     (
       match a with
       | Sigma (a1, a2) ->
-        let x1 = vvar k in
-        let x2 = vvar (k+1) in
+        let x1k = k in
+        let x2k = k+1 in
         let k = k+2 in
+        let x1 = vvar x1k in
+        let x2 = vvar x2k in
         let env = (y,x2)::(x,x1)::env in
         let ctx = Context.ext ~crispness:c (Context.ext ~crispness:c ctx x a1) y (capp a2 x1) in
         let t = check k env ctx t (capp b (Pair (x1, x2))) in
-        TPair_ind (varn k, varn (k+1), t)
+        TPair_ind (varn x1k, varn x2k, t)
       | _ -> failwith "pair_ind"
     )
   | TTensPair (t, u), Tens (a, b) ->
@@ -711,9 +716,11 @@ let rec check k env ctx (t:term) (a:value) : term =
     (
       match a with
       | Tens (a1, a2) ->
-        let x' = vvar k in
-        let y' = vvar (k+1) in
+        let xk = k in
+        let yk = k+1 in
         let k = k+2 in
+        let x' = vvar xk in
+        let y' = vvar yk in
         let env = (y,y')::(x,x')::env in
         let ctx =
           match c with
@@ -725,7 +732,7 @@ let rec check k env ctx (t:term) (a:value) : term =
             Context.ext_crisp (Context.ext_crisp ctx x a1) y a2
         in
         let t = check k env ctx t (capp b (TensPair (x', y'))) in
-        TTens_ind (varn k, varn (k+1), t)
+        TTens_ind (varn xk, varn yk, t)
       | _ -> failwith "tens_ind"
     )
   | TIndType_ind (`Empty, []), Pi (Explicit, _, a, _) ->
@@ -749,10 +756,11 @@ let rec check k env ctx (t:term) (a:value) : term =
       | Flat a -> a
       | _ -> failwith "flat type expected"
     in
-    let xv = vvar k in
+    let xk = k in
+    let xv = vvar xk in
     let k = k+1 in
     let t = check k ((x,xv)::env) (Context.ext_crisp ctx x a) t (capp b (Flatten xv)) in
-    TFlat_ind (varn (k+1), t)
+    TFlat_ind (varn xk, t)
   | TRefl, Eq (t, u) ->
     unify k t u;
     TRefl
@@ -798,7 +806,8 @@ and check_type k env ctx a =
   | TType -> TType
   | TPi (i, Crisp, x, a, b) ->
     let a = check_type k env (Context.crisp ctx) a in
-    let xv = vvar k in
+    let xk = k in
+    let xv = vvar xk in
     let k = k+1 in
     let env = (x,xv)::env in
     let ctx =
@@ -806,10 +815,11 @@ and check_type k env ctx a =
       Context.ext_crisp ctx x a
     in
     let b = check_type k env ctx b in
-    TPi (i, Crisp, varn k, a, b)
+    TPi (i, Crisp, varn xk, a, b)
   | TPi (i, Normal, x, a, b) ->
     let a = check_type k env ctx a in
-    let xv = vvar k in
+    let xk = k in
+    let xv = vvar xk in
     let k = k+1 in
     let env = (x,xv)::env in
     let ctx =
@@ -817,10 +827,11 @@ and check_type k env ctx a =
       Context.ext ctx x a
     in
     let b = check_type k env ctx b in
-    TPi (i, Normal, varn k, a, b)
+    TPi (i, Normal, varn xk, a, b)
   | TSigma (x, a, b) ->
     let a = check_type k env ctx a in
-    let xv = vvar k in
+    let xk = k in
+    let xv = vvar xk in
     let k = k+1 in
     let env = (x,xv)::env in
     let ctx =
@@ -828,7 +839,7 @@ and check_type k env ctx a =
       Context.ext ctx x a
     in
     let b = check_type k env ctx b in
-    TSigma (varn k, a, b)
+    TSigma (varn xk, a, b)
   | TTens (a, b) ->
     let a = check_type k env (Context.crisp ctx) a in
     let b = check_type k env (Context.crisp ctx) b in
