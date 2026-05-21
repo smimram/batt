@@ -32,4 +32,10 @@ susphom-counit X' =
   in
   (counit-map, (counit-lcoh, counit-rcoh))
 
--- susphom-counit-unit :: (X ∷ U) (x : X) → susphom-counit (susp X) (susp-map (susphom-unit X) x) ≡ x
+--
+-- snake equations...
+--
+
+susphom-counit-unit :: (X ∷ U) (u : susp X) → map-mapbipt (susp' (hom' (susp' X))) (susp' X) (susphom-counit (susp' X)) (susp-map X (hom' (susp' X)) (susphom-unit X) u) ≡ u
+susphom-counit-unit X x = ?
+-- au secours !
