@@ -76,7 +76,7 @@ prod_term:
 
 fun_term:
   | prod_term { $1 }
-  | a=prod_term TO s=option(dir) b=fun_term { match s with None -> TPi (Normal, "_", a, b) | Some s -> TArr (s, a, b) }
+  | a=prod_term TO s=option(dir) b=fun_term { match s with None -> TPi (Explicit, Normal, "_", a, b) | Some s -> TArr (s, a, b) }
   | abs=nonempty_list(piabs) TO b=fun_term { pis abs b }
   | SIGMA LPAR x=IDENT COLON a=term RPAR DOT b=fun_term { TSigma (x, a, b) }
   | FUN x=nonempty_list(pattern) to_dot t=fun_term { abss_pattern x t }
