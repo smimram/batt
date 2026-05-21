@@ -27,14 +27,14 @@ let rec abss_pattern l t =
   | x::l -> abs_pattern x (abss_pattern l t)
 
 (** Multiple pi abstractions. *)
-let rec pis ?(icit=Explicit) l b =
+let rec pis l b =
   (* Multiple pi abstractions of the same type. *)
-  let rec pis' c l a b =
+  let rec pis' i c l a b =
     match l with
     | [] -> b
-    | x::l -> TPi (icit, c, x, a, pis' c l a b)
+    | x::l -> TPi (i, c, x, a, pis' i c l a b)
   in
   match l with
   | [] -> b
-  | (c,x,a)::l -> pis' c x a (pis l b)
+  | (i,c,x,a)::l -> pis' i c x a (pis l b)
   

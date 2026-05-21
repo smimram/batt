@@ -79,7 +79,6 @@ fun_term:
   | prod_term { $1 }
   | a=prod_term TO s=option(dir) b=fun_term { match s with None -> TPi (Explicit, Normal, "_", a, b) | Some s -> TArr (s, a, b) }
   | abs=nonempty_list(piabs) TO b=fun_term { pis abs b }
-  | abs=nonempty_list(piabs_implicit) TO b=fun_term { pis ~icit:Implicit abs b }
   | SIGMA LPAR x=IDENT COLON a=term RPAR DOT b=fun_term { TSigma (x, a, b) }
   | FUN x=nonempty_list(pattern) to_dot t=fun_term { abss_pattern x t }
   | LET x=IDENT c=ccolon a=term EQ t=term IN u=fun_term { TLet (c, x, a, t, u) }
@@ -102,10 +101,8 @@ identm:
   | META { "_" }
 
 piabs:
-  | LPAR x=nonempty_list(IDENT) c=ccolon a=term RPAR { c,x,a }
-
-piabs_implicit:
-  | LACC x=nonempty_list(IDENT) c=ccolon a=term RACC { c,x,a }
+  | LPAR x=nonempty_list(IDENT) c=ccolon a=term RPAR { Explicit,c,x,a }
+  | LACC x=nonempty_list(IDENT) c=ccolon a=term RACC { Implicit,c,x,a }
 
 dir:
   | LEFT { Left }
