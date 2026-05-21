@@ -519,8 +519,9 @@ let rec unify k (t:value) (u:value) =
           (* let t = capp t (vvar r.dom) in *)
           (* TAbs (s, rename (lift r) t) *)
         | Type -> TType
+        | IndType i -> TIndType i
         | Neu n -> neutral r n
-        | _ -> failwith "TODO"
+        | t -> failwith @@ Printf.sprintf "TODO: rename %s" (string_of_value k t)
       and neutral r = function
         | Var x ->
           (
@@ -528,7 +529,7 @@ let rec unify k (t:value) (u:value) =
             | Some y -> var y
             | None -> raise Unification
           )
-        | _ -> failwith "TODO"
+        | t -> failwith @@ Printf.sprintf "TODO: rename neutral %s" (string_of_value k (Neu t))
       in
       rename r t
     in
@@ -547,6 +548,11 @@ let rec unify k (t:value) (u:value) =
     let t = eval [] t in
     m.value <- Some t
   in
+  let neutral _k t u =
+    match t, u with
+    | Var x, Var y when x = y -> ()
+    | _ -> raise Unification
+  in
   match t, u with
   | Type, Type -> ()
   | IndType i, IndType j ->
@@ -560,7 +566,7 @@ let rec unify k (t:value) (u:value) =
     List.iter2 (unify k) s s'
   | Meta (m, s), t -> solve k m s t
   | t, Meta (m, s) -> solve k m s t
-  (* | Neu t, Neu u -> neutral k t u *)
+  | Neu t, Neu u -> neutral k t u
   | _ -> raise Unification
 
 (*
