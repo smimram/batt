@@ -1,5 +1,6 @@
 open import stdlib
 open import interval
+open import bipointed
 
 -- Gray cylinder
 cyl :: (X :: U) → U
@@ -25,12 +26,19 @@ left-susp X = pushout-inr (X ⨂ Bool) (X ⨂ I) Bool (cylbnd-inclusion X) (tens
 right-susp :: (X :: U) → susp X
 right-susp X = pushout-inr (X ⨂ Bool) (X ⨂ I) Bool (cylbnd-inclusion X) (tens-snd X Bool) true
 
+-- bipointed suspension type
+biptsusp :: (X ∷ U) → Ubipt
+biptsusp X = (susp(X), (left-susp(X), right-susp(X)))
 
+--
+-- canonical projection (susp X → I)
+--
+
+-- auxiliary homotopy
 ho-susp-to-I :: (X :: U) (u : X ⨂ Bool) → tens-snd X I (cylbnd-inclusion X u) ≡ boundary-inclusion (tens-snd X Bool u)
 ho-susp-to-I X (x ⊗ b) = rec-bool (λb. tens-snd X I (cylbnd-inclusion X (x ⊗ b)) ≡ boundary-inclusion b) refl refl b
 
--- canonical projection (susp X → I)
+-- the projection
 susp-to-I :: (X :: U) → susp X → I
 susp-to-I X = pushout-univ (X ⨂ Bool) (X ⨂ I) Bool (cylbnd-inclusion X) (tens-snd X Bool) I
   (tens-snd X I) (boundary-inclusion) (ho-susp-to-I X)
-  

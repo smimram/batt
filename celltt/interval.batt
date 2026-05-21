@@ -1,6 +1,7 @@
 
 open import set
 open import empty
+open import bipointed
 
 postulate I :: U
 postulate is-set-I :: is-set I
@@ -33,3 +34,6 @@ postulate max-min-dist :: (s t u : I) → max s (min t u) ≡ min (max s t) (max
 
 boundary-inclusion :: Bool → I
 boundary-inclusion = Bool_ind(I0,I1)
+
+I' :: Ubipt
+I' = (I, I0, I1)
