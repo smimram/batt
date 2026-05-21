@@ -31,7 +31,7 @@ rightcoh X' Y' (f, u) = snd (f (leftpt X') ≡ leftpt Y') (λ_. f (rightpt X') �
 
 -- identity and composition for bipointed maps
 idbipt :: (X' : Ubipt) → mapbipt X' X'
-idbipt X' = (id (type-Ubipt X'), refl, refl) 
+idbipt X' = (id {type-Ubipt X'}, refl, refl)
 
 circbipt :: (X' Y' Z' : Ubipt) → mapbipt Y' Z' → mapbipt X' Y' → mapbipt X' Z'
 circbipt X' Y' Z' g' f' =

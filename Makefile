@@ -4,6 +4,6 @@ build:
 	@dune build
 
 test:
-	@dune runtest
+	@dune runtest -f
 
 .PHONY: test

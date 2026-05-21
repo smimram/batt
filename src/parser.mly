@@ -3,7 +3,7 @@ open Lang
 open Helper
 %}
 
-%token COLON CCOLON EQ LPAR RPAR LRPAR COMMA LET IN POSTULATE META HOLE N EOF
+%token COLON CCOLON EQ LPAR RPAR LRPAR LACC RACC COMMA LET IN POSTULATE META HOLE N EOF
 %token TYPE
 %token EMPTY
 %token UNIT TT
@@ -55,6 +55,7 @@ atom:
   | IDENT %prec VAR { TVar $1 }
   | REFL { TRefl }
   | HOLE { THole $loc }
+  | META { TMeta None }
   | LPAR t=term RPAR { t }
 
 prefix_term:
@@ -64,7 +65,8 @@ prefix_term:
 
 app_term:
   | prefix_term { $1 }
-  | t=app_term u=prefix_term { TApp (t, u) }
+  | t=app_term u=prefix_term { app t u }
+  | t=app_term LACC u=term RACC { app ~icit:Implicit t u }
 
 prod_term:
   | app_term { $1 }
@@ -75,8 +77,9 @@ prod_term:
 
 fun_term:
   | prod_term { $1 }
-  | a=prod_term TO s=option(dir) b=fun_term { match s with None -> TPi (Normal, "_", a, b) | Some s -> TArr (s, a, b) }
+  | a=prod_term TO s=option(dir) b=fun_term { match s with None -> TPi (Explicit, Normal, "_", a, b) | Some s -> TArr (s, a, b) }
   | abs=nonempty_list(piabs) TO b=fun_term { pis abs b }
+  | abs=nonempty_list(piabs_implicit) TO b=fun_term { pis ~icit:Implicit abs b }
   | SIGMA LPAR x=IDENT COLON a=term RPAR DOT b=fun_term { TSigma (x, a, b) }
   | FUN x=nonempty_list(pattern) to_dot t=fun_term { abss_pattern x t }
   | LET x=IDENT c=ccolon a=term EQ t=term IN u=fun_term { TLet (c, x, a, t, u) }
@@ -100,6 +103,9 @@ identm:
 
 piabs:
   | LPAR x=nonempty_list(IDENT) c=ccolon a=term RPAR { c,x,a }
+
+piabs_implicit:
+  | LACC x=nonempty_list(IDENT) c=ccolon a=term RACC { c,x,a }
 
 dir:
   | LEFT { Left }

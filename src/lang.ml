@@ -23,7 +23,9 @@ let string_of_side = function
 let string_of_opt_side s =
   Option.value ~default:"" @@ Option.map string_of_side s
 
-type crispness = Crisp | Normal
+type icit = Explicit | Implicit
+
+type crispness = Normal | Crisp
 
 (** A term. *)
 type term =
@@ -31,9 +33,9 @@ type term =
   | TIndType of inductive_type
   | TIndType_ind of inductive_type * term list
   | TIndTerm of inductive_term
-  | TPi of crispness * string * term * term (** pi-type *)
-  | TAbs of side option * string * term
-  | TApp of term * term
+  | TPi of icit * crispness * string * term * term (** pi-type *)
+  | TAbs of icit * side option * string * term
+  | TApp of term * icit * term
   | TSigma of string * term * term
   | TPair of term * term
   | TPair_ind of string * string * term
@@ -47,10 +49,19 @@ type term =
   | TEq of term * term
   | TRefl
   | TJ of term
-  | TVar of string
+  | TVar of var
+  | TVar' of int (** a de Bruijn term *) (* TODO: it would be much better to have preterms (strings) and terms (de Bruijn) *)
   | TLet of crispness * string * term * term * term
   | TPostulate (** a postulate *)
   | THole of Pos.t
+  | TMeta of int option (** metavariable with given internal identifier *)
+
+let app ?(icit=Explicit) t u =
+  TApp (t, icit, u)
+
+let rec app_spine ?icit t = function
+  | u::uu -> app ?icit (app_spine t uu) u
+  | [] -> t
 
 module FV = struct
   include Set.Make(String)
@@ -64,10 +75,10 @@ module FV = struct
     | TIndType _ -> empty
     | TIndType_ind (_, l) -> list l
     | TIndTerm _ -> empty
-    | TPi (_, x, a, b)
+    | TPi (_, _, x, a, b)
     | TSigma (x, a, b) -> union (term a) (remove x (term b))
-    | TAbs (_, x, t) -> remove x (term t)
-    | TApp (t, u)
+    | TAbs (_, _, x, t) -> remove x (term t)
+    | TApp (t, _, u)
     | TPair (t, u) -> union (term t) (term u)
     | TPair_ind (x, y, t) -> remove x (remove y (term t))
     | TArr (_, a, b)
@@ -81,9 +92,11 @@ module FV = struct
     | TRefl -> empty
     | TJ (r) -> term r
     | TVar x -> singleton x
+    | TVar' _ -> empty
     | TLet (_c, _x, a, t, u) -> union (term a) @@ union (term t) (term u)
     | TPostulate -> empty
     | THole _ -> empty
+    | TMeta _ -> empty
 end
 
 (** String representation of a term. *)
@@ -98,9 +111,24 @@ let rec string_of_term t =
   | TIndType_ind (ind, args) -> Printf.sprintf "%s_ind(%s)" (string_of_inductive_type ind) (String.concat "," @@ List.map string_of_term args)
   | TIndTerm `Unit -> "tt"
   | TIndTerm (`Bool b) -> string_of_bool b
-  | TPi (c, x, a, t) -> Printf.sprintf "(%s %s %s) → %s" x (colon c) (string_of_term a) (string_of_term t)
-  | TAbs (s, x, t) -> Printf.sprintf "λ%s%s.%s" x (string_of_opt_side s) (string_of_term t)
-  | TApp (t, u) -> Printf.sprintf "(%s %s)" (string_of_term t) (string_of_term u)
+  | TPi (i, c, x, a, t) ->
+    (
+      match i with
+      | Explicit -> Printf.sprintf "(%s %s %s) → %s" x (colon c) (string_of_term a) (string_of_term t)
+      | Implicit -> Printf.sprintf "{%s %s %s} → %s" x (colon c) (string_of_term a) (string_of_term t)
+    )
+  | TAbs (i, s, x, t) ->
+    (
+      match i with
+      | Explicit -> Printf.sprintf "λ%s%s.%s" x (string_of_opt_side s) (string_of_term t)
+      | Implicit -> Printf.sprintf "λ{%s%s}.%s" x (string_of_opt_side s) (string_of_term t)
+    )
+  | TApp (t, i, u) ->
+    (
+      match i with
+      | Explicit -> Printf.sprintf "(%s %s)" (string_of_term t) (string_of_term u)
+      | Implicit -> Printf.sprintf "(%s {%s})" (string_of_term t) (string_of_term u)
+    )
   | TSigma (x, a, t) -> Printf.sprintf "(Σ(%s : %s).%s)" x (string_of_term a) (string_of_term t)
   | TPair (t, u) -> Printf.sprintf "(%s, %s)" (string_of_term t) (string_of_term u)
   | TPair_ind (x, y, t) -> Printf.sprintf "(λ(%s,%s).%s)" x y (string_of_term t)
@@ -115,9 +143,12 @@ let rec string_of_term t =
   | TRefl -> Printf.sprintf "refl"
   | TJ (r) -> Printf.sprintf "J(%s)" (string_of_term r)
   | TVar x -> x
+  | TVar' n -> Printf.sprintf "x#%d" n
   | TLet (c,x,a,t,u) -> Printf.sprintf "let %s %s %s = %s in %s" x (colon c) (string_of_term a) (string_of_term t) (string_of_term u)
   | TPostulate -> "postulate"
   | THole _ -> "?"
+  | TMeta None -> "_"
+  | TMeta (Some n) -> Printf.sprintf "?%d" n
 
 (** A value. *)
 type value =
@@ -125,7 +156,7 @@ type value =
   | IndType of inductive_type
   | IndTerm of inductive_term
   | IndType_ind of inductive_type * value list
-  | Pi of crispness * value * closure
+  | Pi of icit * crispness * value * closure
   | Abs of side option * closure
   | Sigma of value * closure
   | Pair of value * value
@@ -140,6 +171,7 @@ type value =
   | Eq of value * value
   | Refl
   | J of value
+  | Meta of meta * spine
   | Neu of neutral
 
 (** A neutral term. *)
@@ -163,15 +195,51 @@ and closure2 = var * var * term * environment
 (** An environment. *)
 and environment = (var * value) list
 
+(** A metavariable. *)
+and meta =
+  {
+    id : int;
+    mutable value : value option;
+  }
+
+(** A list of arguments: first in the list, last to be applied. *)
+and spine = value list
+
+(** Metavariables. *)
+module Meta = struct
+  type t = meta
+
+  (* Backward compatibility. *)
+  module Dynarray = struct
+    type 'a t = 'a array ref
+    let create () : 'a t = ref [||]
+    let length (a : 'a t) = Array.length !a
+    let add_last (a : 'a t) x = a := Array.append !a [|x|]
+    let get (a : 'a t) i = Array.get !a i
+  end
+
+  let variables = Dynarray.create ()
+
+  (** Generate a fresh metavariable. *)
+  let fresh () =
+    let m = { id = Dynarray.length variables; value = None } in
+    Dynarray.add_last variables m;
+    m
+
+  (** Get metavariable with given id. *)
+  let get id =
+    Dynarray.get variables id
+end
+
 (** Evaluate a term to a value. *)
 let rec eval (env:environment) = function
   | TType -> Type
   | TIndType a -> IndType a
   | TIndTerm t -> IndTerm t
   | TIndType_ind (ind, args) -> IndType_ind (ind, List.map (eval env) args)
-  | TPi (c, x, a, t) -> Pi (c, eval env a, (x, t, env))
-  | TAbs (s, x, t) -> Abs (s, (x, t, env))
-  | TApp (t, u) -> vapp (eval env t) (eval env u)
+  | TPi (i, c, x, a, t) -> Pi (i, c, eval env a, (x, t, env))
+  | TAbs (_, s, x, t) -> Abs (s, (x, t, env))
+  | TApp (t, _, u) -> vapp (eval env t) (eval env u)
   | TSigma (x, a, t) -> Sigma (eval env a, (x, t, env))
   | TPair (t, u) -> Pair (eval env t, eval env u)
   | TPair_ind (x, y, t) -> Pair_ind (x, y, t, env)
@@ -191,17 +259,27 @@ let rec eval (env:environment) = function
       | Some v -> v
       | None -> failwith @@ Printf.sprintf "eval: could not find %s" x
     )
+  | TVar' n -> snd @@ List.nth env n
   | TLet (_c,x,_a,t,u) ->
-    eval env (TApp (TAbs(None, x, u), t))
+    eval env (app (TAbs(Explicit, None, x, u)) t)
   | TPostulate -> Neu Postulate
   | THole pos -> Neu (Hole pos)
+  | TMeta None -> fresh_meta env
+  | TMeta (Some id) -> Meta (Meta.get id, [])
 
 (** Make a variable. *)
 and vvar k = Neu (Var k)
 
+(** Generate a fresh metavariable. *)
+and fresh_meta env =
+  let m = Meta.fresh () in
+  (* We only keep variables in the environment. *)
+  let vars = List.filter_map (fun (x,v) -> match force v with Neu (Var _) -> Some (TVar x) | _ -> None) env |> List.map (eval env) in
+  Meta (m, vars)
+
 (** Apply a value to another. *)
 and vapp t u =
-  match t, u with
+  match force t, u with
   | Abs (_, f), u -> capp f u
   | IndType_ind (`Unit, [t]), IndTerm `Unit -> t
   | IndType_ind (`Bool, [tf;_tt]), IndTerm (`Bool false) -> tf
@@ -215,8 +293,19 @@ and vapp t u =
   | Flat_ind t, Neu u -> Neu (NFlat_ind (t, u))
   | J r, Refl -> r
   | J r, Neu t -> Neu (NJ (r, t))
+  | Meta (m, s), u -> Meta (m, u::s)
   | Neu t, u -> Neu (App (t, u))
   | _ -> failwith "vapp"
+
+(** Apply a value to a list of values. *)
+and vapps t = function
+  | u::uu -> vapps (vapp t u) uu
+  | [] -> t
+
+(** Apply a value to a spine of values. *)
+and vapp_spine t = function
+  | u::uu -> vapp (vapp_spine t uu) u
+  | [] -> t
 
 (** Instantiate a closure with a value. *)
 and capp ((x,t,env):closure) (v:value) =
@@ -225,27 +314,33 @@ and capp ((x,t,env):closure) (v:value) =
 and capp2 ((x,y,t,env):closure2) (u:value) (v:value) =
   eval ((y,v)::(x,u)::env) t
 
+(** Remove already evaluated values. *)
+and force t =
+  match t with
+  | Meta (m, s) when m.value <> None -> vapp_spine (Option.get m.value) s
+  | _ -> t
+
 (** Reify a value as a term. *)
 let rec readback k v =
   let var k = "x" ^ string_of_int k in
   let rec neutral k = function
-    | Var i -> TVar (var i)
-    | App (t, u) -> TApp (neutral k t, readback k u)
+    | Var i -> TVar' i
+    | App (t, u) -> app (neutral k t) (readback k u)
     | Postulate -> TPostulate
     | Hole pos -> THole pos
-    | NPair_ind (t, u) -> TApp (readback k @@ Pair_ind t, neutral k u)
-    | NTens_ind (t, u) -> TApp (readback k @@ Tens_ind t, neutral k u)
-    | NIndType_ind (ind, args, t) -> TApp (readback k @@ IndType_ind (ind, args), neutral k t)
-    | NFlat_ind (t, u) -> TApp (readback k @@ Flat_ind t, neutral k u)
-    | NJ (r, t) -> TApp (readback k @@ J r, neutral k t)
+    | NPair_ind (t, u) -> app (readback k @@ Pair_ind t) (neutral k u)
+    | NTens_ind (t, u) -> app (readback k @@ Tens_ind t) (neutral k u)
+    | NIndType_ind (ind, args, t) -> app (readback k @@ IndType_ind (ind, args)) (neutral k t)
+    | NFlat_ind (t, u) -> app (readback k @@ Flat_ind t) (neutral k u)
+    | NJ (r, t) -> app (readback k @@ J r) (neutral k t)
   in
-  match v with
+  match force v with
   | Type -> TType
   | IndType ind -> TIndType ind
   | IndType_ind (ind, args) -> TIndType_ind (ind, List.map (readback k) args)
   | IndTerm t -> TIndTerm t
-  | Pi (c, a, b) -> TPi (c, var k, readback k a, readback (k+1) (capp b (vvar k)))
-  | Abs (s, f) -> TAbs (s, var k, readback (k+1) (capp f (vvar k)))
+  | Pi (i, c, a, b) -> TPi (i, c, var k, readback k a, readback (k+1) (capp b (vvar k)))
+  | Abs (s, f) -> TAbs (Explicit, s, var k, readback (k+1) (capp f (vvar k)))
   | Sigma (a, b) -> TSigma (var k, readback k a, readback (k+1) (capp b (vvar k)))
   | Pair (t, u) -> TPair (readback k t, readback k u)
   | Pair_ind t -> TPair_ind (var k, var (k+1), readback (k+2) @@ capp2 t (vvar k) (vvar (k+1)))
@@ -259,9 +354,12 @@ let rec readback k v =
   | Eq (t, u) -> TEq (readback k t, readback k u)
   | Refl -> TRefl
   | J r -> TJ (readback k r)
+  | Meta (m, s) -> app_spine (TMeta (Some m.id)) (List.map (readback k) s)
   | Neu t -> neutral k t
 
 let string_of_value k v = string_of_term @@ readback k v
+
+let string_of_environment k env = List.map (fun (x,t) -> x ^ "=" ^ string_of_value k t) env |> String.concat ", "
 
 (** A declaration. *)
 type decl = string * crispness * term * term
@@ -399,45 +497,220 @@ end
 (** A context. *)
 type context = Context.t
 
+exception Unification
+
+module IntMap = Map.Make(Int)
+
+(** Partial renaming of variables. *)
+type partial_renaming =
+  {
+    dom : int; (** domain *)
+    cod : int; (** codomain *)
+    ren : int IntMap.t; (** renaming function *)
+  }
+
+(** Unify two values. *)
+let rec unify k (t:value) (u:value) =
+  (* debug "UNIFY %s VS %s\n%!" (string_of_value k t) (string_of_value k u); *)
+  (* Make sure that metavariable m applied to spine s equals t. *)
+  let solve k m s t =
+    (* debug "SOLVE %s =? %s\n" (string_of_value k (Meta (m, s))) (string_of_value k t); *)
+    (* Construct the initial renaming. Note that we number variables x0, x1, etc so that the furthest variable is x0: this is to avoid having to shift all indices when lifting. *)
+    let r =
+      let rec aux = function
+        | t::s ->
+          let cod, r = aux s in
+          (
+            match force t with
+            | Neu (Var x) when not (IntMap.mem x r) -> cod+1, IntMap.add x cod r
+            | _ -> raise Unification
+          )
+        | [] -> 0, IntMap.empty
+      in
+      let cod, ren = aux s in
+      { dom = k; cod; ren }
+    in
+    (* Add an extra variable to a renaming. *)
+    let lift r =
+      { dom = r.dom+1; cod = r.cod+1; ren = IntMap.add r.dom r.cod r.ren }
+    in
+    (* Apply a partial renaming to a value. Along the way, we also make sure that the metavariable does not occur in the term (occurs check). *)
+    let rename m r (t:value) : term =
+      let var i = TVar ("x" ^ string_of_int i) in
+      let rec rename r = function
+        | Meta (m',s) ->
+          if m'.id = m.id then (debug "OCCURS\n"; raise Unification); (* Occurs-check. *)
+          app_spine (TMeta (Some m'.id)) (List.map (rename r) s)
+        | Abs (s,t) ->
+          let t = capp t (vvar r.dom) in
+          TAbs (Explicit, s, "_", rename (lift r) t)
+        | Type -> TType
+        | IndType i -> TIndType i
+        | Neu n -> neutral r n
+        | t -> failwith @@ Printf.sprintf "TODO: rename %s" (string_of_value k t)
+      and neutral r = function
+        | Var x ->
+          (
+            match IntMap.find_opt x r.ren with
+            | Some y -> var y
+            | None ->
+              debug "ESCAPED %s\n" (string_of_value k (Neu (Var x)));
+              raise Unification
+          )
+        | NPair_ind (t, u) ->
+          let k = r.dom in
+          let t = capp2 t (vvar k) (vvar (k+1)) in
+          let t = rename (lift (lift r)) t in
+          let u = neutral r u in
+          app (TPair_ind ("_", "_", t)) u
+        | t -> failwith @@ Printf.sprintf "TODO: rename neutral %s" (string_of_value k (Neu t))
+      in
+      rename r t
+    in
+    let t = rename m r t in
+    let t =
+      (* TODO: move up *)
+      let rec abss l t =
+        match l with
+        | (s,x)::l -> TAbs (Explicit, s, x, abss l t)
+        | [] -> t
+      in
+      (* TODO: correctly handle side... *)
+      abss (List.init r.cod (fun i -> None, "x" ^ string_of_int i)) t
+    in
+    debug "UNIF ?%d <- %s\n%!" m.id (string_of_term t);
+    let t = eval [] t in
+    m.value <- Some t
+  in
+  let rec neutral k t u =
+    match t, u with
+    | Var x, Var y when x = y -> ()
+    | App (t, u), App (t', u') -> neutral k t t'; unify k u u'
+    | NIndType_ind (i, l, t), NIndType_ind (i', l', t') ->
+      if i <> i' then raise Unification;
+      if List.length l <> List.length l' then raise Unification;
+      List.iter2 (unify k) l l';
+      neutral k t t'
+    | NPair_ind (t, u), NPair_ind (t', u')
+    | NTens_ind (t, u), NTens_ind (t', u') ->
+      unify (k+2) (capp2 t (vvar k) (vvar (k+1))) (capp2 t' (vvar k) (vvar (k+1)));
+      neutral k u u'
+    | NFlat_ind (t, u), NFlat_ind (t', u') ->
+      unify (k+1) (capp t (vvar k)) (capp t' (vvar k));
+      neutral k u u'
+    | Postulate, Postulate -> (* TODO: number them *) ()
+    | t, u ->
+      debug "CLASH %s VS %s \n%!" (string_of_value k (Neu t)) (string_of_value k (Neu u));
+      raise Unification
+  in
+  match force t, force u with
+  | Type, Type -> ()
+  | IndType i, IndType i' ->
+    if i <> i' then raise Unification
+  | IndTerm t, IndTerm t' ->
+    if t <> t' then raise Unification
+  | IndType_ind (i, l), IndType_ind (i', l') ->
+    if i <> i' then raise Unification;
+    if List.length l <> List.length l' then raise Unification;
+    List.iter2 (unify k) l l'
+  | Pi (i, s, a, b), Pi (i', s', a', b') ->
+    if i <> i' then raise Unification;
+    if s <> s' then raise Unification;
+    unify k a a';
+    unify (k+1) (capp b (vvar k)) (capp b' (vvar k))
+  | Abs (s, t), Abs (s', t') ->
+    if s <> s' then raise Unification;
+    unify (k+1) (capp t (vvar k)) (capp t' (vvar k))
+  | Meta (m, s), Meta (m', s') when m.id = m'.id ->
+    if List.length s <> List.length s' then raise Unification;
+    List.iter2 (unify k) s s'
+  | Sigma (a, b), Sigma (a', b') ->
+    unify k a a';
+    unify (k+1) (capp b (vvar k)) (capp b' (vvar k))
+  | Tens (a, b), Tens (a', b') ->
+    unify k a a';
+    unify k b b'
+  | Pair (t, u), Pair (t', u')
+  | TensPair (t, u), TensPair (t', u')
+  | Eq (t, u), Eq (t', u') ->
+    unify k t t';
+    unify k u u'
+  | Pair_ind t, Pair_ind t'
+  | Tens_ind t, Tens_ind t' ->
+    unify (k+2) (capp2 t (vvar k) (vvar (k+1))) (capp2 t' (vvar k) (vvar (k+1)))
+  | Arr (s, a, b), Arr (s', a', b') ->
+    if s <> s' then raise Unification;
+    unify k a a';
+    unify k b b'
+  | Flat a, Flat a' -> unify k a a'
+  | Flatten t, Flatten t' -> unify k t t'
+  | Flat_ind t, Flat_ind t' ->
+    unify (k+1) (capp t (vvar k)) (capp t' (vvar k))
+  | Refl, Refl -> ()
+  | Meta (m, s), t -> solve k m s t
+  | t, Meta (m, s) -> solve k m s t
+  | Neu t, Neu u -> neutral k t u
+  | t, u ->
+    debug "CLASH %s VS %s \n%!" (string_of_value k t) (string_of_value k u);
+    raise Unification
+
+(*
 (** Comparison of values. *)
 let is_eq k (t:value) (u:value) =
   readback k t = readback k u
 
+
 let eq k t u =
   if not @@ is_eq k t u then failwith "eq"
+*)
 
-(** Check that term has given type. *)
-let rec check k env ctx (t:term) (a:value) =
+(** Check that term has given type and elaborate it. *)
+let rec check k env ctx (t:term) (a:value) : term =
   debug "CHECK %s : %s\n%!" (string_of_term t) (string_of_value k a);
   (* let cenv, benv = ctx in *)
   (* Printf.printf "      %s\n%!" (Context.to_string k ctx); *)
   match t, a with
-  | TAbs (None, x, t), Pi (c, a, b) ->
+  | TAbs (i, None, x, t), Pi (i', c, a, b) when i = i' ->
     let xv = vvar k in
     let k = k+1 in
     let env = (x,xv)::env in
     let ctx = Context.ext ~crispness:c ctx x a in
-    check k env ctx t (capp b xv)
-  | TAbs (Some s, x, t), Arr (s', a, b) ->
+    let t = check k env ctx t (capp b xv) in
+    TAbs (i, None, x, t)
+  | _, Pi (Implicit, c, a, b) ->
+    (* Insert implicit abstraction *)
+    let xv = vvar k in
+    let k = k+1 in
+    let ctx = Context.ext ~crispness:c ctx "_" a in
+    let t = check k env ctx t (capp b xv) in
+    TAbs (Implicit, None, "_", t)
+  | TAbs (i, Some s, x, t), Arr (s', a, b) ->
+    assert (i = Explicit);
     assert (s = s');
     let xv = vvar k in
     let k = k+1 in
     let env = (x,xv)::env in
     let ctx = Context.ext_tens ctx s x a in
-    check k env ctx t b
+    let t = check k env ctx t b in
+    TAbs (i, Some s, x, t)
   | TLet (c, x, a, t, u), b ->
-    check_type k env (Context.crisp ~crispness:c ctx) a;
-    let a = eval env a in
-    check k env (Context.crisp ~crispness:c ctx) t a;
-    let t = eval env t in
-    let env = (x,t)::env in
-    let ctx = Context.ext ~crispness:c ctx x a in
-    check k env ctx u b
+    let a = check_type k env (Context.crisp ~crispness:c ctx) a in
+    let av = eval env a in
+    let t = check k env (Context.crisp ~crispness:c ctx) t av in
+    let tv = eval env t in
+    let k = k+1 in
+    let env = (x,tv)::env in
+    let ctx = Context.ext ~crispness:c ctx x av in
+    let u = check k env ctx u b in
+    TLet (c, x, a, t, u)
   | TPair (t, u), Sigma (a, b) ->
-    check k env ctx t a;
-    let t = eval env t in
-    check k env ctx u (capp b t)
-  | TPair_ind (x, y, t), Pi (c, a, b) ->
+    let t = check k env ctx t a in
+    let u =
+      let t = eval env t in
+      check k env ctx u (capp b t)
+    in
+    TPair (t, u)
+  | TPair_ind (x, y, t), Pi (Explicit, c, a, b) ->
     (
       match a with
       | Sigma (a1, a2) ->
@@ -446,14 +719,16 @@ let rec check k env ctx (t:term) (a:value) =
         let k = k+2 in
         let env = (y,x2)::(x,x1)::env in
         let ctx = Context.ext ~crispness:c (Context.ext ~crispness:c ctx x a1) y (capp a2 x1) in
-        check k env ctx t (capp b (Pair (x1, x2)))
+        let t = check k env ctx t (capp b (Pair (x1, x2))) in
+        TPair_ind (x, y, t)
       | _ -> failwith "pair_ind"
     )
   | TTensPair (t, u), Tens (a, b) ->
     let ctxa, ctxb = Context.split (FV.term t) (FV.term u) ctx in
-    check k env ctxa t a;
-    check k env ctxb u b
-  | TTens_ind (x, y, t), Pi (c, a, b) ->
+    let t = check k env ctxa t a in
+    let u = check k env ctxb u b in
+    TTensPair (t, u)
+  | TTens_ind (x, y, t), Pi (Explicit, c, a, b) ->
     (
       match a with
       | Tens (a1, a2) ->
@@ -470,21 +745,26 @@ let rec check k env ctx (t:term) (a:value) =
           | Crisp ->
             Context.ext_crisp (Context.ext_crisp ctx x a1) y a2
         in
-        check k env ctx t (capp b (TensPair (x', y')))
+        let t = check k env ctx t (capp b (TensPair (x', y'))) in
+        TTens_ind (x, y, t)
       | _ -> failwith "tens_ind"
     )
-  | TIndType_ind (`Empty, []), Pi (_, a, _) ->
-    eq k (IndType `Empty) a
-  | TIndType_ind (`Unit, [t]), Pi (_, a, b) ->
-    eq k (IndType `Unit) a;
-    check k env ctx t (capp b (IndTerm `Unit))
-  | TIndType_ind (`Bool, [tf;tt]), Pi (_, a, b) ->
-    eq k (IndType `Bool) a;
-    check k env ctx tf (capp b (IndTerm (`Bool false)));
-    check k env ctx tt (capp b (IndTerm (`Bool true)));
+  | TIndType_ind (`Empty, []), Pi (Explicit, _, a, _) ->
+    unify k a (IndType `Empty);
+    TIndType_ind (`Empty, [])
+  | TIndType_ind (`Unit, [t]), Pi (Explicit, _, a, b) ->
+    unify k a (IndType `Unit);
+    let t = check k env ctx t (capp b (IndTerm `Unit)) in
+    TIndType_ind (`Unit, [t])
+  | TIndType_ind (`Bool, [tf;tt]), Pi (Explicit, _, a, b) ->
+    unify k a (IndType `Bool);
+    let tf = check k env ctx tf (capp b (IndTerm (`Bool false))) in
+    let tt = check k env ctx tt (capp b (IndTerm (`Bool true))) in
+    TIndType_ind (`Bool, [tf;tt])
   | TFlatten t, Flat a ->
-    check k env (Context.crisp ctx) t a
-  | TFlat_ind (x, t), Pi (Normal, a, b) ->
+    let t = check k env (Context.crisp ctx) t a in
+    TFlatten t
+  | TFlat_ind (x, t), Pi (Explicit, Normal, a, b) ->
     let a =
       match a with
       | Flat a -> a
@@ -492,12 +772,15 @@ let rec check k env ctx (t:term) (a:value) =
     in
     let xv = vvar k in
     let k = k+1 in
-    check k ((x,xv)::env) (Context.ext_crisp ctx x a) t (capp b (Flatten xv))
-  | TRefl, Eq (t, u) -> eq k t u
-  | TJ r, Pi (Normal, _a, b) ->
+    let t = check k ((x,xv)::env) (Context.ext_crisp ctx x a) t (capp b (Flatten xv)) in
+    TFlat_ind (x, t)
+  | TRefl, Eq (t, u) ->
+    unify k t u;
+    TRefl
+  | TJ r, Pi (Explicit, Normal, _a, b) ->
     (* we should make sure that b := (y : a) (p : x ≡ y) → P[x,y,p] *)
     let unpi = function
-      | Pi (_, a, b) -> a, b
+      | Pi (Explicit, _, a, b) -> a, b
       | _ -> assert false
     in
     let y, k = vvar k, k+1 in
@@ -508,20 +791,24 @@ let rec check k env ctx (t:term) (a:value) =
       | _ -> assert false
     in
     let c = capp (snd @@ unpi @@ capp b x) Refl in
-    check k env ctx r c
+    let r = check k env ctx r c in
+    TJ r
   | TPi _, Type
   | TSigma _, Type
   | TArr _, Type
   | TTens _, Type -> check_type k env ctx t
   | TPostulate, a ->
-    important "POSTULATE %s\n%!" (string_of_value k a)
+    important "POSTULATE %s\n%!" (string_of_value k a);
+    TPostulate
   | THole pos, a ->
-    important "HOLE %s : %s IN\n%s\n%!" (Pos.to_string pos) (string_of_value k a) (Context.to_string ~multiline:true k ctx)
-    (* important "HOLE %s : %s\n%!" (Pos.to_string pos) (string_of_value k a) *)
+    important "HOLE %s : %s IN\n%s\n%!" (Pos.to_string pos) (string_of_value k a) (Context.to_string ~multiline:true k ctx);
+    THole pos
   | t, a ->
-    let a' = infer k env ctx t in
-    if not @@ is_eq k a' a then
-      failwith @@ Printf.sprintf "%s has type %s but %s expected" (string_of_term t) (string_of_value k a') (string_of_value k a)
+    let t, a' = infer k env ctx t in
+    (
+      try unify k a' a; t
+      with Unification -> failwith @@ Printf.sprintf "%s has type %s but %s expected" (string_of_term t) (string_of_value k a') (string_of_value k a)
+    )
 
 (** Check that a term is a type. *)
 and check_type k env ctx a =
@@ -529,76 +816,113 @@ and check_type k env ctx a =
   (* let cenv, benv = ctx in *)
   (* Printf.printf ". ctx: %s\n%!" (Context.to_string k ctx); *)
   match a with
-  | TType -> ()
-  | TPi (Crisp, x, a, b) ->
-    check_type k env (Context.crisp ctx) a;
+  | TType -> TType
+  | TPi (i, Crisp, x, a, b) ->
+    let a = check_type k env (Context.crisp ctx) a in
     let xv = vvar k in
     let k = k+1 in
+    let ctx =
+      let a = eval env a in
+      Context.ext_crisp ctx x a
+    in
     let env = (x,xv)::env in
-    let a = eval env a in
-    let ctx = Context.ext_crisp ctx x a in
-    check_type k env ctx b
-  | TPi (Normal, x, a, b)
+    let b = check_type k env ctx b in
+    TPi (i, Crisp, x, a, b)
+  | TPi (i, Normal, x, a, b) ->
+    let a = check_type k env ctx a in
+    let xv = vvar k in
+    let k = k+1 in
+    let ctx =
+      let a = eval env a in
+      Context.ext ctx x a
+    in
+    let env = (x,xv)::env in
+    let b = check_type k env ctx b in
+    TPi (i, Normal, x, a, b)
   | TSigma (x, a, b) ->
-    check_type k env ctx a;
+    let a = check_type k env ctx a in
     let xv = vvar k in
     let k = k+1 in
+    let ctx =
+      let a = eval env a in
+      Context.ext ctx x a
+    in
     let env = (x,xv)::env in
-    let a = eval env a in
-    let ctx = Context.ext ctx x a in
-    check_type k env ctx b
+    let b = check_type k env ctx b in
+    TSigma (x, a, b)
   | TTens (a, b) ->
-    check_type k env (Context.crisp ctx) a;
-    check_type k env (Context.crisp ctx) b
-  | TArr (_, a, b) ->
-    check_type k env (Context.crisp ctx) a;
-    check_type k env (Context.crisp ctx) b    
+    let a = check_type k env (Context.crisp ctx) a in
+    let b = check_type k env (Context.crisp ctx) b in
+    TTens (a, b)
+  | TArr (s, a, b) ->
+    let a = check_type k env (Context.crisp ctx) a in
+    let b = check_type k env (Context.crisp ctx) b in
+    TArr (s, a, b)
   | TFlat a ->
-    check_type k env (Context.crisp ctx) a
+    let a = check_type k env (Context.crisp ctx) a in
+    TFlat a
   | TEq (t, u) ->
-    let a = infer k env ctx t in
-    check k env ctx u a
+    let t, a = infer k env ctx t in
+    let u = check k env ctx u a in
+    TEq (t, u)
   | a ->
     check k env ctx a Type
 
 (** Infer the type of a term. *)
-and infer k env ctx (t:term) =
+and infer k env ctx (t:term) : term * value =
   debug "INFER %s\n%!" (string_of_term t);
   (* let cenv, benv = ctx in *)
   match t with
-  | TIndType _ -> Type
-  | TIndTerm `Unit -> IndType `Unit
-  | TIndTerm (`Bool _) -> IndType `Bool
-  | TApp (t, u) ->
+  | TIndType ind -> TIndType ind, Type
+  | TIndTerm `Unit -> TIndTerm `Unit, IndType `Unit
+  | TIndTerm (`Bool b) -> TIndTerm (`Bool b), IndType `Bool
+  | TApp (t, icit, u) ->
     (
-      match infer k env ctx t with
-      | Pi (c, a, b) ->
-        check k env (Context.crisp ~crispness:c ctx) u a;
-        capp b (eval env u)
-      | Arr (_s, a, b) ->
-        check k env ctx u a;
-        b
-      | _ -> failwith "infer app"
+      let rec insert_implicits t a =
+        match force a with
+        | Pi (Implicit, c, a', b) ->
+          let m = check k env (Context.crisp ~crispness:c ctx) (TMeta None) a' in
+          let mv = eval env m in
+          insert_implicits (TApp (t, Implicit, m)) (capp b mv)
+        | _ -> t, a
+      in
+      let t, a = infer k env ctx t in
+      let t, a = if icit = Explicit then insert_implicits t a else t, a in
+      (
+        match a with
+        | Pi (icit', c, a, b) ->
+          assert (icit = icit');
+          let u = check k env (Context.crisp ~crispness:c ctx) u a in
+          TApp (t, icit, u), capp b (eval env u)
+        | Arr (_s, a, b) ->
+          let u = check k env ctx u a in
+          TApp (t, Explicit, u), b
+        | _ -> failwith "infer app"
+      )
     )
   | TEq (t, u) ->
-    (
-      match infer k env ctx t, infer k env ctx u with
-      | v1, v2 when is_eq k v1 v2 -> Type
-      | _ -> failwith "infer eq"
-    )  
+    let t, a = infer k env ctx t in
+    let u = check k env ctx u a in
+    TEq (t, u), Type
   | TVar x ->
-    (
-      match Context.assoc_opt x ctx with
-      | Some a -> a
-      | None -> failwith @@ Printf.sprintf "infer: undefined variable %s" x
-    )
+    let rec aux n = function
+      | (y, _)::_ when x = y -> n
+      | _::l -> aux (n+1) l
+      | [] -> failwith @@ Printf.sprintf "infer: undefined variable %s" x
+    in
+    let k = aux 0 env in
+    let a = Option.get @@ Context.assoc_opt x ctx in
+    TVar' k, a
+  | TMeta None ->
+    let a = fresh_meta env in
+    TMeta None, a
   | _ -> failwith "infer"
 
 let check_decl k env ctx (x, c, a, t) =
   Printf.printf "\nDECL  %s = %s %s %s\n%!" x (string_of_term t) (match c with Normal -> ":" | Crisp -> "::") (string_of_term a);
-  check_type k env ctx a;
+  let a = check_type k env ctx a in
   let a = eval env a in
-  check k env (Context.crisp ~crispness:c ctx) t a;
+  let t = check k env (Context.crisp ~crispness:c ctx) t a in
   let t = eval env t in
   let env = (x,t)::env in
   let ctx = Context.ext ~crispness:c ctx x a in
