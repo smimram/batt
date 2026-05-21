@@ -144,13 +144,13 @@ type value =
   | Eq of value * value
   | Refl
   | J of value
+  | Meta of meta * spine
   | Neu of neutral
 
 (** A neutral term. *)
 and neutral =
   | Var of int
   | Hole of Pos.t
-  | Meta of meta
   | Postulate
   | App of neutral * value
   | NPair_ind of closure2 * neutral
@@ -174,6 +174,9 @@ and meta =
     id : int;
     mutable value : value option;
   }
+
+(** A list of arguments: first in the list, last to be applied. *)
+and spine = value list
 
 (** Metavariables. *)
 module Meta = struct
@@ -233,17 +236,17 @@ let rec eval (env:environment) = function
     eval env (TApp (TAbs(None, x, u), t))
   | TPostulate -> Neu Postulate
   | THole pos -> Neu (Hole pos)
-  | TMeta None -> Neu (Meta (Meta.fresh ()))
+  | TMeta None -> Meta (Meta.fresh (), [])
   | TMeta (Some (id, vars)) ->
     let l = List.map (eval env) @@ List.map (fun x -> TVar x) vars in
-    vapps (Neu (Meta (Meta.get id))) l
+    Meta (Meta.get id, List.rev l) 
 
 (** Make a variable. *)
 and vvar k = Neu (Var k)
 
 (** Apply a value to another. *)
 and vapp t u =
-  match t, u with
+  match force t, u with
   | Abs (_, f), u -> capp f u
   | IndType_ind (`Unit, [t]), IndTerm `Unit -> t
   | IndType_ind (`Bool, [tf;_tt]), IndTerm (`Bool false) -> tf
@@ -257,13 +260,18 @@ and vapp t u =
   | Flat_ind t, Neu u -> Neu (NFlat_ind (t, u))
   | J r, Refl -> r
   | J r, Neu t -> Neu (NJ (r, t))
-  | Neu (Meta m), u when m.value <> None -> vapp (Option.get m.value) u
+  | Meta (m, s), u -> Meta (m, u::s)
   | Neu t, u -> Neu (App (t, u))
   | _ -> failwith "vapp"
 
 (** Apply a value to a list of values. *)
 and vapps t = function
   | u::uu -> vapps (vapp t u) uu
+  | [] -> t
+
+(** Apply a value to a spine of values. *)
+and vapp_spine t = function
+  | u::uu -> vapp (vapp_spine t uu) u
   | [] -> t
 
 (** Instantiate a closure with a value. *)
@@ -273,6 +281,12 @@ and capp ((x,t,env):closure) (v:value) =
 and capp2 ((x,y,t,env):closure2) (u:value) (v:value) =
   eval ((y,v)::(x,u)::env) t
 
+(** Remove already evaluated values. *)
+and force t =
+  match t with
+  | Meta (m, s) when m.value <> None -> vapp_spine (Option.get m.value) s
+  | _ -> t
+
 (** Reify a value as a term. *)
 let rec readback k v =
   let var k = "x" ^ string_of_int k in
@@ -281,16 +295,13 @@ let rec readback k v =
     | App (t, u) -> TApp (neutral k t, readback k u)
     | Postulate -> TPostulate
     | Hole pos -> THole pos
-    | Meta m ->
-      if m.value = None then TMeta (Some (m.id, []))
-      else readback k (Option.get m.value)
     | NPair_ind (t, u) -> TApp (readback k @@ Pair_ind t, neutral k u)
     | NTens_ind (t, u) -> TApp (readback k @@ Tens_ind t, neutral k u)
     | NIndType_ind (ind, args, t) -> TApp (readback k @@ IndType_ind (ind, args), neutral k t)
     | NFlat_ind (t, u) -> TApp (readback k @@ Flat_ind t, neutral k u)
     | NJ (r, t) -> TApp (readback k @@ J r, neutral k t)
   in
-  match v with
+  match force v with
   | Type -> TType
   | IndType ind -> TIndType ind
   | IndType_ind (ind, args) -> TIndType_ind (ind, List.map (readback k) args)
@@ -310,6 +321,12 @@ let rec readback k v =
   | Eq (t, u) -> TEq (readback k t, readback k u)
   | Refl -> TRefl
   | J r -> TJ (readback k r)
+  | Meta (m, s) ->
+    let rec app_spine t = function
+      | u::uu -> TApp (app_spine t uu, u)
+      | [] -> t
+    in
+    app_spine (TMeta (Some (m.id, []))) (List.map (readback k) s)
   | Neu t -> neutral k t
 
 let string_of_value k v = string_of_term @@ readback k v
@@ -451,20 +468,16 @@ end
 type context = Context.t
 
 (** Generate a fresh metavariable term. *)
-let fresh_meta (cenv,benv) =
+let fresh_meta env =
   let m = Meta.fresh () in
-  let vars = (FV.to_list @@ Bunch.dom benv) @ List.map fst cenv in
+  (* We only keep variables in the environment. *)
+  let vars = List.filter_map (fun (x,v) -> match force v with Neu (Var _) -> Some x | _ -> None) env in
   TMeta (Some (m.id, vars))
 
 exception Unification
 
 (** Unify two values. *)
 let rec unify k (t:value) (u:value) =
-  let neutral _k t u =
-    match t, u with
-    | Meta m, Meta m' when m.id = m'.id -> ()
-    | _ -> raise Unification
-  in
   match t, u with
   | Type, Type -> ()
   | IndType i, IndType j ->
@@ -473,7 +486,10 @@ let rec unify k (t:value) (u:value) =
     if s <> s' then raise Unification;
     unify k a a';
     unify (k+1) (capp b (vvar k)) (capp b' (vvar k))
-  | Neu t, Neu u -> neutral k t u
+  | Meta (m, s), Meta (m', s') when m.id = m'.id ->
+    if List.length s <> List.length s' then raise Unification;
+    List.iter2 (unify k) s s'
+  (* | Neu t, Neu u -> neutral k t u *)
   | _ -> raise Unification
 
 (** Comparison of values. *)
@@ -670,7 +686,7 @@ and infer k env ctx (t:term) =
       | None -> failwith @@ Printf.sprintf "infer: undefined variable %s" x
     )
   | TMeta None ->
-    let a = eval env @@ fresh_meta ctx in
+    let a = eval env @@ fresh_meta env in
     a
   | _ -> failwith "infer"
 
