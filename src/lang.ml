@@ -866,14 +866,27 @@ and infer k env ctx (t:term) : term * value =
   | TIndTerm (`Bool b) -> TIndTerm (`Bool b), IndType `Bool
   | TApp (t, u) ->
     (
+      let rec insert_implicits t a =
+        match force a with
+        | Pi (Implicit, _, _, b) ->
+          let m = TMeta None in
+          let mv = eval env m in
+          insert_implicits (TApp (t, m)) (capp b mv)
+        | _ -> t, a
+      in
       match infer k env ctx t with
-      | t, Pi (Explicit, c, a, b) ->
-        let u = check k env (Context.crisp ~crispness:c ctx) u a in
-        TApp (t, u), capp b (eval env u)
-      | t, Arr (_s, a, b) ->
-        let u = check k env ctx u a in
-        TApp (t, u), b
-      | _ -> failwith "infer app"
+      | t, a ->
+        let t, a = insert_implicits t a in
+        (
+          match a with
+          | Pi (Explicit, c, a, b) ->
+            let u = check k env (Context.crisp ~crispness:c ctx) u a in
+            TApp (t, u), capp b (eval env u)
+          | Arr (_s, a, b) ->
+            let u = check k env ctx u a in
+            TApp (t, u), b
+          | _ -> failwith "infer app"
+        )
     )
   | TEq (t, u) ->
     let t, a = infer k env ctx t in

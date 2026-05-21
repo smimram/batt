@@ -1,0 +1,5 @@
+id : {A : U} -> A -> A
+id x = x
+
+b : Bool
+b = id false
