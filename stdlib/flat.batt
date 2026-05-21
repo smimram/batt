@@ -6,8 +6,8 @@ open import bool
 flat :: ♭U → U
 flat 𝄫A = A
 
-unflatten :: (A :: U) → ♭A → A
-unflatten A 𝄫x = x
+unflatten :: {A :: U} → ♭A → A
+unflatten 𝄫x = x
 -- unflatten A = ♭_ind(x, x)
 -- unflatten = fun A a → let♭ x = a in x
 
@@ -71,17 +71,17 @@ flat-tens-to-prod-to-tens A B 𝄫x =
 crispify-empty :: ⊥ → ♭⊥
 crispify-empty ()
 
-is-section-crispify-empty :: (t : ⊥) → unflatten ⊥ (crispify-empty t) ≡ t
+is-section-crispify-empty :: (t : ⊥) → unflatten (crispify-empty t) ≡ t
 is-section-crispify-empty ()
 
 crispify-unit :: ⊤ → ♭⊤
 crispify-unit tt = 𝄫tt
 
-is-section-crispify-unit :: (t : ⊤) → unflatten ⊤ (crispify-unit t) ≡ t 
+is-section-crispify-unit :: (t : ⊤) → unflatten (crispify-unit t) ≡ t
 is-section-crispify-unit tt = refl
 
 crispify-bool :: Bool → ♭Bool
 crispify-bool = Bool_ind(𝄫false, 𝄫true)
 
-is-section-crispify-bool :: (b : Bool) → unflatten Bool (crispify-bool b) ≡ b 
-is-section-crispify-bool = rec-bool (λb. unflatten Bool (crispify-bool b) ≡ b) refl refl
+is-section-crispify-bool :: (b : Bool) → unflatten (crispify-bool b) ≡ b
+is-section-crispify-bool = rec-bool (λb. unflatten (crispify-bool b) ≡ b) refl refl
