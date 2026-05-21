@@ -240,11 +240,18 @@ let rec eval (env:environment) = function
     eval env (TApp (TAbs(None, x, u), t))
   | TPostulate -> Neu Postulate
   | THole pos -> Neu (Hole pos)
-  | TMeta None -> Meta (Meta.fresh (), [])
+  | TMeta None -> fresh_meta env
   | TMeta (Some id) -> Meta (Meta.get id, [])
 
 (** Make a variable. *)
 and vvar k = Neu (Var k)
+
+(** Generate a fresh metavariable. *)
+and fresh_meta env =
+  let m = Meta.fresh () in
+  (* We only keep variables in the environment. *)
+  let vars = List.filter_map (fun (x,v) -> match force v with Neu (Var _) -> Some (TVar x) | _ -> None) env |> List.map (eval env) in
+  Meta (m, vars)
 
 (** Apply a value to another. *)
 and vapp t u =
@@ -463,13 +470,6 @@ end
 
 (** A context. *)
 type context = Context.t
-
-(** Generate a fresh metavariable term. *)
-let fresh_meta env =
-  let m = Meta.fresh () in
-  (* We only keep variables in the environment. *)
-  let vars = List.filter_map (fun (x,v) -> match force v with Neu (Var _) -> Some (TVar x) | _ -> None) env in
-  app_spine (TMeta (Some m.id)) vars
 
 exception Unification
 
@@ -819,9 +819,7 @@ and infer k env ctx (t:term) =
       | Some a -> a
       | None -> failwith @@ Printf.sprintf "infer: undefined variable %s" x
     )
-  | TMeta None ->
-    let a = eval env @@ fresh_meta env in
-    a
+  | TMeta None -> fresh_meta env
   | _ -> failwith "infer"
 
 let check_decl k env ctx (x, c, a, t) =
