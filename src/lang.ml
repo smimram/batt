@@ -811,11 +811,11 @@ and check_type k env ctx a =
     let xk = k in
     let xv = vvar xk in
     let k = k+1 in
-    let env = (x,xv)::env in
     let ctx =
       let a = eval env a in
       Context.ext_crisp ctx x a
     in
+    let env = (x,xv)::env in
     let b = check_type k env ctx b in
     TPi (i, Crisp, varn xk, a, b)
   | TPi (i, Normal, x, a, b) ->
@@ -823,13 +823,13 @@ and check_type k env ctx a =
     let xk = k in
     let xv = vvar xk in
     let k = k+1 in
-    let env = (x,xv)::env in
     let ctx =
-      Printf.printf "eval %s in %s\n%!" (string_of_term a) (string_of_environment k env);
+      Printf.printf "eval a = %s in %s\n%!" (string_of_term a) (string_of_environment k env);
       let a = eval env a in
-      Printf.printf "after\n%!";
       Context.ext ctx x a
     in
+    let env = (x,xv)::env in
+    Printf.printf "check b\n%!";
     let b = check_type k env ctx b in
     TPi (i, Normal, varn xk, a, b)
   | TSigma (x, a, b) ->
@@ -837,11 +837,11 @@ and check_type k env ctx a =
     let xk = k in
     let xv = vvar xk in
     let k = k+1 in
-    let env = (x,xv)::env in
     let ctx =
       let a = eval env a in
       Context.ext ctx x a
     in
+    let env = (x,xv)::env in
     let b = check_type k env ctx b in
     TSigma (varn xk, a, b)
   | TTens (a, b) ->
