@@ -30,6 +30,8 @@ rule token = parse
   | "()" { LRPAR }
   | "(" { LPAR }
   | ")" { RPAR }
+  | "{" { LACC }
+  | "}" { RACC }
   | "," { COMMA }
   | "->" { TO }
   | "→"  { utf8 ~n:2 lexbuf; TO }
