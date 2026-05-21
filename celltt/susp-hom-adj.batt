@@ -11,7 +11,7 @@ open import hom
 susphom-unit :: (X ∷ U) → X → hom' (susp' X)
 susphom-unit = merid'
 
--- couint
+-- counit
 susphom-counit :: (X' ∷ Ubipt) → mapbipt (susp' (hom' X')) X'
 susphom-counit X' =
   let X ∷ U = type-Ubipt X' in
@@ -24,4 +24,10 @@ susphom-counit X' =
       (oplaxleftcoh I' X' f) (oplaxrightcoh I' X' f) b
   in
   let counit-map : susp (hom' X') → X = pushout-univ (hom' X' ⨂ Bool) (hom' X' ⨂ I) Bool (cylbnd-inclusion (hom' X')) (tens-snd (hom' X') Bool) X leg-cyl leg-bool ho-legs in
-  ?
+  let counit-lcoh : counit-map (left-susp (hom' X')) ≡ x0 =
+    pushout-univr (hom' X' ⨂ Bool) (hom' X' ⨂ I) Bool (cylbnd-inclusion (hom' X')) (tens-snd (hom' X') Bool) X leg-cyl leg-bool ho-legs false
+  in
+  let counit-rcoh : counit-map (right-susp (hom' X')) ≡ x1 =
+    pushout-univr (hom' X' ⨂ Bool) (hom' X' ⨂ I) Bool (cylbnd-inclusion (hom' X')) (tens-snd (hom' X') Bool) X leg-cyl leg-bool ho-legs true
+  in
+  (counit-map, (counit-lcoh, counit-rcoh))

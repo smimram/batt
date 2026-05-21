@@ -517,6 +517,7 @@ let rec check k env ctx (t:term) (a:value) =
     important "POSTULATE %s\n%!" (string_of_value k a)
   | THole pos, a ->
     important "HOLE %s : %s IN\n%s\n%!" (Pos.to_string pos) (string_of_value k a) (Context.to_string ~multiline:true k ctx)
+    (* important "HOLE %s : %s\n%!" (Pos.to_string pos) (string_of_value k a) *)
   | t, a ->
     let a' = infer k env ctx t in
     if not @@ is_eq k a' a then
