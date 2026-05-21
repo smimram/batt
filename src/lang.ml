@@ -488,6 +488,7 @@ let rec unify k (t:value) (u:value) =
   (* debug "UNIFY %s VS %s\n%!" (string_of_value k t) (string_of_value k u); *)
   (* Make sure that metavariable m applied to spine s equals t. *)
   let solve k m s t =
+    debug "SOLVE %s =? %s\n" (string_of_value k (Meta (m, s))) (string_of_value k t);
     (* Construct the initial renaming. Note that we number variables x0, x1, etc so that the furthest variable is x0: this is to avoid having to shift all indices when lifting. *)
     let r =
       let rec aux = function
