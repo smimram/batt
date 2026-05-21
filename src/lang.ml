@@ -548,26 +548,56 @@ let rec unify k (t:value) (u:value) =
     let t = eval [] t in
     m.value <- Some t
   in
-  let neutral _k t u =
+  let rec neutral k t u =
     match t, u with
     | Var x, Var y when x = y -> ()
-    | _ -> raise Unification
+    | App (t, u), App (t', u') -> neutral k t t'; unify k u u'
+    | t, u ->
+      debug "CLASH %s VS %s \n%!" (string_of_value k (Neu t)) (string_of_value k (Neu u));
+      raise Unification
   in
-  match t, u with
+  match force t, force u with
   | Type, Type -> ()
   | IndType i, IndType j ->
     if i <> j then raise Unification
+  | IndTerm t, IndTerm t' ->
+    if t <> t' then raise Unification
   | Pi (s, a, b), Pi (s', a', b') ->
     if s <> s' then raise Unification;
     unify k a a';
     unify (k+1) (capp b (vvar k)) (capp b' (vvar k))
+  | Abs (s, t), Abs (s', t') ->
+    if s <> s' then raise Unification;
+    unify (k+1) (capp t (vvar k)) (capp t' (vvar k))
   | Meta (m, s), Meta (m', s') when m.id = m'.id ->
     if List.length s <> List.length s' then raise Unification;
     List.iter2 (unify k) s s'
+  | Sigma (a, b), Sigma (a', b') ->
+    unify k a a';
+    unify (k+1) (capp b (vvar k)) (capp b' (vvar k))
+  | Tens (a, b), Tens (a', b') ->
+    unify k a a';
+    unify k b b'
+  | Pair (t, u), Pair (t', u')
+  | TensPair (t, u), TensPair (t', u')
+  | Eq (t, u), Eq (t', u') ->
+    unify k t t';
+    unify k u u'
+  | Arr (s, a, b), Arr (s', a', b') ->
+    if s <> s' then raise Unification;
+    unify k a a';
+    unify k b b'
+  | Flat a, Flat a' -> unify k a a'
+  | Flatten t, Flatten t' -> unify k t t'
+  | Flat_ind t, Flat_ind t' ->
+    unify (k+1) (capp t (vvar k)) (capp t' (vvar k))
+  | Refl, Refl -> ()
   | Meta (m, s), t -> solve k m s t
   | t, Meta (m, s) -> solve k m s t
   | Neu t, Neu u -> neutral k t u
-  | _ -> raise Unification
+  | t, u ->
+    debug "CLASH %s VS %s \n%!" (string_of_value k t) (string_of_value k u);
+    raise Unification
 
 (*
 (** Comparison of values. *)
@@ -757,7 +787,7 @@ and infer k env ctx (t:term) =
   | TEq (t, u) ->
     let a = infer k env ctx t in
     check k env ctx u a;
-    a
+    Type
   | TVar x ->
     (
       match Context.assoc_opt x ctx with
