@@ -50,6 +50,7 @@ type term =
   | TRefl
   | TJ of term
   | TVar of var
+  | TVar' of int (** a de Bruijn term *) (* TODO: it would be much better to have preterms (strings) and terms (de Bruijn) *)
   | TLet of crispness * string * term * term * term
   | TPostulate (** a postulate *)
   | THole of Pos.t
@@ -91,6 +92,7 @@ module FV = struct
     | TRefl -> empty
     | TJ (r) -> term r
     | TVar x -> singleton x
+    | TVar' _ -> empty
     | TLet (_c, _x, a, t, u) -> union (term a) @@ union (term t) (term u)
     | TPostulate -> empty
     | THole _ -> empty
@@ -136,6 +138,7 @@ let rec string_of_term t =
   | TRefl -> Printf.sprintf "refl"
   | TJ (r) -> Printf.sprintf "J(%s)" (string_of_term r)
   | TVar x -> x
+  | TVar' n -> Printf.sprintf "x#%d" n
   | TLet (c,x,a,t,u) -> Printf.sprintf "let %s %s %s = %s in %s" x (colon c) (string_of_term a) (string_of_term t) (string_of_term u)
   | TPostulate -> "postulate"
   | THole _ -> "?"
@@ -251,6 +254,7 @@ let rec eval (env:environment) = function
       | Some v -> v
       | None -> failwith @@ Printf.sprintf "eval: could not find %s" x
     )
+  | TVar' n -> snd @@ List.nth env n
   | TLet (_c,x,_a,t,u) ->
     eval env (TApp (TAbs(Explicit, None, x, u), t))
   | TPostulate -> Neu Postulate
@@ -808,8 +812,7 @@ and check_type k env ctx a =
   | TType -> TType
   | TPi (i, Crisp, x, a, b) ->
     let a = check_type k env (Context.crisp ctx) a in
-    let xk = k in
-    let xv = vvar xk in
+    let xv = vvar k in
     let k = k+1 in
     let ctx =
       let a = eval env a in
@@ -817,21 +820,18 @@ and check_type k env ctx a =
     in
     let env = (x,xv)::env in
     let b = check_type k env ctx b in
-    TPi (i, Crisp, varn xk, a, b)
+    TPi (i, Crisp, x, a, b)
   | TPi (i, Normal, x, a, b) ->
     let a = check_type k env ctx a in
-    let xk = k in
-    let xv = vvar xk in
+    let xv = vvar k in
     let k = k+1 in
     let ctx =
-      Printf.printf "eval a = %s in %s\n%!" (string_of_term a) (string_of_environment k env);
       let a = eval env a in
       Context.ext ctx x a
     in
     let env = (x,xv)::env in
-    Printf.printf "check b\n%!";
     let b = check_type k env ctx b in
-    TPi (i, Normal, varn xk, a, b)
+    TPi (i, Normal, x, a, b)
   | TSigma (x, a, b) ->
     let a = check_type k env ctx a in
     let xk = k in
@@ -886,14 +886,14 @@ and infer k env ctx (t:term) : term * value =
     let u = check k env ctx u a in
     TEq (t, u), Type
   | TVar x ->
-    let rec aux = function
-      | (y, _)::l when x = y -> List.length l
-      | _::l -> aux l
+    let rec aux n = function
+      | (y, _)::_ when x = y -> n
+      | _::l -> aux (n+1) l
       | [] -> failwith @@ Printf.sprintf "infer: undefined variable %s" x
     in
-    let k = aux env in
+    let k = aux 0 env in
     let a = Option.get @@ Context.assoc_opt x ctx in
-    TVar (varn k), a
+    TVar' k, a
   | TMeta None ->
     let a = fresh_meta env in
     TMeta None, a
