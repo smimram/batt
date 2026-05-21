@@ -12,3 +12,6 @@ not = Bool_ind(false, true)
 
 f : Bool → Bool
 f = comp not (id {Bool})
+
+double : {A : U} → (A → A) → (A → A)
+double f = comp {_} {_} {_} f f

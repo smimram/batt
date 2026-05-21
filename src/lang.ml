@@ -681,6 +681,7 @@ let rec check k env ctx (t:term) (a:value) : term =
     (* Insert implicit abstraction *)
     let xv = vvar k in
     let k = k+1 in
+    let env = ("_", xv)::env in
     let ctx = Context.ext ~crispness:c ctx "_" a in
     let t = check k env ctx t (capp b xv) in
     TAbs (Implicit, None, "_", t)
