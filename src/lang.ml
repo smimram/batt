@@ -350,6 +350,8 @@ let rec readback k v =
 
 let string_of_value k v = string_of_term @@ readback k v
 
+let string_of_environment k env = List.map (fun (x,t) -> x ^ "=" ^ string_of_value k t) env |> String.concat ", "
+
 (** A declaration. *)
 type decl = string * crispness * term * term
 
@@ -823,7 +825,9 @@ and check_type k env ctx a =
     let k = k+1 in
     let env = (x,xv)::env in
     let ctx =
+      Printf.printf "eval %s in %s\n%!" (string_of_term a) (string_of_environment k env);
       let a = eval env a in
+      Printf.printf "after\n%!";
       Context.ext ctx x a
     in
     let b = check_type k env ctx b in
