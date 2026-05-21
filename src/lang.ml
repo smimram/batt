@@ -541,11 +541,21 @@ let rec unify k (t:value) (u:value) =
         | Meta (m',s) ->
           if m'.id = m.id then (debug "OCCURS\n"; raise Unification); (* Occurs-check. *)
           app_spine (TMeta (Some m'.id)) (List.map (rename r) s)
-        | Abs (s,t) ->
+        | Arr (s, a, b) ->
+          let a = rename r a in
+          let b = rename r b in
+          TArr (s, a, b)
+        | Abs (s, t) ->
           let t = capp t (vvar r.dom) in
           TAbs (Explicit, s, "_", rename (lift r) t)
+        | Sigma (a, b) ->
+          let a = rename r a in
+          let b = rename (lift r) @@ capp b (vvar r.dom) in
+          TSigma ("_", a, b)
         | Type -> TType
         | IndType i -> TIndType i
+        | Tens (t,u) -> TTens (rename r t, rename r u)
+        | Eq(t,u) -> TEq (rename r t, rename r u)
         | Neu n -> neutral r n
         | t -> failwith @@ Printf.sprintf "TODO: rename %s" (string_of_value k t)
       and neutral r = function
@@ -557,12 +567,17 @@ let rec unify k (t:value) (u:value) =
               debug "ESCAPED %s\n" (string_of_value k (Neu (Var x)));
               raise Unification
           )
+        | App (t, u) ->
+          let t = neutral r t in
+          let u = rename r u in
+          app t u
         | NPair_ind (t, u) ->
           let k = r.dom in
           let t = capp2 t (vvar k) (vvar (k+1)) in
           let t = rename (lift (lift r)) t in
           let u = neutral r u in
           app (TPair_ind ("_", "_", t)) u
+        | Postulate -> TPostulate
         | t -> failwith @@ Printf.sprintf "TODO: rename neutral %s" (string_of_value k (Neu t))
       in
       rename r t
@@ -669,7 +684,7 @@ let rec check k env ctx (t:term) (a:value) : term =
   debug "CHECK %s : %s\n%!" (string_of_term t) (string_of_value k a);
   (* let cenv, benv = ctx in *)
   (* Printf.printf "      %s\n%!" (Context.to_string k ctx); *)
-  match t, a with
+  match t, force a with
   | TAbs (i, None, x, t), Pi (i', c, a, b) when i = i' ->
     let xv = vvar k in
     let k = k+1 in
@@ -780,7 +795,8 @@ let rec check k env ctx (t:term) (a:value) : term =
     TRefl
   | TJ r, Pi (Explicit, Normal, _a, b) ->
     (* we should make sure that b := (y : a) (p : x ≡ y) → P[x,y,p] *)
-    let unpi = function
+    let unpi a =
+      match force a with
       | Pi (Explicit, _, a, b) -> a, b
       | _ -> assert false
     in
