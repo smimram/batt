@@ -1,8 +1,8 @@
 tens-fst :: (A B :: U) → A ⨂ B → A
 tens-fst A B (a ⊗ b) = a
 
-tens-snd :: (A B :: U) → A ⨂ B → A
-tens-snd A B (a ⊗ b) = a
+tens-snd :: (A B :: U) → A ⨂ B → B
+tens-snd A B (a ⊗ b) = b
 
 tens-to-prod :: (A B :: U) → A ⨂ B → A × B
 tens-to-prod A B (a ⊗ b) = (a , b)
