@@ -316,7 +316,7 @@ and force t =
 let rec readback k v =
   let var k = "x" ^ string_of_int k in
   let rec neutral k = function
-    | Var i -> TVar (var i)
+    | Var i -> TVar' i
     | App (t, u) -> TApp (neutral k t, readback k u)
     | Postulate -> TPostulate
     | Hole pos -> THole pos
@@ -658,14 +658,20 @@ let rec check k env ctx (t:term) (a:value) : term =
   (* let cenv, benv = ctx in *)
   (* Printf.printf "      %s\n%!" (Context.to_string k ctx); *)
   match t, a with
-  | TAbs (i, None, x, t), Pi (i', c, a, b) ->
-    assert (i = i');
+  | TAbs (i, None, x, t), Pi (i', c, a, b) when i = i' ->
     let xv = vvar k in
     let k = k+1 in
     let env = (x,xv)::env in
     let ctx = Context.ext ~crispness:c ctx x a in
     let t = check k env ctx t (capp b xv) in
     TAbs (i, None, x, t)
+  | _, Pi (Implicit, c, a, b) ->
+    (* Insert implicit abstraction *)
+    let xv = vvar k in
+    let k = k+1 in
+    let ctx = Context.ext ~crispness:c ctx "_" a in
+    let t = check k env ctx t (capp b xv) in
+    TAbs (Implicit, None, "_", t)
   | TAbs (i, Some s, x, t), Arr (s', a, b) ->
     assert (i = Explicit);
     assert (s = s');
