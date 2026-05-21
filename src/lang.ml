@@ -685,9 +685,9 @@ let rec check k env ctx (t:term) (a:value) : term =
     let a = check_type k env (Context.crisp ~crispness:c ctx) a in
     let av = eval env a in
     let t = check k env (Context.crisp ~crispness:c ctx) t av in
-    let xv = vvar k in
+    let tv = eval env t in
     let k = k+1 in
-    let env = (x,xv)::env in
+    let env = (x,tv)::env in
     let ctx = Context.ext ~crispness:c ctx x av in
     let u = check k env ctx u b in
     TLet (c, x, a, t, u)
@@ -868,8 +868,8 @@ and infer k env ctx (t:term) : term * value =
     (
       let rec insert_implicits t a =
         match force a with
-        | Pi (Implicit, _, _, b) ->
-          let m = TMeta None in
+        | Pi (Implicit, c, a', b) ->
+          let m = check k env (Context.crisp ~crispness:c ctx) (TMeta None) a' in
           let mv = eval env m in
           insert_implicits (TApp (t, m)) (capp b mv)
         | _ -> t, a
