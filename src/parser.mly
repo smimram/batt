@@ -65,7 +65,8 @@ prefix_term:
 
 app_term:
   | prefix_term { $1 }
-  | t=app_term u=prefix_term { TApp (t, u) }
+  | t=app_term u=prefix_term { app t u }
+  | t=app_term LACC u=term RACC { app ~icit:Implicit t u }
 
 prod_term:
   | app_term { $1 }

@@ -35,7 +35,7 @@ type term =
   | TIndTerm of inductive_term
   | TPi of icit * crispness * string * term * term (** pi-type *)
   | TAbs of icit * side option * string * term
-  | TApp of term * term
+  | TApp of term * icit * term
   | TSigma of string * term * term
   | TPair of term * term
   | TPair_ind of string * string * term
@@ -56,8 +56,11 @@ type term =
   | THole of Pos.t
   | TMeta of int option (** metavariable with given internal identifier *)
 
-let rec app_spine t = function
-  | u::uu -> TApp (app_spine t uu, u)
+let app ?(icit=Explicit) t u =
+  TApp (t, icit, u)
+
+let rec app_spine ?icit t = function
+  | u::uu -> app ?icit (app_spine t uu) u
   | [] -> t
 
 module FV = struct
@@ -75,7 +78,7 @@ module FV = struct
     | TPi (_, _, x, a, b)
     | TSigma (x, a, b) -> union (term a) (remove x (term b))
     | TAbs (_, _, x, t) -> remove x (term t)
-    | TApp (t, u)
+    | TApp (t, _, u)
     | TPair (t, u) -> union (term t) (term u)
     | TPair_ind (x, y, t) -> remove x (remove y (term t))
     | TArr (_, a, b)
@@ -120,7 +123,12 @@ let rec string_of_term t =
       | Explicit -> Printf.sprintf "λ%s%s.%s" x (string_of_opt_side s) (string_of_term t)
       | Implicit -> Printf.sprintf "λ{%s%s}.%s" x (string_of_opt_side s) (string_of_term t)
     )
-  | TApp (t, u) -> Printf.sprintf "(%s %s)" (string_of_term t) (string_of_term u)
+  | TApp (t, i, u) ->
+    (
+      match i with
+      | Explicit -> Printf.sprintf "(%s %s)" (string_of_term t) (string_of_term u)
+      | Implicit -> Printf.sprintf "(%s {%s})" (string_of_term t) (string_of_term u)
+    )
   | TSigma (x, a, t) -> Printf.sprintf "(Σ(%s : %s).%s)" x (string_of_term a) (string_of_term t)
   | TPair (t, u) -> Printf.sprintf "(%s, %s)" (string_of_term t) (string_of_term u)
   | TPair_ind (x, y, t) -> Printf.sprintf "(λ(%s,%s).%s)" x y (string_of_term t)
@@ -231,7 +239,7 @@ let rec eval (env:environment) = function
   | TIndType_ind (ind, args) -> IndType_ind (ind, List.map (eval env) args)
   | TPi (i, c, x, a, t) -> Pi (i, c, eval env a, (x, t, env))
   | TAbs (_, s, x, t) -> Abs (s, (x, t, env))
-  | TApp (t, u) -> vapp (eval env t) (eval env u)
+  | TApp (t, _, u) -> vapp (eval env t) (eval env u)
   | TSigma (x, a, t) -> Sigma (eval env a, (x, t, env))
   | TPair (t, u) -> Pair (eval env t, eval env u)
   | TPair_ind (x, y, t) -> Pair_ind (x, y, t, env)
@@ -253,7 +261,7 @@ let rec eval (env:environment) = function
     )
   | TVar' n -> snd @@ List.nth env n
   | TLet (_c,x,_a,t,u) ->
-    eval env (TApp (TAbs(Explicit, None, x, u), t))
+    eval env (app (TAbs(Explicit, None, x, u)) t)
   | TPostulate -> Neu Postulate
   | THole pos -> Neu (Hole pos)
   | TMeta None -> fresh_meta env
@@ -317,14 +325,14 @@ let rec readback k v =
   let var k = "x" ^ string_of_int k in
   let rec neutral k = function
     | Var i -> TVar' i
-    | App (t, u) -> TApp (neutral k t, readback k u)
+    | App (t, u) -> app (neutral k t) (readback k u)
     | Postulate -> TPostulate
     | Hole pos -> THole pos
-    | NPair_ind (t, u) -> TApp (readback k @@ Pair_ind t, neutral k u)
-    | NTens_ind (t, u) -> TApp (readback k @@ Tens_ind t, neutral k u)
-    | NIndType_ind (ind, args, t) -> TApp (readback k @@ IndType_ind (ind, args), neutral k t)
-    | NFlat_ind (t, u) -> TApp (readback k @@ Flat_ind t, neutral k u)
-    | NJ (r, t) -> TApp (readback k @@ J r, neutral k t)
+    | NPair_ind (t, u) -> app (readback k @@ Pair_ind t) (neutral k u)
+    | NTens_ind (t, u) -> app (readback k @@ Tens_ind t) (neutral k u)
+    | NIndType_ind (ind, args, t) -> app (readback k @@ IndType_ind (ind, args)) (neutral k t)
+    | NFlat_ind (t, u) -> app (readback k @@ Flat_ind t) (neutral k u)
+    | NJ (r, t) -> app (readback k @@ J r) (neutral k t)
   in
   match force v with
   | Type -> TType
@@ -522,12 +530,10 @@ let rec unify k (t:value) (u:value) =
       let cod, ren = aux s in
       { dom = k; cod; ren }
     in
-    (*
     (* Add an extra variable to a renaming. *)
     let lift r =
       { dom = r.dom+1; cod = r.cod+1; ren = IntMap.add r.dom r.cod r.ren }
     in
-    *)
     (* Apply a partial renaming to a value. Along the way, we also make sure that the metavariable does not occur in the term (occurs check). *)
     let rename m r (t:value) : term =
       let var i = TVar ("x" ^ string_of_int i) in
@@ -535,9 +541,9 @@ let rec unify k (t:value) (u:value) =
         | Meta (m',s) ->
           if m'.id = m.id then (debug "OCCURS\n"; raise Unification); (* Occurs-check. *)
           app_spine (TMeta (Some m'.id)) (List.map (rename r) s)
-        (* | Abs (s,t) -> *)
-          (* let t = capp t (vvar r.dom) in *)
-          (* TAbs (s, rename (lift r) t) *)
+        | Abs (s,t) ->
+          let t = capp t (vvar r.dom) in
+          TAbs (Explicit, s, "_", rename (lift r) t)
         | Type -> TType
         | IndType i -> TIndType i
         | Neu n -> neutral r n
@@ -551,6 +557,12 @@ let rec unify k (t:value) (u:value) =
               debug "ESCAPED %s\n" (string_of_value k (Neu (Var x)));
               raise Unification
           )
+        | NPair_ind (t, u) ->
+          let k = r.dom in
+          let t = capp2 t (vvar k) (vvar (k+1)) in
+          let t = rename (lift (lift r)) t in
+          let u = neutral r u in
+          app (TPair_ind ("_", "_", t)) u
         | t -> failwith @@ Printf.sprintf "TODO: rename neutral %s" (string_of_value k (Neu t))
       in
       rename r t
@@ -864,29 +876,29 @@ and infer k env ctx (t:term) : term * value =
   | TIndType ind -> TIndType ind, Type
   | TIndTerm `Unit -> TIndTerm `Unit, IndType `Unit
   | TIndTerm (`Bool b) -> TIndTerm (`Bool b), IndType `Bool
-  | TApp (t, u) ->
+  | TApp (t, icit, u) ->
     (
       let rec insert_implicits t a =
         match force a with
         | Pi (Implicit, c, a', b) ->
           let m = check k env (Context.crisp ~crispness:c ctx) (TMeta None) a' in
           let mv = eval env m in
-          insert_implicits (TApp (t, m)) (capp b mv)
+          insert_implicits (TApp (t, Implicit, m)) (capp b mv)
         | _ -> t, a
       in
-      match infer k env ctx t with
-      | t, a ->
-        let t, a = insert_implicits t a in
-        (
-          match a with
-          | Pi (Explicit, c, a, b) ->
-            let u = check k env (Context.crisp ~crispness:c ctx) u a in
-            TApp (t, u), capp b (eval env u)
-          | Arr (_s, a, b) ->
-            let u = check k env ctx u a in
-            TApp (t, u), b
-          | _ -> failwith "infer app"
-        )
+      let t, a = infer k env ctx t in
+      let t, a = if icit = Explicit then insert_implicits t a else t, a in
+      (
+        match a with
+        | Pi (icit', c, a, b) ->
+          assert (icit = icit');
+          let u = check k env (Context.crisp ~crispness:c ctx) u a in
+          TApp (t, icit, u), capp b (eval env u)
+        | Arr (_s, a, b) ->
+          let u = check k env ctx u a in
+          TApp (t, Explicit, u), b
+        | _ -> failwith "infer app"
+      )
     )
   | TEq (t, u) ->
     let t, a = infer k env ctx t in
