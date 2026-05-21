@@ -880,8 +880,8 @@ and infer k env ctx (t:term) : term * value =
     (
       let rec insert_implicits t a =
         match force a with
-        | Pi (Implicit, c, a', b) ->
-          let m = check k env (Context.crisp ~crispness:c ctx) (TMeta None) a' in
+        | Pi (Implicit, c, a, b) ->
+          let m = check k env (Context.crisp ~crispness:c ctx) (TMeta None) a in
           let mv = eval env m in
           insert_implicits (TApp (t, Implicit, m)) (capp b mv)
         | _ -> t, a
@@ -891,7 +891,7 @@ and infer k env ctx (t:term) : term * value =
       (
         match a with
         | Pi (icit', c, a, b) ->
-          assert (icit = icit');
+          if icit <> icit' then failwith "got an implicit argument where an explicit one was expected";
           let u = check k env (Context.crisp ~crispness:c ctx) u a in
           TApp (t, icit, u), capp b (eval env u)
         | Arr (_s, a, b) ->
