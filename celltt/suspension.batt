@@ -70,7 +70,7 @@ merid' X x = (merid(X)(x), (lcoh-merid(X)(x), rcoh-merid(X)(x)))
 
 susp-map :: (X Y ∷ U) (f ∷ X → Y) → susp X → susp Y
 susp-map X Y f =
-  let leg-cyl ∷ X ⨂ I → susp Y = circ (X ⨂ I) (Y ⨂ I) (susp Y) (cyl-to-susp Y) (tens-map X Y I I f (id {I})) in
+  let leg-cyl ∷ X ⨂ I → susp Y = circ (cyl-to-susp Y) (tens-map X Y I I f (id {I})) in
   let leg-bool ∷ Bool → susp Y = bool-to-susp Y in
   let ho-legs ∷ (u : X ⨂ Bool) → leg-cyl (cylbnd-inclusion X u) ≡ leg-bool (tens-snd X Bool u) =
     λ (x ⊗ b) . pushout-eq  (cylbnd-inclusion Y) (tens-snd Y Bool) (f(x) ⊗ b)

@@ -563,7 +563,15 @@ let rec unify k (t:value) (u:value) =
         | Type -> TType
         | IndType i -> TIndType i
         | IndType_ind (i, l) -> TIndType_ind (i, List.map (rename r) l)
-        | Tens (t,u) -> TTens (rename r t, rename r u)
+        | Tens (a,b) -> TTens (rename r a, rename r b)
+        | TensPair (t, u) -> TTensPair (rename r t, rename r u)
+        | Tens_ind t ->
+          let k = r.dom in
+          let x = var_name r.cod in
+          let y = var_name (r.cod+1) in
+          let t = capp2 t (vvar k) (vvar (k+1)) in
+          let t = rename (lift (lift r)) t in
+          TTens_ind (x, y, t)
         | Eq(t,u) -> TEq (rename r t, rename r u)
         | J t -> TJ (rename r t)
         | Neu n -> neutral r n
@@ -592,7 +600,7 @@ let rec unify k (t:value) (u:value) =
         | NTens_ind (t, u) ->
           let k = r.dom in
           let x = var_name r.cod in
-          let y = "x" ^ string_of_int (r.cod + 1) in
+          let y = var_name (r.cod+1) in
           let t = capp2 t (vvar k) (vvar (k+1)) in
           let t = rename (lift (lift r)) t in
           let u = neutral r u in

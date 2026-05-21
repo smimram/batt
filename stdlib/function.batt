@@ -6,5 +6,5 @@
 id :: {A : U} → A → A
 id x = x
 
-circ :: (A B C : U) → (B → C) → (A → B) → (A → C)
-circ A B C g f a = g (f a)
+circ :: {A B C : U} → (B → C) → (A → B) → (A → C)
+circ g f a = g (f a)
