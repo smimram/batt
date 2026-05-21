@@ -16,15 +16,15 @@ cylbnd-inclusion X = tens-map X X Bool I (λx.x) boundary-inclusion
 
 -- Suspension operation
 susp :: (X :: U) → U
-susp X = pushout-obj (X ⨂ Bool) (X ⨂ I) Bool (cylbnd-inclusion X) (tens-snd X Bool)
+susp X = pushout-obj (cylbnd-inclusion X) (tens-snd X Bool)
 
 -- map from the Gray cylinder (quotient map)
 cyl-to-susp :: (X ∷ U) → X ⨂ I → susp X
-cyl-to-susp X = pushout-inl (X ⨂ Bool) (X ⨂ I) Bool (cylbnd-inclusion X) (tens-snd X Bool)
+cyl-to-susp X = pushout-inl (cylbnd-inclusion X) (tens-snd X Bool)
 
 -- inclusion ∂I ↪ susp X
 bool-to-susp :: (X ∷ U) → Bool → susp X
-bool-to-susp X = pushout-inr (X ⨂ Bool) (X ⨂ I) Bool (cylbnd-inclusion X) (tens-snd X Bool)
+bool-to-susp X = pushout-inr (cylbnd-inclusion X) (tens-snd X Bool)
 
 -- left (source) point of the suspension
 left-susp :: (X :: U) → susp X
@@ -48,7 +48,7 @@ ho-susp-to-I X (x ⊗ b) = rec-bool (λb. tens-snd X I (cylbnd-inclusion X (x �
 
 -- the projection
 susp-to-I :: (X :: U) → susp X → I
-susp-to-I X = pushout-univ (X ⨂ Bool) (X ⨂ I) Bool (cylbnd-inclusion X) (tens-snd X Bool) I
+susp-to-I X = pushout-univ (cylbnd-inclusion X) (tens-snd X Bool) I
   (tens-snd X I) (boundary-inclusion) (ho-susp-to-I X)
 
 -- meridian map
@@ -56,10 +56,10 @@ merid :: (X ∷ U) (x : X) → (I →ᵣ susp X)
 merid X x sᵣ = cyl-to-susp X (x ⊗ s)
 
 lcoh-merid :: (X ∷ U) (x : X) → merid X x I0 ≡ left-susp X
-lcoh-merid X x = pushout-eq (X ⨂ Bool) (X ⨂ I) Bool (cylbnd-inclusion X) (tens-snd X Bool) (x ⊗ false)
+lcoh-merid X x = pushout-eq (cylbnd-inclusion X) (tens-snd X Bool) (x ⊗ false)
 
 rcoh-merid :: (X ∷ U) (x : X) → merid X x I0 ≡ right-susp X
-rcoh-merid X x = pushout-eq (X ⨂ Bool) (X ⨂ I) Bool (cylbnd-inclusion X) (tens-snd X Bool) (x ⊗ true)
+rcoh-merid X x = pushout-eq (cylbnd-inclusion X) (tens-snd X Bool) (x ⊗ true)
 
 merid' :: (X ∷ U) (x : X) → oplaxbipt I' (susp' X)
 merid' X x = (merid(X)(x), (lcoh-merid(X)(x), rcoh-merid(X)(x)))
@@ -73,7 +73,7 @@ susp-map X Y f =
   let leg-cyl ∷ X ⨂ I → susp Y = circ (X ⨂ I) (Y ⨂ I) (susp Y) (cyl-to-susp Y) (tens-map X Y I I f (id {I})) in
   let leg-bool ∷ Bool → susp Y = bool-to-susp Y in
   let ho-legs ∷ (u : X ⨂ Bool) → leg-cyl (cylbnd-inclusion X u) ≡ leg-bool (tens-snd X Bool u) =
-    λ (x ⊗ b) . pushout-eq (Y ⨂ Bool) (Y ⨂ I) Bool (cylbnd-inclusion Y) (tens-snd Y Bool) (f(x) ⊗ b)
+    λ (x ⊗ b) . pushout-eq  (cylbnd-inclusion Y) (tens-snd Y Bool) (f(x) ⊗ b)
   in
-  pushout-univ (X ⨂ Bool) (X ⨂ I) Bool (cylbnd-inclusion X) (tens-snd X Bool) (susp Y)
+  pushout-univ (cylbnd-inclusion X) (tens-snd X Bool) (susp Y)
     leg-cyl leg-bool ho-legs

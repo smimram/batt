@@ -23,12 +23,12 @@ susphom-counit X' =
     λ (f ⊗ b) . rec-bool (λb. leg-cyl (cylbnd-inclusion (hom' X') (f ⊗ b)) ≡ leg-bool (tens-snd (hom' X') Bool (f ⊗ b)))
       (oplaxleftcoh I' X' f) (oplaxrightcoh I' X' f) b
   in
-  let counit-map : susp (hom' X') → X = pushout-univ (hom' X' ⨂ Bool) (hom' X' ⨂ I) Bool (cylbnd-inclusion (hom' X')) (tens-snd (hom' X') Bool) X leg-cyl leg-bool ho-legs in
+  let counit-map : susp (hom' X') → X = pushout-univ (cylbnd-inclusion (hom' X')) (tens-snd (hom' X') Bool) X leg-cyl leg-bool ho-legs in
   let counit-lcoh : counit-map (left-susp (hom' X')) ≡ x0 =
-    pushout-univr (hom' X' ⨂ Bool) (hom' X' ⨂ I) Bool (cylbnd-inclusion (hom' X')) (tens-snd (hom' X') Bool) X leg-cyl leg-bool ho-legs false
+    pushout-univr (cylbnd-inclusion (hom' X')) (tens-snd (hom' X') Bool) X leg-cyl leg-bool ho-legs false
   in
   let counit-rcoh : counit-map (right-susp (hom' X')) ≡ x1 =
-    pushout-univr (hom' X' ⨂ Bool) (hom' X' ⨂ I) Bool (cylbnd-inclusion (hom' X')) (tens-snd (hom' X') Bool) X leg-cyl leg-bool ho-legs true
+    pushout-univr (cylbnd-inclusion (hom' X')) (tens-snd (hom' X') Bool) X leg-cyl leg-bool ho-legs true
   in
   (counit-map, (counit-lcoh, counit-rcoh))
 

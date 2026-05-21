@@ -534,28 +534,38 @@ let rec unify k (t:value) (u:value) =
     let lift r =
       { dom = r.dom+1; cod = r.cod+1; ren = IntMap.add r.dom r.cod r.ren }
     in
+    let var_name i = "x!" ^ string_of_int i in
     (* Apply a partial renaming to a value. Along the way, we also make sure that the metavariable does not occur in the term (occurs check). *)
     let rename m r (t:value) : term =
-      let var i = TVar ("x" ^ string_of_int i) in
+      let var i = TVar (var_name i) in
       let rec rename r = function
         | Meta (m',s) ->
           if m'.id = m.id then (debug "OCCURS\n"; raise Unification); (* Occurs-check. *)
           app_spine (TMeta (Some m'.id)) (List.map (rename r) s)
+        | Pi (i, c, a, b) ->
+          let a = rename r a in
+          let x = var_name r.cod in
+          let b = rename (lift r) @@ capp b (vvar r.dom) in
+          TPi (i, c, x, a, b)
         | Arr (s, a, b) ->
           let a = rename r a in
           let b = rename r b in
           TArr (s, a, b)
         | Abs (s, t) ->
+          let x = var_name r.cod in
           let t = capp t (vvar r.dom) in
-          TAbs (Explicit, s, "_", rename (lift r) t)
+          TAbs (Explicit, s, x, rename (lift r) t)
         | Sigma (a, b) ->
+          let x = var_name r.cod in
           let a = rename r a in
           let b = rename (lift r) @@ capp b (vvar r.dom) in
-          TSigma ("_", a, b)
+          TSigma (x, a, b)
         | Type -> TType
         | IndType i -> TIndType i
+        | IndType_ind (i, l) -> TIndType_ind (i, List.map (rename r) l)
         | Tens (t,u) -> TTens (rename r t, rename r u)
         | Eq(t,u) -> TEq (rename r t, rename r u)
+        | J t -> TJ (rename r t)
         | Neu n -> neutral r n
         | t -> failwith @@ Printf.sprintf "TODO: rename %s" (string_of_value k t)
       and neutral r = function
@@ -573,10 +583,31 @@ let rec unify k (t:value) (u:value) =
           app t u
         | NPair_ind (t, u) ->
           let k = r.dom in
+          let x = var_name r.cod in
+          let y = var_name (r.cod+1) in
           let t = capp2 t (vvar k) (vvar (k+1)) in
           let t = rename (lift (lift r)) t in
           let u = neutral r u in
-          app (TPair_ind ("_", "_", t)) u
+          app (TPair_ind (x, y, t)) u
+        | NTens_ind (t, u) ->
+          let k = r.dom in
+          let x = var_name r.cod in
+          let y = "x" ^ string_of_int (r.cod + 1) in
+          let t = capp2 t (vvar k) (vvar (k+1)) in
+          let t = rename (lift (lift r)) t in
+          let u = neutral r u in
+          app (TTens_ind (x, y, t)) u
+        | NFlat_ind (t, u) ->
+          let k = r.dom in
+          let x = var_name r.cod in
+          let t = capp t (vvar k) in
+          let t = rename (lift r) t in
+          let u = neutral r u in
+          app (TFlat_ind (x, t)) u
+        | NIndType_ind (i, l, u) ->
+          app (TIndType_ind (i, List.map (rename r) l)) (neutral r u)
+        | NJ (t, u) ->
+          app (TJ (rename r t)) (neutral r u)
         | Postulate -> TPostulate
         | t -> failwith @@ Printf.sprintf "TODO: rename neutral %s" (string_of_value k (Neu t))
       in
@@ -591,7 +622,7 @@ let rec unify k (t:value) (u:value) =
         | [] -> t
       in
       (* TODO: correctly handle side... *)
-      abss (List.init r.cod (fun i -> None, "x" ^ string_of_int i)) t
+      abss (List.init r.cod (fun i -> None, var_name i)) t
     in
     debug "UNIF ?%d <- %s\n%!" m.id (string_of_term t);
     let t = eval [] t in
