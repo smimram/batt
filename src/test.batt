@@ -1,7 +1,7 @@
 -- open import stdlib
 
-id : (A : Type) → A → A
-id _ x = x
+id : (A : Type) → (x : A) → A
+id A x = x
 
 b : Bool
 b = id _ false
