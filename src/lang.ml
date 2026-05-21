@@ -552,16 +552,33 @@ let rec unify k (t:value) (u:value) =
     match t, u with
     | Var x, Var y when x = y -> ()
     | App (t, u), App (t', u') -> neutral k t t'; unify k u u'
+    | NIndType_ind (i, l, t), NIndType_ind (i', l', t') ->
+      if i <> i' then raise Unification;
+      if List.length l <> List.length l' then raise Unification;
+      List.iter2 (unify k) l l';
+      neutral k t t'
+    | NPair_ind (t, u), NPair_ind (t', u')
+    | NTens_ind (t, u), NTens_ind (t', u') ->
+      unify (k+2) (capp2 t (vvar k) (vvar (k+1))) (capp2 t' (vvar k) (vvar (k+1)));
+      neutral k u u'
+    | NFlat_ind (t, u), NFlat_ind (t', u') ->
+      unify (k+1) (capp t (vvar k)) (capp t' (vvar k));
+      neutral k u u'
+    | Postulate, Postulate -> (* TODO: number them *) ()
     | t, u ->
       debug "CLASH %s VS %s \n%!" (string_of_value k (Neu t)) (string_of_value k (Neu u));
       raise Unification
   in
   match force t, force u with
   | Type, Type -> ()
-  | IndType i, IndType j ->
-    if i <> j then raise Unification
+  | IndType i, IndType i' ->
+    if i <> i' then raise Unification
   | IndTerm t, IndTerm t' ->
     if t <> t' then raise Unification
+  | IndType_ind (i, l), IndType_ind (i', l') ->
+    if i <> i' then raise Unification;
+    if List.length l <> List.length l' then raise Unification;
+    List.iter2 (unify k) l l'
   | Pi (s, a, b), Pi (s', a', b') ->
     if s <> s' then raise Unification;
     unify k a a';
@@ -583,6 +600,9 @@ let rec unify k (t:value) (u:value) =
   | Eq (t, u), Eq (t', u') ->
     unify k t t';
     unify k u u'
+  | Pair_ind t, Pair_ind t'
+  | Tens_ind t, Tens_ind t' ->
+    unify (k+2) (capp2 t (vvar k) (vvar (k+1))) (capp2 t' (vvar k) (vvar (k+1)))
   | Arr (s, a, b), Arr (s', a', b') ->
     if s <> s' then raise Unification;
     unify k a a';
