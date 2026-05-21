@@ -817,7 +817,7 @@ and check_type k env ctx a =
       Context.ext ctx x a
     in
     let b = check_type k env ctx b in
-    TPi (i, Normal, x, a, b)
+    TPi (i, Normal, varn k, a, b)
   | TSigma (x, a, b) ->
     let a = check_type k env ctx a in
     let xv = vvar k in
