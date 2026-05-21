@@ -1,4 +1,4 @@
-open import stdlib
+-- open import stdlib
 
 id : (A : Type) → A → A
 id _ x = x
