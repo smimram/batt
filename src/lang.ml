@@ -23,7 +23,9 @@ let string_of_side = function
 let string_of_opt_side s =
   Option.value ~default:"" @@ Option.map string_of_side s
 
-type crispness = Crisp | Normal
+type icit = Explicit | Implicit
+
+type crispness = Normal | Crisp
 
 (** A term. *)
 type term =
@@ -31,8 +33,8 @@ type term =
   | TIndType of inductive_type
   | TIndType_ind of inductive_type * term list
   | TIndTerm of inductive_term
-  | TPi of crispness * string * term * term (** pi-type *)
-  | TAbs of side option * string * term
+  | TPi of icit * crispness * string * term * term (** pi-type *)
+  | TAbs of icit * side option * string * term
   | TApp of term * term
   | TSigma of string * term * term
   | TPair of term * term
@@ -69,9 +71,9 @@ module FV = struct
     | TIndType _ -> empty
     | TIndType_ind (_, l) -> list l
     | TIndTerm _ -> empty
-    | TPi (_, x, a, b)
+    | TPi (_, _, x, a, b)
     | TSigma (x, a, b) -> union (term a) (remove x (term b))
-    | TAbs (_, x, t) -> remove x (term t)
+    | TAbs (_, _, x, t) -> remove x (term t)
     | TApp (t, u)
     | TPair (t, u) -> union (term t) (term u)
     | TPair_ind (x, y, t) -> remove x (remove y (term t))
@@ -104,8 +106,18 @@ let rec string_of_term t =
   | TIndType_ind (ind, args) -> Printf.sprintf "%s_ind(%s)" (string_of_inductive_type ind) (String.concat "," @@ List.map string_of_term args)
   | TIndTerm `Unit -> "tt"
   | TIndTerm (`Bool b) -> string_of_bool b
-  | TPi (c, x, a, t) -> Printf.sprintf "(%s %s %s) → %s" x (colon c) (string_of_term a) (string_of_term t)
-  | TAbs (s, x, t) -> Printf.sprintf "λ%s%s.%s" x (string_of_opt_side s) (string_of_term t)
+  | TPi (i, c, x, a, t) ->
+    (
+      match i with
+      | Explicit -> Printf.sprintf "(%s %s %s) → %s" x (colon c) (string_of_term a) (string_of_term t)
+      | Implicit -> Printf.sprintf "{%s %s %s} → %s" x (colon c) (string_of_term a) (string_of_term t)
+    )
+  | TAbs (i, s, x, t) ->
+    (
+      match i with
+      | Explicit -> Printf.sprintf "λ%s%s.%s" x (string_of_opt_side s) (string_of_term t)
+      | Implicit -> Printf.sprintf "λ{%s%s}.%s" x (string_of_opt_side s) (string_of_term t)
+    )
   | TApp (t, u) -> Printf.sprintf "(%s %s)" (string_of_term t) (string_of_term u)
   | TSigma (x, a, t) -> Printf.sprintf "(Σ(%s : %s).%s)" x (string_of_term a) (string_of_term t)
   | TPair (t, u) -> Printf.sprintf "(%s, %s)" (string_of_term t) (string_of_term u)
@@ -133,7 +145,7 @@ type value =
   | IndType of inductive_type
   | IndTerm of inductive_term
   | IndType_ind of inductive_type * value list
-  | Pi of crispness * value * closure
+  | Pi of icit * crispness * value * closure
   | Abs of side option * closure
   | Sigma of value * closure
   | Pair of value * value
@@ -214,8 +226,8 @@ let rec eval (env:environment) = function
   | TIndType a -> IndType a
   | TIndTerm t -> IndTerm t
   | TIndType_ind (ind, args) -> IndType_ind (ind, List.map (eval env) args)
-  | TPi (c, x, a, t) -> Pi (c, eval env a, (x, t, env))
-  | TAbs (s, x, t) -> Abs (s, (x, t, env))
+  | TPi (i, c, x, a, t) -> Pi (i, c, eval env a, (x, t, env))
+  | TAbs (_, s, x, t) -> Abs (s, (x, t, env))
   | TApp (t, u) -> vapp (eval env t) (eval env u)
   | TSigma (x, a, t) -> Sigma (eval env a, (x, t, env))
   | TPair (t, u) -> Pair (eval env t, eval env u)
@@ -237,7 +249,7 @@ let rec eval (env:environment) = function
       | None -> failwith @@ Printf.sprintf "eval: could not find %s" x
     )
   | TLet (_c,x,_a,t,u) ->
-    eval env (TApp (TAbs(None, x, u), t))
+    eval env (TApp (TAbs(Explicit, None, x, u), t))
   | TPostulate -> Neu Postulate
   | THole pos -> Neu (Hole pos)
   | TMeta None -> fresh_meta env
@@ -315,8 +327,8 @@ let rec readback k v =
   | IndType ind -> TIndType ind
   | IndType_ind (ind, args) -> TIndType_ind (ind, List.map (readback k) args)
   | IndTerm t -> TIndTerm t
-  | Pi (c, a, b) -> TPi (c, var k, readback k a, readback (k+1) (capp b (vvar k)))
-  | Abs (s, f) -> TAbs (s, var k, readback (k+1) (capp f (vvar k)))
+  | Pi (i, c, a, b) -> TPi (i, c, var k, readback k a, readback (k+1) (capp b (vvar k)))
+  | Abs (s, f) -> TAbs (Explicit, s, var k, readback (k+1) (capp f (vvar k)))
   | Sigma (a, b) -> TSigma (var k, readback k a, readback (k+1) (capp b (vvar k)))
   | Pair (t, u) -> TPair (readback k t, readback k u)
   | Pair_ind t -> TPair_ind (var k, var (k+1), readback (k+2) @@ capp2 t (vvar k) (vvar (k+1)))
@@ -542,7 +554,7 @@ let rec unify k (t:value) (u:value) =
       (* TODO: move up *)
       let rec abss l t =
         match l with
-        | (s,x)::l -> TAbs (s,x,abss l t)
+        | (s,x)::l -> TAbs (Explicit, s, x, abss l t)
         | [] -> t
       in
       (* TODO: correctly handle side... *)
@@ -583,7 +595,8 @@ let rec unify k (t:value) (u:value) =
     if i <> i' then raise Unification;
     if List.length l <> List.length l' then raise Unification;
     List.iter2 (unify k) l l'
-  | Pi (s, a, b), Pi (s', a', b') ->
+  | Pi (i, s, a, b), Pi (i', s', a', b') ->
+    if i <> i' then raise Unification;
     if s <> s' then raise Unification;
     unify k a a';
     unify (k+1) (capp b (vvar k)) (capp b' (vvar k))
@@ -639,13 +652,15 @@ let rec check k env ctx (t:term) (a:value) =
   (* let cenv, benv = ctx in *)
   (* Printf.printf "      %s\n%!" (Context.to_string k ctx); *)
   match t, a with
-  | TAbs (None, x, t), Pi (c, a, b) ->
+  | TAbs (i, None, x, t), Pi (i', c, a, b) ->
+    assert (i = i');
     let xv = vvar k in
     let k = k+1 in
     let env = (x,xv)::env in
     let ctx = Context.ext ~crispness:c ctx x a in
     check k env ctx t (capp b xv)
-  | TAbs (Some s, x, t), Arr (s', a, b) ->
+  | TAbs (i, Some s, x, t), Arr (s', a, b) ->
+    assert (i = Explicit);
     assert (s = s');
     let xv = vvar k in
     let k = k+1 in
@@ -664,7 +679,7 @@ let rec check k env ctx (t:term) (a:value) =
     check k env ctx t a;
     let t = eval env t in
     check k env ctx u (capp b t)
-  | TPair_ind (x, y, t), Pi (c, a, b) ->
+  | TPair_ind (x, y, t), Pi (Explicit, c, a, b) ->
     (
       match a with
       | Sigma (a1, a2) ->
@@ -680,7 +695,7 @@ let rec check k env ctx (t:term) (a:value) =
     let ctxa, ctxb = Context.split (FV.term t) (FV.term u) ctx in
     check k env ctxa t a;
     check k env ctxb u b
-  | TTens_ind (x, y, t), Pi (c, a, b) ->
+  | TTens_ind (x, y, t), Pi (Explicit, c, a, b) ->
     (
       match a with
       | Tens (a1, a2) ->
@@ -700,18 +715,18 @@ let rec check k env ctx (t:term) (a:value) =
         check k env ctx t (capp b (TensPair (x', y')))
       | _ -> failwith "tens_ind"
     )
-  | TIndType_ind (`Empty, []), Pi (_, a, _) ->
+  | TIndType_ind (`Empty, []), Pi (Explicit, _, a, _) ->
     unify k a (IndType `Empty)
-  | TIndType_ind (`Unit, [t]), Pi (_, a, b) ->
+  | TIndType_ind (`Unit, [t]), Pi (Explicit, _, a, b) ->
     unify k a (IndType `Unit);
     check k env ctx t (capp b (IndTerm `Unit))
-  | TIndType_ind (`Bool, [tf;tt]), Pi (_, a, b) ->
+  | TIndType_ind (`Bool, [tf;tt]), Pi (Explicit, _, a, b) ->
     unify k a (IndType `Bool);
     check k env ctx tf (capp b (IndTerm (`Bool false)));
     check k env ctx tt (capp b (IndTerm (`Bool true)));
   | TFlatten t, Flat a ->
     check k env (Context.crisp ctx) t a
-  | TFlat_ind (x, t), Pi (Normal, a, b) ->
+  | TFlat_ind (x, t), Pi (Explicit, Normal, a, b) ->
     let a =
       match a with
       | Flat a -> a
@@ -721,10 +736,10 @@ let rec check k env ctx (t:term) (a:value) =
     let k = k+1 in
     check k ((x,xv)::env) (Context.ext_crisp ctx x a) t (capp b (Flatten xv))
   | TRefl, Eq (t, u) -> unify k t u
-  | TJ r, Pi (Normal, _a, b) ->
+  | TJ r, Pi (Explicit, Normal, _a, b) ->
     (* we should make sure that b := (y : a) (p : x ≡ y) → P[x,y,p] *)
     let unpi = function
-      | Pi (_, a, b) -> a, b
+      | Pi (Explicit, _, a, b) -> a, b
       | _ -> assert false
     in
     let y, k = vvar k, k+1 in
@@ -758,7 +773,7 @@ and check_type k env ctx a =
   (* Printf.printf ". ctx: %s\n%!" (Context.to_string k ctx); *)
   match a with
   | TType -> ()
-  | TPi (Crisp, x, a, b) ->
+  | TPi (_, Crisp, x, a, b) ->
     check_type k env (Context.crisp ctx) a;
     let xv = vvar k in
     let k = k+1 in
@@ -766,7 +781,7 @@ and check_type k env ctx a =
     let a = eval env a in
     let ctx = Context.ext_crisp ctx x a in
     check_type k env ctx b
-  | TPi (Normal, x, a, b)
+  | TPi (_, Normal, x, a, b)
   | TSigma (x, a, b) ->
     check_type k env ctx a;
     let xv = vvar k in
@@ -800,7 +815,7 @@ and infer k env ctx (t:term) =
   | TApp (t, u) ->
     (
       match infer k env ctx t with
-      | Pi (c, a, b) ->
+      | Pi (Explicit, c, a, b) ->
         check k env (Context.crisp ~crispness:c ctx) u a;
         capp b (eval env u)
       | Arr (_s, a, b) ->
