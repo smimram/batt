@@ -1,56 +1,7 @@
 open import stdlib
 
--- a boolean
+id : (A : Type) → A → A
+id _ x = x
+
 b : Bool
-b = false
-
--- a pair of booleans
-bb : Bool × Bool
-bb = false , true
-
-bb' : Bool ⨂ Bool
-bb' = (false ⊗ true)
-
-app : (A B : U) → (A → B) → A → B
-app A B f x = f x
-
-bnot : Bool → Bool
-bnot = Bool_ind(true,false)
-
-cstf : Unit → Bool
-cstf tt = false
-
--- identity on bool
-idBool : Bool → Bool
-idBool x = x
-
-idBool' : Bool → Bool
-idBool' = Bool_ind(false,true)
-
-idBool'IsId : (b : Bool) → idBool' b ≡ b
-idBool'IsId = Bool_ind(refl,refl)
-
--- fst : (A B : U) → A × B → A
--- fst A B (x,y) = x
-
--- testing let
-n : Bool
-n =
-  let id : (A : Type) → A → A = λ A x → x in
-  id Bool false
-
----
---- Bunches
----
-
-idt :: (A B :: U) → A ⨂ B → A ⨂ B
-idt A B (x ⊗ y) = x ⊗ y
-
-fstb :: Bool ⨂ Bool → Bool
-fstb (x ⊗ y) = x
-
-sndb :: Bool ⨂ Bool → Bool
-sndb (x ⊗ y) = y
-
--- idt :: (A B :: U) → A ⨂ B → A ⨂ B
--- idt A B (x ⊗ y) = x ⊗ y
+b = id _ false

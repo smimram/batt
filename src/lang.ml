@@ -47,10 +47,15 @@ type term =
   | TEq of term * term
   | TRefl
   | TJ of term
-  | TVar of string
+  | TVar of var
   | TLet of crispness * string * term * term * term
   | TPostulate (** a postulate *)
   | THole of Pos.t
+  | TMeta of int option (** metavariable with given internal identifier *)
+
+let rec app_spine t = function
+  | u::uu -> TApp (app_spine t uu, u)
+  | [] -> t
 
 module FV = struct
   include Set.Make(String)
@@ -84,6 +89,7 @@ module FV = struct
     | TLet (_c, _x, a, t, u) -> union (term a) @@ union (term t) (term u)
     | TPostulate -> empty
     | THole _ -> empty
+    | TMeta _ -> empty
 end
 
 (** String representation of a term. *)
@@ -118,6 +124,8 @@ let rec string_of_term t =
   | TLet (c,x,a,t,u) -> Printf.sprintf "let %s %s %s = %s in %s" x (colon c) (string_of_term a) (string_of_term t) (string_of_term u)
   | TPostulate -> "postulate"
   | THole _ -> "?"
+  | TMeta None -> "_"
+  | TMeta (Some n) -> Printf.sprintf "?%d" n
 
 (** A value. *)
 type value =
@@ -140,6 +148,7 @@ type value =
   | Eq of value * value
   | Refl
   | J of value
+  | Meta of meta * spine
   | Neu of neutral
 
 (** A neutral term. *)
@@ -162,6 +171,42 @@ and closure2 = var * var * term * environment
 
 (** An environment. *)
 and environment = (var * value) list
+
+(** A metavariable. *)
+and meta =
+  {
+    id : int;
+    mutable value : value option;
+  }
+
+(** A list of arguments: first in the list, last to be applied. *)
+and spine = value list
+
+(** Metavariables. *)
+module Meta = struct
+  type t = meta
+
+  (* Backward compatibility. *)
+  module Dynarray = struct
+    type 'a t = 'a array ref
+    let create () : 'a t = ref [||]
+    let length (a : 'a t) = Array.length !a
+    let add_last (a : 'a t) x = a := Array.append !a [|x|]
+    let get (a : 'a t) i = Array.get !a i
+  end
+
+  let variables = Dynarray.create ()
+
+  (** Generate a fresh metavariable. *)
+  let fresh () =
+    let m = { id = Dynarray.length variables; value = None } in
+    Dynarray.add_last variables m;
+    m
+
+  (** Get metavariable with given id. *)
+  let get id =
+    Dynarray.get variables id
+end
 
 (** Evaluate a term to a value. *)
 let rec eval (env:environment) = function
@@ -195,13 +240,22 @@ let rec eval (env:environment) = function
     eval env (TApp (TAbs(None, x, u), t))
   | TPostulate -> Neu Postulate
   | THole pos -> Neu (Hole pos)
+  | TMeta None -> fresh_meta env
+  | TMeta (Some id) -> Meta (Meta.get id, [])
 
 (** Make a variable. *)
 and vvar k = Neu (Var k)
 
+(** Generate a fresh metavariable. *)
+and fresh_meta env =
+  let m = Meta.fresh () in
+  (* We only keep variables in the environment. *)
+  let vars = List.filter_map (fun (x,v) -> match force v with Neu (Var _) -> Some (TVar x) | _ -> None) env |> List.map (eval env) in
+  Meta (m, vars)
+
 (** Apply a value to another. *)
 and vapp t u =
-  match t, u with
+  match force t, u with
   | Abs (_, f), u -> capp f u
   | IndType_ind (`Unit, [t]), IndTerm `Unit -> t
   | IndType_ind (`Bool, [tf;_tt]), IndTerm (`Bool false) -> tf
@@ -215,8 +269,19 @@ and vapp t u =
   | Flat_ind t, Neu u -> Neu (NFlat_ind (t, u))
   | J r, Refl -> r
   | J r, Neu t -> Neu (NJ (r, t))
+  | Meta (m, s), u -> Meta (m, u::s)
   | Neu t, u -> Neu (App (t, u))
   | _ -> failwith "vapp"
+
+(** Apply a value to a list of values. *)
+and vapps t = function
+  | u::uu -> vapps (vapp t u) uu
+  | [] -> t
+
+(** Apply a value to a spine of values. *)
+and vapp_spine t = function
+  | u::uu -> vapp (vapp_spine t uu) u
+  | [] -> t
 
 (** Instantiate a closure with a value. *)
 and capp ((x,t,env):closure) (v:value) =
@@ -224,6 +289,12 @@ and capp ((x,t,env):closure) (v:value) =
 
 and capp2 ((x,y,t,env):closure2) (u:value) (v:value) =
   eval ((y,v)::(x,u)::env) t
+
+(** Remove already evaluated values. *)
+and force t =
+  match t with
+  | Meta (m, s) when m.value <> None -> vapp_spine (Option.get m.value) s
+  | _ -> t
 
 (** Reify a value as a term. *)
 let rec readback k v =
@@ -239,7 +310,7 @@ let rec readback k v =
     | NFlat_ind (t, u) -> TApp (readback k @@ Flat_ind t, neutral k u)
     | NJ (r, t) -> TApp (readback k @@ J r, neutral k t)
   in
-  match v with
+  match force v with
   | Type -> TType
   | IndType ind -> TIndType ind
   | IndType_ind (ind, args) -> TIndType_ind (ind, List.map (readback k) args)
@@ -259,6 +330,7 @@ let rec readback k v =
   | Eq (t, u) -> TEq (readback k t, readback k u)
   | Refl -> TRefl
   | J r -> TJ (readback k r)
+  | Meta (m, s) -> app_spine (TMeta (Some m.id)) (List.map (readback k) s)
   | Neu t -> neutral k t
 
 let string_of_value k v = string_of_term @@ readback k v
@@ -399,12 +471,167 @@ end
 (** A context. *)
 type context = Context.t
 
+exception Unification
+
+module IntMap = Map.Make(Int)
+
+(** Partial renaming of variables. *)
+type partial_renaming =
+  {
+    dom : int; (** domain *)
+    cod : int; (** codomain *)
+    ren : int IntMap.t; (** renaming function *)
+  }
+
+(** Unify two values. *)
+let rec unify k (t:value) (u:value) =
+  (* debug "UNIFY %s VS %s\n%!" (string_of_value k t) (string_of_value k u); *)
+  (* Make sure that metavariable m applied to spine s equals t. *)
+  let solve k m s t =
+    (* debug "SOLVE %s =? %s\n" (string_of_value k (Meta (m, s))) (string_of_value k t); *)
+    (* Construct the initial renaming. Note that we number variables x0, x1, etc so that the furthest variable is x0: this is to avoid having to shift all indices when lifting. *)
+    let r =
+      let rec aux = function
+        | t::s ->
+          let cod, r = aux s in
+          (
+            match force t with
+            | Neu (Var x) when not (IntMap.mem x r) -> cod+1, IntMap.add x cod r
+            | _ -> raise Unification
+          )
+        | [] -> 0, IntMap.empty
+      in
+      let cod, ren = aux s in
+      { dom = k; cod; ren }
+    in
+    (*
+    (* Add an extra variable to a renaming. *)
+    let lift r =
+      { dom = r.dom+1; cod = r.cod+1; ren = IntMap.add r.dom r.cod r.ren }
+    in
+    *)
+    (* Apply a partial renaming to a value. Along the way, we also make sure that the metavariable does not occur in the term (occurs check). *)
+    let rename m r (t:value) : term =
+      let var i = TVar ("x" ^ string_of_int i) in
+      let rec rename r = function
+        | Meta (m',s) ->
+          if m'.id = m.id then (debug "OCCURS\n"; raise Unification); (* Occurs-check. *)
+          app_spine (TMeta (Some m'.id)) (List.map (rename r) s)
+        (* | Abs (s,t) -> *)
+          (* let t = capp t (vvar r.dom) in *)
+          (* TAbs (s, rename (lift r) t) *)
+        | Type -> TType
+        | IndType i -> TIndType i
+        | Neu n -> neutral r n
+        | t -> failwith @@ Printf.sprintf "TODO: rename %s" (string_of_value k t)
+      and neutral r = function
+        | Var x ->
+          (
+            match IntMap.find_opt x r.ren with
+            | Some y -> var y
+            | None ->
+              debug "ESCAPED %s\n" (string_of_value k (Neu (Var x)));
+              raise Unification
+          )
+        | t -> failwith @@ Printf.sprintf "TODO: rename neutral %s" (string_of_value k (Neu t))
+      in
+      rename r t
+    in
+    let t = rename m r t in
+    let t =
+      (* TODO: move up *)
+      let rec abss l t =
+        match l with
+        | (s,x)::l -> TAbs (s,x,abss l t)
+        | [] -> t
+      in
+      (* TODO: correctly handle side... *)
+      abss (List.init r.cod (fun i -> None, "x" ^ string_of_int i)) t
+    in
+    debug "UNIF ?%d <- %s\n%!" m.id (string_of_term t);
+    let t = eval [] t in
+    m.value <- Some t
+  in
+  let rec neutral k t u =
+    match t, u with
+    | Var x, Var y when x = y -> ()
+    | App (t, u), App (t', u') -> neutral k t t'; unify k u u'
+    | NIndType_ind (i, l, t), NIndType_ind (i', l', t') ->
+      if i <> i' then raise Unification;
+      if List.length l <> List.length l' then raise Unification;
+      List.iter2 (unify k) l l';
+      neutral k t t'
+    | NPair_ind (t, u), NPair_ind (t', u')
+    | NTens_ind (t, u), NTens_ind (t', u') ->
+      unify (k+2) (capp2 t (vvar k) (vvar (k+1))) (capp2 t' (vvar k) (vvar (k+1)));
+      neutral k u u'
+    | NFlat_ind (t, u), NFlat_ind (t', u') ->
+      unify (k+1) (capp t (vvar k)) (capp t' (vvar k));
+      neutral k u u'
+    | Postulate, Postulate -> (* TODO: number them *) ()
+    | t, u ->
+      debug "CLASH %s VS %s \n%!" (string_of_value k (Neu t)) (string_of_value k (Neu u));
+      raise Unification
+  in
+  match force t, force u with
+  | Type, Type -> ()
+  | IndType i, IndType i' ->
+    if i <> i' then raise Unification
+  | IndTerm t, IndTerm t' ->
+    if t <> t' then raise Unification
+  | IndType_ind (i, l), IndType_ind (i', l') ->
+    if i <> i' then raise Unification;
+    if List.length l <> List.length l' then raise Unification;
+    List.iter2 (unify k) l l'
+  | Pi (s, a, b), Pi (s', a', b') ->
+    if s <> s' then raise Unification;
+    unify k a a';
+    unify (k+1) (capp b (vvar k)) (capp b' (vvar k))
+  | Abs (s, t), Abs (s', t') ->
+    if s <> s' then raise Unification;
+    unify (k+1) (capp t (vvar k)) (capp t' (vvar k))
+  | Meta (m, s), Meta (m', s') when m.id = m'.id ->
+    if List.length s <> List.length s' then raise Unification;
+    List.iter2 (unify k) s s'
+  | Sigma (a, b), Sigma (a', b') ->
+    unify k a a';
+    unify (k+1) (capp b (vvar k)) (capp b' (vvar k))
+  | Tens (a, b), Tens (a', b') ->
+    unify k a a';
+    unify k b b'
+  | Pair (t, u), Pair (t', u')
+  | TensPair (t, u), TensPair (t', u')
+  | Eq (t, u), Eq (t', u') ->
+    unify k t t';
+    unify k u u'
+  | Pair_ind t, Pair_ind t'
+  | Tens_ind t, Tens_ind t' ->
+    unify (k+2) (capp2 t (vvar k) (vvar (k+1))) (capp2 t' (vvar k) (vvar (k+1)))
+  | Arr (s, a, b), Arr (s', a', b') ->
+    if s <> s' then raise Unification;
+    unify k a a';
+    unify k b b'
+  | Flat a, Flat a' -> unify k a a'
+  | Flatten t, Flatten t' -> unify k t t'
+  | Flat_ind t, Flat_ind t' ->
+    unify (k+1) (capp t (vvar k)) (capp t' (vvar k))
+  | Refl, Refl -> ()
+  | Meta (m, s), t -> solve k m s t
+  | t, Meta (m, s) -> solve k m s t
+  | Neu t, Neu u -> neutral k t u
+  | t, u ->
+    debug "CLASH %s VS %s \n%!" (string_of_value k t) (string_of_value k u);
+    raise Unification
+
+(*
 (** Comparison of values. *)
 let is_eq k (t:value) (u:value) =
   readback k t = readback k u
 
+
 let eq k t u =
   if not @@ is_eq k t u then failwith "eq"
+*)
 
 (** Check that term has given type. *)
 let rec check k env ctx (t:term) (a:value) =
@@ -474,12 +701,12 @@ let rec check k env ctx (t:term) (a:value) =
       | _ -> failwith "tens_ind"
     )
   | TIndType_ind (`Empty, []), Pi (_, a, _) ->
-    eq k (IndType `Empty) a
+    unify k a (IndType `Empty)
   | TIndType_ind (`Unit, [t]), Pi (_, a, b) ->
-    eq k (IndType `Unit) a;
+    unify k a (IndType `Unit);
     check k env ctx t (capp b (IndTerm `Unit))
   | TIndType_ind (`Bool, [tf;tt]), Pi (_, a, b) ->
-    eq k (IndType `Bool) a;
+    unify k a (IndType `Bool);
     check k env ctx tf (capp b (IndTerm (`Bool false)));
     check k env ctx tt (capp b (IndTerm (`Bool true)));
   | TFlatten t, Flat a ->
@@ -493,7 +720,7 @@ let rec check k env ctx (t:term) (a:value) =
     let xv = vvar k in
     let k = k+1 in
     check k ((x,xv)::env) (Context.ext_crisp ctx x a) t (capp b (Flatten xv))
-  | TRefl, Eq (t, u) -> eq k t u
+  | TRefl, Eq (t, u) -> unify k t u
   | TJ r, Pi (Normal, _a, b) ->
     (* we should make sure that b := (y : a) (p : x ≡ y) → P[x,y,p] *)
     let unpi = function
@@ -520,8 +747,10 @@ let rec check k env ctx (t:term) (a:value) =
     (* important "HOLE %s : %s\n%!" (Pos.to_string pos) (string_of_value k a) *)
   | t, a ->
     let a' = infer k env ctx t in
-    if not @@ is_eq k a' a then
-      failwith @@ Printf.sprintf "%s has type %s but %s expected" (string_of_term t) (string_of_value k a') (string_of_value k a)
+    (
+      try unify k a' a
+      with Unification -> failwith @@ Printf.sprintf "%s has type %s but %s expected" (string_of_term t) (string_of_value k a') (string_of_value k a)
+    )
 
 (** Check that a term is a type. *)
 and check_type k env ctx a =
@@ -581,17 +810,16 @@ and infer k env ctx (t:term) =
       | _ -> failwith "infer app"
     )
   | TEq (t, u) ->
-    (
-      match infer k env ctx t, infer k env ctx u with
-      | v1, v2 when is_eq k v1 v2 -> Type
-      | _ -> failwith "infer eq"
-    )  
+    let a = infer k env ctx t in
+    check k env ctx u a;
+    Type
   | TVar x ->
     (
       match Context.assoc_opt x ctx with
       | Some a -> a
       | None -> failwith @@ Printf.sprintf "infer: undefined variable %s" x
     )
+  | TMeta None -> fresh_meta env
   | _ -> failwith "infer"
 
 let check_decl k env ctx (x, c, a, t) =
