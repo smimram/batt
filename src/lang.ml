@@ -485,6 +485,7 @@ type partial_renaming =
 
 (** Unify two values. *)
 let rec unify k (t:value) (u:value) =
+  (* debug "UNIFY %s VS %s\n%!" (string_of_value k t) (string_of_value k u); *)
   (* Make sure that metavariable m applied to spine s equals t. *)
   let solve k m s t =
     (* Construct the initial renaming. Note that we number variables x0, x1, etc so that the furthest variable is x0: this is to avoid having to shift all indices when lifting. *)
@@ -513,7 +514,7 @@ let rec unify k (t:value) (u:value) =
       let var i = TVar ("x" ^ string_of_int i) in
       let rec rename r = function
         | Meta (m',s) ->
-          if m'.id = m.id then raise Unification; (* Occurs-check. *)
+          if m'.id = m.id then (debug "OCCURS\n"; raise Unification); (* Occurs-check. *)
           app_spine (TMeta (Some m'.id)) (List.map (rename r) s)
         (* | Abs (s,t) -> *)
           (* let t = capp t (vvar r.dom) in *)
@@ -527,7 +528,9 @@ let rec unify k (t:value) (u:value) =
           (
             match IntMap.find_opt x r.ren with
             | Some y -> var y
-            | None -> raise Unification
+            | None ->
+              debug "ESCAPED %s\n" (string_of_value k (Neu (Var x)));
+              raise Unification
           )
         | t -> failwith @@ Printf.sprintf "TODO: rename neutral %s" (string_of_value k (Neu t))
       in
