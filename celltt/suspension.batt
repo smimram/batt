@@ -1,30 +1,36 @@
 open import stdlib
 open import interval
 
+-- Gray cylinder
 cyl :: (X :: U) → U
 cyl X = X ⨂ I
 
+-- Boundary of the Gray cylinder
 cylbnd :: (X :: U) → U
 cylbnd X = X ⨂ Bool
 
+-- Inclusion X ⨂ ∂I ↪ X ⨂ I
 cylbnd-inclusion :: (X :: U) → cylbnd X → cyl X
 cylbnd-inclusion X = tens-map X X Bool I (λx.x) boundary-inclusion
 
+-- Suspension operation
 susp :: (X :: U) → U
 susp X = pushout-obj (X ⨂ Bool) (X ⨂ I) Bool (cylbnd-inclusion X) (tens-snd X Bool)
 
+-- left (source) point of the suspension
 left-susp :: (X :: U) → susp X
 left-susp X = pushout-inr (X ⨂ Bool) (X ⨂ I) Bool (cylbnd-inclusion X) (tens-snd X Bool) false
 
+-- right (sink) point of the suspension
 right-susp :: (X :: U) → susp X
 right-susp X = pushout-inr (X ⨂ Bool) (X ⨂ I) Bool (cylbnd-inclusion X) (tens-snd X Bool) true
 
-ho-susp-to-I :: (X :: U) (u : X ⨂ Bool) → tens-snd X I (cylbnd-inclusion X u) ≡ (boundary-inclusion (tens-snd X Bool u))
-ho-susp-to-I = ?
 
---susp-to-I :: (X :: U) → susp X → I
---susp-to-I X = pushout-univ (X ⨂ Bool) (X ⨂ I) Bool (cylbnd-inclusion X) (tens-snd X Bool) I
---  (tens-snd X I) (boundary-inclusion)
---  ?
+ho-susp-to-I :: (X :: U) (u : X ⨂ Bool) → tens-snd X I (cylbnd-inclusion X u) ≡ boundary-inclusion (tens-snd X Bool u)
+ho-susp-to-I X (x ⊗ b) = rec-bool (λb. tens-snd X I (cylbnd-inclusion X (x ⊗ b)) ≡ boundary-inclusion b) refl refl b
 
--- hom :: (X :: U) (x y : X) → U
+-- canonical projection (susp X → I)
+susp-to-I :: (X :: U) → susp X → I
+susp-to-I X = pushout-univ (X ⨂ Bool) (X ⨂ I) Bool (cylbnd-inclusion X) (tens-snd X Bool) I
+  (tens-snd X I) (boundary-inclusion) (ho-susp-to-I X)
+  

@@ -1,5 +1,5 @@
 fst :: (A : U) (B : A → U) → (Σ (x : A) . B x) → A
 fst A B (x,y) = x
 
-snd :: (A B : U) → A × B → B
+snd :: (A : U) (B : A → U) → (u : Σ (x : A) . B x) → B (fst A B u)
 snd A B (x,y) = y
