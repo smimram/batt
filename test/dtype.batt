@@ -1,0 +1,10 @@
+-- testing dependent types
+
+X : Bool → Type
+X _ = Bool
+
+t : Bool
+t = true
+
+Y : X t
+Y = true

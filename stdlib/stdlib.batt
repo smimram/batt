@@ -1,5 +1,6 @@
 open import empty
 open import unit
+open import bool
 open import product
 open import function
 open import equality
