@@ -90,7 +90,7 @@ module FV = struct
     | TFlat_ind (x, t) -> remove x (term t)
     | TEq (t, u) -> union (term t) (term u)
     | TRefl -> empty
-    | TJ (r) -> term r
+    | TJ r -> term r
     | TVar x -> singleton x
     | TVar' _ -> empty
     | TLet (_c, _x, a, t, u) -> union (term a) @@ union (term t) (term u)
@@ -141,7 +141,7 @@ let rec string_of_term t =
   | TFlat_ind (x,t) -> Printf.sprintf "♭_ind(%s,%s)" x (string_of_term t)
   | TEq (t,u) -> Printf.sprintf "%s ≡ %s" (string_of_term t) (string_of_term u)
   | TRefl -> Printf.sprintf "refl"
-  | TJ (r) -> Printf.sprintf "J(%s)" (string_of_term r)
+  | TJ r -> Printf.sprintf "J(%s)" (string_of_term r)
   | TVar x -> x
   | TVar' n -> Printf.sprintf "x#%d" n
   | TLet (c,x,a,t,u) -> Printf.sprintf "let %s %s %s = %s in %s" x (colon c) (string_of_term a) (string_of_term t) (string_of_term u)
@@ -831,12 +831,13 @@ let rec check k env ctx (t:term) (a:value) : term =
   | TRefl, Eq (t, u) ->
     unify k t u;
     TRefl
-  | TJ r, Pi (Explicit, Normal, _a, b) ->
-    (* we should make sure that b := (y : a) (p : x ≡ y) → P[x,y,p] *)
-    let unpi a =
+  | TJ r, Pi (_, Normal, _a, b) ->
+    (* we should make sure that b := {y : a} (p : x ≡ y) → P[x,y,p] *)
+    let unpi ?icit a =
+      let a0 = a in
       match force a with
-      | Pi (Explicit, _, a, b) -> a, b
-      | _ -> assert false
+      | Pi (icit', _, a, b) when icit = None || Some icit' = icit -> a, b
+      | _ -> failwith @@ Printf.sprintf "got %s but function type expected" (string_of_value k a0)
     in
     let y, k = vvar k, k+1 in
     let b', _ = unpi (capp b y) in
@@ -845,7 +846,7 @@ let rec check k env ctx (t:term) (a:value) : term =
       | Eq (x, y') when y' = y -> x
       | _ -> assert false
     in
-    let c = capp (snd @@ unpi @@ capp b x) Refl in
+    let c = capp (snd @@ unpi ~icit:Explicit @@ capp b x) Refl in
     let r = check k env ctx r c in
     TJ r
   | TPi _, Type
