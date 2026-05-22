@@ -960,10 +960,11 @@ and infer k env ctx (t:term) : term * value =
   | TIndTerm (`Bool b) -> TIndTerm (`Bool b), IndType `Bool
   | TApp (t, icit, u) ->
     (
+      let pos = Position.find_opt t in
       let rec insert_implicits t a =
         match force a with
         | Pi (Implicit, c, a, b) ->
-          let m = check k env (Context.crisp ~crispness:c ctx) (TMeta None) a in
+          let m = check k env (Context.crisp ~crispness:c ctx) (mk ?pos (TMeta None)) a in
           let mv = eval env m in
           insert_implicits (TApp (t, Implicit, m)) (capp b mv)
         | _ -> t, a
