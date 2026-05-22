@@ -1,0 +1,2 @@
+J :: {A : Type} (x : A) (P : {y : A} → x ≡ y → Type) → P refl → {y : A} (p : x ≡ y) → P {_} p
+J x P r refl = r
