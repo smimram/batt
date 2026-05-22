@@ -315,6 +315,7 @@ and vapp t u =
   | J (r, l), u -> J (r, u::l)
   | Var (x, l), u -> Var (x, u::l)
   | Meta (m, l), u -> Meta (m, u::l)
+  | Hole (pos, l), u -> Hole (pos, u::l)
   | Postulate (n, l), u -> Postulate (n, u::l)
   | _ -> failwith @@ Printf.sprintf "vapp: %s vs %s" (show_value t) (show_value u)
 
