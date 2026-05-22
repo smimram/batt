@@ -35,3 +35,10 @@ subst P {x} refl z = z
 
 sym-sym :: {A : Type} {x y : A} (p : x ≡ y) → sym (sym p) ≡ p
 sym-sym {A} {x} refl = refl
+
+---
+--- Homotopies
+---
+
+ho ∷ {A B : U} (f g : A → B) → U
+ho {A} f g = (x : A) → f x ≡ g x
