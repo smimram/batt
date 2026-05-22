@@ -143,7 +143,7 @@ let rec string_of_term t =
   | TRefl -> Printf.sprintf "refl"
   | TJ r -> Printf.sprintf "J(%s)" (string_of_term r)
   | TVar x -> x
-  | TVar' n -> Printf.sprintf "x#%d" n
+  | TVar' n -> Printf.sprintf "x-%d" n
   | TLet (c,x,a,t,u) -> Printf.sprintf "let %s %s %s = %s in %s" x (colon c) (string_of_term a) (string_of_term t) (string_of_term u)
   | TPostulate -> "postulate"
   | THole _ -> "?"
