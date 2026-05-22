@@ -1,39 +1,39 @@
 open import stdlib
 
 -- type of bipointed types
-Ubipt :: U
+Ubipt ∷ U
 Ubipt = Σ (X : U) . (X × X)
 
-type-Ubipt :: Ubipt → U
+type-Ubipt ∷ Ubipt → U
 type-Ubipt (X, _) = X
 
-leftpt :: (X' : Ubipt) → type-Ubipt X'
+leftpt ∷ (X' : Ubipt) → type-Ubipt X'
 leftpt (X, u) = fst X (λ_.X) u
 
-rightpt :: (X' : Ubipt) → type-Ubipt X'
+rightpt ∷ (X' : Ubipt) → type-Ubipt X'
 rightpt (X, u) = snd X (λ_.X) u
 
 -- type of bipointed maps between bipointed types
-mapbipt :: (X' Y' : Ubipt) → U
+mapbipt ∷ (X' Y' : Ubipt) → U
 mapbipt X' Y' =
   let X : U = type-Ubipt X' in
   let Y : U = type-Ubipt Y' in
   Σ (f : X → Y) . ((f (leftpt X') ≡ leftpt Y') × (f (rightpt X') ≡ rightpt Y'))
 
-map-mapbipt :: (X' Y' : Ubipt) → mapbipt X' Y' → type-Ubipt X' → type-Ubipt Y'
+map-mapbipt ∷ (X' Y' : Ubipt) → mapbipt X' Y' → type-Ubipt X' → type-Ubipt Y'
 map-mapbipt X' Y' (f, _) = f
 
-leftcoh :: (X' Y' : Ubipt) → (f' : mapbipt X' Y') → map-mapbipt X' Y' f' (leftpt X') ≡ leftpt Y'
+leftcoh ∷ (X' Y' : Ubipt) → (f' : mapbipt X' Y') → map-mapbipt X' Y' f' (leftpt X') ≡ leftpt Y'
 leftcoh X' Y' (f, u) = fst (f (leftpt X') ≡ leftpt Y') (λ_. f (rightpt X') ≡ rightpt Y') u
 
-rightcoh :: (X' Y' : Ubipt) → (f' : mapbipt X' Y') → map-mapbipt X' Y' f' (rightpt X') ≡ rightpt Y'
+rightcoh ∷ (X' Y' : Ubipt) → (f' : mapbipt X' Y') → map-mapbipt X' Y' f' (rightpt X') ≡ rightpt Y'
 rightcoh X' Y' (f, u) = snd (f (leftpt X') ≡ leftpt Y') (λ_. f (rightpt X') ≡ rightpt Y') u
 
 -- identity and composition for bipointed maps
-idbipt :: {X' : Ubipt} → mapbipt X' X'
+idbipt ∷ {X' : Ubipt} → mapbipt X' X'
 idbipt {X'} = (id {type-Ubipt X'}, refl, refl)
 
-circbipt :: (X' Y' Z' : Ubipt) → mapbipt Y' Z' → mapbipt X' Y' → mapbipt X' Z'
+circbipt ∷ (X' Y' Z' : Ubipt) → mapbipt Y' Z' → mapbipt X' Y' → mapbipt X' Z'
 circbipt X' Y' Z' g' f' =
   let X : U = type-Ubipt X' in
   let x0 : X = leftpt X' in
@@ -58,17 +58,17 @@ circbipt X' Y' Z' g' f' =
   (gf, (gfx0-z0, gfx1-z1))
 
 -- oplax type of bipointed maps between bipointed types
-oplaxbipt :: (X' Y' :: Ubipt) → U
+oplaxbipt ∷ (X' Y' ∷ Ubipt) → U
 oplaxbipt X' Y' =
   let X ∷ U = type-Ubipt X' in
   let Y ∷ U = type-Ubipt Y' in
   Σ (f : X →ᵣ Y) . ((f (leftpt X') ≡ leftpt Y') × (f (rightpt X') ≡ rightpt Y'))
 
-oplax-oplaxbipt :: (X' Y' ∷ Ubipt) → oplaxbipt X' Y' → type-Ubipt X' →ᵣ type-Ubipt Y'
+oplax-oplaxbipt ∷ (X' Y' ∷ Ubipt) → oplaxbipt X' Y' → type-Ubipt X' →ᵣ type-Ubipt Y'
 oplax-oplaxbipt X' Y' (f, _) = f
 
-oplaxleftcoh :: (X' Y' ∷ Ubipt) → (f' : oplaxbipt X' Y') → oplax-oplaxbipt X' Y' f' (leftpt X') ≡ leftpt Y'
+oplaxleftcoh ∷ (X' Y' ∷ Ubipt) → (f' : oplaxbipt X' Y') → oplax-oplaxbipt X' Y' f' (leftpt X') ≡ leftpt Y'
 oplaxleftcoh X' Y' (f, u) = fst (f (leftpt X') ≡ leftpt Y') (λ_. f (rightpt X') ≡ rightpt Y') u
 
-oplaxrightcoh :: (X' Y' ∷ Ubipt) → (f' : oplaxbipt X' Y') → oplax-oplaxbipt X' Y' f' (rightpt X') ≡ rightpt Y'
+oplaxrightcoh ∷ (X' Y' ∷ Ubipt) → (f' : oplaxbipt X' Y') → oplax-oplaxbipt X' Y' f' (rightpt X') ≡ rightpt Y'
 oplaxrightcoh X' Y' (f, u) = snd (f (leftpt X') ≡ leftpt Y') (λ_. f (rightpt X') ≡ rightpt Y') u

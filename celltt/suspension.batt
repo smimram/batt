@@ -3,81 +3,83 @@ open import interval
 open import bipointed
 
 -- Gray cylinder
-cyl :: (X :: U) → U
+cyl ∷ (X ∷ U) → U
 cyl X = X ⨂ I
 
 -- Boundary of the Gray cylinder
-cylbnd :: (X :: U) → U
+cylbnd ∷ (X ∷ U) → U
 cylbnd X = X ⨂ Bool
 
 -- Inclusion X ⨂ ∂I ↪ X ⨂ I
-cylbnd-inclusion :: (X :: U) → cylbnd X → cyl X
+cylbnd-inclusion ∷ (X ∷ U) → cylbnd X → cyl X
 cylbnd-inclusion X = tens-map X X Bool I (λx.x) boundary-inclusion
 
 -- Suspension operation
-susp :: (X :: U) → U
+susp ∷ (X ∷ U) → U
 susp X = pushout-obj (cylbnd-inclusion X) (tens-snd X Bool)
 
 -- map from the Gray cylinder (quotient map)
-cyl-to-susp :: (X ∷ U) → X ⨂ I → susp X
+cyl-to-susp ∷ (X ∷ U) → X ⨂ I → susp X
 cyl-to-susp X = pushout-inl (cylbnd-inclusion X) (tens-snd X Bool)
 
 -- inclusion ∂I ↪ susp X
-bool-to-susp :: (X ∷ U) → Bool → susp X
+bool-to-susp ∷ (X ∷ U) → Bool → susp X
 bool-to-susp X = pushout-inr (cylbnd-inclusion X) (tens-snd X Bool)
 
 -- left (source) point of the suspension
-left-susp :: (X :: U) → susp X
+left-susp ∷ (X ∷ U) → susp X
 left-susp X = bool-to-susp X false
 
 -- right (sink) point of the suspension
-right-susp :: (X :: U) → susp X
+right-susp ∷ (X ∷ U) → susp X
 right-susp X = bool-to-susp X true
 
 -- bipointed suspension type
-susp' :: (X ∷ U) → Ubipt
+susp' ∷ (X ∷ U) → Ubipt
 susp' X = (susp(X), (left-susp(X), right-susp(X)))
 
--- split error x/I0 ?
-cyl-to-susp-leftcoh :: (X ∷ U) (x : X) → cyl-to-susp X (x ⊗ I0) ≡ left-susp X
+cyl-to-susp-leftcoh ∷ (X ∷ U) (x : X) → cyl-to-susp X (x ⊗ I0) ≡ left-susp X
 cyl-to-susp-leftcoh X x = pushout-eq (cylbnd-inclusion X) (tens-snd X Bool) (x ⊗ false)
+
+cyl-to-susp-rightcoh ∷ (X ∷ U) (x : X) → cyl-to-susp X (x ⊗ I1) ≡ right-susp X
+cyl-to-susp-rightcoh X x = pushout-eq (cylbnd-inclusion X) (tens-snd X Bool) (x ⊗ true)
 
 --
 -- canonical projection (susp X → I)
 --
 
 -- auxiliary homotopy
-ho-susp-to-I :: (X :: U) (u : X ⨂ Bool) → tens-snd X I (cylbnd-inclusion X u) ≡ boundary-inclusion (tens-snd X Bool u)
+ho-susp-to-I ∷ (X ∷ U) (u : X ⨂ Bool) → tens-snd X I (cylbnd-inclusion X u) ≡ boundary-inclusion (tens-snd X Bool u)
 ho-susp-to-I X (x ⊗ b) = rec-bool (λb. tens-snd X I (cylbnd-inclusion X (x ⊗ b)) ≡ boundary-inclusion b) refl refl b
 
 -- the projection
-susp-to-I :: (X :: U) → susp X → I
+susp-to-I ∷ (X ∷ U) → susp X → I
 susp-to-I X = pushout-univ (cylbnd-inclusion X) (tens-snd X Bool) I
   (tens-snd X I) (boundary-inclusion) (ho-susp-to-I X)
 
 -- meridian map
-merid :: (X ∷ U) (x : X) → (I →ᵣ susp X)
+merid ∷ (X ∷ U) (x : X) → (I →ᵣ susp X)
 merid X x sᵣ = cyl-to-susp X (x ⊗ s)
 
-lcoh-merid :: (X ∷ U) (x : X) → merid X x I0 ≡ left-susp X
-lcoh-merid X x = pushout-eq (cylbnd-inclusion X) (tens-snd X Bool) (x ⊗ false)
+lcoh-merid ∷ (X ∷ U) (x : X) → merid X x I0 ≡ left-susp X
+lcoh-merid = cyl-to-susp-leftcoh
 
-rcoh-merid :: (X ∷ U) (x : X) → merid X x I0 ≡ right-susp X
-rcoh-merid X x = pushout-eq (cylbnd-inclusion X) (tens-snd X Bool) (x ⊗ true)
+rcoh-merid ∷ (X ∷ U) (x : X) → merid X x I0 ≡ right-susp X
+rcoh-merid = cyl-to-susp-rightcoh
 
-merid' :: (X ∷ U) (x : X) → oplaxbipt I' (susp' X)
+merid' ∷ (X ∷ U) (x : X) → oplaxbipt I' (susp' X)
 merid' X x = (merid(X)(x), (lcoh-merid(X)(x), rcoh-merid(X)(x)))
 
 --
 -- functoriality of the suspension
 --
 
-susp-map :: (X Y ∷ U) (f ∷ X → Y) → susp X → susp Y
+susp-map ∷ (X Y ∷ U) (f ∷ X → Y) → susp X → susp Y
 susp-map X Y f =
   let leg-cyl ∷ X ⨂ I → susp Y = circ (cyl-to-susp Y) (tens-map X Y I I f (id {I})) in
   let leg-bool ∷ Bool → susp Y = bool-to-susp Y in
   let ho-legs ∷ (u : X ⨂ Bool) → leg-cyl (cylbnd-inclusion X u) ≡ leg-bool (tens-snd X Bool u) =
-    λ (x ⊗ b) . pushout-eq  (cylbnd-inclusion Y) (tens-snd Y Bool) (f(x) ⊗ b)
+    λ (x ⊗ b) . pushout-eq (cylbnd-inclusion Y) (tens-snd Y Bool) (f(x) ⊗ b)
   in
   pushout-univ (cylbnd-inclusion X) (tens-snd X Bool) (susp Y)
     leg-cyl leg-bool ho-legs

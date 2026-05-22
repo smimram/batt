@@ -8,11 +8,11 @@ open import hom
 --
 
 -- unit
-susphom-unit :: (X ∷ U) → X → hom' (susp' X)
+susphom-unit ∷ (X ∷ U) → X → hom' (susp' X)
 susphom-unit = merid'
 
 -- counit
-susphom-counit :: (X' ∷ Ubipt) → mapbipt (susp' (hom' X')) X'
+susphom-counit ∷ (X' ∷ Ubipt) → mapbipt (susp' (hom' X')) X'
 susphom-counit X' =
   let X ∷ U = type-Ubipt X' in
   let x0 ∷ X = leftpt X' in
@@ -33,16 +33,21 @@ susphom-counit X' =
   (counit-map, (counit-lcoh, counit-rcoh))
 
 --
--- snake equations...
+-- susp X →.. (Y,y₀,y₁) // X → hom (Y,y₀,y₁)
 --
 
---to-hom-from-susp :: (X ∷ U) (Y' ∷ Ubipt) → mapbipt (susp' X) Y' → X → hom' Y'
---to-hom-from-susp X Y' f' x =
---  let Y ∷ U = type-Ubipt Y' in
---  let y0 ∷ Y = leftpt Y' in
---  let y1 ∷ Y = rightpt Y' in
---  let cyl-to-Y : X ⨂ I → Y = circ (map-mapbipt (susp' X) Y' f') (cyl-to-susp X) in
---  let arrow-x : I →ᵣ Y = λ sᵣ. cyl-to-Y (x ⊗ s) in 
---  let leftcoh-arrow-x : arrow-x I0 ≡ y0 = ? in
---  let rightcoh-arrow-x : arrow-x I1 ≡ y1 = ? in
---  (arrow-x, (leftcoh-arrow-x, rightcoh-arrow-x))
+to-hom-from-susp ∷ (X ∷ U) (Y' ∷ Ubipt) → mapbipt (susp' X) Y' → X → hom' Y'
+to-hom-from-susp X Y' f' x =
+  let Y ∷ U = type-Ubipt Y' in
+  let y0 ∷ Y = leftpt Y'  in
+  let y1 ∷ Y = rightpt Y' in
+  let f : susp X → Y = map-mapbipt (susp' X) Y' f' in
+  let f0 : f (left-susp X)  ≡ y0 = leftcoh  (susp' X) Y' f' in
+  let f1 : f (right-susp X) ≡ y1 = rightcoh (susp' X) Y' f' in
+  let cyl-to-Y : X ⨂ I → Y = circ f (cyl-to-susp X) in
+  let arrow-x : I →ᵣ Y = λ sᵣ. cyl-to-Y (x ⊗ s) in
+  let p0 : f (cyl-to-susp X (x ⊗ I0)) ≡ f (left-susp X)  = cong f (cyl-to-Y (x ⊗ I0)) (left-susp X)  (cyl-to-susp-leftcoh X x)  in
+  let p1 : f (cyl-to-susp X (x ⊗ I1)) ≡ f (right-susp X) = cong f (cyl-to-Y (x ⊗ I1)) (right-susp X) (cyl-to-susp-rightcoh X x) in
+  let leftcoh-arrow-x  : arrow-x I0 ≡ y0 = ? in --trans (arrow-x I0) (f (left-susp X)) p0 y0 f0 in
+  let rightcoh-arrow-x : arrow-x I1 ≡ y1 = ? in --trans (arrow-x I1) (f (left-susp X)) p1 y1 f1 in
+  (arrow-x, (leftcoh-arrow-x, rightcoh-arrow-x))
