@@ -1,0 +1,5 @@
+open import equivalence
+
+-- Err: DUPLICATE x-0
+--equiv-eq : (A B : U) → A ≡ B → equiv A B
+--equiv-eq A refl = id-equiv A

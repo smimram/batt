@@ -1,0 +1,60 @@
+open import product
+open import function
+
+---
+--- sections and retractions
+---
+
+is-section ∷ {A B : U} → (A → B) → (B → A) → U
+is-section {_} {B} f s = (y : B) → f (s y) ≡ y
+
+section ∷ (A B : U) → (A → B) → U
+section A B f = Σ (s : B → A) . is-section f s
+
+map-section ∷ {A B : U} (f : A → B) → section A B f → B → A
+map-section {A} {B} f s' = fst _ _ s'
+
+is-retraction ∷ {A B : U} → (A → B) → (B → A) → U
+is-retraction {A} f r = (x : A) → r (f x) ≡ x
+
+retraction ∷ (A B : U) → (A → B) → U
+retraction A B f = Σ (r : B → A) . is-retraction f r
+
+map-retraction ∷ {A B : U} (f : A → B) → retraction A B f → B → A
+map-retraction {A} {B} f r' = fst _ _ r'
+
+---
+--- equivalences
+---
+
+-- proof of equivalence
+
+is-equiv ∷ {A B : U} → (A → B) → U
+is-equiv {A} {B} f = section A B f × retraction A B f
+
+-- sections and retraction obtained from a proof of equivalence
+
+section-is-equiv ∷ {A B : U} (f : A → B) → is-equiv f → section A B f
+section-is-equiv f (s, _) = s
+
+map-section-is-equiv ∷ {A B : U} (f : A → B) → is-equiv f → B → A
+map-section-is-equiv {A} {B} f (s', _) = map-section f s'
+
+retraction-is-equiv ∷ {A B : U} (f : A → B) → is-equiv f → retraction A B f
+retraction-is-equiv f (_, r) = r
+
+map-retraction-is-equiv ∷ {A B : U} (f : A → B) → is-equiv f → B → A
+map-retraction-is-equiv {A} {B} f (_, r') = map-retraction f r'
+
+-- type of equivalences
+
+equiv ∷ U → U → U
+equiv A B = Σ (f : A → B) . is-equiv f
+
+-- identity equivalence
+
+is-equiv-id ∷ (A : U) → is-equiv (id {A})
+is-equiv-id A = ((id {A}, λ_.refl), (id {A}, λ_.refl))
+
+id-equiv ∷ (A : U) → equiv A A
+id-equiv A = (id {A}, is-equiv-id A)
