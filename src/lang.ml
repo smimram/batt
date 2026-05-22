@@ -74,8 +74,8 @@ module Position = struct
     | None -> ""
 end
 
-let mk pos t =
-  Position.register t pos;
+let mk ?pos t =
+  (match pos with Some pos -> Position.register t pos | None -> ());
   t
 
 module FV = struct
