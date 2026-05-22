@@ -39,10 +39,10 @@ susp' ∷ (X ∷ U) → Ubipt
 susp' X = (susp(X), (left-susp(X), right-susp(X)))
 
 cyl-to-susp-leftcoh ∷ {X ∷ U} (x : X) → cyl-to-susp X (x ⊗ I0) ≡ left-susp X
-cyl-to-susp-leftcoh x = pushout-eq (cylbnd-inclusion _) (tens-snd _ Bool) (x ⊗ false)
+cyl-to-susp-leftcoh {X} x = pushout-eq (cylbnd-inclusion X) (tens-snd X Bool) (x ⊗ false)
 
 cyl-to-susp-rightcoh ∷ {X ∷ U} (x : X) → cyl-to-susp X (x ⊗ I1) ≡ right-susp X
-cyl-to-susp-rightcoh x = pushout-eq (cylbnd-inclusion _) (tens-snd _ Bool) (x ⊗ true)
+cyl-to-susp-rightcoh {X} x = pushout-eq (cylbnd-inclusion X) (tens-snd X Bool) (x ⊗ true)
 
 --
 -- canonical projection (susp X → I)
@@ -59,7 +59,7 @@ susp-to-I X = pushout-univ (cylbnd-inclusion X) (tens-snd X Bool) I
 
 -- meridian map
 merid ∷ {X ∷ U} (x : X) → (I →ᵣ susp X)
-merid x sᵣ = cyl-to-susp _ (x ⊗ s)
+merid {X} x sᵣ = cyl-to-susp X (x ⊗ s)
 
 lcoh-merid ∷ {X ∷ U} (x : X) → merid x I0 ≡ left-susp X
 lcoh-merid x = cyl-to-susp-leftcoh x

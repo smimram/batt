@@ -55,7 +55,7 @@ atom:
   | IDENT %prec VAR { mk ~pos:$loc @@ TVar $1 }
   | REFL { mk ~pos:$loc @@ TRefl }
   | HOLE { mk ~pos:$loc @@ THole $loc }
-  | META { mk ~pos:$loc @@ TMeta None }
+  | META { mk ~pos:$loc @@ TMeta (`Fresh (Some $loc)) }
   | LPAR t=term RPAR { t }
 
 prefix_term:

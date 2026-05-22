@@ -60,7 +60,7 @@ type term =
   | TLet of crispness * string * term * term * term
   | TPostulate of int option (** a postulate with given internal identifier *)
   | THole of Pos.t
-  | TMeta of int option (** metavariable with given internal identifier *)
+  | TMeta of [`Fresh of Pos.t option | `Generated of int] (** metavariable with given internal identifier *)
 
 let app ?(icit=Explicit) t u =
   TApp (t, icit, u)
@@ -168,8 +168,8 @@ let rec string_of_term t =
   | TLet (c,x,a,t,u) -> Printf.sprintf "let %s %s %s = %s in %s" x (colon c) (string_of_term a) (string_of_term t) (string_of_term u)
   | TPostulate n -> "postulate" ^ (match n with Some n -> string_of_int n | None -> "")
   | THole _ -> "?"
-  | TMeta None -> "_"
-  | TMeta (Some n) -> Printf.sprintf "?%d" n
+  | TMeta (`Fresh _) -> "_"
+  | TMeta (`Generated n) -> Printf.sprintf "?%d" n
 
 (** A value. *)
 type value =
@@ -211,6 +211,7 @@ and environment = (var * value) list
 and meta =
   {
     id : int;
+    pos : Pos.t option [@opaque];
     mutable value : value option;
   }
 
@@ -236,8 +237,8 @@ module Meta = struct
   let to_string m = "?" ^ string_of_int m.id
 
   (** Generate a fresh metavariable. *)
-  let fresh () =
-    let m = { id = Dynarray.length variables; value = None } in
+  let fresh ?pos () =
+    let m = { id = Dynarray.length variables; pos; value = None } in
     Dynarray.add_last variables m;
     m
 
@@ -283,15 +284,15 @@ let rec eval (env:environment) = function
   | TPostulate (Some n) -> Postulate (n, [])
   | TPostulate None -> assert false
   | THole pos -> Hole (pos, [])
-  | TMeta None -> fresh_meta env
-  | TMeta (Some id) -> Meta (Meta.get id, [])
+  | TMeta (`Fresh pos) -> fresh_meta ?pos env
+  | TMeta (`Generated id) -> Meta (Meta.get id, [])
 
 (** Make a variable. *)
 and vvar k = Var (k, [])
 
 (** Generate a fresh metavariable. *)
-and fresh_meta env =
-  let m = Meta.fresh () in
+and fresh_meta ?pos env =
+  let m = Meta.fresh ?pos () in
   (* We only keep variables in the environment. *)
   let vars = List.filter_map (fun (x,v) -> match force v with Var _ -> Some (TVar x) | _ -> None) env |> List.map (eval env) in
   Meta (m, vars)
@@ -314,6 +315,7 @@ and vapp t u =
   | J (r, l), u -> J (r, u::l)
   | Var (x, l), u -> Var (x, u::l)
   | Meta (m, l), u -> Meta (m, u::l)
+  | Hole (pos, l), u -> Hole (pos, u::l)
   | Postulate (n, l), u -> Postulate (n, u::l)
   | _ -> failwith @@ Printf.sprintf "vapp: %s vs %s" (show_value t) (show_value u)
 
@@ -364,7 +366,7 @@ let rec readback k v =
   | Eq (t, u) -> TEq (readback k t, readback k u)
   | Refl -> TRefl
   | J (r, l) -> spine l @@ TJ (readback k r)
-  | Meta (m, l) -> spine l @@ TMeta (Some m.id)
+  | Meta (m, l) -> spine l @@ TMeta (`Generated m.id)
   | Var (i, l) -> spine l @@ TVar' i
   | Postulate (n, l) -> spine l @@ TPostulate (Some n)
   | Hole (pos, l) -> spine l @@ THole pos
@@ -519,7 +521,7 @@ type partial_renaming =
   {
     dom : int; (** domain *)
     cod : int; (** codomain *)
-    ren : int IntMap.t; (** renaming function *)
+    ren : int option IntMap.t; (** renaming function *)
   }
 
 (** Unify two values. *)
@@ -537,12 +539,10 @@ let rec unify k (t:value) (u:value) =
             match force t with
             | Var (x, []) ->
               if IntMap.mem x r then
-                (
-                  debug "DUPLICATE %s\n" (string_of_value k t);
-                  raise Unification
-                )
+                (* NOTE: in case we have mutiple times the same variable, we simply associate None so that we refuse to disambiguate *)
+                cod+1, IntMap.add x None r
               else
-                cod+1, IntMap.add x cod r
+                cod+1, IntMap.add x (Some cod) r
             | _ -> raise Unification
           )
         | [] -> 0, IntMap.empty
@@ -552,7 +552,7 @@ let rec unify k (t:value) (u:value) =
     in
     (* Add an extra variable to a renaming. *)
     let lift r =
-      { dom = r.dom+1; cod = r.cod+1; ren = IntMap.add r.dom r.cod r.ren }
+      { dom = r.dom+1; cod = r.cod+1; ren = IntMap.add r.dom (Some r.cod) r.ren }
     in
     let var_name i = "x!" ^ string_of_int i in
     (* Apply a partial renaming to a value. Along the way, we also make sure that the metavariable does not occur in the term (occurs check). *)
@@ -563,7 +563,7 @@ let rec unify k (t:value) (u:value) =
         match t with
         | Meta (m',l) ->
           if m'.id = m.id then (debug "OCCURS\n"; raise Unification); (* Occurs-check. *)
-          spine l @@ TMeta (Some m'.id)
+          spine l @@ TMeta (`Generated m'.id)
         | Pi (i, c, a, b) ->
           let a = rename r a in
           let x = var_name r.cod in
@@ -608,7 +608,10 @@ let rec unify k (t:value) (u:value) =
           spine l @@
           (
             match IntMap.find_opt x r.ren with
-            | Some y -> var y
+            | Some (Some y) -> var y
+            | Some None ->
+              debug "DUPLICATE %s\n" (string_of_value k (Var (x, [])));
+              raise Unification
             | None ->
               debug "ESCAPED %s\n" (string_of_value k (Var (x, [])));
               raise Unification
@@ -933,7 +936,7 @@ and infer k env ctx (t:term) : term * value =
       let rec insert_implicits t a =
         match force a with
         | Pi (Implicit, c, a, b) ->
-          let m = check k env (Context.crisp ~crispness:c ctx) (mk ?pos (TMeta None)) a in
+          let m = check k env (Context.crisp ~crispness:c ctx) (mk ?pos (TMeta (`Fresh None))) a in
           let mv = eval env m in
           insert_implicits (TApp (t, Implicit, m)) (capp b mv)
         | _ -> t, a
@@ -965,9 +968,9 @@ and infer k env ctx (t:term) : term * value =
     let k = aux 0 env in
     let a = Option.get @@ Context.assoc_opt x ctx in
     TVar' k, a
-  | TMeta None ->
+  | TMeta (`Fresh pos) ->
     let a = fresh_meta env in
-    TMeta None, a
+    TMeta (`Fresh pos), a
   | _ -> failwith "infer"
 
 let check_decl k env ctx (x, c, a, t) =
@@ -989,8 +992,8 @@ let check_meta () =
   let m =
     Meta.variables
     |> Meta.Dynarray.to_list
-    |> List.filter (fun m -> m.value <> None)
-    |> List.map Meta.to_string
-    |> String.concat ", "
+    |> List.filter (fun m -> m.value = None && m.pos <> None)
+    |> List.map (fun m -> "- " ^ Meta.to_string m ^ " at " ^ Pos.to_string (Option.get m.pos))
+    |> String.concat "\n"
   in
-  error "\nUNSOLVED META %s\n%!" m
+  if m <> "" then important "\nUNSOLVED META\n%s\n%!" m

@@ -41,7 +41,7 @@ let () =
          close_in ic;
          Lang.check_decls_toplevel decls
       ) files;
-    (* Lang.check_meta () *)
+    Lang.check_meta ()
   with
   | Failure err ->
     let bt = Printexc.raw_backtrace_to_string @@ Printexc.get_raw_backtrace () in
