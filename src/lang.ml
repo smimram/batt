@@ -56,7 +56,7 @@ type term =
   | TRefl
   | TJ of term
   | TVar of var
-  | TVar' of int (** a de Bruijn term *) (* TODO: it would be much better to have preterms (strings) and terms (de Bruijn) *)
+  | TVar' of int (** a variable given de Bruijn index *) (* TODO: it would be much better to have preterms (strings) and terms (de Bruijn) *)
   | TLet of crispness * string * term * term * term
   | TPostulate of int option (** a postulate with given internal identifier *)
   | THole of Pos.t
@@ -526,10 +526,10 @@ type partial_renaming =
 
 (** Unify two values. *)
 let rec unify k (t:value) (u:value) =
-  (* debug "UNIFY %s WITH %s\n%!" (string_of_value k t) (string_of_value k u); *)
+  debug "UNIFY %s WITH %s\n%!" (string_of_value k t) (string_of_value k u);
   (* Make sure that metavariable m applied to spine s equals t. *)
   let solve k m s t =
-    (* debug "SOLVE %s =? %s\n" (string_of_value k (Meta (m, s))) (string_of_value k t); *)
+    debug "SOLVE %s =? %s\n" (string_of_value k (Meta (m, s))) (string_of_value k t);
     (* Construct the initial renaming. Note that we number variables x0, x1, etc so that the furthest variable is x0: this is to avoid having to shift all indices when lifting. *)
     let r =
       let rec aux = function
@@ -559,11 +559,39 @@ let rec unify k (t:value) (u:value) =
     let rename m r (t:value) : term =
       let var i = TVar (var_name i) in
       let rec rename r t =
+        let t = force t in
         let spine l t = app_spine t (List.map (rename r) l) in
         match t with
         | Meta (m',l) ->
           if m'.id = m.id then (debug "OCCURS\n"; raise Unification); (* Occurs-check. *)
           spine l @@ TMeta (`Generated m'.id)
+          (*
+          (* Try to rename each spine element; prune those that escape the renaming. *)
+          (* The spine l = [a_{n-1}, ..., a_0] where a_0 was the first arg applied. *)
+          let n = List.length l in
+          let pvar i = TVar ("p!" ^ string_of_int i) in
+          let renamed_with_idx = List.mapi (fun i_spine v ->
+            let i_arg = n - 1 - i_spine in
+            match (try Some (rename r v) with Unification -> None) with
+            | Some t -> Some (i_arg, t)
+            | None -> None
+          ) l in
+          if List.for_all Option.is_some renamed_with_idx then
+            (* All elements renamed: proceed normally. *)
+            app_spine (TMeta (`Generated m'.id)) (List.map (fun x -> snd (Option.get x)) renamed_with_idx)
+          else begin
+            (* Some elements escaped: prune m' to not depend on the escaping args. *)
+            (* survivors is in ascending i_arg order *)
+            let survivors = List.rev (List.filter_map Fun.id renamed_with_idx) in
+            let m'' = Meta.fresh () in
+            (* Build: λp!0...λp!{n-1}. m''(p!{i_0}, ..., p!{i_k}) *)
+            let pruning_body = app_spine (TMeta (`Generated m''.id)) (List.rev_map (fun (i, _) -> pvar i) survivors) in
+            let pruning_term = List.fold_right (fun i t -> TAbs (Explicit, None, "p!" ^ string_of_int i, t)) (List.init n Fun.id) pruning_body in
+            m'.value <- Some (eval [] pruning_term);
+            debug "PRUNE ?%d -> ?%d\n" m'.id m''.id;
+            app_spine (TMeta (`Generated m''.id)) (List.rev_map snd survivors)
+          end
+          *)
         | Pi (i, c, a, b) ->
           let a = rename r a in
           let x = var_name r.cod in
