@@ -854,7 +854,7 @@ let rec check k env ctx (t:term) (a:value) : term =
       let a0 = a in
       match force a with
       | Pi (icit', _, a, b) when icit = None || Some icit' = icit -> a, b
-      | _ -> failwith @@ Printf.sprintf "got %s but function type expected" (string_of_value k a0)
+      | _ -> failwith @@ Printf.sprintf "%sgot %s but function type expected" (Position.to_string_comma t) (string_of_value k a0)
     in
     let y, k = vvar k, k+1 in
     let b', _ = unpi (capp b y) in
