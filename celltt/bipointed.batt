@@ -72,3 +72,21 @@ oplaxleftcoh {X'} {Y'} (f, u) = fst (f (leftpt X') ≡ leftpt Y') (λ_. f (right
 
 oplaxrightcoh ∷ {X' Y' ∷ Ubipt} → (f' : oplaxbipt X' Y') → oplax-oplaxbipt f' (rightpt X') ≡ rightpt Y'
 oplaxrightcoh {X'} {Y'} (f, u) = snd (f (leftpt X') ≡ leftpt Y') (λ_. f (rightpt X') ≡ rightpt Y') u
+
+-- bipointed homotopies of bipointed maps
+
+biptho : {X' Y' ∷ Ubipt} (f' g' : mapbipt X' Y') → U
+biptho {X'} {Y'} f' g' =
+  let X : U = type-Ubipt X' in
+  let Y : U = type-Ubipt Y' in
+  let x0 : X = leftpt X' in
+  let x1 : X = rightpt X' in
+  let y0 : Y = leftpt Y' in
+  let y1 : Y = rightpt Y' in
+  let f : X → Y = map-mapbipt f' in
+  let f0 : f x0 ≡ y0 = leftcoh f' in
+  let f1 : f x1 ≡ y1 = rightcoh f' in
+  let g : X → Y = map-mapbipt g' in
+  let g0 : g x0 ≡ y0 = leftcoh g' in 
+  let g1 : g x1 ≡ y1 = rightcoh g' in
+  Σ (H : ho f g) . (f0 ≡ trans (H x0) g0) × (f1 ≡ trans (H x1) g1)
