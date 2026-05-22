@@ -968,7 +968,7 @@ and infer k env ctx (t:term) : term * value =
     let rec aux n = function
       | (y, _)::_ when x = y -> n
       | _::l -> aux (n+1) l
-      | [] -> failwith @@ Printf.sprintf "infer: undefined variable %s" x
+      | [] -> failwith @@ Printf.sprintf "%sundefined variable %s" (Position.to_string_comma t) x
     in
     let k = aux 0 env in
     let a = Option.get @@ Context.assoc_opt x ctx in
