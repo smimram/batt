@@ -3,10 +3,10 @@ postulate A :: U
 f : A ⨂ Bool → ⊤
 f _ = tt
 
-test : (x : A) → f (x ⊗ false) ≡ tt
+test : (x :: A) → f (x ⊗ false) ≡ tt
 test _ = refl
 
 postulate b : Bool
 
-test : (x : A) → f (x ⊗ b) ≡ tt
+test : (x :: A) → f (x ⊗ b) ≡ tt
 test _ = refl
