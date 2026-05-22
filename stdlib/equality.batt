@@ -23,8 +23,8 @@ trans x y p refl = p
 cong :: {A B : Type} (f : A → B) (x y : A) → x ≡ y → f x ≡ f y
 cong f x refl = refl
 
-transport :: (A B : Type) → A ≡ B → A → B
-transport A refl a = a
+transport :: {A B : Type} → A ≡ B → A → B
+transport {A} refl a = a
 
 subst :: {A : Type} (P : A → Type) (x y : A) → x ≡ y → P x → P y
 subst P x refl z = z
