@@ -280,9 +280,8 @@ let rec eval (env:environment) = function
   | TVar' n -> snd @@ List.nth env n
   | TLet (_c,x,_a,t,u) ->
     eval env (app (TAbs(Explicit, None, x, u)) t)
-  | TPostulate n ->
-    let n = match n with Some n -> n | None -> incr postulate; !postulate in
-    Postulate (n, [])
+  | TPostulate (Some n) -> Postulate (n, [])
+  | TPostulate None -> assert false
   | THole pos -> Hole (pos, [])
   | TMeta None -> fresh_meta env
   | TMeta (Some id) -> Meta (Meta.get id, [])
@@ -315,6 +314,7 @@ and vapp t u =
   | J (r, l), u -> J (r, u::l)
   | Var (x, l), u -> Var (x, u::l)
   | Meta (m, l), u -> Meta (m, u::l)
+  | Postulate (n, l), u -> Postulate (n, u::l)
   | _ -> failwith @@ Printf.sprintf "vapp: %s vs %s" (show_value t) (show_value u)
 
 (** Apply a value to a list of values. *)
@@ -836,8 +836,9 @@ let rec check k env ctx (t:term) (a:value) : term =
   | TArr _, Type
   | TTens _, Type -> check_type k env ctx t
   | TPostulate n, a ->
-    important "POSTULATE%s %s\n%!" (match n with Some n -> " "^string_of_int n | None -> "") (string_of_value k a);
-    TPostulate n
+    let n = match n with Some n -> n | None -> incr postulate; !postulate in
+    important "POSTULATE %d %s\n%!" n (string_of_value k a);
+    TPostulate (Some n)
   | THole pos, a ->
     important "HOLE %s : %s IN\n%s\n%!" (Pos.to_string pos) (string_of_value k a) (Context.to_string ~multiline:true k ctx);
     THole pos
