@@ -722,8 +722,8 @@ let rec unify k (t:value) (u:value) =
   | Var (x, l), Var (x', l') ->
     if x <> x' then raise Unification;
     spine k l l'
-  | Meta (m, s), t -> solve k m s t
-  | t, Meta (m, s) -> solve k m s t
+  | Meta (m, l), t -> solve k m l t
+  | t, Meta (m, l) -> solve k m l t
   | t, u ->
     debug "CLASH %s VS %s \n%!" (string_of_value k t) (string_of_value k u);
     raise Unification
