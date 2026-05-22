@@ -12,7 +12,7 @@ section ∷ (A B : U) → (A → B) → U
 section A B f = Σ (s : B → A) . is-section A B f s
 
 map-section ∷ (A B : U) (f : A → B) → section A B f → B → A
-map-section A B f s' = fst _ _ s'
+map-section A B f s' = fst _ s'
 
 is-retraction ∷ (A B : U) → (A → B) → (B → A) → U
 is-retraction A B f r = (x : A) → r (f x) ≡ x
@@ -21,7 +21,7 @@ retraction ∷ (A B : U) → (A → B) → U
 retraction A B f = Σ (r : B → A) . is-retraction A B f r
 
 map-retraction ∷ (A B : U) (f : A → B) → retraction A B f → B → A
-map-retraction A B f r' = fst _ _ r'
+map-retraction A B f r' = fst _ r'
 
 ---
 --- equivalences
