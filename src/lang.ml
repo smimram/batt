@@ -214,11 +214,14 @@ module Meta = struct
     type 'a t = 'a array ref
     let create () : 'a t = ref [||]
     let length (a : 'a t) = Array.length !a
+    let to_list (a : 'a t) = Array.to_list !a
     let add_last (a : 'a t) x = a := Array.append !a [|x|]
     let get (a : 'a t) i = Array.get !a i
   end
 
   let variables = Dynarray.create ()
+
+  let to_string m = "?" ^ string_of_int m.id
 
   (** Generate a fresh metavariable. *)
   let fresh () =
@@ -988,3 +991,13 @@ let check_decls k env ctx (decls:decls) =
   List.fold_left (fun (env,ctx) decl -> check_decl k env ctx decl) (env,ctx) decls
 
 let check_decls_toplevel decls = ignore @@ check_decls 0 [] Context.empty decls
+
+let check_meta () =
+  let m =
+    Meta.variables
+    |> Meta.Dynarray.to_list
+    |> List.filter (fun m -> m.value <> None)
+    |> List.map Meta.to_string
+    |> String.concat ", "
+  in
+  error "\nUNSOLVED META %s\n%!" m
