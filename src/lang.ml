@@ -435,12 +435,13 @@ module Bunch = struct
   let split fvl fvr crisp b =
     assert (FV.is_empty @@ FV.inter fvl fvr);
     let fvc = FV.of_list @@ List.map fst crisp in
+    let is_crisp fv = FV.subset fv fvc in
     (* Printf.printf "crisp: %s\n%!" @@ FV.to_string fvc; *)
     let rec aux fvl fvr b =
       (* Printf.printf "split %s as %s / %s\n%!" (to_string 0 b) (FV.to_string fvl) (FV.to_string fvr); *)
       match b with
-      | b when FV.is_empty fvl -> Empty, b
-      | b when FV.is_empty fvr -> b, Empty
+      | b when is_crisp fvl -> Empty, b
+      | b when is_crisp fvr -> b, Empty
       | Empty -> Empty, Empty
       | Tens (b1, b2) ->
         let fv1 = FV.union fvc @@ dom b1 in
