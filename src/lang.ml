@@ -669,6 +669,9 @@ let rec unify k (t:value) (u:value) =
     unify (k+1) (capp t (vvar k)) (capp t' (vvar k));
     spine k l l'
   | Refl, Refl -> ()
+  | Postulate l, Postulate l' ->
+    (* TODO: number postulates *)
+    spine k l l'
   | Var (x, l), Var (x', l') ->
     if x <> x' then raise Unification;
     spine k l l'
