@@ -36,6 +36,13 @@ susphom-counit X' =
 -- snake equations...
 --
 
-susphom-counit-unit :: (X ∷ U) (u : susp X) → map-mapbipt (susp' (hom' (susp' X))) (susp' X) (susphom-counit (susp' X)) (susp-map X (hom' (susp' X)) (susphom-unit X) u) ≡ u
-susphom-counit-unit X x = ?
--- au secours !
+--to-hom-from-susp :: (X ∷ U) (Y' ∷ Ubipt) → mapbipt (susp' X) Y' → X → hom' Y'
+--to-hom-from-susp X Y' f' x =
+--  let Y ∷ U = type-Ubipt Y' in
+--  let y0 ∷ Y = leftpt Y' in
+--  let y1 ∷ Y = rightpt Y' in
+--  let cyl-to-Y : X ⨂ I → Y = circ (map-mapbipt (susp' X) Y' f') (cyl-to-susp X) in
+--  let arrow-x : I →ᵣ Y = λ sᵣ. cyl-to-Y (x ⊗ s) in 
+--  let leftcoh-arrow-x : arrow-x I0 ≡ y0 = ? in
+--  let rightcoh-arrow-x : arrow-x I1 ≡ y1 = ? in
+--  (arrow-x, (leftcoh-arrow-x, rightcoh-arrow-x))
