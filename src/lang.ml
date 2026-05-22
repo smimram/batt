@@ -530,7 +530,7 @@ type partial_renaming =
 
 (** Unify two values. *)
 let rec unify k (t:value) (u:value) =
-  (* debug "UNIFY %s VS %s\n%!" (string_of_value k t) (string_of_value k u); *)
+  (* debug "UNIFY %s WITH %s\n%!" (string_of_value k t) (string_of_value k u); *)
   (* Make sure that metavariable m applied to spine s equals t. *)
   let solve k m s t =
     (* debug "SOLVE %s =? %s\n" (string_of_value k (Meta (m, s))) (string_of_value k t); *)
