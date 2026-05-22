@@ -837,14 +837,9 @@ let rec check k env ctx (t:term) (a:value) : term =
     let c = capp (snd @@ unpi ~icit:Explicit @@ capp b x) Refl in
     let r = check k env ctx r c in
     TJ r
-  | _, Pi (Implicit, c, a, b) ->
-    (* Insert implicit abstraction *)
-    let xv = vvar k in
-    let k = k+1 in
-    let env = ("_", xv)::env in
-    let ctx = Context.ext ~crispness:c ctx "_" a in
-    let t = check k env ctx t (capp b xv) in
-    TAbs (Implicit, None, "_", t)
+  | _, Pi (Implicit, _, _, _) ->
+    (* Insert implicit abstraction. *)
+    check k env ctx (TAbs (Implicit, None, "_", t)) a
   | TPi _, Type
   | TSigma _, Type
   | TArr _, Type
