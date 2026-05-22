@@ -525,7 +525,14 @@ let rec unify k (t:value) (u:value) =
           let cod, r = aux s in
           (
             match force t with
-            | Neu (Var x) when not (IntMap.mem x r) -> cod+1, IntMap.add x cod r
+            | Neu (Var x) ->
+              if IntMap.mem x r then
+                (
+                  debug "DUPLICATE %s\n" (string_of_value k t);
+                  raise Unification
+                )
+              else
+                cod+1, IntMap.add x cod r
             | _ -> raise Unification
           )
         | [] -> 0, IntMap.empty
