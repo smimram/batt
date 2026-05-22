@@ -14,7 +14,7 @@ let rec abss l t =
 
 let abs_pattern x t =
   match x with
-  | `Var (x,d) -> TAbs (Explicit, d, x, t)
+  | `Var (icit,x,d) -> TAbs (icit, d, x, t)
   | `Unit -> TIndType_ind (`Unit, [t])
   | `Pair (x, y) -> TPair_ind (x, y, t)
   | `Tens (x, y) -> TTens_ind (x, y, t)

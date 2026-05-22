@@ -713,7 +713,6 @@ let rec unify k (t:value) (u:value) =
 let is_eq k (t:value) (u:value) =
   readback k t = readback k u
 
-
 let eq k t u =
   if not @@ is_eq k t u then failwith "eq"
 *)

@@ -1,4 +1,7 @@
 id : {A : U} → A → A
+id {A} x = x
+
+id : {A : U} → A → A
 id x = x
 
 b : Bool

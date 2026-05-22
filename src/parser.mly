@@ -89,7 +89,8 @@ term:
   | t=fun_term COMMA u=term { TPair (t, u) }
 
 pattern:
-  | x=identm d=option(dir) { `Var (x,d) }
+  | x=identm d=option(dir) { `Var (Explicit,x,d) }
+  | LACC x=identm RACC { `Var (Implicit,x,None) }
   | TT { `Unit }
   | LPAR x=identm COMMA y=identm RPAR { `Pair (x,y) }
   | LPAR x=identm TENSP y=identm RPAR { `Tens (x,y) }
