@@ -1,6 +1,7 @@
 open Common
 
 type var = string
+[@@deriving show]
 
 (** Basic inductive types. *)
 type inductive_type = [`Empty | `Unit | `Bool]
@@ -170,31 +171,28 @@ let rec string_of_term t =
   | TMeta None -> "_"
   | TMeta (Some n) -> Printf.sprintf "?%d" n
 
-let pp_term fmt _ = Format.pp_print_string fmt "_"
-let pp_var fmt _ = Format.pp_print_string fmt "_"
-
 (** A value. *)
 type value =
   | Type
   | IndType of inductive_type
   | IndTerm of inductive_term
   | IndType_ind of inductive_type * value list
-  | Pi of icit * crispness * value * (closure [@opaque])
-  | Abs of side option * (closure [@opaque])
-  | Sigma of value * (closure [@opaque])
+  | Pi of icit * crispness * value * closure
+  | Abs of side option * closure
+  | Sigma of value * closure
   | Pair of value * value
-  | Pair_ind of (closure2 [@opaque])
+  | Pair_ind of closure2
   | Arr of side * value * value
   | Tens of value * value
   | TensPair of value * value
-  | Tens_ind of (closure2 [@opaque])
+  | Tens_ind of closure2
   | Flat of value
   | Flatten of value
-  | Flat_ind of (closure [@opaque])
+  | Flat_ind of closure
   | Eq of value * value
   | Refl
   | J of value
-  | Meta of (meta [@opaque]) * spine
+  | Meta of meta * spine
   | Neu of neutral
 [@@deriving show]
 
@@ -204,18 +202,18 @@ and neutral =
   | Hole of (Pos.t [@opaque])
   | Postulate
   | App of neutral * value
-  | NPair_ind of (closure2 [@opaque]) * neutral
-  | NTens_ind of (closure2 [@opaque]) * neutral
+  | NPair_ind of closure2 * neutral
+  | NTens_ind of closure2 * neutral
   | NIndType_ind of inductive_type * value list * neutral
-  | NFlat_ind of (closure [@opaque]) * neutral
+  | NFlat_ind of closure * neutral
   | NJ of value * neutral
 [@@deriving show]
 
 (** A closure. *)
-and closure = var * term * environment
+and closure = var * (term[@opaque]) * (environment[@opaque])
 
 (** A binary closure. *)
-and closure2 = var * var * term * environment
+and closure2 = var * var * (term[@opaque]) * (environment[@opaque])
 
 (** An environment. *)
 and environment = (var * value) list
