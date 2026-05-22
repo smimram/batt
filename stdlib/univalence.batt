@@ -1,5 +1,6 @@
 open import equivalence
 
--- Err: DUPLICATE x-0
---equiv-eq : (A B : U) → A ≡ B → equiv A B
---equiv-eq A refl = id-equiv A
+equiv-eq : (A B : U) → A ≡ B → equiv A B
+equiv-eq A refl = id-equiv A
+
+postulate univalence ∷ (A B : U) → is-equiv (A ≡ B) (equiv A B) (equiv-eq A B)

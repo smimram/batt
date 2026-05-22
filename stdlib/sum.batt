@@ -2,5 +2,5 @@ open import bool
 
 -- broken because Type is not of type Type
 -- maybe we need native sum types ?
-sum :: U → U → U
+sum ∷ U → U → U
 sum A B = Σ (b : Bool) . ind-bool U A B

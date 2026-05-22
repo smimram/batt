@@ -11,7 +11,6 @@ bug-reports: "https://github.com/smimram/battt/issues"
 depends: [
   "dune" {>= "3.14"}
   "odoc" {with-doc}
-  "menhir" {>= "20180523"}
 ]
 build: [
   ["dune" "subst"] {dev}

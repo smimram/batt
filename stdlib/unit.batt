@@ -6,5 +6,5 @@ unit-ind-l A a tₗ =
   let f : ⊤ → A = λ tt → a in f t
 
 -- terminal arrow
-terminal :: (A : U) → A → Unit
+terminal :: (A : U) → A → ⊤
 terminal A x = tt
