@@ -1,9 +1,11 @@
 open Common
 
 type var = string
+[@@deriving show]
 
 (** Basic inductive types. *)
 type inductive_type = [`Empty | `Unit | `Bool]
+[@@deriving show]
 
 let string_of_inductive_type = function
   | `Empty -> "Empty"
@@ -12,9 +14,11 @@ let string_of_inductive_type = function
 
 (** Basic inductive terms. *)
 type inductive_term = [`Unit | `Bool of bool]
+[@@deriving show]
 
 (** Side for lax arrows. *)
 type side = Left | Right
+[@@deriving show]
 
 let string_of_side = function
   | Left -> "ₗ"
@@ -24,8 +28,10 @@ let string_of_opt_side s =
   Option.value ~default:"" @@ Option.map string_of_side s
 
 type icit = Explicit | Implicit
+[@@deriving show]
 
 type crispness = Normal | Crisp
+[@@deriving show]
 
 (** A term. *)
 type term =
@@ -188,11 +194,12 @@ type value =
   | J of value
   | Meta of meta * spine
   | Neu of neutral
+[@@deriving show]
 
 (** A neutral term. *)
 and neutral =
   | Var of int
-  | Hole of Pos.t
+  | Hole of (Pos.t [@opaque])
   | Postulate
   | App of neutral * value
   | NPair_ind of closure2 * neutral
@@ -200,12 +207,13 @@ and neutral =
   | NIndType_ind of inductive_type * value list * neutral
   | NFlat_ind of closure * neutral
   | NJ of value * neutral
+[@@deriving show]
 
 (** A closure. *)
-and closure = var * term * environment
+and closure = var * (term[@opaque]) * (environment[@opaque])
 
 (** A binary closure. *)
-and closure2 = var * var * term * environment
+and closure2 = var * var * (term[@opaque]) * (environment[@opaque])
 
 (** An environment. *)
 and environment = (var * value) list
@@ -297,7 +305,7 @@ and fresh_meta env =
 
 (** Apply a value to another. *)
 and vapp t u =
-  match force t, u with
+  match force t, force u with
   | Abs (_, f), u -> capp f u
   | IndType_ind (`Unit, [t]), IndTerm `Unit -> t
   | IndType_ind (`Bool, [tf;_tt]), IndTerm (`Bool false) -> tf
@@ -313,7 +321,7 @@ and vapp t u =
   | J r, Neu t -> Neu (NJ (r, t))
   | Meta (m, s), u -> Meta (m, u::s)
   | Neu t, u -> Neu (App (t, u))
-  | _ -> failwith "vapp"
+  | _ -> failwith @@ Printf.sprintf "vapp: %s vs %s" (show_value t) (show_value u)
 
 (** Apply a value to a list of values. *)
 and vapps t = function
@@ -530,7 +538,7 @@ type partial_renaming =
 
 (** Unify two values. *)
 let rec unify k (t:value) (u:value) =
-  (* debug "UNIFY %s VS %s\n%!" (string_of_value k t) (string_of_value k u); *)
+  (* debug "UNIFY %s WITH %s\n%!" (string_of_value k t) (string_of_value k u); *)
   (* Make sure that metavariable m applied to spine s equals t. *)
   let solve k m s t =
     (* debug "SOLVE %s =? %s\n" (string_of_value k (Meta (m, s))) (string_of_value k t); *)
