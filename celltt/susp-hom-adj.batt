@@ -9,7 +9,7 @@ open import hom
 
 -- unit
 susphom-unit ∷ (X ∷ U) → X → hom' (susp' X)
-susphom-unit = merid'
+susphom-unit X = merid' {X}
 
 -- counit
 susphom-counit ∷ (X' ∷ Ubipt) → mapbipt (susp' (hom' X')) X'
@@ -17,11 +17,11 @@ susphom-counit X' =
   let X ∷ U = type-Ubipt X' in
   let x0 ∷ X = leftpt X' in
   let x1 ∷ X = rightpt X' in
-  let leg-cyl ∷ hom' X' ⨂ I → X = λ (f ⊗ s) . oplax-oplaxbipt I' X' f s in
+  let leg-cyl ∷ hom' X' ⨂ I → X = λ (f' ⊗ s) . oplax-oplaxbipt {I'} f' s in
   let leg-bool ∷ Bool → X = ind-bool X x0 x1 in
   let ho-legs ∷ (u : hom' X' ⨂ Bool) → leg-cyl (cylbnd-inclusion (hom' X') u) ≡ leg-bool (tens-snd (hom' X') Bool u) =
-    λ (f ⊗ b) . rec-bool (λb. leg-cyl (cylbnd-inclusion (hom' X') (f ⊗ b)) ≡ leg-bool (tens-snd (hom' X') Bool (f ⊗ b)))
-      (oplaxleftcoh I' X' f) (oplaxrightcoh I' X' f) b
+    λ (f' ⊗ b) . rec-bool (λb. leg-cyl (cylbnd-inclusion (hom' X') (f' ⊗ b)) ≡ leg-bool (tens-snd (hom' X') Bool (f' ⊗ b)))
+      (oplaxleftcoh {I'} f') (oplaxrightcoh {I'} f') b
   in
   let counit-map : susp (hom' X') → X = pushout-univ (cylbnd-inclusion (hom' X')) (tens-snd (hom' X') Bool) X leg-cyl leg-bool ho-legs in
   let counit-lcoh : counit-map (left-susp (hom' X')) ≡ x0 =
@@ -36,37 +36,37 @@ susphom-counit X' =
 -- susp X →.. (Y,y₀,y₁) // X → hom (Y,y₀,y₁)
 --
 
-to-hom-from-susp ∷ (X ∷ U) (Y' ∷ Ubipt) → mapbipt (susp' X) Y' → X → hom' Y'
-to-hom-from-susp X Y' f' x =
+to-hom-from-susp ∷ {X ∷ U} {Y' ∷ Ubipt} → mapbipt (susp' X) Y' → X → hom' Y'
+to-hom-from-susp {X} {Y'} f' x =
   let Y ∷ U = type-Ubipt Y' in
   let y0 ∷ Y = leftpt Y'  in
   let y1 ∷ Y = rightpt Y' in
-  let f : susp X → Y = map-mapbipt (susp' X) Y' f' in
-  let f0 : f (left-susp X)  ≡ y0 = leftcoh  (susp' X) Y' f' in
-  let f1 : f (right-susp X) ≡ y1 = rightcoh (susp' X) Y' f' in
+  let f : susp X → Y = map-mapbipt {susp' X} f' in
+  let f0 : f (left-susp X)  ≡ y0 = leftcoh  {susp' X} f' in
+  let f1 : f (right-susp X) ≡ y1 = rightcoh {susp' X} f' in
   let cyl-to-Y : X ⨂ I → Y = circ f (cyl-to-susp X) in
   let arrow-x : I →ᵣ Y = λ sᵣ. cyl-to-Y (x ⊗ s) in
-  let p0 : arrow-x I0 ≡ f (left-susp X)  = cong f (cyl-to-susp-leftcoh X x)  in
-  let p1 : arrow-x I1 ≡ f (right-susp X) = cong f (cyl-to-susp-rightcoh X x) in
+  let p0 : arrow-x I0 ≡ f (left-susp X)  = cong f (cyl-to-susp-leftcoh x)  in
+  let p1 : arrow-x I1 ≡ f (right-susp X) = cong f (cyl-to-susp-rightcoh x) in
   let leftcoh-arrow-x  : arrow-x I0 ≡ y0 = trans p0 f0 in
   let rightcoh-arrow-x : arrow-x I1 ≡ y1 = trans p1 f1 in
   (arrow-x, (leftcoh-arrow-x, rightcoh-arrow-x))
 
-from-susp-to-hom ∷ (X ∷ U) (Y' ∷ Ubipt) → (X → hom' Y') → mapbipt (susp' X) Y'
-from-susp-to-hom X Y' g =
+from-susp-to-hom ∷ {X ∷ U} {Y' ∷ Ubipt} → (X → hom' Y') → mapbipt (susp' X) Y'
+from-susp-to-hom {X} {Y'} g =
   let Y ∷ U = type-Ubipt Y' in
   let y0 ∷ Y = leftpt Y'  in
   let y1 ∷ Y = rightpt Y' in
-  let leg-cyl : X ⨂ I → Y = λ (x ⊗ s) . oplax-oplaxbipt I' Y' (g x) s in
+  let leg-cyl : X ⨂ I → Y = λ (x ⊗ s) . oplax-oplaxbipt {I'} (g x) s in
   let leg-bool : Bool → Y = ind-bool Y y0 y1 in
   let ho-legs : (u : X ⨂ Bool) → leg-cyl (cylbnd-inclusion X u) ≡ leg-bool (tens-snd X Bool u) =
     λ (x ⊗ b) . rec-bool (λb. leg-cyl (cylbnd-inclusion X (x ⊗ b)) ≡ leg-bool (tens-snd X Bool (x ⊗ b)))
-      (oplaxleftcoh I' Y' (g x)) (oplaxrightcoh I' Y' (g x)) b
+      (oplaxleftcoh {I'} (g x)) (oplaxrightcoh {I'} (g x)) b
   in
   let f : susp X → Y = pushout-univ (cylbnd-inclusion X) (tens-snd X Bool) Y leg-cyl leg-bool ho-legs in
   let leftcoh-f  : f (left-susp  X) ≡ y0 = pushout-univr (cylbnd-inclusion X) (tens-snd X Bool) Y leg-cyl leg-bool ho-legs false in
   let rightcoh-f : f (right-susp X) ≡ y1 = pushout-univr (cylbnd-inclusion X) (tens-snd X Bool) Y leg-cyl leg-bool ho-legs true in 
   (f, (leftcoh-f, rightcoh-f))
 
-from-susp-to-hom-from-susp ∷ (X ∷ U) (Y' ∷ Ubipt) → (f' : mapbipt (susp' X) Y') → from-susp-to-hom X Y' (to-hom-from-susp X Y' f') ≡ f'
-from-susp-to-hom-from-susp X Y' f' = ?
+from-susp-to-hom-from-susp ∷ {X ∷ U} {Y' ∷ Ubipt} → (f' : mapbipt (susp' X) Y') → from-susp-to-hom (to-hom-from-susp f') ≡ f'
+from-susp-to-hom-from-susp f' = ?

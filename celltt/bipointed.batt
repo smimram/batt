@@ -20,14 +20,14 @@ mapbipt X' Y' =
   let Y : U = type-Ubipt Y' in
   Σ (f : X → Y) . ((f (leftpt X') ≡ leftpt Y') × (f (rightpt X') ≡ rightpt Y'))
 
-map-mapbipt ∷ (X' Y' : Ubipt) → mapbipt X' Y' → type-Ubipt X' → type-Ubipt Y'
-map-mapbipt X' Y' (f, _) = f
+map-mapbipt ∷ {X' Y' : Ubipt} → mapbipt X' Y' → type-Ubipt X' → type-Ubipt Y'
+map-mapbipt (f, _) = f
 
-leftcoh ∷ (X' Y' : Ubipt) → (f' : mapbipt X' Y') → map-mapbipt X' Y' f' (leftpt X') ≡ leftpt Y'
-leftcoh X' Y' (f, u) = fst (f (leftpt X') ≡ leftpt Y') (λ_. f (rightpt X') ≡ rightpt Y') u
+leftcoh ∷ {X' Y' : Ubipt} → (f' : mapbipt X' Y') → map-mapbipt f' (leftpt X') ≡ leftpt Y'
+leftcoh {X'} {Y'} (f, u) = fst _ _ u
 
-rightcoh ∷ (X' Y' : Ubipt) → (f' : mapbipt X' Y') → map-mapbipt X' Y' f' (rightpt X') ≡ rightpt Y'
-rightcoh X' Y' (f, u) = snd (f (leftpt X') ≡ leftpt Y') (λ_. f (rightpt X') ≡ rightpt Y') u
+rightcoh ∷ {X' Y' : Ubipt} → (f' : mapbipt X' Y') → map-mapbipt f' (rightpt X') ≡ rightpt Y'
+rightcoh {X'} {Y'} (f, u) = snd _ _ u
 
 -- identity and composition for bipointed maps
 idbipt ∷ {X' : Ubipt} → mapbipt X' X'
@@ -44,12 +44,12 @@ circbipt X' Y' Z' g' f' =
   let Z : U = type-Ubipt Z' in
   let z0 : Z = leftpt Z' in
   let z1 : Z = rightpt Z' in
-  let f : X → Y = map-mapbipt X' Y' f' in
-  let g : Y → Z = map-mapbipt Y' Z' g' in
-  let fx0-y0 : f x0 ≡ y0 = leftcoh X' Y' f' in
-  let fx1-y1 : f x1 ≡ y1 = rightcoh X' Y' f' in
-  let gy0-z0 : g y0 ≡ z0 = leftcoh Y' Z' g' in
-  let gy1-z1 : g y1 ≡ z1 = rightcoh Y' Z' g' in
+  let f : X → Y = map-mapbipt f' in
+  let g : Y → Z = map-mapbipt g' in
+  let fx0-y0 : f x0 ≡ y0 = leftcoh f' in
+  let fx1-y1 : f x1 ≡ y1 = rightcoh f' in
+  let gy0-z0 : g y0 ≡ z0 = leftcoh g' in
+  let gy1-z1 : g y1 ≡ z1 = rightcoh g' in
   let gf : X → Z = circ g f in
   let gfx0-gy0 : g (f x0) ≡ g y0 = cong g fx0-y0 in
   let gfx1-gy1 : g (f x1) ≡ g y1 = cong g fx1-y1 in
@@ -64,11 +64,11 @@ oplaxbipt X' Y' =
   let Y ∷ U = type-Ubipt Y' in
   Σ (f : X →ᵣ Y) . ((f (leftpt X') ≡ leftpt Y') × (f (rightpt X') ≡ rightpt Y'))
 
-oplax-oplaxbipt ∷ (X' Y' ∷ Ubipt) → oplaxbipt X' Y' → type-Ubipt X' →ᵣ type-Ubipt Y'
-oplax-oplaxbipt X' Y' (f, _) = f
+oplax-oplaxbipt ∷ {X' Y' ∷ Ubipt} → oplaxbipt X' Y' → type-Ubipt X' →ᵣ type-Ubipt Y'
+oplax-oplaxbipt (f, _) = f
 
-oplaxleftcoh ∷ (X' Y' ∷ Ubipt) → (f' : oplaxbipt X' Y') → oplax-oplaxbipt X' Y' f' (leftpt X') ≡ leftpt Y'
-oplaxleftcoh X' Y' (f, u) = fst (f (leftpt X') ≡ leftpt Y') (λ_. f (rightpt X') ≡ rightpt Y') u
+oplaxleftcoh ∷ {X' Y' ∷ Ubipt} → (f' : oplaxbipt X' Y') → oplax-oplaxbipt f' (leftpt X') ≡ leftpt Y'
+oplaxleftcoh {X'} {Y'} (f, u) = fst _ _ u
 
-oplaxrightcoh ∷ (X' Y' ∷ Ubipt) → (f' : oplaxbipt X' Y') → oplax-oplaxbipt X' Y' f' (rightpt X') ≡ rightpt Y'
-oplaxrightcoh X' Y' (f, u) = snd (f (leftpt X') ≡ leftpt Y') (λ_. f (rightpt X') ≡ rightpt Y') u
+oplaxrightcoh ∷ {X' Y' ∷ Ubipt} → (f' : oplaxbipt X' Y') → oplax-oplaxbipt f' (rightpt X') ≡ rightpt Y'
+oplaxrightcoh {X'} {Y'} (f, u) = snd _ _ u
