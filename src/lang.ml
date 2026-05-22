@@ -584,6 +584,7 @@ let rec unify k (t:value) (u:value) =
           TSigma (x, a, b)
         | Type -> TType
         | IndType i -> TIndType i
+        | IndTerm t -> TIndTerm t
         | IndType_ind (i, t, l) -> spine l @@ TIndType_ind (i, List.map (rename r) t)
         | Pair_ind (t, l) ->
           let k = r.dom in
