@@ -2,7 +2,7 @@
 --- Identity types
 ---
 
-J :: {A : Type} (x : A) (P : (y : A) → x ≡ y → Type) → P x refl → (y : A) (p : x ≡ y) → P y p
+J :: {A : Type} (x : A) (P : (y : A) → x ≡ y → Type) → P x refl → {y : A} (p : x ≡ y) → P y p
 J x P r refl = r
 
 J' :: {A : Type} (P : (x y : A) → x ≡ y → Type) → ((x : A) → P x x refl) → (x y : A) (p : x ≡ y) → P x y p
