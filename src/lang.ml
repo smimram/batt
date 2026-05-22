@@ -486,7 +486,7 @@ module Context = struct
 
   let ext ((cenv,benv):t) x a : t = cenv, Bunch.ext benv x a
 
-  let ext_tens (cenv,benv) s x a = cenv, Bunch.ext_tens benv s x a
+  let ext_tens ((cenv,benv):t) s x a = cenv, Bunch.ext_tens benv s x a
 
   let ext_crisp ((cenv,benv):t) x a : t = ((x,a)::cenv), benv
 
@@ -495,19 +495,19 @@ module Context = struct
     | Normal -> ext ctx x a
     | Crisp -> ext_crisp ctx x a
 
-  let crisp (cenv,_) : t = cenv,Bunch.Empty
+  let crisp ((cenv,_):t) : t = cenv,Bunch.Empty
 
   let crisp ?(crispness=Crisp) ctx =
     match crispness with
     | Crisp -> crisp ctx
     | Normal -> ctx
 
-  let assoc_opt x (cenv,benv) =
+  let assoc_opt x ((cenv,benv):t) =
     match Bunch.assoc_opt x benv with
     | Some a -> Some a
     | None -> List.assoc_opt x cenv
 
-  let split fvl fvr (cenv,benv) =
+  let split fvl fvr ((cenv,benv):t) =
     let l, r = Bunch.split fvl fvr cenv benv in
     (cenv,l),(cenv,r)
 end
