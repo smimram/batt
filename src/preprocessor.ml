@@ -40,4 +40,11 @@ let inline_include dirs token =
   in
   fun lexbuf ->
     if Option.is_none !current_lexbuf then current_lexbuf := Some lexbuf;
-    aux ()
+    let t = aux () in
+    (* Copy position info from the active lexbuf (possibly an included file) back to the main lexbuf so that menhir and callers record the correct file/line/column. *)
+    let cur = Option.value !current_lexbuf ~default:lexbuf in
+    if cur != lexbuf then begin
+      lexbuf.Lexing.lex_start_p <- cur.Lexing.lex_start_p;
+      lexbuf.Lexing.lex_curr_p  <- cur.Lexing.lex_curr_p
+    end;
+    t
