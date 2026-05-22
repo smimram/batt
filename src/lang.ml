@@ -742,6 +742,10 @@ let rec unify k (t:value) (u:value) =
     debug "CLASH %s VS %s \n%!" (string_of_value k t) (string_of_value k u);
     raise Unification
 
+let unify k t a b =
+  try unify k a b
+  with Unification -> failwith @@ Printf.sprintf "%sterm has type %s but %s expected" (Position.to_string_comma t) (string_of_value k a) (string_of_value k b)
+
 (*
 (** Comparison of values. *)
 let is_eq k (t:value) (u:value) =
@@ -830,14 +834,14 @@ let rec check k env ctx (t:term) (a:value) : term =
       | _ -> failwith "tens_ind"
     )
   | TIndType_ind (`Empty, []), Pi (Explicit, _, a, _) ->
-    unify k a (IndType `Empty);
+    unify k t a (IndType `Empty);
     TIndType_ind (`Empty, [])
   | TIndType_ind (`Unit, [t]), Pi (Explicit, _, a, b) ->
-    unify k a (IndType `Unit);
+    unify k t a (IndType `Unit);
     let t = check k env ctx t (capp b (IndTerm `Unit)) in
     TIndType_ind (`Unit, [t])
   | TIndType_ind (`Bool, [tf;tt]), Pi (Explicit, _, a, b) ->
-    unify k a (IndType `Bool);
+    unify k t a (IndType `Bool);
     let tf = check k env ctx tf (capp b (IndTerm (`Bool false))) in
     let tt = check k env ctx tt (capp b (IndTerm (`Bool true))) in
     TIndType_ind (`Bool, [tf;tt])
@@ -855,7 +859,7 @@ let rec check k env ctx (t:term) (a:value) : term =
     let t = check k ((x,xv)::env) (Context.ext_crisp ctx x a) t (capp b (Flatten xv)) in
     TFlat_ind (x, t)
   | TRefl, Eq (t, u) ->
-    unify k t u;
+    unify k TRefl t u; (* TODO: better error *)
     TRefl
   | TJ r, Pi (_, Normal, _a, b) ->
     (* we should make sure that b := {y : a} (p : x ≡ y) → P[x,y,p] *)
@@ -897,7 +901,7 @@ let rec check k env ctx (t:term) (a:value) : term =
     let t0 = t in
     let t, a' = infer k env ctx t in
     (
-      try unify k a' a; t
+      try unify k t0 a' a; t
       with Unification -> failwith @@ Printf.sprintf "%s%s has type %s but %s expected" (Position.to_string_comma t0) (string_of_term t) (string_of_value k a') (string_of_value k a)
     )
 
