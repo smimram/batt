@@ -51,10 +51,10 @@ circbipt X' Y' Z' g' f' =
   let gy0-z0 : g y0 ≡ z0 = leftcoh Y' Z' g' in
   let gy1-z1 : g y1 ≡ z1 = rightcoh Y' Z' g' in
   let gf : X → Z = circ g f in
-  let gfx0-gy0 : g (f x0) ≡ g y0 = cong g (f x0) y0 fx0-y0 in
-  let gfx1-gy1 : g (f x1) ≡ g y1 = cong g (f x1) y1 fx1-y1 in
-  let gfx0-z0 : g (f x0) ≡ z0 = trans (g (f x0)) (g y0) gfx0-gy0 z0 gy0-z0 in
-  let gfx1-z1 : g (f x1) ≡ z1 = trans (g (f x1)) (g y1) gfx1-gy1 z1 gy1-z1 in
+  let gfx0-gy0 : g (f x0) ≡ g y0 = cong g fx0-y0 in
+  let gfx1-gy1 : g (f x1) ≡ g y1 = cong g fx1-y1 in
+  let gfx0-z0 : g (f x0) ≡ z0 = trans gfx0-gy0 gy0-z0 in
+  let gfx1-z1 : g (f x1) ≡ z1 = trans gfx1-gy1 gy1-z1 in
   (gf, (gfx0-z0, gfx1-z1))
 
 -- oplax type of bipointed maps between bipointed types

@@ -585,6 +585,13 @@ let rec unify k (t:value) (u:value) =
         | Type -> TType
         | IndType i -> TIndType i
         | IndType_ind (i, t, l) -> spine l @@ TIndType_ind (i, List.map (rename r) t)
+        | Pair_ind (t, l) ->
+          let k = r.dom in
+          let x = var_name r.cod in
+          let y = var_name (r.cod+1) in
+          let t = capp2 t (vvar k) (vvar (k+1)) in
+          let t = rename (lift (lift r)) t in
+          spine l @@ TPair_ind (x, y, t)
         | Tens (a,b) -> TTens (rename r a, rename r b)
         | TensPair (t, u) -> TTensPair (rename r t, rename r u)
         | Tens_ind (t, l) ->
@@ -605,6 +612,8 @@ let rec unify k (t:value) (u:value) =
               debug "ESCAPED %s\n" (string_of_value k (Var (x, [])));
               raise Unification
           )
+        | Postulate (n, l) ->
+          spine l @@ TPostulate (Some n)
         | t -> failwith @@ Printf.sprintf "TODO: rename %s" (string_of_value k t)
       in
       rename r t
@@ -674,8 +683,9 @@ let rec unify k (t:value) (u:value) =
     unify (k+1) (capp t (vvar k)) (capp t' (vvar k));
     spine k l l'
   | Refl, Refl -> ()
-  | Postulate (n, l), Postulate (n', l') ->
-    if n <> n' then raise Unification;
+  | Postulate (_n, l), Postulate (_n', l') ->
+    (* NOTE: disabling for now because we regenerate numbers when we include multiple times *)
+    (* if n <> n' then raise Unification; *)
     spine k l l'
   | Var (x, l), Var (x', l') ->
     if x <> x' then raise Unification;
