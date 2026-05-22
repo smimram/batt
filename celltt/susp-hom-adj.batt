@@ -46,10 +46,10 @@ to-hom-from-susp X Y' f' x =
   let f1 : f (right-susp X) ≡ y1 = rightcoh (susp' X) Y' f' in
   let cyl-to-Y : X ⨂ I → Y = circ f (cyl-to-susp X) in
   let arrow-x : I →ᵣ Y = λ sᵣ. cyl-to-Y (x ⊗ s) in
-  let p0 : arrow-x I0 ≡ f (left-susp X)  = cong f (cyl-to-susp X (x ⊗ I0)) (left-susp X)  (cyl-to-susp-leftcoh X x)  in
-  let p1 : arrow-x I1 ≡ f (right-susp X) = cong f (cyl-to-susp X (x ⊗ I1)) (right-susp X) (cyl-to-susp-rightcoh X x) in
-  let leftcoh-arrow-x  : arrow-x I0 ≡ y0 = trans (arrow-x I0) (f (left-susp X))  p0 y0 f0 in
-  let rightcoh-arrow-x : arrow-x I1 ≡ y1 = trans (arrow-x I1) (f (right-susp X)) p1 y1 f1 in
+  let p0 : arrow-x I0 ≡ f (left-susp X)  = cong f (cyl-to-susp-leftcoh X x)  in
+  let p1 : arrow-x I1 ≡ f (right-susp X) = cong f (cyl-to-susp-rightcoh X x) in
+  let leftcoh-arrow-x  : arrow-x I0 ≡ y0 = trans p0 f0 in
+  let rightcoh-arrow-x : arrow-x I1 ≡ y1 = trans p1 f1 in
   (arrow-x, (leftcoh-arrow-x, rightcoh-arrow-x))
 
 from-susp-to-hom ∷ (X ∷ U) (Y' ∷ Ubipt) → (X → hom' Y') → mapbipt (susp' X) Y'

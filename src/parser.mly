@@ -37,7 +37,7 @@ decls:
 
 decl:
   | x=IDENT c=ccolon a=term N def=def { let y, t = def in assert (x = y); (x, c, a, t) }
-  | POSTULATE x=IDENT c=ccolon a=term { (x, c, a, mk ~pos:$loc TPostulate) }
+  | POSTULATE x=IDENT c=ccolon a=term { (x, c, a, mk ~pos:$loc @@ TPostulate None) }
 
 def:
   | y=IDENT args=list(pattern) EQ t=term { y, abss_pattern ~pos:$loc args t }

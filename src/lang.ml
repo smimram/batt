@@ -58,7 +58,7 @@ type term =
   | TVar of var
   | TVar' of int (** a de Bruijn term *) (* TODO: it would be much better to have preterms (strings) and terms (de Bruijn) *)
   | TLet of crispness * string * term * term * term
-  | TPostulate (** a postulate *)
+  | TPostulate of int option (** a postulate with given internal identifier *)
   | THole of Pos.t
   | TMeta of int option (** metavariable with given internal identifier *)
 
@@ -115,7 +115,7 @@ module FV = struct
     | TVar x -> singleton x
     | TVar' _ -> empty
     | TLet (_c, _x, a, t, u) -> union (term a) @@ union (term t) (term u)
-    | TPostulate -> empty
+    | TPostulate _ -> empty
     | THole _ -> empty
     | TMeta _ -> empty
 end
@@ -166,7 +166,7 @@ let rec string_of_term t =
   | TVar x -> x
   | TVar' n -> Printf.sprintf "x-%d" n
   | TLet (c,x,a,t,u) -> Printf.sprintf "let %s %s %s = %s in %s" x (colon c) (string_of_term a) (string_of_term t) (string_of_term u)
-  | TPostulate -> "postulate"
+  | TPostulate n -> "postulate" ^ (match n with Some n -> string_of_int n | None -> "")
   | THole _ -> "?"
   | TMeta None -> "_"
   | TMeta (Some n) -> Printf.sprintf "?%d" n
@@ -176,37 +176,26 @@ type value =
   | Type
   | IndType of inductive_type
   | IndTerm of inductive_term
-  | IndType_ind of inductive_type * value list
+  | IndType_ind of inductive_type * value list * spine
   | Pi of icit * crispness * value * closure
   | Abs of side option * closure
   | Sigma of value * closure
   | Pair of value * value
-  | Pair_ind of closure2
+  | Pair_ind of closure2 * spine
   | Arr of side * value * value
   | Tens of value * value
   | TensPair of value * value
-  | Tens_ind of closure2
+  | Tens_ind of closure2 * spine
   | Flat of value
   | Flatten of value
-  | Flat_ind of closure
+  | Flat_ind of closure * spine
   | Eq of value * value
   | Refl
-  | J of value
+  | J of value * spine
   | Meta of meta * spine
-  | Neu of neutral
-[@@deriving show]
-
-(** A neutral term. *)
-and neutral =
-  | Var of int
-  | Hole of (Pos.t [@opaque])
-  | Postulate
-  | App of neutral * value
-  | NPair_ind of closure2 * neutral
-  | NTens_ind of closure2 * neutral
-  | NIndType_ind of inductive_type * value list * neutral
-  | NFlat_ind of closure * neutral
-  | NJ of value * neutral
+  | Var of int * spine
+  | Hole of (Pos.t [@opaque]) * spine
+  | Postulate of int * spine
 [@@deriving show]
 
 (** A closure. *)
@@ -257,28 +246,31 @@ module Meta = struct
     Dynarray.get variables id
 end
 
+(** Postulate counter. *)
+let postulate = ref (-1)
+
 (** Evaluate a term to a value. *)
 let rec eval (env:environment) = function
   | TType -> Type
   | TIndType a -> IndType a
   | TIndTerm t -> IndTerm t
-  | TIndType_ind (ind, args) -> IndType_ind (ind, List.map (eval env) args)
+  | TIndType_ind (ind, args) -> IndType_ind (ind, List.map (eval env) args, [])
   | TPi (i, c, x, a, t) -> Pi (i, c, eval env a, (x, t, env))
   | TAbs (_, s, x, t) -> Abs (s, (x, t, env))
   | TApp (t, _, u) -> vapp (eval env t) (eval env u)
   | TSigma (x, a, t) -> Sigma (eval env a, (x, t, env))
   | TPair (t, u) -> Pair (eval env t, eval env u)
-  | TPair_ind (x, y, t) -> Pair_ind (x, y, t, env)
+  | TPair_ind (x, y, t) -> Pair_ind ((x, y, t, env), [])
   | TArr (s, a, b) -> Arr (s, eval env a, eval env b)
   | TTens (a, b) -> Tens (eval env a, eval env b)
   | TTensPair (t, u) -> TensPair (eval env t, eval env u)
-  | TTens_ind (x, y, t) -> Tens_ind (x, y, t, env)
+  | TTens_ind (x, y, t) -> Tens_ind ((x, y, t, env), [])
   | TFlat t -> Flat (eval env t)
   | TFlatten t -> Flatten (eval env t)
-  | TFlat_ind (x, t) -> Flat_ind (x,t,env)
+  | TFlat_ind (x, t) -> Flat_ind ((x, t, env), [])
   | TEq (t, u) -> Eq (eval env t, eval env u)
   | TRefl -> Refl
-  | TJ r -> J (eval env r)
+  | TJ r -> J (eval env r, [])
   | TVar x ->
     (
       match List.assoc_opt x env with
@@ -288,39 +280,41 @@ let rec eval (env:environment) = function
   | TVar' n -> snd @@ List.nth env n
   | TLet (_c,x,_a,t,u) ->
     eval env (app (TAbs(Explicit, None, x, u)) t)
-  | TPostulate -> Neu Postulate
-  | THole pos -> Neu (Hole pos)
+  | TPostulate (Some n) -> Postulate (n, [])
+  | TPostulate None -> assert false
+  | THole pos -> Hole (pos, [])
   | TMeta None -> fresh_meta env
   | TMeta (Some id) -> Meta (Meta.get id, [])
 
 (** Make a variable. *)
-and vvar k = Neu (Var k)
+and vvar k = Var (k, [])
 
 (** Generate a fresh metavariable. *)
 and fresh_meta env =
   let m = Meta.fresh () in
   (* We only keep variables in the environment. *)
-  let vars = List.filter_map (fun (x,v) -> match force v with Neu (Var _) -> Some (TVar x) | _ -> None) env |> List.map (eval env) in
+  let vars = List.filter_map (fun (x,v) -> match force v with Var _ -> Some (TVar x) | _ -> None) env |> List.map (eval env) in
   Meta (m, vars)
 
 (** Apply a value to another. *)
 and vapp t u =
   match force t, force u with
   | Abs (_, f), u -> capp f u
-  | IndType_ind (`Unit, [t]), IndTerm `Unit -> t
-  | IndType_ind (`Bool, [tf;_tt]), IndTerm (`Bool false) -> tf
-  | IndType_ind (`Bool, [_tf;tt]), IndTerm (`Bool true) -> tt
-  | IndType_ind (ind, t), Neu u -> Neu (NIndType_ind (ind, t, u))
-  | Pair_ind t, Pair (u, v) -> capp2 t u v
-  | Pair_ind t, Neu u -> Neu (NPair_ind (t, u))
-  | Tens_ind t, TensPair (u, v) -> capp2 t u v
-  | Tens_ind t, Neu u -> Neu (NTens_ind (t, u))
-  | Flat_ind t, Flatten u -> capp t u
-  | Flat_ind t, Neu u -> Neu (NFlat_ind (t, u))
-  | J r, Refl -> r
-  | J r, Neu t -> Neu (NJ (r, t))
-  | Meta (m, s), u -> Meta (m, u::s)
-  | Neu t, u -> Neu (App (t, u))
+  | IndType_ind (`Unit, [t], []), IndTerm `Unit -> t
+  | IndType_ind (`Bool, [tf;_tt], []), IndTerm (`Bool false) -> tf
+  | IndType_ind (`Bool, [_tf;tt], []), IndTerm (`Bool true) -> tt
+  | IndType_ind (ind, t, l), u -> IndType_ind (ind, t, u::l)
+  | Pair_ind (t, []), Pair (u, v) -> capp2 t u v
+  | Pair_ind (t, l), u -> Pair_ind (t, u::l)
+  | Tens_ind (t, []), TensPair (u, v) -> capp2 t u v
+  | Tens_ind (t, l), u -> Tens_ind (t, u::l)
+  | Flat_ind (t, []), Flatten u -> capp t u
+  | Flat_ind (t, l), u -> Flat_ind (t, u::l)
+  | J (r, [_]), Refl -> r
+  | J (r, l), u -> J (r, u::l)
+  | Var (x, l), u -> Var (x, u::l)
+  | Meta (m, l), u -> Meta (m, u::l)
+  | Postulate (n, l), u -> Postulate (n, u::l)
   | _ -> failwith @@ Printf.sprintf "vapp: %s vs %s" (show_value t) (show_value u)
 
 (** Apply a value to a list of values. *)
@@ -349,39 +343,31 @@ and force t =
 (** Reify a value as a term. *)
 let rec readback k v =
   let var k = "x" ^ string_of_int k in
-  let rec neutral k = function
-    | Var i -> TVar' i
-    | App (t, u) -> app (neutral k t) (readback k u)
-    | Postulate -> TPostulate
-    | Hole pos -> THole pos
-    | NPair_ind (t, u) -> app (readback k @@ Pair_ind t) (neutral k u)
-    | NTens_ind (t, u) -> app (readback k @@ Tens_ind t) (neutral k u)
-    | NIndType_ind (ind, args, t) -> app (readback k @@ IndType_ind (ind, args)) (neutral k t)
-    | NFlat_ind (t, u) -> app (readback k @@ Flat_ind t) (neutral k u)
-    | NJ (r, t) -> app (readback k @@ J r) (neutral k t)
-  in
+  let spine l t = app_spine t (List.map (readback k) l) in
   match force v with
   | Type -> TType
   | IndType ind -> TIndType ind
-  | IndType_ind (ind, args) -> TIndType_ind (ind, List.map (readback k) args)
+  | IndType_ind (ind, args, l) -> spine l @@ TIndType_ind (ind, List.map (readback k) args)
   | IndTerm t -> TIndTerm t
   | Pi (i, c, a, b) -> TPi (i, c, var k, readback k a, readback (k+1) (capp b (vvar k)))
   | Abs (s, f) -> TAbs (Explicit, s, var k, readback (k+1) (capp f (vvar k)))
   | Sigma (a, b) -> TSigma (var k, readback k a, readback (k+1) (capp b (vvar k)))
   | Pair (t, u) -> TPair (readback k t, readback k u)
-  | Pair_ind t -> TPair_ind (var k, var (k+1), readback (k+2) @@ capp2 t (vvar k) (vvar (k+1)))
+  | Pair_ind (t, l) -> spine l @@ TPair_ind (var k, var (k+1), readback (k+2) @@ capp2 t (vvar k) (vvar (k+1)))
   | Arr (s, a, b) -> TArr (s, readback k a, readback k b)
   | Tens (a, b) -> TTens (readback k a, readback k b)
   | TensPair (t, u) -> TTensPair (readback k t, readback k u)
-  | Tens_ind (t) -> TTens_ind (var k, var (k+1), readback (k+2) @@ capp2 t (vvar k) (vvar (k+1)))
+  | Tens_ind (t, l) -> spine l @@ TTens_ind (var k, var (k+1), readback (k+2) @@ capp2 t (vvar k) (vvar (k+1)))
   | Flat a -> TFlat (readback k a)
   | Flatten t -> TFlatten (readback k t)
-  | Flat_ind t -> TFlat_ind (var k, readback (k+1) (capp t (vvar k)))
+  | Flat_ind (t, l) -> spine l @@ TFlat_ind (var k, readback (k+1) (capp t (vvar k)))
   | Eq (t, u) -> TEq (readback k t, readback k u)
   | Refl -> TRefl
-  | J r -> TJ (readback k r)
-  | Meta (m, s) -> app_spine (TMeta (Some m.id)) (List.map (readback k) s)
-  | Neu t -> neutral k t
+  | J (r, l) -> spine l @@ TJ (readback k r)
+  | Meta (m, l) -> spine l @@ TMeta (Some m.id)
+  | Var (i, l) -> spine l @@ TVar' i
+  | Postulate (n, l) -> spine l @@ TPostulate (Some n)
+  | Hole (pos, l) -> spine l @@ THole pos
 
 let string_of_value k v = string_of_term @@ readback k v
 
@@ -549,7 +535,7 @@ let rec unify k (t:value) (u:value) =
           let cod, r = aux s in
           (
             match force t with
-            | Neu (Var x) ->
+            | Var (x, []) ->
               if IntMap.mem x r then
                 (
                   debug "DUPLICATE %s\n" (string_of_value k t);
@@ -572,10 +558,12 @@ let rec unify k (t:value) (u:value) =
     (* Apply a partial renaming to a value. Along the way, we also make sure that the metavariable does not occur in the term (occurs check). *)
     let rename m r (t:value) : term =
       let var i = TVar (var_name i) in
-      let rec rename r = function
-        | Meta (m',s) ->
+      let rec rename r t =
+        let spine l t = app_spine t (List.map (rename r) l) in
+        match t with
+        | Meta (m',l) ->
           if m'.id = m.id then (debug "OCCURS\n"; raise Unification); (* Occurs-check. *)
-          app_spine (TMeta (Some m'.id)) (List.map (rename r) s)
+          spine l @@ TMeta (Some m'.id)
         | Pi (i, c, a, b) ->
           let a = rename r a in
           let x = var_name r.cod in
@@ -596,62 +584,38 @@ let rec unify k (t:value) (u:value) =
           TSigma (x, a, b)
         | Type -> TType
         | IndType i -> TIndType i
-        | IndType_ind (i, l) -> TIndType_ind (i, List.map (rename r) l)
-        | Tens (a,b) -> TTens (rename r a, rename r b)
-        | TensPair (t, u) -> TTensPair (rename r t, rename r u)
-        | Tens_ind t ->
+        | IndTerm t -> TIndTerm t
+        | IndType_ind (i, t, l) -> spine l @@ TIndType_ind (i, List.map (rename r) t)
+        | Pair_ind (t, l) ->
           let k = r.dom in
           let x = var_name r.cod in
           let y = var_name (r.cod+1) in
           let t = capp2 t (vvar k) (vvar (k+1)) in
           let t = rename (lift (lift r)) t in
-          TTens_ind (x, y, t)
+          spine l @@ TPair_ind (x, y, t)
+        | Tens (a,b) -> TTens (rename r a, rename r b)
+        | TensPair (t, u) -> TTensPair (rename r t, rename r u)
+        | Tens_ind (t, l) ->
+          let k = r.dom in
+          let x = var_name r.cod in
+          let y = var_name (r.cod+1) in
+          let t = capp2 t (vvar k) (vvar (k+1)) in
+          let t = rename (lift (lift r)) t in
+          spine l @@ TTens_ind (x, y, t)
         | Eq(t,u) -> TEq (rename r t, rename r u)
-        | J t -> TJ (rename r t)
-        | Neu n -> neutral r n
-        | t -> failwith @@ Printf.sprintf "TODO: rename %s" (string_of_value k t)
-      and neutral r = function
-        | Var x ->
+        | J (t, l) -> spine l @@ TJ (rename r t)
+        | Var (x, l) ->
+          spine l @@
           (
             match IntMap.find_opt x r.ren with
             | Some y -> var y
             | None ->
-              debug "ESCAPED %s\n" (string_of_value k (Neu (Var x)));
+              debug "ESCAPED %s\n" (string_of_value k (Var (x, [])));
               raise Unification
           )
-        | App (t, u) ->
-          let t = neutral r t in
-          let u = rename r u in
-          app t u
-        | NPair_ind (t, u) ->
-          let k = r.dom in
-          let x = var_name r.cod in
-          let y = var_name (r.cod+1) in
-          let t = capp2 t (vvar k) (vvar (k+1)) in
-          let t = rename (lift (lift r)) t in
-          let u = neutral r u in
-          app (TPair_ind (x, y, t)) u
-        | NTens_ind (t, u) ->
-          let k = r.dom in
-          let x = var_name r.cod in
-          let y = var_name (r.cod+1) in
-          let t = capp2 t (vvar k) (vvar (k+1)) in
-          let t = rename (lift (lift r)) t in
-          let u = neutral r u in
-          app (TTens_ind (x, y, t)) u
-        | NFlat_ind (t, u) ->
-          let k = r.dom in
-          let x = var_name r.cod in
-          let t = capp t (vvar k) in
-          let t = rename (lift r) t in
-          let u = neutral r u in
-          app (TFlat_ind (x, t)) u
-        | NIndType_ind (i, l, u) ->
-          app (TIndType_ind (i, List.map (rename r) l)) (neutral r u)
-        | NJ (t, u) ->
-          app (TJ (rename r t)) (neutral r u)
-        | Postulate -> TPostulate
-        | t -> failwith @@ Printf.sprintf "TODO: rename neutral %s" (string_of_value k (Neu t))
+        | Postulate (n, l) ->
+          spine l @@ TPostulate (Some n)
+        | t -> failwith @@ Printf.sprintf "TODO: rename %s" (string_of_value k t)
       in
       rename r t
     in
@@ -670,26 +634,9 @@ let rec unify k (t:value) (u:value) =
     let t = eval [] t in
     m.value <- Some t
   in
-  let rec neutral k t u =
-    match t, u with
-    | Var x, Var y when x = y -> ()
-    | App (t, u), App (t', u') -> neutral k t t'; unify k u u'
-    | NIndType_ind (i, l, t), NIndType_ind (i', l', t') ->
-      if i <> i' then raise Unification;
-      if List.length l <> List.length l' then raise Unification;
-      List.iter2 (unify k) l l';
-      neutral k t t'
-    | NPair_ind (t, u), NPair_ind (t', u')
-    | NTens_ind (t, u), NTens_ind (t', u') ->
-      unify (k+2) (capp2 t (vvar k) (vvar (k+1))) (capp2 t' (vvar k) (vvar (k+1)));
-      neutral k u u'
-    | NFlat_ind (t, u), NFlat_ind (t', u') ->
-      unify (k+1) (capp t (vvar k)) (capp t' (vvar k));
-      neutral k u u'
-    | Postulate, Postulate -> (* TODO: number them *) ()
-    | t, u ->
-      debug "CLASH %s VS %s \n%!" (string_of_value k (Neu t)) (string_of_value k (Neu u));
-      raise Unification
+  let spine k l l' =
+    if List.length l <> List.length l' then raise Unification;
+    List.iter2 (unify k) l l'
   in
   match force t, force u with
   | Type, Type -> ()
@@ -697,10 +644,10 @@ let rec unify k (t:value) (u:value) =
     if i <> i' then raise Unification
   | IndTerm t, IndTerm t' ->
     if t <> t' then raise Unification
-  | IndType_ind (i, l), IndType_ind (i', l') ->
+  | IndType_ind (i, t, l), IndType_ind (i', t', l') ->
     if i <> i' then raise Unification;
-    if List.length l <> List.length l' then raise Unification;
-    List.iter2 (unify k) l l'
+    spine k t t'; (* NOTE: this is not a spine but ok *)
+    spine k l l'
   | Pi (i, s, a, b), Pi (i', s', a', b') ->
     if i <> i' then raise Unification;
     if s <> s' then raise Unification;
@@ -723,21 +670,29 @@ let rec unify k (t:value) (u:value) =
   | Eq (t, u), Eq (t', u') ->
     unify k t t';
     unify k u u'
-  | Pair_ind t, Pair_ind t'
-  | Tens_ind t, Tens_ind t' ->
-    unify (k+2) (capp2 t (vvar k) (vvar (k+1))) (capp2 t' (vvar k) (vvar (k+1)))
+  | Pair_ind (t, l), Pair_ind (t', l')
+  | Tens_ind (t, l), Tens_ind (t', l') ->
+    unify (k+2) (capp2 t (vvar k) (vvar (k+1))) (capp2 t' (vvar k) (vvar (k+1)));
+    spine k l l'
   | Arr (s, a, b), Arr (s', a', b') ->
     if s <> s' then raise Unification;
     unify k a a';
     unify k b b'
   | Flat a, Flat a' -> unify k a a'
   | Flatten t, Flatten t' -> unify k t t'
-  | Flat_ind t, Flat_ind t' ->
-    unify (k+1) (capp t (vvar k)) (capp t' (vvar k))
+  | Flat_ind (t, l), Flat_ind (t', l') ->
+    unify (k+1) (capp t (vvar k)) (capp t' (vvar k));
+    spine k l l'
   | Refl, Refl -> ()
+  | Postulate (_n, l), Postulate (_n', l') ->
+    (* NOTE: disabling for now because we regenerate numbers when we include multiple times *)
+    (* if n <> n' then raise Unification; *)
+    spine k l l'
+  | Var (x, l), Var (x', l') ->
+    if x <> x' then raise Unification;
+    spine k l l'
   | Meta (m, s), t -> solve k m s t
   | t, Meta (m, s) -> solve k m s t
-  | Neu t, Neu u -> neutral k t u
   | t, u ->
     debug "CLASH %s VS %s \n%!" (string_of_value k t) (string_of_value k u);
     raise Unification
@@ -891,9 +846,10 @@ let rec check k env ctx (t:term) (a:value) : term =
   | TSigma _, Type
   | TArr _, Type
   | TTens _, Type -> check_type k env ctx t
-  | TPostulate, a ->
-    important "POSTULATE %s\n%!" (string_of_value k a);
-    TPostulate
+  | TPostulate n, a ->
+    let n = match n with Some n -> n | None -> incr postulate; !postulate in
+    important "POSTULATE %d %s\n%!" n (string_of_value k a);
+    TPostulate (Some n)
   | THole pos, a ->
     important "HOLE %s : %s IN\n%s\n%!" (Pos.to_string pos) (string_of_value k a) (Context.to_string ~multiline:true k ctx);
     THole pos
