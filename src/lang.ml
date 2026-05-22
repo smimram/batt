@@ -860,8 +860,13 @@ let rec check k env ctx (t:term) (a:value) : term =
     let t0 = t in
     let t, a' = infer k env ctx t in
     (
-      try unify k t0 a' a; t
-      with Unification -> failwith @@ Printf.sprintf "%s%s has type %s but %s expected" (Position.to_string_comma t0) (string_of_term t) (string_of_value k a') (string_of_value k a)
+      match a', a with
+      | Pi (Implicit, _, _, _), Pi (Explicit, _, _, _) ->
+        let pos = Position.find_opt t in
+        check k env ctx (mk ?pos (app ~icit:Implicit t0 (TMeta (`Fresh None)))) a
+      | _ ->
+        try unify k t0 a' a; t
+        with Unification -> failwith @@ Printf.sprintf "%s%s has type %s but %s expected" (Position.to_string_comma t0) (string_of_term t) (string_of_value k a') (string_of_value k a)
     )
 
 (** Check that a term is a type. *)

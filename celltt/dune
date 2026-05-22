@@ -1,5 +1,5 @@
 (rule
  (alias runtest)
  (deps (glob_files *.batt))
- (action (run batt -I ../stdlib %{deps}))
+ (action (run batt -I ../stdlib celltt.batt))
 )
