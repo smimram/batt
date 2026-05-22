@@ -67,3 +67,6 @@ from-susp-to-hom X Y' g =
   let leftcoh-f  : f (left-susp  X) ≡ y0 = pushout-univr (cylbnd-inclusion X) (tens-snd X Bool) Y leg-cyl leg-bool ho-legs false in
   let rightcoh-f : f (right-susp X) ≡ y1 = pushout-univr (cylbnd-inclusion X) (tens-snd X Bool) Y leg-cyl leg-bool ho-legs true in 
   (f, (leftcoh-f, rightcoh-f))
+
+from-susp-to-hom-from-susp ∷ (X ∷ U) (Y' ∷ Ubipt) → (f' : mapbipt (susp' X) Y') → from-susp-to-hom X Y' (to-hom-from-susp X Y' f') ≡ f'
+from-susp-to-hom-from-susp X Y' f' = ?
