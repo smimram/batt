@@ -58,7 +58,7 @@ type term =
   | TVar of var
   | TVar' of int (** a de Bruijn term *) (* TODO: it would be much better to have preterms (strings) and terms (de Bruijn) *)
   | TLet of crispness * string * term * term * term
-  | TPostulate (** a postulate *)
+  | TPostulate of int option (** a postulate with given internal identifier *)
   | THole of Pos.t
   | TMeta of int option (** metavariable with given internal identifier *)
 
@@ -115,7 +115,7 @@ module FV = struct
     | TVar x -> singleton x
     | TVar' _ -> empty
     | TLet (_c, _x, a, t, u) -> union (term a) @@ union (term t) (term u)
-    | TPostulate -> empty
+    | TPostulate _ -> empty
     | THole _ -> empty
     | TMeta _ -> empty
 end
@@ -166,7 +166,7 @@ let rec string_of_term t =
   | TVar x -> x
   | TVar' n -> Printf.sprintf "x-%d" n
   | TLet (c,x,a,t,u) -> Printf.sprintf "let %s %s %s = %s in %s" x (colon c) (string_of_term a) (string_of_term t) (string_of_term u)
-  | TPostulate -> "postulate"
+  | TPostulate n -> "postulate" ^ (match n with Some n -> string_of_int n | None -> "")
   | THole _ -> "?"
   | TMeta None -> "_"
   | TMeta (Some n) -> Printf.sprintf "?%d" n
@@ -195,7 +195,7 @@ type value =
   | Meta of meta * spine
   | Var of int * spine
   | Hole of (Pos.t [@opaque]) * spine
-  | Postulate of spine
+  | Postulate of int * spine
 [@@deriving show]
 
 (** A closure. *)
@@ -246,6 +246,9 @@ module Meta = struct
     Dynarray.get variables id
 end
 
+(** Postulate counter. *)
+let postulate = ref (-1)
+
 (** Evaluate a term to a value. *)
 let rec eval (env:environment) = function
   | TType -> Type
@@ -277,7 +280,9 @@ let rec eval (env:environment) = function
   | TVar' n -> snd @@ List.nth env n
   | TLet (_c,x,_a,t,u) ->
     eval env (app (TAbs(Explicit, None, x, u)) t)
-  | TPostulate -> Postulate []
+  | TPostulate n ->
+    let n = match n with Some n -> n | None -> incr postulate; !postulate in
+    Postulate (n, [])
   | THole pos -> Hole (pos, [])
   | TMeta None -> fresh_meta env
   | TMeta (Some id) -> Meta (Meta.get id, [])
@@ -361,7 +366,7 @@ let rec readback k v =
   | J (r, l) -> spine l @@ TJ (readback k r)
   | Meta (m, l) -> spine l @@ TMeta (Some m.id)
   | Var (i, l) -> spine l @@ TVar' i
-  | Postulate l -> spine l @@ TPostulate
+  | Postulate (n, l) -> spine l @@ TPostulate (Some n)
   | Hole (pos, l) -> spine l @@ THole pos
 
 let string_of_value k v = string_of_term @@ readback k v
@@ -669,8 +674,8 @@ let rec unify k (t:value) (u:value) =
     unify (k+1) (capp t (vvar k)) (capp t' (vvar k));
     spine k l l'
   | Refl, Refl -> ()
-  | Postulate l, Postulate l' ->
-    (* TODO: number postulates *)
+  | Postulate (n, l), Postulate (n', l') ->
+    if n <> n' then raise Unification;
     spine k l l'
   | Var (x, l), Var (x', l') ->
     if x <> x' then raise Unification;
@@ -830,9 +835,9 @@ let rec check k env ctx (t:term) (a:value) : term =
   | TSigma _, Type
   | TArr _, Type
   | TTens _, Type -> check_type k env ctx t
-  | TPostulate, a ->
-    important "POSTULATE %s\n%!" (string_of_value k a);
-    TPostulate
+  | TPostulate n, a ->
+    important "POSTULATE%s %s\n%!" (match n with Some n -> " "^string_of_int n | None -> "") (string_of_value k a);
+    TPostulate n
   | THole pos, a ->
     important "HOLE %s : %s IN\n%s\n%!" (Pos.to_string pos) (string_of_value k a) (Context.to_string ~multiline:true k ctx);
     THole pos
