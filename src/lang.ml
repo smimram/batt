@@ -519,7 +519,7 @@ type partial_renaming =
   {
     dom : int; (** domain *)
     cod : int; (** codomain *)
-    ren : int IntMap.t; (** renaming function *)
+    ren : int option IntMap.t; (** renaming function *)
   }
 
 (** Unify two values. *)
@@ -537,12 +537,10 @@ let rec unify k (t:value) (u:value) =
             match force t with
             | Var (x, []) ->
               if IntMap.mem x r then
-                (
-                  debug "DUPLICATE %s\n" (string_of_value k t);
-                  raise Unification
-                )
+                (* NOTE: in case we have mutiple times the same variable, we simply associate None so that we refuse to disambiguate *)
+                cod+1, IntMap.add x None r
               else
-                cod+1, IntMap.add x cod r
+                cod+1, IntMap.add x (Some cod) r
             | _ -> raise Unification
           )
         | [] -> 0, IntMap.empty
@@ -552,7 +550,7 @@ let rec unify k (t:value) (u:value) =
     in
     (* Add an extra variable to a renaming. *)
     let lift r =
-      { dom = r.dom+1; cod = r.cod+1; ren = IntMap.add r.dom r.cod r.ren }
+      { dom = r.dom+1; cod = r.cod+1; ren = IntMap.add r.dom (Some r.cod) r.ren }
     in
     let var_name i = "x!" ^ string_of_int i in
     (* Apply a partial renaming to a value. Along the way, we also make sure that the metavariable does not occur in the term (occurs check). *)
@@ -608,7 +606,10 @@ let rec unify k (t:value) (u:value) =
           spine l @@
           (
             match IntMap.find_opt x r.ren with
-            | Some y -> var y
+            | Some (Some y) -> var y
+            | Some None ->
+              debug "DUPLICATE %s\n" (string_of_value k (Var (x, [])));
+              raise Unification
             | None ->
               debug "ESCAPED %s\n" (string_of_value k (Var (x, [])));
               raise Unification
