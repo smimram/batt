@@ -37,56 +37,56 @@ decls:
 
 decl:
   | x=IDENT c=ccolon a=term N def=def { let y, t = def in assert (x = y); (x, c, a, t) }
-  | POSTULATE x=IDENT c=ccolon a=term { (x, c, a, TPostulate) }
+  | POSTULATE x=IDENT c=ccolon a=term { (x, c, a, mk $loc TPostulate) }
 
 def:
-  | y=IDENT args=list(pattern) EQ t=term { y, abss_pattern args t }
-  | y=IDENT args=list(pattern) LRPAR { y, abss_pattern args (TIndType_ind (`Empty, [])) }
+  | y=IDENT args=list(pattern) EQ t=term { y, abss_pattern $loc args t }
+  | y=IDENT args=list(pattern) LRPAR { y, abss_pattern $loc args (mk $loc($3)(TIndType_ind (`Empty, []))) }
 
 atom:
-  | TYPE { TType }
-  | EMPTY { TIndType `Empty }
-  | UNIT { TIndType `Unit }
-  | TT { TIndTerm `Unit }
-  | BOOL { TIndType `Bool }
-  | FALSE { TIndTerm (`Bool false) }
-  | BOOL_IND LPAR tf=fun_term COMMA tt=term RPAR { TIndType_ind (`Bool, [tf;tt]) }
-  | TRUE { TIndTerm (`Bool true) }
-  | IDENT %prec VAR { TVar $1 }
-  | REFL { TRefl }
-  | HOLE { THole $loc }
-  | META { TMeta None }
+  | TYPE { mk $loc @@ TType }
+  | EMPTY { mk $loc @@ TIndType `Empty }
+  | UNIT { mk $loc @@ TIndType `Unit }
+  | TT { mk $loc @@ TIndTerm `Unit }
+  | BOOL { mk $loc @@ TIndType `Bool }
+  | FALSE { mk $loc @@ TIndTerm (`Bool false) }
+  | BOOL_IND LPAR tf=fun_term COMMA tt=term RPAR { mk $loc @@ TIndType_ind (`Bool, [tf;tt]) }
+  | TRUE { mk $loc @@ TIndTerm (`Bool true) }
+  | IDENT %prec VAR { mk $loc @@ TVar $1 }
+  | REFL { mk $loc @@ TRefl }
+  | HOLE { mk $loc @@ THole $loc }
+  | META { mk $loc @@ TMeta None }
   | LPAR t=term RPAR { t }
 
 prefix_term:
   | atom { $1 }
-  | FLAT t=prefix_term { TFlat t }
-  | FLATTEN t=prefix_term { TFlatten t }
+  | FLAT t=prefix_term { mk $loc @@ TFlat t }
+  | FLATTEN t=prefix_term { mk $loc @@ TFlatten t }
 
 app_term:
   | prefix_term { $1 }
-  | t=app_term u=prefix_term { app t u }
-  | t=app_term LACC u=term RACC { app ~icit:Implicit t u }
+  | t=app_term u=prefix_term { app $loc t u }
+  | t=app_term LACC u=term RACC { app $loc ~icit:Implicit t u }
 
 prod_term:
   | app_term { $1 }
-  | a=prod_term TENS b=prod_term { TTens (a, b) }
-  | a=prod_term TENSP b=prod_term { TTensPair (a, b) }
-  | a=prod_term TIMES b=prod_term { TSigma ("_", a, b) }
-  | t=prod_term IDEQ u=prod_term { TEq (t, u) }
+  | a=prod_term TENS b=prod_term { mk $loc @@ TTens (a, b) }
+  | a=prod_term TENSP b=prod_term { mk $loc @@ TTensPair (a, b) }
+  | a=prod_term TIMES b=prod_term { mk $loc @@ TSigma ("_", a, b) }
+  | t=prod_term IDEQ u=prod_term { mk $loc @@ TEq (t, u) }
 
 fun_term:
   | prod_term { $1 }
-  | a=prod_term TO s=option(dir) b=fun_term { match s with None -> TPi (Explicit, Normal, "_", a, b) | Some s -> TArr (s, a, b) }
-  | abs=nonempty_list(piabs) TO b=fun_term { pis abs b }
-  | SIGMA LPAR x=IDENT COLON a=term RPAR DOT b=fun_term { TSigma (x, a, b) }
-  | FUN x=nonempty_list(pattern) to_dot t=fun_term { abss_pattern x t }
-  | LET x=IDENT c=ccolon a=term EQ t=term IN u=fun_term { TLet (c, x, a, t, u) }
+  | a=prod_term TO s=option(dir) b=fun_term { match s with None -> mk $loc @@ TPi (Explicit, Normal, "_", a, b) | Some s -> mk $loc @@ TArr (s, a, b) }
+  | abs=nonempty_list(piabs) TO b=fun_term { pis $loc abs b }
+  | SIGMA LPAR x=IDENT COLON a=term RPAR DOT b=fun_term { mk $loc @@ TSigma (x, a, b) }
+  | FUN x=nonempty_list(pattern) to_dot t=fun_term { abss_pattern $loc x t }
+  | LET x=IDENT c=ccolon a=term EQ t=term IN u=fun_term { mk $loc @@ TLet (c, x, a, t, u) }
   /* | LET x=pattern EQ t=term IN u=term { app (abs_pattern x u) t } */
 
 term:
   | t=fun_term { t }
-  | t=fun_term COMMA u=term { TPair (t, u) }
+  | t=fun_term COMMA u=term { mk $loc @@ TPair (t, u) }
 
 pattern:
   | x=identm d=option(dir) { `Var (Explicit,x,d) }

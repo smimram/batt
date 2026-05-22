@@ -2,39 +2,42 @@
 
 open Lang
 
-let abs ?(icit=Explicit) x t = TAbs(icit, None, x, t)
+let abs pos ?(icit=Explicit) x t = mk pos @@ TAbs(icit, None, x, t)
 
-let app ?(icit=Explicit) t u = TApp(t, icit, u)
+let app pos ?(icit=Explicit) t u = mk pos @@ TApp(t, icit, u)
 
 (** Multiple abstractions. *)
-let rec abss l t =
+let rec abss pos l t =
   match l with
   | [] -> t
-  | x::l -> abs x (abss l t)
+  | x::l -> abs pos x (abss pos l t)
 
-let abs_pattern x t =
-  match x with
-  | `Var (icit,x,d) -> TAbs (icit, d, x, t)
-  | `Unit -> TIndType_ind (`Unit, [t])
-  | `Pair (x, y) -> TPair_ind (x, y, t)
-  | `Tens (x, y) -> TTens_ind (x, y, t)
-  | `Flatten x -> TFlat_ind (x, t)
-  | `Refl -> TJ t
+let abs_pattern pos x t =
+  mk pos
+    (
+      match x with
+      | `Var (icit,x,d) -> TAbs (icit, d, x, t)
+      | `Unit -> TIndType_ind (`Unit, [t])
+      | `Pair (x, y) -> TPair_ind (x, y, t)
+      | `Tens (x, y) -> TTens_ind (x, y, t)
+      | `Flatten x -> TFlat_ind (x, t)
+      | `Refl -> TJ t
+    )
 
-let rec abss_pattern l t =
+let rec abss_pattern pos l t =
   match l with
   | [] -> t
-  | x::l -> abs_pattern x (abss_pattern l t)
+  | x::l -> abs_pattern pos x (abss_pattern pos l t)
 
 (** Multiple pi abstractions. *)
-let rec pis l b =
+let rec pis pos l b =
   (* Multiple pi abstractions of the same type. *)
   let rec pis' i c l a b =
     match l with
     | [] -> b
-    | x::l -> TPi (i, c, x, a, pis' i c l a b)
+    | x::l -> mk pos @@ TPi (i, c, x, a, pis' i c l a b)
   in
   match l with
   | [] -> b
-  | (i,c,x,a)::l -> pis' i c x a (pis l b)
+  | (i,c,x,a)::l -> pis' i c x a (pis pos l b)
   

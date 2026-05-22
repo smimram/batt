@@ -63,6 +63,21 @@ let rec app_spine ?icit t = function
   | u::uu -> app ?icit (app_spine t uu) u
   | [] -> t
 
+module Position = struct
+  module E = Ephemeron.K1.Make(struct type t = term let equal = (==) let hash = Hashtbl.hash end)
+  let (cache : Pos.t E.t) = E.create 100
+  let register t pos = E.add cache t pos
+  let find_opt t = E.find_opt cache t
+  let to_string_comma t =
+    match find_opt t with
+    | Some pos -> Pos.to_string pos ^ ", "
+    | None -> ""
+end
+
+let mk pos t =
+  Position.register t pos;
+  t
+
 module FV = struct
   include Set.Make(String)
 
@@ -870,10 +885,11 @@ let rec check k env ctx (t:term) (a:value) : term =
     important "HOLE %s : %s IN\n%s\n%!" (Pos.to_string pos) (string_of_value k a) (Context.to_string ~multiline:true k ctx);
     THole pos
   | t, a ->
+    let t0 = t in
     let t, a' = infer k env ctx t in
     (
       try unify k a' a; t
-      with Unification -> failwith @@ Printf.sprintf "%s has type %s but %s expected" (string_of_term t) (string_of_value k a') (string_of_value k a)
+      with Unification -> failwith @@ Printf.sprintf "%s%s has type %s but %s expected" (Position.to_string_comma t0) (string_of_term t) (string_of_value k a') (string_of_value k a)
     )
 
 (** Check that a term is a type. *)
