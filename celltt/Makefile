@@ -1,4 +1,4 @@
 all: test
 
 test:
-	@dune runtest
+	@dune exec batt -- -I ../stdlib celltt.batt
