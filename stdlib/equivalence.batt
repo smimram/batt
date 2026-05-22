@@ -53,9 +53,9 @@ equiv A B = Σ (f : A → B) . is-equiv A B f
 
 -- identity equivalence
 
-is-equiv-id ∷ (A : U) → is-equiv A A (id A)
-is-equiv-id A = ((id(A), λ_.refl), (id(A), λ_.refl))
+is-equiv-id ∷ (A : U) → is-equiv A A id
+is-equiv-id A = ((id, λ_.refl), (id, λ_.refl))
 
 id-equiv ∷ (A : U) → equiv A A
-id-equiv A = (id(A), is-equiv-id A)
+id-equiv A = (id, is-equiv-id A)
 

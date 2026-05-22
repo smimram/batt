@@ -12,3 +12,4 @@ open import arrow
 open import flat
 open import pushout
 open import funext
+open import equivalence
