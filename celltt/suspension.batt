@@ -12,7 +12,7 @@ cylbnd X = X ⨂ Bool
 
 -- Inclusion X ⨂ ∂I ↪ X ⨂ I
 cylbnd-inclusion ∷ (X ∷ U) → cylbnd X → cyl X
-cylbnd-inclusion X = tens-map (id X) boundary-inclusion
+cylbnd-inclusion X = tens-map id boundary-inclusion
 
 -- Suspension operation
 susp ∷ (X ∷ U) → U
@@ -76,7 +76,7 @@ merid' x = (merid(x), (lcoh-merid(x), rcoh-merid(x)))
 
 susp-map ∷ (X Y ∷ U) (f ∷ X → Y) → susp X → susp Y
 susp-map X Y f =
-  let leg-cyl ∷ X ⨂ I → susp Y = circ (cyl-to-susp Y) (tens-map f (id I)) in
+  let leg-cyl ∷ X ⨂ I → susp Y = circ (cyl-to-susp Y) (tens-map f id) in
   let leg-bool ∷ Bool → susp Y = bool-to-susp Y in
   let ho-legs ∷ (u : X ⨂ Bool) → leg-cyl (cylbnd-inclusion X u) ≡ leg-bool (tens-snd X Bool u) =
     λ (x ⊗ b) . pushout-eq (cylbnd-inclusion Y) (tens-snd Y Bool) (f(x) ⊗ b)
