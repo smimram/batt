@@ -9,6 +9,7 @@
 
 (executable
  (public_name batt)
+ (preprocess (pps ppx_deriving.show))
  (promote (until-clean))
 )
 

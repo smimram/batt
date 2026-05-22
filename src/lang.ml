@@ -4,6 +4,7 @@ type var = string
 
 (** Basic inductive types. *)
 type inductive_type = [`Empty | `Unit | `Bool]
+[@@deriving show]
 
 let string_of_inductive_type = function
   | `Empty -> "Empty"
@@ -12,9 +13,11 @@ let string_of_inductive_type = function
 
 (** Basic inductive terms. *)
 type inductive_term = [`Unit | `Bool of bool]
+[@@deriving show]
 
 (** Side for lax arrows. *)
 type side = Left | Right
+[@@deriving show]
 
 let string_of_side = function
   | Left -> "ₗ"
@@ -24,8 +27,10 @@ let string_of_opt_side s =
   Option.value ~default:"" @@ Option.map string_of_side s
 
 type icit = Explicit | Implicit
+[@@deriving show]
 
 type crispness = Normal | Crisp
+[@@deriving show]
 
 (** A term. *)
 type term =
@@ -165,41 +170,46 @@ let rec string_of_term t =
   | TMeta None -> "_"
   | TMeta (Some n) -> Printf.sprintf "?%d" n
 
+let pp_term fmt _ = Format.pp_print_string fmt "_"
+let pp_var fmt _ = Format.pp_print_string fmt "_"
+
 (** A value. *)
 type value =
   | Type
   | IndType of inductive_type
   | IndTerm of inductive_term
   | IndType_ind of inductive_type * value list
-  | Pi of icit * crispness * value * closure
-  | Abs of side option * closure
-  | Sigma of value * closure
+  | Pi of icit * crispness * value * (closure [@opaque])
+  | Abs of side option * (closure [@opaque])
+  | Sigma of value * (closure [@opaque])
   | Pair of value * value
-  | Pair_ind of closure2
+  | Pair_ind of (closure2 [@opaque])
   | Arr of side * value * value
   | Tens of value * value
   | TensPair of value * value
-  | Tens_ind of closure2
+  | Tens_ind of (closure2 [@opaque])
   | Flat of value
   | Flatten of value
-  | Flat_ind of closure
+  | Flat_ind of (closure [@opaque])
   | Eq of value * value
   | Refl
   | J of value
-  | Meta of meta * spine
+  | Meta of (meta [@opaque]) * spine
   | Neu of neutral
+[@@deriving show]
 
 (** A neutral term. *)
 and neutral =
   | Var of int
-  | Hole of Pos.t
+  | Hole of (Pos.t [@opaque])
   | Postulate
   | App of neutral * value
-  | NPair_ind of closure2 * neutral
-  | NTens_ind of closure2 * neutral
+  | NPair_ind of (closure2 [@opaque]) * neutral
+  | NTens_ind of (closure2 [@opaque]) * neutral
   | NIndType_ind of inductive_type * value list * neutral
-  | NFlat_ind of closure * neutral
+  | NFlat_ind of (closure [@opaque]) * neutral
   | NJ of value * neutral
+[@@deriving show]
 
 (** A closure. *)
 and closure = var * term * environment
@@ -297,7 +307,7 @@ and fresh_meta env =
 
 (** Apply a value to another. *)
 and vapp t u =
-  match force t, u with
+  match force t, force u with
   | Abs (_, f), u -> capp f u
   | IndType_ind (`Unit, [t]), IndTerm `Unit -> t
   | IndType_ind (`Bool, [tf;_tt]), IndTerm (`Bool false) -> tf
@@ -313,7 +323,7 @@ and vapp t u =
   | J r, Neu t -> Neu (NJ (r, t))
   | Meta (m, s), u -> Meta (m, u::s)
   | Neu t, u -> Neu (App (t, u))
-  | _ -> failwith "vapp"
+  | _ -> failwith @@ Printf.sprintf "vapp: %s vs %s" (show_value t) (show_value u)
 
 (** Apply a value to a list of values. *)
 and vapps t = function
