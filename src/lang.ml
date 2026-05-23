@@ -1017,7 +1017,7 @@ and infer k env ctx (t:term) : term * value =
       (
         match a with
         | Pi (icit', c, a, b) ->
-          if icit <> icit' then failwith "got an implicit argument where an explicit one was expected";
+          if icit <> icit' then failwith @@ Printf.sprintf "%sgot an implicit argument where an explicit one was expected" (Position.to_string_comma t0);
           let u = check k env (Context.crisp ~crispness:c ctx) u a in
           TApp (t, icit, u), capp b (eval env u)
         | Arr (_s, a, b) ->
