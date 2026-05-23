@@ -527,6 +527,24 @@ type partial_renaming =
 (** Unify two values. *)
 let rec unify k (t:value) (u:value) =
   debug "UNIFY %s WITH %s\n%!" (string_of_value k t) (string_of_value k u);
+  (* Make multiple abstractions. *)
+  (* TODO: move up *)
+  let rec abss l t =
+    match l with
+    | (s,x)::l -> TAbs (Explicit, s, x, abss l t)
+    | [] -> t
+  in
+  (* Apply a term to a list (not a spine!) of values. *)
+  let rec apps t = function
+    | u::uu -> apps (TApp (t, Explicit, u)) uu
+    | [] -> t
+  in
+  let set m t =
+    debug "UNIF %s <- %s\n%!" (Meta.to_string m) (string_of_term t);
+    assert (m.value = None);
+    let t = eval [] t in
+    m.value <- Some t
+  in
   (* Make sure that metavariable m applied to spine s equals t. *)
   let solve k m s t =
     debug "SOLVE %s =? %s\n" (string_of_value k (Meta (m, s))) (string_of_value k t);
@@ -652,18 +670,10 @@ let rec unify k (t:value) (u:value) =
     in
     let t = rename m r t in
     let t =
-      (* TODO: move up *)
-      let rec abss l t =
-        match l with
-        | (s,x)::l -> TAbs (Explicit, s, x, abss l t)
-        | [] -> t
-      in
       (* TODO: correctly handle side... *)
       abss (List.init r.cod (fun i -> None, var_name i)) t
     in
-    debug "UNIF ?%d <- %s\n%!" m.id (string_of_term t);
-    let t = eval [] t in
-    m.value <- Some t
+    set m t
   in
   let spine k l l' =
     if List.length l <> List.length l' then raise Unification;
@@ -722,6 +732,38 @@ let rec unify k (t:value) (u:value) =
   | Var (x, l), Var (x', l') ->
     if x <> x' then raise Unification;
     spine k l l'
+  | Meta (m, l), Meta (m', l') ->
+    (* Prune to common non-duplicated variables. *)
+    (* TODO: we should be able to spare a few List.rev *)
+    (* Remove duplicated variables and non-variables from the spine. *)
+    let sanitize l =
+      let rec aux = function
+        | (Var (_, []) as x)::l ->
+          if List.mem x l then aux (List.filter (fun y -> x <> y) l)
+          else x::(aux l)
+        | _::l -> aux l
+        | [] -> []
+      in
+      List.rev @@ aux l
+    in
+    (* replace (m1,l1) with (m2,l2) *)
+    let replace m1 l1 m2 l2 =
+      let t =
+        let var i = "x~" ^ string_of_int (i+1) in
+        let xx = List.init (List.length l1) (fun i -> None, var i) in
+        let args = List.mapi (fun i x -> if List.mem x l2 then Some (TVar (var i)) else None) (List.rev l1) |> List.filter_map Fun.id in
+        let m2 = TMeta (`Generated m2.id) in
+        let t = apps m2 args in
+        abss xx t
+      in
+      set m1 t
+    in
+    let l2 = sanitize l in
+    let l2' = sanitize l' in
+    let l2 = List.filter (fun x -> List.mem x l2') l2 in
+    let m2 = Meta.fresh () in
+    replace m l m2 l2;
+    replace m' l' m2 l2
   | Meta (m, l), t -> solve k m l t
   | t, Meta (m, l) -> solve k m l t
   | t, u ->
