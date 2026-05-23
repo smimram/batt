@@ -42,3 +42,6 @@ sym-sym {A} {x} refl = refl
 
 ho ∷ {A B : U} (f g : A → B) → U
 ho {A} f g = (x : A) → f x ≡ g x
+
+depho ∷ {A : U} {B : A → U} (f g : (x : A) → B x) → U
+depho {A} f g = (x : A) → f x ≡ g x

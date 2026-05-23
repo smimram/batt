@@ -1,0 +1,19 @@
+open import equality
+open import function
+open import product
+
+cocone ∷ {X A B : U} (f : X → A) (g : X → B) (Y : U) → U
+cocone {X} {A} {B} f g Y = Σ (h : A → Y) . Σ (k : B → Y) . ho {X} {Y} (circ h f) (circ k g)
+
+inl-map-cocone ∷ {X A B Y : U} (f : X → A) (g : X → B) (c : cocone f g Y) → A → Y
+inl-map-cocone {X} {A} {B} {Y} f g (h, u) = h
+
+inr-map-cocone ∷ {X A B Y : U} (f : X → A) (g : X → B) (c : cocone f g Y) → B → Y
+inr-map-cocone {X} {A} {B} {Y} f g (h, u) = fst (B → Y) (λk. ho {X} {Y} (circ {X} {A} {Y} h f) (circ {X} {B} {Y} k g)) u
+
+coherence-square-cocone ∷ {X A B Y : U} (f : X → A) (g : X → B) (c : cocone {X} {A} {B} f g Y)
+  → ho (circ (inl-map-cocone f g c) f) (circ (inr-map-cocone f g c) g)
+coherence-square-cocone {X} {A} {B} {Y} f g (h, u) = snd (B → Y) (λk. ho {X} {Y} (circ {X} {A} {Y} h f) (circ {X} {B} {Y} k g)) u
+
+--dep-cocone ∷ {X A B Y : U} (f : X → A) (g : X → B) (c : cocone f g Y) (P : Y → U) → U
+--cocone {X} {A} {B} f g Y = Σ (h : A → Y) . Σ (k : B → Y) . ho {X} {Y} (circ h f) (circ k g)
