@@ -526,7 +526,7 @@ type partial_renaming =
 
 (** Unify two values. *)
 let rec unify k (t:value) (u:value) =
-  debug "UNIFY %s WITH %s\n%!" (string_of_value k t) (string_of_value k u);
+  (* debug "UNIFY %s WITH %s\n%!" (string_of_value k t) (string_of_value k u); *)
   (* Make multiple abstractions. *)
   (* TODO: move up *)
   let rec abss l t =
@@ -547,7 +547,7 @@ let rec unify k (t:value) (u:value) =
   in
   (* Make sure that metavariable m applied to spine s equals t. *)
   let solve k m s t =
-    debug "SOLVE %s =? %s\n" (string_of_value k (Meta (m, s))) (string_of_value k t);
+    (* debug "SOLVE %s =? %s\n" (string_of_value k (Meta (m, s))) (string_of_value k t); *)
     (* Construct the initial renaming. Note that we number variables x0, x1, etc so that the furthest variable is x0: this is to avoid having to shift all indices when lifting. *)
     let r =
       let rec aux = function
