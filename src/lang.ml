@@ -294,7 +294,7 @@ and vvar k = Var (k, [])
 and fresh_meta ?pos env =
   let m = Meta.fresh ?pos () in
   (* We only keep variables in the environment. *)
-  let vars = List.filter_map (fun (x,v) -> match force v with Var _ -> Some (TVar x) | _ -> None) env |> List.map (eval env) in
+  let vars = List.filter_map (fun (_x,v) -> match force v with Var _ -> Some v | _ -> None) env in
   Meta (m, vars)
 
 (** Apply a value to another. *)
