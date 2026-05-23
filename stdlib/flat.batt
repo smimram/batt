@@ -48,7 +48,7 @@ flat-map :: (A :: Type) (B :: Type) (f :: A → B) → ♭A → ♭B
 flat-map A B f 𝄫a = 𝄫(f a)
 
 flat-tens-to-prod :: (A B :: U) → ♭(A ⨂ B) → ♭(A × B)
-flat-tens-to-prod A B = flat-map (A ⨂ B) (A × B) (tens-to-prod A B)
+flat-tens-to-prod A B = flat-map (A ⨂ B) (A × B) tens-to-prod
 -- flat-tens-to-prod A B 𝄫ab =
 --   let f : (ab ∷ A ⨂ B) → ♭(A × B) = fun (a ⊗ b) → 𝄫 (a , b) in
 --   f ab
