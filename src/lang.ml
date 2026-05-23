@@ -1041,7 +1041,7 @@ and infer k env ctx (t:term) : term * value =
   | TMeta (`Fresh pos) ->
     let a = fresh_meta env in
     TMeta (`Fresh pos), a
-  | _ -> failwith "infer"
+  | _ -> failwith @@ Printf.sprintf "%scannot infer type" (Position.to_string_comma t)
 
 let check_decl k env ctx (x, c, a, t) =
   Printf.printf "\nDECL  %s = %s %s %s\n%!" x (string_of_term t) (match c with Normal -> ":" | Crisp -> "::") (string_of_term a);
