@@ -995,6 +995,7 @@ and check_type k env ctx a =
 (** Infer the type of a term. *)
 and infer k env ctx (t:term) : term * value =
   debug "INFER %s\n%!" (string_of_term t);
+  let t0 = t in
   (* let cenv, benv = ctx in *)
   match t with
   | TIndType ind -> TIndType ind, Type
@@ -1022,7 +1023,7 @@ and infer k env ctx (t:term) : term * value =
         | Arr (_s, a, b) ->
           let u = check k env ctx u a in
           TApp (t, Explicit, u), b
-        | _ -> failwith "infer app"
+        | _ -> failwith @@ Printf.sprintf "%scannot infer the type of the application" (Position.to_string_comma t0)
       )
     )
   | TEq (t, u) ->
