@@ -22,7 +22,8 @@ let inline_include dirs token =
         pos_bol = 0;
         pos_cnum = 0
       };
-      Stack.push (ic, lexbuf) stack;
+      (* Preserve the parent lexbuf positions because we temporarily overwrite them while forwarding included-file token locations to the parser. *)
+      Stack.push (ic, lexbuf, lexbuf.Lexing.lex_start_p, lexbuf.Lexing.lex_curr_p) stack;
       current_lexbuf := Some new_lexbuf;
       aux ()
     | EOF ->
@@ -31,8 +32,10 @@ let inline_include dirs token =
         | None ->
           current_lexbuf := None;
           Parser.EOF
-        | Some (ic, lexbuf) ->
+        | Some (ic, lexbuf, lex_start_p, lex_curr_p) ->
           close_in ic;
+          lexbuf.Lexing.lex_start_p <- lex_start_p;
+          lexbuf.Lexing.lex_curr_p <- lex_curr_p;
           current_lexbuf := Some lexbuf;
           aux ()
       end
