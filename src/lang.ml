@@ -61,6 +61,12 @@ type term =
   | TPostulate of int option (** a postulate with given internal identifier *)
   | THole of Pos.t
   | TMeta of [`Fresh of Pos.t option | `Generated of int] (** metavariable with given internal identifier *)
+  | TRecordType of (string * crispness * term) list
+  | TRecord of [`Recursive | `NonRecursive] * (string * term) list
+  | TRecordField of term * string
+
+(** A declaration. *)
+type decl = string * crispness * term * term
 
 let app ?(icit=Explicit) t u =
   TApp (t, icit, u)
@@ -118,6 +124,9 @@ module FV = struct
     | TPostulate _ -> empty
     | THole _ -> empty
     | TMeta _ -> empty
+    | TRecordType l -> List.fold_left (fun fv (_x, _c, a) -> union fv (term a)) empty l
+    | TRecord (_r, l) -> List.fold_left (fun fv (_x, t) -> union fv (term t)) empty l
+    | TRecordField (t, _x) -> term t
 end
 
 (** String representation of a term. *)
@@ -170,6 +179,9 @@ let rec string_of_term t =
   | THole _ -> "?"
   | TMeta (`Fresh _) -> "_"
   | TMeta (`Generated n) -> Printf.sprintf "?%d" n
+  | TRecordType _ -> "module type"
+  | TRecord _ -> "module"
+  | TRecordField (t, x) -> Printf.sprintf "%s.%s" (string_of_term t) x
 
 (** A value. *)
 type value =
@@ -196,6 +208,9 @@ type value =
   | Var of int * spine
   | Hole of (Pos.t [@opaque]) * spine
   | Postulate of int * spine
+  | RecordType of (string * crispness * value) list
+  | Record of (string * value) list
+  | RecordField of string * spine
 [@@deriving show]
 
 (** A closure. *)
@@ -286,6 +301,27 @@ let rec eval (env:environment) = function
   | THole pos -> Hole (pos, [])
   | TMeta (`Fresh pos) -> fresh_meta ?pos env
   | TMeta (`Generated id) -> Meta (Meta.get id, [])
+  | TRecordType l ->
+    let l = List.map (fun (x, c, a) -> x, c, eval env a) l in
+    RecordType l
+  | TRecord (r,l) ->
+    (
+      match r with
+      | `Recursive ->
+        let _, l =
+          List.fold_left_map
+            (fun env (x,t) ->
+               let t = eval env t in
+               let env = (x,t)::env in
+               env, (x, t)
+            ) env l
+        in
+        Record l
+      | `NonRecursive ->
+        Record (List.map (fun (x, t) -> x, eval env t) l)
+    )
+  | TRecordField (t, x) ->
+    vapp (RecordField (x, [])) (eval env t)
 
 (** Make a variable. *)
 and vvar k = Var (k, [])
@@ -370,13 +406,19 @@ let rec readback k v =
   | Var (i, l) -> spine l @@ TVar' i
   | Postulate (n, l) -> spine l @@ TPostulate (Some n)
   | Hole (pos, l) -> spine l @@ THole pos
+  | RecordType l -> TRecordType (List.map (fun (x, c, a) -> x, c, readback k a) l)
+  | Record l -> TRecord (`NonRecursive, List.map (fun (x, t) -> x, readback k t) l)
+  | RecordField (x, l) ->
+    assert (l <> []);
+    let t, l =
+      let l = List.rev l in
+      List.hd l, List.rev @@ List.tl l
+    in
+    spine l @@ TRecordField (readback k t, x)
 
 let string_of_value k v = string_of_term @@ readback k v
 
 let string_of_environment k env = List.map (fun (x,t) -> x ^ "=" ^ string_of_value k t) env |> String.concat ", "
-
-(** A declaration. *)
-type decl = string * crispness * term * term
 
 type decls = decl list
 
@@ -1044,7 +1086,7 @@ and infer k env ctx (t:term) : term * value =
     TMeta (`Fresh pos), a
   | _ -> failwith @@ Printf.sprintf "%scannot infer type" (Position.to_string_comma t)
 
-let check_decl k env ctx (x, c, a, t) =
+let check_decl k env ctx ((x, c, a, t):decl) =
   Printf.printf "\nDECL  %s = %s %s %s\n%!" x (string_of_term t) (match c with Normal -> ":" | Crisp -> "::") (string_of_term a);
   let a = check_type k env ctx a in
   let a = eval env a in
