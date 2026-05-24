@@ -44,7 +44,7 @@ flat-unique :: (A :: Type) (C : ♭A → Type) (f : (x : ♭A) → C x) (x : ♭
 flat-unique A C f 𝄫x = refl
 
 -- TODO: dependent version?
-flat-map :: (A :: Type) (B :: Type) (f :: A → B) → ♭A → ♭B
+flat-map :: (A B :: Type) (f :: A → B) → ♭A → ♭B
 flat-map A B f 𝄫a = 𝄫(f a)
 
 flat-tens-to-prod :: (A B :: U) → ♭(A ⨂ B) → ♭(A × B)
