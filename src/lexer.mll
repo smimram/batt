@@ -54,6 +54,9 @@ rule token = parse
   | "let" { LET }
   | "in" { IN }
   | "postulate" { POSTULATE }
+  | "module" { MODULE }
+  | "where" { WHERE }
+  | "end" { END }
   | "open import "((letter|['-''_'])* as s) { INCLUDE s }
   | letter(letter|['0'-'9''\'''-''_'])* as s { IDENT s }
   | "--"[^'\n']* { token lexbuf }
