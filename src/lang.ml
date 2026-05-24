@@ -1037,7 +1037,7 @@ and infer k env ctx (t:term) : term * value =
       | [] -> failwith @@ Printf.sprintf "%sundefined variable %s" (Position.to_string_comma t) x
     in
     let k = aux 0 env in
-    let a = match Context.assoc_opt x ctx with Some a -> a | None -> failwith @@ Printf.sprintf "%sunexpected error: variable %s is in the context but not in the typing environment" (Position.to_string_comma t) x in
+    let a = match Context.assoc_opt x ctx with Some a -> a | None -> failwith @@ Printf.sprintf "%svariable %s is in the context but not in the typing environment (crispness issue?)" (Position.to_string_comma t) x in
     TVar' k, a
   | TMeta (`Fresh pos) ->
     let a = fresh_meta env in
