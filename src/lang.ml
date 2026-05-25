@@ -902,7 +902,7 @@ let rec check k env ctx (t:term) (a:value) : term =
     let x =
       match b' with
       | Eq (x, y') when y' = y -> x
-      | _ -> assert false
+      | _ -> failwith @@ Printf.sprintf "%sidentity type expected" (Position.to_string_comma t)
     in
     let c = capp (snd @@ unpi ~icit:Explicit @@ capp b x) Refl in
     let r = check k env ctx r c in

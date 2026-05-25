@@ -8,3 +8,8 @@ Prop = Σ (A : U) . is-prop A
 
 type-Prop :: Prop → U
 type-Prop (A, p) = A
+
+-- open import equality
+
+-- is-contr→is-prop :: {A :: Type} → is-contr A → is-prop A
+-- is-contr→is-prop (a , p) x y = (trans (sym (p x)) (p y) , ?)
