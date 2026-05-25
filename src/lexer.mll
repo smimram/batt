@@ -41,7 +41,7 @@ rule token = parse
   | "fun" { FUN }
   | "λ" { utf8 lexbuf; FUN }
   | "ρ" { utf8 lexbuf; FUN }
-  | "∂" { utf8 lexbuf; FUN }
+  | "∂" { utf8 ~n:2 lexbuf; FUN }
   | "Σ" { utf8 lexbuf; SIGMA }
   | "×"  { utf8 lexbuf; TIMES }
   | "⨂"  { utf8 ~n:2 lexbuf; TENS }

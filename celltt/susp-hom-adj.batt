@@ -19,16 +19,16 @@ susphom-counit X' =
   let x1 ∷ X = rightpt X' in
   let leg-cyl ∷ hom' X' ⨂ I → X = λ (f' ⊗ s) . oplax-oplaxbipt {I'} f' s in
   let leg-bool ∷ Bool → X = ind-bool X x0 x1 in
-  let ho-legs ∷ (u : hom' X' ⨂ Bool) → leg-cyl (cylbnd-inclusion (hom' X') u) ≡ leg-bool (tens-snd (hom' X') Bool u) =
-    λ (f' ⊗ b) . rec-bool (λb. leg-cyl (cylbnd-inclusion (hom' X') (f' ⊗ b)) ≡ leg-bool (tens-snd (hom' X') Bool (f' ⊗ b)))
+  let ho-legs ∷ (u : hom' X' ⨂ Bool) → leg-cyl (cylbnd-inclusion (hom' X') u) ≡ leg-bool (tens-snd u) =
+    λ (f' ⊗ b) . rec-bool (λb. leg-cyl (cylbnd-inclusion (hom' X') (f' ⊗ b)) ≡ leg-bool (tens-snd (f' ⊗ b)))
       (oplaxleftcoh {I'} f') (oplaxrightcoh {I'} f') b
   in
-  let counit-map : susp (hom' X') → X = pushout-univ (cylbnd-inclusion (hom' X')) (tens-snd (hom' X') Bool) X leg-cyl leg-bool ho-legs in
+  let counit-map : susp (hom' X') → X = pushout-univ (cylbnd-inclusion (hom' X')) tens-snd X leg-cyl leg-bool ho-legs in
   let counit-lcoh : counit-map (left-susp (hom' X')) ≡ x0 =
-    pushout-univr (cylbnd-inclusion (hom' X')) (tens-snd (hom' X') Bool) X leg-cyl leg-bool ho-legs false
+    pushout-univr (cylbnd-inclusion (hom' X')) tens-snd X leg-cyl leg-bool ho-legs false
   in
   let counit-rcoh : counit-map (right-susp (hom' X')) ≡ x1 =
-    pushout-univr (cylbnd-inclusion (hom' X')) (tens-snd (hom' X') Bool) X leg-cyl leg-bool ho-legs true
+    pushout-univr (cylbnd-inclusion (hom' X')) tens-snd X leg-cyl leg-bool ho-legs true
   in
   (counit-map, (counit-lcoh, counit-rcoh))
 
@@ -59,13 +59,13 @@ from-susp-to-hom {X} {Y'} g =
   let y1 ∷ Y = rightpt Y' in
   let leg-cyl : X ⨂ I → Y = λ (x ⊗ s) . oplax-oplaxbipt {I'} (g x) s in
   let leg-bool : Bool → Y = ind-bool Y y0 y1 in
-  let ho-legs : (u : X ⨂ Bool) → leg-cyl (cylbnd-inclusion X u) ≡ leg-bool (tens-snd X Bool u) =
-    λ (x ⊗ b) . rec-bool (λb. leg-cyl (cylbnd-inclusion X (x ⊗ b)) ≡ leg-bool (tens-snd X Bool (x ⊗ b)))
+  let ho-legs : (u : X ⨂ Bool) → leg-cyl (cylbnd-inclusion X u) ≡ leg-bool (tens-snd u) =
+    λ (x ⊗ b) . rec-bool (λb. leg-cyl (cylbnd-inclusion X (x ⊗ b)) ≡ leg-bool (tens-snd (x ⊗ b)))
       (oplaxleftcoh {I'} (g x)) (oplaxrightcoh {I'} (g x)) b
   in
-  let f : susp X → Y = pushout-univ (cylbnd-inclusion X) (tens-snd X Bool) Y leg-cyl leg-bool ho-legs in
-  let f0  : f (left-susp  X) ≡ y0 = pushout-univr (cylbnd-inclusion X) (tens-snd X Bool) Y leg-cyl leg-bool ho-legs false in
-  let f1 : f (right-susp X) ≡ y1 = pushout-univr (cylbnd-inclusion X) (tens-snd X Bool) Y leg-cyl leg-bool ho-legs true in 
+  let f : susp X → Y = pushout-univ (cylbnd-inclusion X) tens-snd Y leg-cyl leg-bool ho-legs in
+  let f0  : f (left-susp  X) ≡ y0 = pushout-univr (cylbnd-inclusion X) tens-snd Y leg-cyl leg-bool ho-legs false in
+  let f1 : f (right-susp X) ≡ y1 = pushout-univr (cylbnd-inclusion X) tens-snd Y leg-cyl leg-bool ho-legs true in 
   (f, (f0, f1))
 
 from-susp-to-hom-from-susp ∷ {X ∷ U} {Y' ∷ Ubipt} → (f' : mapbipt (susp' X) Y') → biptho {susp' X} (from-susp-to-hom (to-hom-from-susp f')) f'

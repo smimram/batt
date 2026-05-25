@@ -56,7 +56,7 @@ type term =
   | TRefl
   | TJ of term
   | TVar of var
-  | TVar' of int (** a de Bruijn term *) (* TODO: it would be much better to have preterms (strings) and terms (de Bruijn) *)
+  | TVar' of int (** a variable given de Bruijn index *) (* TODO: it would be much better to have preterms (strings) and terms (de Bruijn) *)
   | TLet of crispness * string * term * term * term
   | TPostulate of int option (** a postulate with given internal identifier *)
   | THole of Pos.t
@@ -294,7 +294,7 @@ and vvar k = Var (k, [])
 and fresh_meta ?pos env =
   let m = Meta.fresh ?pos () in
   (* We only keep variables in the environment. *)
-  let vars = List.filter_map (fun (x,v) -> match force v with Var _ -> Some (TVar x) | _ -> None) env |> List.map (eval env) in
+  let vars = List.filter_map (fun (_x,v) -> match force v with Var _ -> Some v | _ -> None) env in
   Meta (m, vars)
 
 (** Apply a value to another. *)
@@ -527,6 +527,24 @@ type partial_renaming =
 (** Unify two values. *)
 let rec unify k (t:value) (u:value) =
   (* debug "UNIFY %s WITH %s\n%!" (string_of_value k t) (string_of_value k u); *)
+  (* Make multiple abstractions. *)
+  (* TODO: move up *)
+  let rec abss l t =
+    match l with
+    | (s,x)::l -> TAbs (Explicit, s, x, abss l t)
+    | [] -> t
+  in
+  (* Apply a term to a list (not a spine!) of values. *)
+  let rec apps t = function
+    | u::uu -> apps (TApp (t, Explicit, u)) uu
+    | [] -> t
+  in
+  let set m t =
+    debug "UNIF %s <- %s\n%!" (Meta.to_string m) (string_of_term t);
+    assert (m.value = None);
+    let t = eval [] t in
+    m.value <- Some t
+  in
   (* Make sure that metavariable m applied to spine s equals t. *)
   let solve k m s t =
     (* debug "SOLVE %s =? %s\n" (string_of_value k (Meta (m, s))) (string_of_value k t); *)
@@ -559,11 +577,39 @@ let rec unify k (t:value) (u:value) =
     let rename m r (t:value) : term =
       let var i = TVar (var_name i) in
       let rec rename r t =
+        let t = force t in
         let spine l t = app_spine t (List.map (rename r) l) in
         match t with
         | Meta (m',l) ->
           if m'.id = m.id then (debug "OCCURS\n"; raise Unification); (* Occurs-check. *)
           spine l @@ TMeta (`Generated m'.id)
+          (*
+          (* Try to rename each spine element; prune those that escape the renaming. *)
+          (* The spine l = [a_{n-1}, ..., a_0] where a_0 was the first arg applied. *)
+          let n = List.length l in
+          let pvar i = TVar ("p!" ^ string_of_int i) in
+          let renamed_with_idx = List.mapi (fun i_spine v ->
+            let i_arg = n - 1 - i_spine in
+            match (try Some (rename r v) with Unification -> None) with
+            | Some t -> Some (i_arg, t)
+            | None -> None
+          ) l in
+          if List.for_all Option.is_some renamed_with_idx then
+            (* All elements renamed: proceed normally. *)
+            app_spine (TMeta (`Generated m'.id)) (List.map (fun x -> snd (Option.get x)) renamed_with_idx)
+          else begin
+            (* Some elements escaped: prune m' to not depend on the escaping args. *)
+            (* survivors is in ascending i_arg order *)
+            let survivors = List.rev (List.filter_map Fun.id renamed_with_idx) in
+            let m'' = Meta.fresh () in
+            (* Build: λp!0...λp!{n-1}. m''(p!{i_0}, ..., p!{i_k}) *)
+            let pruning_body = app_spine (TMeta (`Generated m''.id)) (List.rev_map (fun (i, _) -> pvar i) survivors) in
+            let pruning_term = List.fold_right (fun i t -> TAbs (Explicit, None, "p!" ^ string_of_int i, t)) (List.init n Fun.id) pruning_body in
+            m'.value <- Some (eval [] pruning_term);
+            debug "PRUNE ?%d -> ?%d\n" m'.id m''.id;
+            app_spine (TMeta (`Generated m''.id)) (List.rev_map snd survivors)
+          end
+          *)
         | Pi (i, c, a, b) ->
           let a = rename r a in
           let x = var_name r.cod in
@@ -624,18 +670,10 @@ let rec unify k (t:value) (u:value) =
     in
     let t = rename m r t in
     let t =
-      (* TODO: move up *)
-      let rec abss l t =
-        match l with
-        | (s,x)::l -> TAbs (Explicit, s, x, abss l t)
-        | [] -> t
-      in
       (* TODO: correctly handle side... *)
       abss (List.init r.cod (fun i -> None, var_name i)) t
     in
-    debug "UNIF ?%d <- %s\n%!" m.id (string_of_term t);
-    let t = eval [] t in
-    m.value <- Some t
+    set m t
   in
   let spine k l l' =
     if List.length l <> List.length l' then raise Unification;
@@ -694,8 +732,40 @@ let rec unify k (t:value) (u:value) =
   | Var (x, l), Var (x', l') ->
     if x <> x' then raise Unification;
     spine k l l'
-  | Meta (m, s), t -> solve k m s t
-  | t, Meta (m, s) -> solve k m s t
+  | Meta (m, l), Meta (m', l') ->
+    (* Prune to common non-duplicated variables. *)
+    (* TODO: we should be able to spare a few List.rev *)
+    (* Remove duplicated variables and non-variables from the spine. *)
+    let sanitize l =
+      let rec aux = function
+        | (Var (_, []) as x)::l ->
+          if List.mem x l then aux (List.filter (fun y -> x <> y) l)
+          else x::(aux l)
+        | _::l -> aux l
+        | [] -> []
+      in
+      List.rev @@ aux l
+    in
+    (* replace (m1,l1) with (m2,l2) *)
+    let replace m1 l1 m2 l2 =
+      let t =
+        let var i = "x~" ^ string_of_int (i+1) in
+        let xx = List.init (List.length l1) (fun i -> None, var i) in
+        let args = List.mapi (fun i x -> if List.mem x l2 then Some (TVar (var i)) else None) (List.rev l1) |> List.filter_map Fun.id in
+        let m2 = TMeta (`Generated m2.id) in
+        let t = apps m2 args in
+        abss xx t
+      in
+      set m1 t
+    in
+    let l2 = sanitize l in
+    let l2' = sanitize l' in
+    let l2 = List.filter (fun x -> List.mem x l2') l2 in
+    let m2 = Meta.fresh () in
+    replace m l m2 l2;
+    replace m' l' m2 l2
+  | Meta (m, l), t -> solve k m l t
+  | t, Meta (m, l) -> solve k m l t
   | t, u ->
     debug "CLASH %s VS %s \n%!" (string_of_value k t) (string_of_value k u);
     raise Unification
@@ -837,14 +907,9 @@ let rec check k env ctx (t:term) (a:value) : term =
     let c = capp (snd @@ unpi ~icit:Explicit @@ capp b x) Refl in
     let r = check k env ctx r c in
     TJ r
-  | _, Pi (Implicit, c, a, b) ->
-    (* Insert implicit abstraction *)
-    let xv = vvar k in
-    let k = k+1 in
-    let env = ("_", xv)::env in
-    let ctx = Context.ext ~crispness:c ctx "_" a in
-    let t = check k env ctx t (capp b xv) in
-    TAbs (Implicit, None, "_", t)
+  | _, Pi (Implicit, _, _, _) ->
+    (* Insert implicit abstraction. *)
+    check k env ctx (TAbs (Implicit, None, "_", t)) a
   | TPi _, Type
   | TSigma _, Type
   | TArr _, Type
@@ -930,6 +995,7 @@ and check_type k env ctx a =
 (** Infer the type of a term. *)
 and infer k env ctx (t:term) : term * value =
   debug "INFER %s\n%!" (string_of_term t);
+  let t0 = t in
   (* let cenv, benv = ctx in *)
   match t with
   | TIndType ind -> TIndType ind, Type
@@ -951,13 +1017,13 @@ and infer k env ctx (t:term) : term * value =
       (
         match a with
         | Pi (icit', c, a, b) ->
-          if icit <> icit' then failwith "got an implicit argument where an explicit one was expected";
+          if icit <> icit' then failwith @@ Printf.sprintf "%sgot an implicit argument where an explicit one was expected" (Position.to_string_comma t0);
           let u = check k env (Context.crisp ~crispness:c ctx) u a in
           TApp (t, icit, u), capp b (eval env u)
         | Arr (_s, a, b) ->
           let u = check k env ctx u a in
           TApp (t, Explicit, u), b
-        | _ -> failwith "infer app"
+        | _ -> failwith @@ Printf.sprintf "%scannot infer the type of the application" (Position.to_string_comma t0)
       )
     )
   | TEq (t, u) ->
@@ -971,12 +1037,12 @@ and infer k env ctx (t:term) : term * value =
       | [] -> failwith @@ Printf.sprintf "%sundefined variable %s" (Position.to_string_comma t) x
     in
     let k = aux 0 env in
-    let a = Option.get @@ Context.assoc_opt x ctx in
+    let a = match Context.assoc_opt x ctx with Some a -> a | None -> failwith @@ Printf.sprintf "%svariable %s is in the context but not in the typing environment (crispness issue?)" (Position.to_string_comma t) x in
     TVar' k, a
   | TMeta (`Fresh pos) ->
     let a = fresh_meta env in
     TMeta (`Fresh pos), a
-  | _ -> failwith "infer"
+  | _ -> failwith @@ Printf.sprintf "%scannot infer type" (Position.to_string_comma t)
 
 let check_decl k env ctx (x, c, a, t) =
   Printf.printf "\nDECL  %s = %s %s %s\n%!" x (string_of_term t) (match c with Normal -> ":" | Crisp -> "::") (string_of_term a);

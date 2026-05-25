@@ -33,8 +33,8 @@ rightcoh {X'} {Y'} (f, u) = snd (λ_. f (rightpt X') ≡ rightpt Y') u
 idbipt ∷ {X' : Ubipt} → mapbipt X' X'
 idbipt {X'} = (id, refl, refl)
 
-circbipt ∷ (X' Y' Z' : Ubipt) → mapbipt Y' Z' → mapbipt X' Y' → mapbipt X' Z'
-circbipt X' Y' Z' g' f' =
+circbipt ∷ {X' Y' Z' : Ubipt} → mapbipt Y' Z' → mapbipt X' Y' → mapbipt X' Z'
+circbipt {X'} {Y'} {Z'} g' f' =
   let X : U = type-Ubipt X' in
   let x0 : X = leftpt X' in
   let x1 : X = rightpt X' in
