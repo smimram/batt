@@ -39,6 +39,12 @@ happly {A} {B} {f} refl x = refl
 sym-sym :: {A : Type} {x y : A} (p : x ≡ y) → sym (sym p) ≡ p
 sym-sym {A} {x} refl = refl
 
+cong-id :: {A : Type} {x y : A} (p : x ≡ y) → cong id p ≡ p
+cong-id {A} {x} refl = refl
+
+cong-sym :: {A B : Type} (f : A → B) {x y : A} (p : x ≡ y) → cong f (sym p) ≡ sym (cong f p)
+cong-sym f {x} refl = refl
+
 ---
 --- Homotopies
 ---
