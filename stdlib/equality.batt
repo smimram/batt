@@ -29,12 +29,21 @@ transport {A} refl a = a
 subst :: {A : Type} (P : A → Type) {x y : A} → x ≡ y → P x → P y
 subst P {x} refl z = z
 
+happly :: {A : Type} {B : A → Type} {f g : (x : A) → B x} → f ≡ g → (x : A) → f x ≡ g x
+happly {A} {B} {f} refl x = refl
+
 ---
 --- Basic lemmas
 ---
 
 sym-sym :: {A : Type} {x y : A} (p : x ≡ y) → sym (sym p) ≡ p
 sym-sym {A} {x} refl = refl
+
+cong-id :: {A : Type} {x y : A} (p : x ≡ y) → cong id p ≡ p
+cong-id {A} {x} refl = refl
+
+cong-sym :: {A B : Type} (f : A → B) {x y : A} (p : x ≡ y) → cong f (sym p) ≡ sym (cong f p)
+cong-sym f {x} refl = refl
 
 ---
 --- Homotopies
