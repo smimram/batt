@@ -583,33 +583,6 @@ let rec unify k (t:value) (u:value) =
         | Meta (m',l) ->
           if m'.id = m.id then (debug "OCCURS\n"; raise Unification); (* Occurs-check. *)
           spine l @@ TMeta (`Generated m'.id)
-          (*
-          (* Try to rename each spine element; prune those that escape the renaming. *)
-          (* The spine l = [a_{n-1}, ..., a_0] where a_0 was the first arg applied. *)
-          let n = List.length l in
-          let pvar i = TVar ("p!" ^ string_of_int i) in
-          let renamed_with_idx = List.mapi (fun i_spine v ->
-            let i_arg = n - 1 - i_spine in
-            match (try Some (rename r v) with Unification -> None) with
-            | Some t -> Some (i_arg, t)
-            | None -> None
-          ) l in
-          if List.for_all Option.is_some renamed_with_idx then
-            (* All elements renamed: proceed normally. *)
-            app_spine (TMeta (`Generated m'.id)) (List.map (fun x -> snd (Option.get x)) renamed_with_idx)
-          else begin
-            (* Some elements escaped: prune m' to not depend on the escaping args. *)
-            (* survivors is in ascending i_arg order *)
-            let survivors = List.rev (List.filter_map Fun.id renamed_with_idx) in
-            let m'' = Meta.fresh () in
-            (* Build: λp!0...λp!{n-1}. m''(p!{i_0}, ..., p!{i_k}) *)
-            let pruning_body = app_spine (TMeta (`Generated m''.id)) (List.rev_map (fun (i, _) -> pvar i) survivors) in
-            let pruning_term = List.fold_right (fun i t -> TAbs (Explicit, None, "p!" ^ string_of_int i, t)) (List.init n Fun.id) pruning_body in
-            m'.value <- Some (eval [] pruning_term);
-            debug "PRUNE ?%d -> ?%d\n" m'.id m''.id;
-            app_spine (TMeta (`Generated m''.id)) (List.rev_map snd survivors)
-          end
-          *)
         | Pi (i, c, a, b) ->
           let a = rename r a in
           let x = var_name r.cod in
