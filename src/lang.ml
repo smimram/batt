@@ -898,7 +898,7 @@ let rec check k env ctx (t:term) (a:value) : term =
     let t0 = t in
     let t, a' = infer k env ctx t in
     (
-      match a', a with
+      match force a', force a with
       | Pi (Implicit, _, _, _), Pi (Explicit, _, _, _) ->
         let pos = Position.find_opt t in
         check k env ctx (mk ?pos (app ~icit:Implicit t0 (TMeta (`Fresh None)))) a
@@ -988,7 +988,7 @@ and infer k env ctx (t:term) : term * value =
       let t, a = infer k env ctx t in
       let t, a = if icit = Explicit then insert_implicits t a else t, a in
       (
-        match a with
+        match force a with
         | Pi (icit', c, a, b) ->
           if icit <> icit' then failwith @@ Printf.sprintf "%sgot an implicit argument where an explicit one was expected" (Position.to_string_comma t0);
           let u = check k env (Context.crisp ~crispness:c ctx) u a in
