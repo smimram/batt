@@ -623,6 +623,7 @@ let rec unify k (t:value) (u:value) =
           spine l @@ TTens_ind (x, y, t)
         | Eq(t,u) -> TEq (rename r t, rename r u)
         | J (t, l) -> spine l @@ TJ (rename r t)
+        | Flat a -> TFlat (rename r a)
         | Var (x, l) ->
           spine l @@
           (
