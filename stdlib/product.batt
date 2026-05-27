@@ -3,3 +3,9 @@ fst B (x,y) = x
 
 snd ∷ {A : U} (B : A → U) → (u : Σ (x : A) . B x) → B (fst B u)
 snd B (x,y) = y
+
+prod-fst :: {A B : U} → A × B → A
+prod-fst (x , y) = x
+
+prod-snd :: {A B : U} → A × B → B
+prod-snd (x , y) = y
