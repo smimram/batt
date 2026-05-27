@@ -2,9 +2,9 @@
 open Lexing
 open Parser
 
-let utf8 ?(n=1) lexbuf =
+let utf8 ?(n=2) lexbuf =
   let pos = lexbuf.lex_curr_p in
-  lexbuf.lex_curr_p <- { pos with pos_bol = pos.pos_bol + n }
+  lexbuf.lex_curr_p <- { pos with pos_bol = pos.pos_bol + n - 1 }
 }
 
 let letter = ['A'-'Z''a'-'z']
@@ -14,9 +14,9 @@ rule token = parse
   | "U" { TYPE }
   | "Type" { TYPE }
   | "Empty" { EMPTY }
-  | "⊥" { utf8 ~n:2 lexbuf; EMPTY }
+  | "⊥" { utf8 ~n:3 lexbuf; EMPTY }
   | "Unit" { UNIT }
-  | "⊤" { utf8 ~n:2 lexbuf; UNIT }
+  | "⊤" { utf8 ~n:3 lexbuf; UNIT }
   | "tt" { TT }
   | "Bool" { BOOL }
   | "false" { FALSE }
@@ -24,7 +24,7 @@ rule token = parse
   | "Bool_ind" { BOOL_IND }
   | ":" { COLON }
   | "::" { CCOLON }
-  | "∷" { utf8 ~n:2 lexbuf; CCOLON }
+  | "∷" { utf8 ~n:3 lexbuf; CCOLON }
   | "=" { EQ }
   | "?" { HOLE }
   | "()" { LRPAR }
@@ -34,21 +34,21 @@ rule token = parse
   | "}" { RACC }
   | "," { COMMA }
   | "->" { TO }
-  | "→"  { utf8 ~n:2 lexbuf; TO }
-  | "ₗ" { utf8 ~n:2 lexbuf; LEFT }
-  | "ᵣ" { utf8 ~n:2 lexbuf; RIGHT }
+  | "→"  { utf8 ~n:3 lexbuf; TO }
+  | "ₗ" { utf8 ~n:3 lexbuf; LEFT }
+  | "ᵣ" { utf8 ~n:3 lexbuf; RIGHT }
   | "." { DOT }
   | "fun" { FUN }
   | "λ" { utf8 lexbuf; FUN }
   | "ρ" { utf8 lexbuf; FUN }
-  | "∂" { utf8 ~n:2 lexbuf; FUN }
+  | "∂" { utf8 ~n:3 lexbuf; FUN }
   | "Σ" { utf8 lexbuf; SIGMA }
   | "×"  { utf8 lexbuf; TIMES }
-  | "⨂"  { utf8 ~n:2 lexbuf; TENS }
-  | "⊗"  { utf8 ~n:2 lexbuf; TENSP }
-  | "♭" { utf8 ~n:2 lexbuf; FLAT }
-  | "𝄫" { utf8 ~n:3 lexbuf; FLATTEN }
-  | "≡" { utf8 ~n:2 lexbuf; IDEQ }
+  | "⨂"  { utf8 ~n:3 lexbuf; TENS }
+  | "⊗"  { utf8 ~n:3 lexbuf; TENSP }
+  | "♭" { utf8 ~n:3 lexbuf; FLAT }
+  | "𝄫" { utf8 ~n:4 lexbuf; FLATTEN }
+  | "≡" { utf8 ~n:3 lexbuf; IDEQ }
   | "_" { META }
   | "refl" { REFL }
   | "let" { LET }
