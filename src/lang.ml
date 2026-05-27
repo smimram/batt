@@ -630,6 +630,7 @@ let rec unify k (t:value) (u:value) =
           let t = capp t (vvar k) in
           let t = rename (lift r) t in
           spine l @@ TFlat_ind (x, t)
+        | Hole (pos, l) -> spine l @@ THole pos
         | Var (x, l) ->
           spine l @@
           (
