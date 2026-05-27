@@ -857,9 +857,9 @@ let rec check k env ctx (t:term) (a:value) : term =
     TFlatten t
   | TFlat_ind (x, t), Pi (Explicit, Normal, a, b) ->
     let a =
-      match a with
+      match force a with
       | Flat a -> a
-      | _ -> failwith "flat type expected"
+      | _ -> failwith @@ Printf.sprintf "%sflat type expected" (Position.to_string_comma t)
     in
     let xv = vvar k in
     let k = k+1 in
