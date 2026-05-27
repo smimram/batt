@@ -85,3 +85,19 @@ crispify-bool = Bool_ind(𝄫false, 𝄫true)
 
 is-section-crispify-bool :: (b : Bool) → unflatten (crispify-bool b) ≡ b
 is-section-crispify-bool = rec-bool (λb. unflatten (crispify-bool b) ≡ b) refl refl
+
+---
+--- Discreteness
+---
+
+open import equivalence
+
+-- Theorem 6.14
+flat-unflatten-target : {A B :: Type} → ♭(♭B → ♭A) → ♭(♭B → A)
+flat-unflatten-target 𝄫f = 𝄫(λ b.unflatten (f b))
+
+flat-unflatten-target-equiv : {A B :: Type} → is-equiv (flat-unflatten-target {A} {B})
+flat-unflatten-target-equiv = ?
+
+is-discrete :: (A :: U) → Type
+is-discrete A = is-equiv (unflatten {A})

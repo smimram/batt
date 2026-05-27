@@ -1,6 +1,14 @@
 %{
 open Lang
 open Helper
+
+let binder_names ~pos t =
+  let rec aux acc = function
+    | TVar x -> x :: acc
+    | TApp (t, _, TVar x) -> aux (x :: acc) t
+    | _ -> failwith @@ Printf.sprintf "%s: binder expected" (Pos.to_string pos)
+  in
+  List.rev @@ aux [] t
 %}
 
 %token COLON CCOLON EQ LPAR RPAR LRPAR LACC RACC COMMA LET IN POSTULATE META HOLE N EOF
@@ -78,7 +86,7 @@ prod_term:
 fun_term:
   | prod_term { $1 }
   | a=prod_term TO s=option(dir) b=fun_term { match s with None -> mk ~pos:$loc @@ TPi (Explicit, Normal, "_", a, b) | Some s -> mk ~pos:$loc @@ TArr (s, a, b) }
-  | abs=nonempty_list(piabs) TO b=fun_term { pis ~pos:$loc abs b }
+  | abs=nonempty_list(binder_group) TO b=fun_term { pis ~pos:$loc abs b }
   | SIGMA LPAR x=IDENT COLON a=term RPAR DOT b=fun_term { mk ~pos:$loc @@ TSigma (x, a, b) }
   | FUN x=nonempty_list(pattern) to_dot t=fun_term { abss_pattern ~pos:$loc x t }
   | LET x=IDENT c=ccolon a=term EQ t=term IN u=fun_term { mk ~pos:$loc @@ TLet (c, x, a, t, u) }
@@ -101,8 +109,8 @@ identm:
   | IDENT { $1 }
   | META { "_" }
 
-piabs:
-  | LPAR x=nonempty_list(IDENT) c=ccolon a=term RPAR { Explicit,c,x,a }
+binder_group:
+  | LPAR t=term c=ccolon a=term RPAR { Explicit,c,binder_names ~pos:$loc(t) t,a }
   | LACC x=nonempty_list(IDENT) c=ccolon a=term RACC { Implicit,c,x,a }
 
 dir:

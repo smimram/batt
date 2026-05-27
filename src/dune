@@ -1,6 +1,6 @@
 (menhir
  (modules parser)
- (flags --strict --unused-token INCLUDE)
+ ; (flags --strict --unused-token INCLUDE)
 )
 
 (ocamllex

@@ -74,12 +74,12 @@ merid' x = (merid(x), (lcoh-merid(x), rcoh-merid(x)))
 -- functoriality of the suspension
 --
 
-susp-map ∷ (X Y ∷ U) (f ∷ X → Y) → susp X → susp Y
-susp-map X Y f =
-  let leg-cyl ∷ X ⨂ I → susp Y = circ (cyl-to-susp Y) (tens-map f id) in
-  let leg-bool ∷ Bool → susp Y = bool-to-susp Y in
-  let ho-legs ∷ (u : X ⨂ Bool) → leg-cyl (cylbnd-inclusion X u) ≡ leg-bool (tens-snd u) =
-    λ (x ⊗ b) . pushout-eq (cylbnd-inclusion Y) tens-snd (f(x) ⊗ b)
-  in
-  pushout-univ (cylbnd-inclusion X) tens-snd (susp Y)
-    leg-cyl leg-bool ho-legs
+-- susp-map ∷ (X Y ∷ U) (f ∷ X → Y) → susp X → susp Y
+-- susp-map X Y f =
+  -- let leg-cyl ∷ X ⨂ I → susp Y = circ (cyl-to-susp Y) (tens-map f id) in
+  -- let leg-bool ∷ Bool → susp Y = bool-to-susp Y in
+  -- let ho-legs ∷ (u : X ⨂ Bool) → leg-cyl (cylbnd-inclusion X u) ≡ leg-bool (tens-snd u) =
+    -- λ (x ⊗ b) . pushout-eq (cylbnd-inclusion Y) tens-snd (f(x) ⊗ b)
+  -- in
+  -- pushout-univ (cylbnd-inclusion X) tens-snd (susp Y)
+    -- leg-cyl leg-bool ho-legs
