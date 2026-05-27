@@ -8,7 +8,7 @@ let binder_names ~pos t =
     | TApp (t, _, TVar x) -> aux (x :: acc) t
     | _ -> failwith @@ Printf.sprintf "%s: binder expected" (Pos.to_string pos)
   in
-  List.rev @@ aux [] t
+  aux [] t
 %}
 
 %token COLON CCOLON EQ LPAR RPAR LRPAR LACC RACC COMMA LET IN POSTULATE META HOLE N EOF

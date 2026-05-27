@@ -5,14 +5,14 @@
 J :: {A : Type} (x : A) (P : (y : A) → x ≡ y → Type) → P x refl → {y : A} (p : x ≡ y) → P y p
 J x P r refl = r
 
--- J' :: {A : Type} (P : (x y : A) → x ≡ y → Type) → ((x : A) → P x x refl) → {x y : A} (p : x ≡ y) → P x y p
--- J' P r {x} refl = r x
+J' :: {A : Type} (P : (x y : A) → x ≡ y → Type) → ((x : A) → P x x refl) → {x y : A} (p : x ≡ y) → P x y p
+J' P r {x} refl = r x
 
--- J-from-J' :: {A : Type} (x : A) (P : (y : A) → x ≡ y → Type) → P x refl → (y : A) (p : x ≡ y) → P y p
--- J-from-J' {A} x P r y p =
-  -- let D : (x y : A) → x ≡ y → Type = fun x y p → (P : (y : A) → x ≡ y → Type) → P x refl → P y p in
-  -- let R : (x : A) → D x x refl = fun x P r → r in
-  -- J' D R p P r
+J-from-J' :: {A : Type} (x : A) (P : (y : A) → x ≡ y → Type) → P x refl → (y : A) (p : x ≡ y) → P y p
+J-from-J' {A} x P r y p =
+  let D : (x y : A) → x ≡ y → Type = fun x y p → (P : (y : A) → x ≡ y → Type) → P x refl → P y p in
+  let R : (x : A) → D x x refl = fun x P r → r in
+  J' D R p P r
 
 sym :: {A : Type} {x y : A} → x ≡ y → y ≡ x
 sym {A} {x} refl = refl
