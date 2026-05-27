@@ -783,9 +783,7 @@ let rec check k env ctx (t:term) (a:value) : term =
     let a = check_type k env (Context.crisp ~crispness:c ctx) a in
     let av = eval env a in
     let t = check k env (Context.crisp ~crispness:c ctx) t av in
-    let tv = eval env t in
-    let k = k+1 in
-    let env = (x,tv)::env in
+    let env = (x,eval env t)::env in
     let ctx = Context.ext ~crispness:c ctx x av in
     let u = check k env ctx u b in
     TLet (c, x, a, t, u)
