@@ -6,5 +6,5 @@ build:
 test:
 	@dune exec ./batt.exe -- -I ../stdlib test.batt
 
-explain:
+explain: build
 	@cat ../_build/default/src/parser.conflicts
