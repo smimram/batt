@@ -1,5 +1,16 @@
 -- testing let
+
 n : Bool
 n =
   let id : (A : Type) → A → A = λ A x → x in
   id Bool false
+
+n : Bool
+n =
+  let id : {A : Type} → A → A = λ x → x in
+  id false
+
+n : Bool × Bool
+n =
+  let b : Bool = false in
+  (b , b)

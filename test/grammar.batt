@@ -3,3 +3,6 @@ test0 A B f x = f x
 
 test0 : (A B : U) → (A → B) → A → B
 test0 A B f x = (f x)
+
+-- test : (false : U) → ⊥
+-- test = ?
