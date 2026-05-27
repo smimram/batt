@@ -624,6 +624,12 @@ let rec unify k (t:value) (u:value) =
         | Eq(t,u) -> TEq (rename r t, rename r u)
         | J (t, l) -> spine l @@ TJ (rename r t)
         | Flat a -> TFlat (rename r a)
+        | Flatten t -> TFlatten (rename r t)
+        | Flat_ind (t, l) ->
+          let x = var_name r.cod in
+          let t = capp t (vvar k) in
+          let t = rename (lift r) t in
+          spine l @@ TFlat_ind (x, t)
         | Var (x, l) ->
           spine l @@
           (
