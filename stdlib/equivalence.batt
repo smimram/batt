@@ -54,19 +54,17 @@ equiv A B = Σ (f : A → B) . is-equiv f
 -- identity equivalence
 
 is-equiv-id ∷ (A : U) → is-equiv {A} {A} id
-is-equiv-id A = ((id, λ_.refl), (id, λ_.refl))
+is-equiv-id A = ((id , λ_.refl) , (id , λ_.refl))
 
 id-equiv ∷ (A : U) → equiv A A
-id-equiv A = (id, is-equiv-id A)
+id-equiv A = (id , is-equiv-id A)
 
 ---
 --- isomorphisms
 ---
 
--- is-iso :: {A B : U} → (A → B) → U
--- is-iso {A} {B} f = Σ (g : B → A) . ((is-section ?) × ?) -- ((is-section f g) × (is-retraction f g))
+is-iso :: {A B : U} → (A → B) → U
+is-iso {A} {B} f = Σ (g : B → A) . (is-section f g) × (is-retraction {A} {B} f g)
 
--- is-iso→is-equiv :: {A B : U} → (f : A → B) → is-iso f → is-equiv f
--- is-iso→is-equiv f (g , sr) =
-  -- let s : is-section f g = fst sr in
-  -- ((g , ?) , (g , ?))
+is-iso→is-equiv :: {A B : U} → (f : A → B) → is-iso f → is-equiv {A} {B} f
+is-iso→is-equiv f (g , sr) = (g , prod-fst sr) , (g , prod-snd sr)
