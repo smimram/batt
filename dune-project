@@ -13,5 +13,6 @@
  (description "Bunched affine type theory.")
  (depends
   (sedlex (>= "3.5"))
+  ppx_deriving
  )
 )
