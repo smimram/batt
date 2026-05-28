@@ -2,6 +2,9 @@
 --- Identity types
 ---
 
+refl' :: {A : Type} {x : A} → x ≡ x
+refl' = refl
+
 J :: {A : Type} (x : A) (P : (y : A) → x ≡ y → Type) → P x refl → {y : A} (p : x ≡ y) → P y p
 J x P r refl = r
 
