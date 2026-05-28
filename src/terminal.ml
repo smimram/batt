@@ -12,5 +12,8 @@ let color ?bold c =
     | `Green -> 32
     | `Yellow -> 33
     | `Blue -> 34
+    | `Purple -> 35
+    | `Cyan -> 36
+    | `White -> 37
   in
   color ?bold c

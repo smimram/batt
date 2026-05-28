@@ -41,6 +41,7 @@ let () =
          close_in ic;
          Lang.check_decls_toplevel decls
       ) files;
+    Lang.finalize_unify ();
     Lang.check_meta ()
   with
   | Failure err ->
