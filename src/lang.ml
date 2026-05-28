@@ -146,6 +146,12 @@ type context = Context.t
 
 (** Unification problems. *)
 module Unification = struct
+  let set m t =
+    debug "UNIF %s <- %s\n%!" (V.Meta.to_string m) (T.to_string t);
+    assert (m.value = None);
+    let t = V.eval [] t in
+    m.value <- Some t
+
   (** A unification problem. *)
   type t = Pos.t option * int * value * value
 
@@ -205,12 +211,6 @@ let error ?t fmt =
 (** Unify two values. *)
 let unify ~pos k (t:value) (u:value) =
   (* debug "UNIFY %s WITH %s\n%!" (V.to_string k t) (V.to_string k u); *)
-  let set m t =
-    debug "UNIF %s <- %s\n%!" (V.Meta.to_string m) (T.to_string t);
-    assert (m.value = None);
-    let t = V.eval [] t in
-    m.value <- Some t
-  in
   (* Make sure that metavariable m applied to spine s equals t. *)
   let solve k m s t =
     (* debug "SOLVE %s =? %s\n" (V.to_string k (Meta (m, s))) (V.to_string k t); *)
@@ -319,7 +319,7 @@ let unify ~pos k (t:value) (u:value) =
       (* TODO: correctly handle side... *)
       T.abss (List.init r.cod (fun i -> None, var_name i)) t
     in
-    set m t
+    Unification.set m t
   in
   let rec unify k t u =
     let spine k l l' =
@@ -401,13 +401,8 @@ let finalize_unify () =
       unify ~pos k t u
     done;
   in
+  (* TODO: we should remove pruning! *)
   let prune t u =
-    let set m t =
-      debug "UNIF %s <- %s\n%!" (V.Meta.to_string m) (T.to_string t);
-      assert (m.value = None);
-      let t = V.eval [] t in
-      m.value <- Some t
-    in
     match V.force t, V.force u with
     | Meta (m, l), Meta (m', l') ->
       (* TODO: we should be able to spare a few List.rev *)
@@ -432,7 +427,7 @@ let finalize_unify () =
           let t = T.apps m2 args in
           T.abss xx t
         in
-        set m1 t
+        Unification.set m1 t
       in
       let l2 = sanitize l in
       let l2' = sanitize l' in
