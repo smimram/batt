@@ -11,4 +11,5 @@
  (name batt)
  (synopsis "Bunched affine type theory")
  (description "Bunched affine type theory.")
+ (depends ppx_deriving)
 )
