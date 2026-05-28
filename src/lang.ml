@@ -404,7 +404,7 @@ let finalize_unify () =
       |> List.map (fun (pos,k,t,u) -> Printf.sprintf "- %s: %s vs %s" (Pos.opt_to_string pos) (V.to_string k t) (V.to_string k u))
       |> String.concat "\n"
     in
-    error "unsovled unification problems:\n%s\n" pb
+    warning "\n%d unsovled unification problems:\n%s\n" (List.length !Unification.deferred) pb
 
 let unify k t a b =
   try unify k a b
