@@ -51,6 +51,9 @@ map-retraction-is-equiv {A} {B} f (_, r') = map-retraction {A} {B} f r'
 equiv ∷ U → U → U
 equiv A B = Σ (f : A → B) . is-equiv {A} {B} f
 
+_≃_ :: U → U → U
+_≃_ = equiv
+
 -- identity equivalence
 
 is-equiv-id ∷ (A : U) → is-equiv {A} {A} (id {A})

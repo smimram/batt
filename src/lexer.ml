@@ -44,6 +44,7 @@ let rec token lexbuf =
   | Utf8 "♭" -> FLAT
   | Utf8 "𝄫" -> FLATTEN
   | Utf8 "≡" -> IDEQ
+  | Utf8 "≃" -> EQUIV
   | "_" -> META
   | "refl" -> REFL
   | "let" -> LET
@@ -53,7 +54,7 @@ let rec token lexbuf =
     let s = Sedlexing.Utf8.lexeme lexbuf in
     INCLUDE (String.sub s 12 (String.length s - 12))
   | Plus ('0'..'9') -> INT (int_of_string @@ Sedlexing.Utf8.lexeme lexbuf)
-  | letter, Star (letter | '0'..'9' | '\'' | '-' | '_' | Utf8 "→") -> IDENT (Sedlexing.Utf8.lexeme lexbuf)
+  | (letter, Star (letter | '0'..'9' | '\'' | '-' | '_' | Utf8 "→")) | Utf8 "_≃_" -> IDENT (Sedlexing.Utf8.lexeme lexbuf)
   | "--", Star (Compl '\n') -> token lexbuf
   | Plus space -> token lexbuf
   | "\n " -> token lexbuf (* quick hack, we should properly handle indentation *)

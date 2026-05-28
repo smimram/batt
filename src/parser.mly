@@ -21,9 +21,11 @@ let binder_names ~pos t =
 %token FLAT FLATTEN
 %token IDEQ REFL
 %token LEFT RIGHT
+%token EQUIV
 %token<string> IDENT
 %token<string> INCLUDE
 
+%nonassoc EQUIV
 %nonassoc IDEQ
 %right TIMES
 %right TENSP
@@ -83,6 +85,7 @@ prod_term:
   | a=prod_term TENSP b=prod_term { mk ~pos:$loc @@ TensPair (a, b) }
   | a=prod_term TIMES b=prod_term { mk ~pos:$loc @@ Sigma ("_", a, b) }
   | t=prod_term IDEQ u=prod_term { mk ~pos:$loc @@ Eq (t, u) }
+  | t=prod_term EQUIV u=prod_term { mk ~pos:$loc @@ apps (mk ~pos:$loc($2) @@ Var "_≃_") [t; u] }
 
 fun_term:
   | prod_term { $1 }

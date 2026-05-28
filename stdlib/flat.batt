@@ -93,6 +93,10 @@ is-section-crispify-bool = rec-bool (λb. unflatten (crispify-bool b) ≡ b) ref
 open import equivalence
 open import funext
 
+-- -- Corollary 6.2
+-- flat-path-equiv :: {A :: Type} {x y :: ♭ A} → (𝄫 x ≡ 𝄫 y) ≃ ♭ (x ≡ y)
+-- flat-path-equiv = ?
+
 -- Theorem 6.14
 -- forward
 flat-unflatten-target :: {A B :: Type} → ♭(♭B → ♭A) → ♭(♭B → A)
@@ -122,3 +126,7 @@ is-discrete-flat A =
     h x
   in
   ((g , fg) , (g , gf))
+
+-- -- Theorem 6.19
+-- is-discrete-prod :: {A B :: U} → is-discrete A → is-discrete B → is-discrete (A × B)
+-- is-discrete-prod
