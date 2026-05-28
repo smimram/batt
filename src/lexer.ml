@@ -54,8 +54,8 @@ let rec token lexbuf =
   | letter, Star (letter | '0'..'9' | '\'' | '-' | '_' | Utf8 "→") -> IDENT (Sedlexing.Utf8.lexeme lexbuf)
   | "--", Star (Compl '\n') -> token lexbuf
   | Plus space -> token lexbuf
-  | "\n " -> Sedlexing.new_line lexbuf; token lexbuf (* quick hack, we should properly handle indentation *)
-  | '\n' -> Sedlexing.new_line lexbuf; N
+  | "\n " -> token lexbuf (* quick hack, we should properly handle indentation *)
+  | '\n' -> N
   | eof -> EOF
   | _ ->
     let s = Sedlexing.Utf8.lexeme lexbuf in
