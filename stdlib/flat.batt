@@ -114,5 +114,10 @@ is-discrete A = is-equiv (unflatten {A})
 -- -- Theorem 6.18
 -- is-discrete-flat :: (A :: U) → is-discrete (♭ A)
 -- is-discrete-flat A =
+  -- let f : ♭ ♭ A → ♭ A = unflatten {♭ A} in
   -- let g : ♭ A → ♭ ♭ A = λ 𝄫 a . 𝄫 𝄫 a in
-  -- is-iso→is-equiv (unflatten {♭ A}) (g , _ , _)
+  -- let fg : (x : ♭ A) → f (g x) ≡ x = fun 𝄫a → refl in
+  -- let gf : (x : ♭ ♭ A) → g (f x) ≡ x = fun 𝄫 a →
+    -- let 𝄫 a = a in ?
+  -- in
+  -- is-iso→is-equiv {♭ ♭ A} {♭ A} f (g , _ , _)
