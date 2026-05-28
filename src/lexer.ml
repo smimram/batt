@@ -6,6 +6,7 @@ let space = [%sedlex.regexp? ' ' | '\t' | '\r']
 let rec token lexbuf =
   match%sedlex lexbuf with
   | "Type" -> TYPE
+  | "TYPE" -> LARGETYPE
   | "U" -> TYPE
   | "Empty" -> EMPTY
   | Utf8 "⊥" -> EMPTY
@@ -51,6 +52,7 @@ let rec token lexbuf =
   | "open import ", Star (letter | '-' | '_') ->
     let s = Sedlexing.Utf8.lexeme lexbuf in
     INCLUDE (String.sub s 12 (String.length s - 12))
+  | Plus ('0'..'9') -> INT (int_of_string @@ Sedlexing.Utf8.lexeme lexbuf)
   | letter, Star (letter | '0'..'9' | '\'' | '-' | '_' | Utf8 "→") -> IDENT (Sedlexing.Utf8.lexeme lexbuf)
   | "--", Star (Compl '\n') -> token lexbuf
   | Plus space -> token lexbuf

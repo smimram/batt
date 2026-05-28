@@ -266,7 +266,7 @@ let unify ~pos k (t:value) (u:value) =
           let a = rename r a in
           let b = rename (lift r) @@ V.capp b (V.var r.dom) in
           Sigma (x, a, b)
-        | Type -> Type
+        | Type n -> Type n
         | IndType i -> IndType i
         | IndTerm t -> IndTerm t
         | IndType_ind (i, t, l) -> spine l @@ IndType_ind (i, List.map (rename r) t)
@@ -327,7 +327,8 @@ let unify ~pos k (t:value) (u:value) =
       List.iter2 (unify k) l l'
     in
     match V.force t, V.force u with
-    | Type, Type -> ()
+    | Type l, Type l' ->
+      if l <> l' then raise Unification
     | IndType i, IndType i' ->
       if i <> i' then raise Unification
     | IndTerm t, IndTerm t' ->
@@ -471,6 +472,7 @@ let rec check k env ctx (t:term) (a:value) : term =
   debug "CHECK %s : %s\n%!" (T.to_string t) (V.to_string k a);
   (* let cenv, benv = ctx in *)
   (* Printf.printf "      %s\n%!" (Context.to_string k ctx); *)
+  let t0 = t in
   let pos = T.Position.find_opt t in
   match t, V.force a with
   | Abs (i, None, x, t), Pi (i', c, a, b) when i = i' ->
@@ -490,7 +492,7 @@ let rec check k env ctx (t:term) (a:value) : term =
     let t = check k env ctx t b in
     Abs (i, Some s, x, t)
   | Let (c, x, a, t, u), b ->
-    let a = check_type k env (Context.crisp ~crispness:c ctx) a in
+    let a, _level = check_type k env (Context.crisp ~crispness:c ctx) a in
     let av = V.eval env a in
     let t = check k env (Context.crisp ~crispness:c ctx) t av in
     let env = (x, V.eval env t)::env in
@@ -592,11 +594,14 @@ let rec check k env ctx (t:term) (a:value) : term =
   | _, Pi (Implicit, _, _, _) ->
     (* Insert implicit abstraction. *)
     check k env ctx (Abs (Implicit, None, "_", t)) a
-  | Pi _, Type
-  | Sigma _, Type
-  | Arr _, Type
-  | Tens _, Type
-  | Flat _, Type -> check_type k env ctx t
+  | Pi _, Type m
+  | Sigma _, Type m
+  | Arr _, Type m
+  | Tens _, Type m
+  | Flat _, Type m ->
+    let t, level = check_type k env ctx t in
+    if level > m then error ~t:t0 "universe level %d but at most %d expected" level m;
+    t
   | Postulate n, a ->
     let n = match n with Some n -> n | None -> incr V.postulate; !V.postulate in
     important "POSTULATE %d %s\n%!" n (V.to_string k a);
@@ -609,6 +614,7 @@ let rec check k env ctx (t:term) (a:value) : term =
     let t, a' = infer k env ctx t in
     (
       match V.force a', V.force a with
+      | Type n, Type m when n <= m -> t  (* cumulativity *)
       | Pi (Implicit, _, _, _), Pi (Explicit, _, _, _) ->
         let pos = T.Position.find_opt t in
         check k env ctx (T.mk ?pos (T.app ~icit:Implicit t0 (Meta (`Fresh None)))) a
@@ -617,63 +623,12 @@ let rec check k env ctx (t:term) (a:value) : term =
         with Unification -> error ~t:t0 "%s has type %s but %s expected" (T.to_string t) (V.to_string k a') (V.to_string k a)
     )
 
-(** Check that a term is a type. *)
-and check_type k env ctx a =
+(** Check that a term is a type; returns the elaborated term and its universe level. *)
+and check_type k env ctx a : term * int =
   debug "CHECK TYPE %s\n%!" (T.to_string a);
-  (* let cenv, benv = ctx in *)
-  (* Printf.printf ". ctx: %s\n%!" (Context.to_string k ctx); *)
-  match a with
-  | Type -> Type
-  | Pi (i, Crisp, x, a, b) ->
-    let a = check_type k env (Context.crisp ctx) a in
-    let xv = V.var k in
-    let k = k+1 in
-    let ctx =
-      let a = V.eval env a in
-      Context.ext_crisp ctx x a
-    in
-    let env = (x,xv)::env in
-    let b = check_type k env ctx b in
-    Pi (i, Crisp, x, a, b)
-  | Pi (i, Normal, x, a, b) ->
-    let a = check_type k env ctx a in
-    let xv = V.var k in
-    let k = k+1 in
-    let ctx =
-      let a = V.eval env a in
-      Context.ext ctx x a
-    in
-    let env = (x,xv)::env in
-    let b = check_type k env ctx b in
-    Pi (i, Normal, x, a, b)
-  | Sigma (x, a, b) ->
-    let a = check_type k env ctx a in
-    let xv = V.var k in
-    let k = k+1 in
-    let ctx =
-      let a = V.eval env a in
-      Context.ext ctx x a
-    in
-    let env = (x,xv)::env in
-    let b = check_type k env ctx b in
-    Sigma (x, a, b)
-  | Tens (a, b) ->
-    let a = check_type k env (Context.crisp ctx) a in
-    let b = check_type k env (Context.crisp ctx) b in
-    Tens (a, b)
-  | Arr (s, a, b) ->
-    let a = check_type k env (Context.crisp ctx) a in
-    let b = check_type k env (Context.crisp ctx) b in
-    Arr (s, a, b)
-  | Flat a ->
-    let a = check_type k env (Context.crisp ctx) a in
-    Flat a
-  | Eq (t, u) ->
-    let t, a = infer k env ctx t in
-    let u = check k env ctx u a in
-    Eq (t, u)
-  | a ->
-    check k env ctx a Type
+  match infer k env ctx a with
+  | a, Type l -> a, l
+  | _, b -> error ~t:a "%s has type %s by type expected" (T.to_string a) (V.to_string k b)
 
 (** Infer the type of a term. *)
 and infer k env ctx (t:term) : term * value =
@@ -681,9 +636,58 @@ and infer k env ctx (t:term) : term * value =
   let t0 = t in
   (* let cenv, benv = ctx in *)
   match t with
-  | IndType ind -> IndType ind, Type
+  | Type n -> Type n, V.Type (n + 1)
+  | IndType ind -> IndType ind, V.Type 0
   | IndTerm `Unit -> IndTerm `Unit, IndType `Unit
   | IndTerm (`Bool b) -> IndTerm (`Bool b), IndType `Bool
+  | Pi (i, Crisp, x, a, b) ->
+    let a, la = check_type k env (Context.crisp ctx) a in
+    let xv = V.var k in
+    let k = k+1 in
+    let ctx =
+      let a = V.eval env a in
+      Context.ext_crisp ctx x a
+    in
+    let env = (x,xv)::env in
+    let b, lb = check_type k env ctx b in
+    Pi (i, Crisp, x, a, b), Type (max la lb)
+  | Pi (i, Normal, x, a, b) ->
+    let a, la = check_type k env ctx a in
+    let xv = V.var k in
+    let k = k+1 in
+    let ctx =
+      let a = V.eval env a in
+      Context.ext ctx x a
+    in
+    let env = (x,xv)::env in
+    let b, lb = check_type k env ctx b in
+    Pi (i, Normal, x, a, b), Type (max la lb)
+  | Sigma (x, a, b) ->
+    let a, la = check_type k env ctx a in
+    let xv = V.var k in
+    let k = k+1 in
+    let ctx =
+      let a = V.eval env a in
+      Context.ext ctx x a
+    in
+    let env = (x,xv)::env in
+    let b, lb = check_type k env ctx b in
+    Sigma (x, a, b), Type (max la lb)
+  | Tens (a, b) ->
+    let a, la = check_type k env (Context.crisp ctx) a in
+    let b, lb = check_type k env (Context.crisp ctx) b in
+    Tens (a, b), Type (max la lb)
+  | Arr (s, a, b) ->
+    let a, la = check_type k env (Context.crisp ctx) a in
+    let b, lb = check_type k env (Context.crisp ctx) b in
+    Arr (s, a, b), Type (max la lb)
+  | Flat a ->
+    let a, la = check_type k env (Context.crisp ctx) a in
+    Flat a, Type la
+  | Eq (t, u) ->
+    let t, a = infer k env ctx t in
+    let u = check k env ctx u a in
+    Eq (t, u), Type 0
   | App (t, icit, u) ->
     (
       let pos = T.Position.find_opt t in
@@ -709,10 +713,6 @@ and infer k env ctx (t:term) : term * value =
         | _ -> error ~t:t0 "cannot infer the type of the application"
       )
     )
-  | Eq (t, u) ->
-    let t, a = infer k env ctx t in
-    let u = check k env ctx u a in
-    Eq (t, u), Type
   | Var x ->
     let rec aux n = function
       | (y, _)::_ when x = y -> n
@@ -729,7 +729,7 @@ and infer k env ctx (t:term) : term * value =
 
 let check_decl k env ctx ((x, c, a, t):T.decl) =
   Printf.printf "\nDECL  %s = %s %s %s\n%!" x (T.to_string t) (match c with Normal -> ":" | Crisp -> "::") (T.to_string a);
-  let a = check_type k env ctx a in
+  let a, _level = check_type k env ctx a in
   let a = V.eval env a in
   let t = check k env (Context.crisp ~crispness:c ctx) t a in
   let t = V.eval env t in
