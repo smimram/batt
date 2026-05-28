@@ -1,7 +1,7 @@
 open Parser
 
 let letter = [%sedlex.regexp? 'A'..'Z' | 'a'..'z']
-let ident_tail = [%sedlex.regexp? letter | '0'..'9' | '\'' | '-' | '_' | Utf8 "→"]
+let space = [%sedlex.regexp? ' ' | '\t' | '\r']
 
 let rec token lexbuf =
   match%sedlex lexbuf with
@@ -51,11 +51,10 @@ let rec token lexbuf =
   | "open import ", Star (letter | '-' | '_') ->
     let s = Sedlexing.Utf8.lexeme lexbuf in
     INCLUDE (String.sub s 12 (String.length s - 12))
-  | letter, Star ident_tail ->
-    IDENT (Sedlexing.Utf8.lexeme lexbuf)
+  | letter, Star (letter | '0'..'9' | '\'' | '-' | '_' | Utf8 "→") -> IDENT (Sedlexing.Utf8.lexeme lexbuf)
   | "--", Star (Compl '\n') -> token lexbuf
-  | Plus (' ' | '\t' | '\r') -> token lexbuf
-  | '\n', ' ' -> Sedlexing.new_line lexbuf; token lexbuf
+  | Plus space -> token lexbuf
+  | "\n " -> Sedlexing.new_line lexbuf; token lexbuf (* quick hack, we should properly handle indentation *)
   | '\n' -> Sedlexing.new_line lexbuf; N
   | eof -> EOF
   | _ ->
