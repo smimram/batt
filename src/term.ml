@@ -32,7 +32,7 @@ type crispness = Normal | Crisp
 
 (** A term. *)
 type t =
-  | Type
+  | Type of int (** universe level *)
   | IndType of inductive_type
   | IndType_ind of inductive_type * t list
   | IndTerm of inductive_term
@@ -104,7 +104,7 @@ module FV = struct
   let rec term t =
     let list l = List.fold_left (fun fv t -> union fv (term t)) empty l in
     match t with
-    | Type
+    | Type _ -> empty
     | IndType _ -> empty
     | IndType_ind (_, l) -> list l
     | IndTerm _ -> empty
@@ -139,7 +139,8 @@ let rec to_string t =
     | Crisp -> "∷"
   in
   match t with
-  | Type -> "Type"
+  | Type 0 -> "Type"
+  | Type n -> Printf.sprintf "Type %d" n
   | IndType ind -> string_of_inductive_type ind
   | IndType_ind (ind, args) -> Printf.sprintf "%s_ind(%s)" (string_of_inductive_type ind) (String.concat "," @@ List.map to_string args)
   | IndTerm `Unit -> "tt"

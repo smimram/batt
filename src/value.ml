@@ -14,7 +14,7 @@ type var = string
 
 (** A value. *)
 type t =
-  | Type
+  | Type of int (** universe level *)
   | IndType of inductive_type
   | IndTerm of inductive_term
   | IndType_ind of inductive_type * t list * spine
@@ -93,7 +93,7 @@ let postulate = ref (-1)
 
 (** Evaluate a term to a value. *)
 let rec eval (env:environment) : Term.t -> t = function
-  | Type -> Type
+  | Type n -> Type n
   | IndType a -> IndType a
   | IndTerm t -> IndTerm t
   | IndType_ind (ind, args) -> IndType_ind (ind, List.map (eval env) args, [])
@@ -188,7 +188,7 @@ let rec readback k v : Term.t =
   let var_name k = "x" ^ string_of_int k in
   let spine l t = Term.app_spine t (List.map (readback k) l) in
   match force v with
-  | Type -> Type
+  | Type n -> Type n
   | IndType ind -> IndType ind
   | IndType_ind (ind, args, l) -> spine l @@ IndType_ind (ind, List.map (readback k) args)
   | IndTerm t -> IndTerm t

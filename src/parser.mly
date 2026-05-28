@@ -13,6 +13,7 @@ let binder_names ~pos t =
 
 %token COLON CCOLON EQ LPAR RPAR LRPAR LACC RACC COMMA LET IN POSTULATE META HOLE N EOF
 %token TYPE
+%token<int> INT
 %token EMPTY
 %token UNIT TT
 %token BOOL FALSE TRUE BOOL_IND
@@ -50,7 +51,8 @@ def:
   | y=IDENT args=list(pattern) LRPAR { y, abss_pattern ~pos:$loc args (mk ~pos:$loc($3)(IndType_ind (`Empty, []))) }
 
 atom:
-  | TYPE { mk ~pos:$loc @@ Type }
+  | TYPE { mk ~pos:$loc @@ Type 0 }
+  | TYPE n=INT { mk ~pos:$loc @@ Type n }
   | EMPTY { mk ~pos:$loc @@ IndType `Empty }
   | UNIT { mk ~pos:$loc @@ IndType `Unit }
   | TT { mk ~pos:$loc @@ IndTerm `Unit }
