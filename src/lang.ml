@@ -626,9 +626,12 @@ let rec check k env ctx (t:term) (a:value) : term =
 (** Check that a term is a type; returns the elaborated term and its universe level. *)
 and check_type k env ctx a : term * int =
   debug "CHECK TYPE %s\n%!" (T.to_string a);
-  match infer k env ctx a with
-  | a, Type l -> a, l
-  | _, b -> error ~t:a "%s has type %s by type expected" (T.to_string a) (V.to_string k b)
+  match a with
+  | Hole pos -> Hole pos, 0
+  | _ ->
+    match infer k env ctx a with
+    | a, Type l -> a, l
+    | _, b -> error ~t:a "%s has type %s by type expected" (T.to_string a) (V.to_string k b)
 
 (** Infer the type of a term. *)
 and infer k env ctx (t:term) : term * value =
