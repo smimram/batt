@@ -560,7 +560,7 @@ let rec check k env ctx (t:term) (a:value) : term =
   | Flatten t, Flat a ->
     let t = check k env (Context.crisp ctx) t a in
     Flatten t
-  | Flat_ind (x, t), Pi (Explicit, Normal, a, b) ->
+  | Flat_ind (x, t), Pi (Explicit, _, a, b) ->
     let a =
       match V.force a with
       | Flat a -> a

@@ -117,7 +117,9 @@ is-discrete A = is-equiv (unflatten {A})
   -- let f : ♭ ♭ A → ♭ A = unflatten {♭ A} in
   -- let g : ♭ A → ♭ ♭ A = λ 𝄫 a . 𝄫 𝄫 a in
   -- let fg : (x : ♭ A) → f (g x) ≡ x = fun 𝄫a → refl in
-  -- let gf : (x : ♭ ♭ A) → g (f x) ≡ x = fun 𝄫 a →
-    -- let 𝄫 a = a in ?
+  -- let gf : (x : ♭ ♭ A) → g (f x) ≡ x = fun 𝄫 x →
+    -- let h : (x :: ♭ A) → g (f (𝄫 x)) ≡ 𝄫 x = fun 𝄫 x → refl in
+    -- h x
   -- in
-  -- is-iso→is-equiv {♭ ♭ A} {♭ A} f (g , _ , _)
+  -- -- is-iso→is-equiv {♭ ♭ A} {♭ A} f (g , fg , gf)
+  -- ((g , ?) , ?)
