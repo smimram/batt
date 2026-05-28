@@ -167,8 +167,6 @@ let error ?t fmt =
 (** Unify two values. *)
 let rec unify k (t:value) (u:value) =
   (* debug "UNIFY %s WITH %s\n%!" (V.to_string k t) (V.to_string k u); *)
-  (* Make multiple abstractions. *)
-  (* TODO: move up *)
   let set m t =
     debug "UNIF %s <- %s\n%!" (V.Meta.to_string m) (T.to_string t);
     assert (m.value = None);
