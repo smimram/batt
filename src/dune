@@ -3,13 +3,10 @@
  ; (flags --strict --unused-token INCLUDE)
 )
 
-(ocamllex
- (modules lexer)
-)
-
 (executable
  (public_name batt)
- (preprocess (pps ppx_deriving.show))
+ (libraries sedlex menhirLib)
+ (preprocess (pps ppx_deriving.show sedlex.ppx))
  (promote (until-clean))
 )
 
