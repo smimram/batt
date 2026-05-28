@@ -439,13 +439,14 @@ let finalize_unify () =
     | _ -> assert false
   in
   solve ();
-  while !Unification.deferred <> [] do
-    (* Flex-flex: prune to common non-duplicated variables. *)
-    let _,_,t,u = List.hd !Unification.deferred in
-    Unification.deferred := List.tl !Unification.deferred;
-    prune t u;
-    solve ()
-  done;
+  if false then
+    while !Unification.deferred <> [] do
+      (* Flex-flex: prune to common non-duplicated variables. *)
+      let _,_,t,u = List.hd !Unification.deferred in
+      Unification.deferred := List.tl !Unification.deferred;
+      prune t u;
+      solve ()
+    done;
   if not @@ Unification.is_empty () then
     let pb =
       List.rev !Unification.deferred
