@@ -7,7 +7,7 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v5
     - name: Install required packages
-      run: sudo apt-get -y install ocaml ocaml-dune menhir libppx-deriving-ocaml-dev
+      run: sudo apt-get -y install ocaml ocaml-dune menhir libsedlex-ocaml-dev libppx-deriving-ocaml-dev
     - name: Build
       run: dune build
     - name: Test
