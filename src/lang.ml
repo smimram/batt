@@ -199,12 +199,11 @@ let rec unify k (t:value) (u:value) =
       { dom = k; cod; ren }
     in
     (* Add an extra variable to a renaming. *)
-    let lift r =
-      { dom = r.dom+1; cod = r.cod+1; ren = IntMap.add r.dom (Some r.cod) r.ren }
-    in
+    let lift r = { dom = r.dom+1; cod = r.cod+1; ren = IntMap.add r.dom (Some r.cod) r.ren } in
+    (* Fresh variable name. *)
     let var_name i = "x!" ^ string_of_int i in
     (* Apply a partial renaming to a value. Along the way, we also make sure that the metavariable does not occur in the term (occurs check). *)
-    let rename (m:V.meta) r (t:value) : term =
+    let rename (m:V.meta) (r:partial_renaming) (t:value) : term =
       let var i = T.Var (var_name i) in
       let rec rename r t =
         let t = V.force t in
