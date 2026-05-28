@@ -85,3 +85,28 @@ crispify-bool = Bool_ind(𝄫false, 𝄫true)
 
 is-section-crispify-bool :: (b : Bool) → unflatten (crispify-bool b) ≡ b
 is-section-crispify-bool = rec-bool (λb. unflatten (crispify-bool b) ≡ b) refl refl
+
+---
+--- Discreteness
+---
+
+open import equivalence
+open import funext
+
+-- Theorem 6.14
+-- forward
+flat-unflatten-target :: {A B :: Type} → ♭(♭B → ♭A) → ♭(♭B → A)
+flat-unflatten-target 𝄫f = 𝄫(λ b.unflatten (f b))
+
+-- backward
+flat-flatten-target :: {A B :: Type} → ♭(♭B → A) → ♭(♭B → ♭A)
+flat-flatten-target 𝄫f = 𝄫(λ𝄫b.𝄫(f(𝄫b)))
+
+-- flat-unflatten-target-section :: {A B :: Type} (f : ♭(♭B → A)) → flat-unflatten-target (flat-flatten-target f) ≡ f
+-- flat-unflatten-target-section 𝄫f = funext-nd _ _ (λb.?)
+
+-- flat-unflatten-target-equiv :: {A B :: Type} → is-equiv (flat-unflatten-target {A} {B})
+-- flat-unflatten-target-equiv {A} {B} = is-iso→is-equiv (flat-unflatten-target {A} {B}) (? , _)
+
+-- is-discrete :: (A :: U) → Type
+-- is-discrete A = is-equiv (unflatten {A})

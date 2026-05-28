@@ -1,2 +1,5 @@
+postulate funext :: {X : U} (Y : X → U) (f g : (x : X) → Y x) → ((x : X) → f x ≡ g x) → f ≡ g
 
-postulate funext :: (X : U) (Y : X → U) (f g : (x : X) → Y x) → ((x : X) → f x ≡ g x) → f ≡ g
+-- non-dependent version
+funext-nd :: {X : U} {Y : U} (f g : X → Y) → ((x : X) → f x ≡ g x) → f ≡ g
+funext-nd {X} {Y} f g p = funext (λ_.Y) f g p

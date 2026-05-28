@@ -1,15 +1,12 @@
 (menhir
  (modules parser)
- (flags --strict --unused-token INCLUDE)
-)
-
-(ocamllex
- (modules lexer)
+ ; (flags --strict --unused-token INCLUDE)
 )
 
 (executable
  (public_name batt)
- (preprocess (pps ppx_deriving.show))
+ (libraries sedlex menhirLib)
+ (preprocess (pps ppx_deriving.show sedlex.ppx))
  (promote (until-clean))
 )
 

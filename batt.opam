@@ -10,6 +10,8 @@ homepage: "https://github.com/smimram/battt"
 bug-reports: "https://github.com/smimram/battt/issues"
 depends: [
   "dune" {>= "3.14"}
+  "sedlex" {>= "3.5"}
+  "ppx_deriving"
   "odoc" {with-doc}
 ]
 build: [
