@@ -12,7 +12,7 @@ let binder_names ~pos t =
 %}
 
 %token COLON CCOLON EQ LPAR RPAR LRPAR LACC RACC COMMA LET IN POSTULATE META HOLE N EOF
-%token TYPE
+%token TYPE LARGETYPE
 %token<int> INT
 %token EMPTY
 %token UNIT TT
@@ -52,6 +52,7 @@ def:
 
 atom:
   | TYPE { mk ~pos:$loc @@ Type 0 }
+  | LARGETYPE { mk ~pos:$loc @@ Type 1 }
   | TYPE n=INT { mk ~pos:$loc @@ Type n }
   | EMPTY { mk ~pos:$loc @@ IndType `Empty }
   | UNIT { mk ~pos:$loc @@ IndType `Unit }

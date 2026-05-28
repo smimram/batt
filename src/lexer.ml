@@ -6,6 +6,7 @@ let space = [%sedlex.regexp? ' ' | '\t' | '\r']
 let rec token lexbuf =
   match%sedlex lexbuf with
   | "Type" -> TYPE
+  | "TYPE" -> LARGETYPE
   | "U" -> TYPE
   | "Empty" -> EMPTY
   | Utf8 "⊥" -> EMPTY
