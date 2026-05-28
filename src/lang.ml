@@ -159,7 +159,7 @@ module Unification = struct
 
   let solvable ((_,_,t,u) : t) =
     match V.force t, V.force u with
-    | Meta _, Meta _ -> false
+    | Meta (m, _), Meta (m', _) -> m.id = m'.id
     | _ -> true
 
   let has_solvable () =
@@ -394,9 +394,61 @@ let unify ~pos k (t:value) (u:value) =
 
 (** Make sure that there are no unification problems left. *)
 let finalize_unify () =
-  while Unification.has_solvable () do
-    let pos, k, t, u = Unification.pop () in
-    unify ~pos k t u
+  let solve () =
+    (* Solve what can be. *)
+    while Unification.has_solvable () do
+      let pos, k, t, u = Unification.pop () in
+      unify ~pos k t u
+    done;
+  in
+  let prune t u =
+    let set m t =
+      debug "UNIF %s <- %s\n%!" (V.Meta.to_string m) (T.to_string t);
+      assert (m.value = None);
+      let t = V.eval [] t in
+      m.value <- Some t
+    in
+    match V.force t, V.force u with
+    | Meta (m, l), Meta (m', l') ->
+      (* TODO: we should be able to spare a few List.rev *)
+      (* Remove duplicated variables and non-variables from the spine. *)
+      let sanitize l =
+        let rec aux = function
+          | (V.Var (_, []) as x)::l ->
+            if List.mem x l then aux (List.filter (fun y -> x <> y) l)
+            else x::(aux l)
+          | _::l -> aux l
+          | [] -> []
+        in
+        List.rev @@ aux l
+      in
+      (* replace (m1,l1) with (m2,l2) *)
+      let replace m1 l1 (m2:V.meta) l2 =
+        let t =
+          let var i = "x~" ^ string_of_int (i+1) in
+          let xx = List.init (List.length l1) (fun i -> None, var i) in
+          let args = List.mapi (fun i x -> if List.mem x l2 then Some (T.Var (var i)) else None) (List.rev l1) |> List.filter_map Fun.id in
+          let m2 = T.Meta (`Generated m2.id) in
+          let t = T.apps m2 args in
+          T.abss xx t
+        in
+        set m1 t
+      in
+      let l2 = sanitize l in
+      let l2' = sanitize l' in
+      let l2 = List.filter (fun x -> List.mem x l2') l2 in
+      let m2 = V.Meta.fresh () in
+      replace m l m2 l2;
+      replace m' l' m2 l2
+    | _ -> assert false
+  in
+  solve ();
+  while !Unification.deferred <> [] do
+    (* Flex-flex: prune to common non-duplicated variables. *)
+    let _,_,t,u = List.hd !Unification.deferred in
+    Unification.deferred := List.tl !Unification.deferred;
+    prune t u;
+    solve ()
   done;
   if not @@ Unification.is_empty () then
     let pb =
