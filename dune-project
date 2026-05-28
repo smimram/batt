@@ -12,6 +12,6 @@
  (synopsis "Bunched affine type theory")
  (description "Bunched affine type theory.")
  (depends
-  (sedlex (>= "2.0"))
+  (sedlex (>= "3.5"))
  )
 )

@@ -10,7 +10,7 @@ homepage: "https://github.com/smimram/battt"
 bug-reports: "https://github.com/smimram/battt/issues"
 depends: [
   "dune" {>= "3.14"}
-  "sedlex" {>= "2.0"}
+  "sedlex" {>= "3.5"}
   "odoc" {with-doc}
 ]
 build: [
