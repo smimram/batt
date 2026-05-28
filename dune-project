@@ -11,5 +11,8 @@
  (name batt)
  (synopsis "Bunched affine type theory")
  (description "Bunched affine type theory.")
- (depends ppx_deriving)
+ (depends
+  (sedlex (>= "3.5"))
+  ppx_deriving
+ )
 )

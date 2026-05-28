@@ -24,17 +24,17 @@ let () =
       (fun fname ->
          Printf.printf "\nChecking %s...\n%!" fname;
          let ic = open_in fname in
-         let lexbuf = Lexing.from_channel ic in
-         Lexing.set_filename lexbuf fname;
+         let lexbuf = Sedlexing.Utf8.from_channel ic in
+         Sedlexing.set_filename lexbuf fname;
          let decls =
-           try Parser.main (Lexer.token |> Preprocessor.inline_include incdirs) lexbuf
+           try MenhirLib.Convert.Simplified.traditional2revised Parser.main @@ Preprocessor.inline_include incdirs Lexer.token lexbuf
            with
            | Failure err ->
-             let pos = Lexing.lexeme_start_p lexbuf, Lexing.lexeme_end_p lexbuf in
+             let pos = Sedlexing.lexing_positions lexbuf in
              let err = Printf.sprintf "Lexing error %s: %s" (Pos.to_string pos) err in
              failwith err
            | Parser.Error ->
-             let pos = Lexing.lexeme_start_p lexbuf, Lexing.lexeme_end_p lexbuf in
+             let pos = Sedlexing.lexing_positions lexbuf in
              let err = Printf.sprintf "Parsing error %s" (Pos.to_string pos) in
              failwith err
          in
@@ -47,4 +47,3 @@ let () =
     let bt = Printexc.raw_backtrace_to_string @@ Printexc.get_raw_backtrace () in
     Common.error "\nError: %s\n\n%s%!" err bt;
     exit 1
-

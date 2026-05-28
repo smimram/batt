@@ -1,53 +1,52 @@
-(** Inline include tokens. *)
-let inline_include dirs token =
+(** Inline include tokens, returning a Menhir token supplier.
+    Positions are reflected back into initial_lexbuf after each token so the
+    caller can read them via Sedlexing.lexing_positions / lexing_position_curr. *)
+let inline_include dirs token initial_lexbuf =
+  let current_lexbuf = ref initial_lexbuf in
+  (* Stack entries carry the saved curr-position of initial_lexbuf so we can
+     restore it when the include ends (prevents corrupting offset state). *)
   let stack = Stack.create () in
-  let current_lexbuf = ref None in
-  let rec aux () =
-    let lexbuf = Option.get !current_lexbuf in
+  let rec next () =
+    let lexbuf = !current_lexbuf in
     match token lexbuf with
     | Parser.INCLUDE fname ->
       let fname = fname ^ ".batt" in
       let fname =
-        match List.find_map (fun dir -> let fname = Filename.concat dir fname in if Sys.file_exists fname then Some fname else None) dirs with
-        | Some fname -> fname
+        match List.find_map (fun dir ->
+          let f = Filename.concat dir fname in
+          if Sys.file_exists f then Some f else None) dirs
+        with
+        | Some f -> f
         | None ->
           failwith @@ Printf.sprintf "Could not find library file %s (in %s)" fname (String.concat ", " dirs)
       in
       Printf.printf "Include %s...\n%!" fname;
       let ic = open_in fname in
-      let new_lexbuf = Lexing.from_channel ic in
-      new_lexbuf.lex_curr_p <- {
-        pos_fname = fname;
-        pos_lnum = 1;
-        pos_bol = 0;
-        pos_cnum = 0
-      };
-      (* Preserve the parent lexbuf positions because we temporarily overwrite them while forwarding included-file token locations to the parser. *)
-      Stack.push (ic, lexbuf, lexbuf.Lexing.lex_start_p, lexbuf.Lexing.lex_curr_p) stack;
-      current_lexbuf := Some new_lexbuf;
-      aux ()
-    | EOF ->
+      let new_lexbuf = Sedlexing.Utf8.from_channel ic in
+      Sedlexing.set_filename new_lexbuf fname;
+      let saved_initial = Sedlexing.lexing_position_curr initial_lexbuf in
+      Stack.push (ic, lexbuf, saved_initial) stack;
+      current_lexbuf := new_lexbuf;
+      next ()
+    | Parser.EOF ->
       begin
         match Stack.pop_opt stack with
         | None ->
-          current_lexbuf := None;
-          Parser.EOF
-        | Some (ic, lexbuf, lex_start_p, lex_curr_p) ->
+          let (start, stop) = Sedlexing.lexing_positions !current_lexbuf in
+          (Parser.EOF, start, stop)
+        | Some (ic, saved_lb, saved_initial) ->
           close_in ic;
-          lexbuf.Lexing.lex_start_p <- lex_start_p;
-          lexbuf.Lexing.lex_curr_p <- lex_curr_p;
-          current_lexbuf := Some lexbuf;
-          aux ()
+          Sedlexing.set_filename initial_lexbuf saved_initial.Lexing.pos_fname;
+          Sedlexing.set_position initial_lexbuf saved_initial;
+          current_lexbuf := saved_lb;
+          next ()
       end
-    | t -> t
+    | t ->
+      let (start, stop) = Sedlexing.lexing_positions !current_lexbuf in
+      if !current_lexbuf != initial_lexbuf then begin
+        Sedlexing.set_filename initial_lexbuf stop.Lexing.pos_fname;
+        Sedlexing.set_position initial_lexbuf stop
+      end;
+      (t, start, stop)
   in
-  fun lexbuf ->
-    if Option.is_none !current_lexbuf then current_lexbuf := Some lexbuf;
-    let t = aux () in
-    (* Copy position info from the active lexbuf (possibly an included file) back to the main lexbuf so that menhir and callers record the correct file/line/column. *)
-    let cur = Option.value !current_lexbuf ~default:lexbuf in
-    if cur != lexbuf then begin
-      lexbuf.Lexing.lex_start_p <- cur.Lexing.lex_start_p;
-      lexbuf.Lexing.lex_curr_p  <- cur.Lexing.lex_curr_p
-    end;
-    t
+  next
