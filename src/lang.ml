@@ -156,6 +156,14 @@ type partial_renaming =
     ren : int option IntMap.t; (** renaming function *)
   }
 
+let error ?t fmt =
+  let pos =
+    match t with
+    | Some t -> T.Position.to_string_comma t
+    | None -> ""
+  in
+  Printf.ksprintf (fun s -> failwith (pos ^ s)) fmt
+
 (** Unify two values. *)
 let rec unify k (t:value) (u:value) =
   (* debug "UNIFY %s WITH %s\n%!" (V.to_string k t) (V.to_string k u); *)
@@ -375,7 +383,7 @@ let rec unify k (t:value) (u:value) =
 
 let unify k t a b =
   try unify k a b
-  with Unification -> failwith @@ Printf.sprintf "%sterm has type %s but %s expected" (T.Position.to_string_comma t) (V.to_string k a) (V.to_string k b)
+  with Unification -> error ~t "term has type %s but %s expected" (V.to_string k a) (V.to_string k b)
 
 (*
 (** Comparison of values. *)
@@ -481,7 +489,7 @@ let rec check k env ctx (t:term) (a:value) : term =
     let a =
       match V.force a with
       | Flat a -> a
-      | _ -> failwith @@ Printf.sprintf "%sflat type expected" (T.Position.to_string_comma t)
+      | _ -> error ~t "flat type expected"
     in
     let xv = V.var k in
     let k = k+1 in
@@ -496,14 +504,14 @@ let rec check k env ctx (t:term) (a:value) : term =
       let a0 = a in
       match V.force a with
       | Pi (icit', _, a, b) when icit = None || Some icit' = icit -> a, b
-      | _ -> failwith @@ Printf.sprintf "%sgot %s but function type expected" (T.Position.to_string_comma t) (V.to_string k a0)
+      | _ -> error ~t "got %s but function type expected" (V.to_string k a0)
     in
     let y, k = V.var k, k+1 in
     let b', _ = unpi (V.capp b y) in
     let x =
       match b' with
       | Eq (x, y') when y' = y -> x
-      | _ -> failwith @@ Printf.sprintf "%sidentity type expected" (T.Position.to_string_comma t)
+      | _ -> error ~t "identity type expected"
     in
     let c = V.capp (snd @@ unpi ~icit:Explicit @@ V.capp b x) Refl in
     let r = check k env ctx r c in
@@ -533,7 +541,7 @@ let rec check k env ctx (t:term) (a:value) : term =
         check k env ctx (T.mk ?pos (T.app ~icit:Implicit t0 (Meta (`Fresh None)))) a
       | _ ->
         try unify k t0 a' a; t
-        with Unification -> failwith @@ Printf.sprintf "%s%s has type %s but %s expected" (T.Position.to_string_comma t0) (T.to_string t) (V.to_string k a') (V.to_string k a)
+        with Unification -> error ~t:t0 "%s has type %s but %s expected" (T.to_string t) (V.to_string k a') (V.to_string k a)
     )
 
 (** Check that a term is a type. *)
@@ -619,13 +627,13 @@ and infer k env ctx (t:term) : term * value =
       (
         match V.force a with
         | Pi (icit', c, a, b) ->
-          if icit <> icit' then failwith @@ Printf.sprintf "%sgot an implicit argument where an explicit one was expected" (T.Position.to_string_comma t0);
+          if icit <> icit' then error ~t:t0 "got an implicit argument where an explicit one was expected";
           let u = check k env (Context.crisp ~crispness:c ctx) u a in
           App (t, icit, u), V.capp b (V.eval env u)
         | Arr (_s, a, b) ->
           let u = check k env ctx u a in
           App (t, Explicit, u), b
-        | _ -> failwith @@ Printf.sprintf "%scannot infer the type of the application" (T.Position.to_string_comma t0)
+        | _ -> error ~t:t0 "cannot infer the type of the application"
       )
     )
   | Eq (t, u) ->
@@ -636,15 +644,15 @@ and infer k env ctx (t:term) : term * value =
     let rec aux n = function
       | (y, _)::_ when x = y -> n
       | _::l -> aux (n+1) l
-      | [] -> failwith @@ Printf.sprintf "%sundefined variable %s" (T.Position.to_string_comma t) x
+      | [] -> error ~t "undefined variable %s" x
     in
     let k = aux 0 env in
-    let a = match Context.assoc_opt x ctx with Some a -> a | None -> failwith @@ Printf.sprintf "%svariable %s is in the context but not in the typing environment (crispness issue?)" (T.Position.to_string_comma t) x in
+    let a = match Context.assoc_opt x ctx with Some a -> a | None -> error ~t "variable %s is in the context but not in the typing environment (crispness issue?)" x in
     Var' k, a
   | Meta (`Fresh pos) ->
     let a = V.fresh_meta env in
     Meta (`Fresh pos), a
-  | _ -> failwith @@ Printf.sprintf "%scannot infer type" (T.Position.to_string_comma t)
+  | _ -> error ~t "cannot infer type"
 
 let check_decl k env ctx ((x, c, a, t):T.decl) =
   Printf.printf "\nDECL  %s = %s %s %s\n%!" x (T.to_string t) (match c with Normal -> ":" | Crisp -> "::") (T.to_string a);
