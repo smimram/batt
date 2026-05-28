@@ -397,6 +397,7 @@ let rec check k env ctx (t:term) (a:value) : term =
   debug "CHECK %s : %s\n%!" (T.to_string t) (V.to_string k a);
   (* let cenv, benv = ctx in *)
   (* Printf.printf "      %s\n%!" (Context.to_string k ctx); *)
+  let t0 = t in
   match t, V.force a with
   | Abs (i, None, x, t), Pi (i', c, a, b) when i = i' ->
     let xv = V.var k in
@@ -523,7 +524,7 @@ let rec check k env ctx (t:term) (a:value) : term =
   | Tens _, Type m
   | Flat _, Type m ->
     let t, level = check_type k env ctx t in
-    if level > m then error ~t "universe level %d but at most %d expected" level m;
+    if level > m then error ~t:t0 "universe level %d but at most %d expected" level m;
     t
   | Postulate n, a ->
     let n = match n with Some n -> n | None -> incr V.postulate; !V.postulate in
