@@ -26,24 +26,16 @@ let () =
          let ic = open_in fname in
          let lexbuf = Sedlexing.Utf8.from_channel ic in
          Sedlexing.set_filename lexbuf fname;
-         let (supplier, get_pos) = Preprocessor.inline_include incdirs Lexer.token lexbuf in
-         let last_start = ref Lexing.dummy_pos in
-         let last_stop = ref Lexing.dummy_pos in
-         let tracked_supplier () =
-           let (tok, start, stop) = supplier () in
-           last_start := start; last_stop := stop;
-           (tok, start, stop)
-         in
          let decls =
-           try
-             (MenhirLib.Convert.Simplified.traditional2revised Parser.main) tracked_supplier
+           try MenhirLib.Convert.Simplified.traditional2revised Parser.main @@ Preprocessor.inline_include incdirs Lexer.token lexbuf
            with
            | Failure err ->
-             let pos = get_pos () in
+             let pos = Sedlexing.lexing_positions lexbuf in
              let err = Printf.sprintf "Lexing error %s: %s" (Pos.to_string pos) err in
              failwith err
            | Parser.Error ->
-             let err = Printf.sprintf "Parsing error %s" (Pos.to_string (!last_start, !last_stop)) in
+             let pos = Sedlexing.lexing_positions lexbuf in
+             let err = Printf.sprintf "Parsing error %s" (Pos.to_string pos) in
              failwith err
          in
          close_in ic;
