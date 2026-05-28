@@ -144,6 +144,44 @@ end
 (** A context. *)
 type context = Context.t
 
+(** Unification problems. *)
+module Unification = struct
+  (** A unification problem. *)
+  type t = Pos.t option * int * value * value
+
+  let deferred = ref ([] : t list)
+
+  let is_empty () = !deferred = []
+
+  (** Defer a unification problem. *)
+  let defer pos k t u =
+    deferred := (pos,k,t,u) :: !deferred
+
+  let solvable ((_,_,t,u) : t) =
+    match V.force t, V.force u with
+    | Meta _, Meta _ -> false
+    | _ -> true
+
+  let has_solvable () =
+    List.exists solvable !deferred
+
+  (** Find a unification problem to solve. *)
+  let pop_opt () =
+    let rec find_and_remove_opt f = function
+      | x::l when f x -> Some x, l
+      | x::l ->
+        let y, l = find_and_remove_opt f l in
+        y, x::l
+      | [] -> None, []
+    in
+    let pb, rem = find_and_remove_opt solvable !deferred in
+    deferred := rem;
+    pb
+
+  let pop () =
+    Option.get @@ pop_opt ()
+end
+
 exception Unification
 
 module IntMap = Map.Make(Int)
@@ -165,10 +203,8 @@ let error ?t fmt =
   Printf.ksprintf (fun s -> failwith (pos ^ s)) fmt
 
 (** Unify two values. *)
-let unify k (t:value) (u:value) =
+let unify ~pos k (t:value) (u:value) =
   (* debug "UNIFY %s WITH %s\n%!" (V.to_string k t) (V.to_string k u); *)
-  (* Make multiple abstractions. *)
-  (* TODO: move up *)
   let set m t =
     debug "UNIF %s <- %s\n%!" (V.Meta.to_string m) (T.to_string t);
     assert (m.value = None);
@@ -285,7 +321,6 @@ let unify k (t:value) (u:value) =
     in
     set m t
   in
-  let deferred = ref [] in
   let rec unify k t u =
     let spine k l l' =
       if List.length l <> List.length l' then raise Unification;
@@ -344,72 +379,32 @@ let unify k (t:value) (u:value) =
     | Var (x, l), Var (x', l') ->
       if x <> x' then raise Unification;
       spine k l l'
-    | Meta _, Meta _ ->
-      deferred := (k,t,u) :: !deferred
-        (*
-    | Meta (m, l), Meta (m', l') ->
-      (* Prune to common non-duplicated variables. *)
-      (* TODO: we should be able to spare a few List.rev *)
-      (* Remove duplicated variables and non-variables from the spine. *)
-      let sanitize l =
-        let rec aux = function
-          | (V.Var (_, []) as x)::l ->
-            if List.mem x l then aux (List.filter (fun y -> x <> y) l)
-            else x::(aux l)
-          | _::l -> aux l
-          | [] -> []
-        in
-        List.rev @@ aux l
-      in
-      (* replace (m1,l1) with (m2,l2) *)
-      let replace m1 l1 (m2:V.meta) l2 =
-        let t =
-          let var i = "x~" ^ string_of_int (i+1) in
-          let xx = List.init (List.length l1) (fun i -> None, var i) in
-          let args = List.mapi (fun i x -> if List.mem x l2 then Some (T.Var (var i)) else None) (List.rev l1) |> List.filter_map Fun.id in
-          let m2 = T.Meta (`Generated m2.id) in
-          let t = T.apps m2 args in
-          T.abss xx t
-        in
-        set m1 t
-      in
-      let l2 = sanitize l in
-      let l2' = sanitize l' in
-      let l2 = List.filter (fun x -> List.mem x l2') l2 in
-      let m2 = V.Meta.fresh () in
-      replace m l m2 l2;
-      replace m' l' m2 l2
-           *)
+    | Meta _, Meta _ -> Unification.defer pos k t u
     | Meta (m, l), t -> solve k m l t
     | t, Meta (m, l) -> solve k m l t
     | t, u ->
       debug "CLASH %s VS %s \n%!" (V.to_string k t) (V.to_string k u);
       raise Unification
   in
-  deferred := [k,t,u];
-  while !deferred <> [] do
-    let rec find_and_remove_opt f = function
-      | x::l when f x -> Some x, l
-      | x::l ->
-        let y, l = find_and_remove_opt f l in
-        y, x::l
-      | [] -> None, []
-    in
-    let f (_k, t, u) =
-      match V.force t, V.force u with
-      | Meta _, Meta _ -> false
-      | _ -> true
-    in
-    let ktu, l = find_and_remove_opt f !deferred in
-    deferred := l;
-    match ktu with
-    | Some (k, t, u) ->
-      (* debug "DEFERRED FOUND\n"; *)
-      unify k t u
-    | None ->
-      debug "FLEX-FLEX ONLY\n";
-      raise Unification
+  Unification.defer pos k t u;
+  while Unification.has_solvable () do
+    let _pos, k, t, u = Unification.pop () in
+    unify k t u
   done
+
+(** Make sure that there are no unification problems left. *)
+let finalize_unify () =
+  while Unification.has_solvable () do
+    let pos, k, t, u = Unification.pop () in
+    unify ~pos k t u
+  done;
+  if not @@ Unification.is_empty () then
+    let pb =
+      List.rev !Unification.deferred
+      |> List.map (fun (pos,k,t,u) -> Printf.sprintf "- %s: %s vs %s" (Pos.opt_to_string pos) (V.to_string k t) (V.to_string k u))
+      |> String.concat "\n"
+    in
+    error "unsovled unification problems:\n%s\n" pb
 
 let unify k t a b =
   try unify k a b
@@ -429,6 +424,7 @@ let rec check k env ctx (t:term) (a:value) : term =
   debug "CHECK %s : %s\n%!" (T.to_string t) (V.to_string k a);
   (* let cenv, benv = ctx in *)
   (* Printf.printf "      %s\n%!" (Context.to_string k ctx); *)
+  let pos = T.Position.find_opt t in
   match t, V.force a with
   | Abs (i, None, x, t), Pi (i', c, a, b) when i = i' ->
     let xv = V.var k in
@@ -501,14 +497,14 @@ let rec check k env ctx (t:term) (a:value) : term =
       | _ -> failwith "tens_ind"
     )
   | IndType_ind (`Empty, []), Pi (Explicit, _, a, _) ->
-    unify k t a (IndType `Empty);
+    unify ~pos k t a (IndType `Empty);
     IndType_ind (`Empty, [])
   | IndType_ind (`Unit, [t]), Pi (Explicit, _, a, b) ->
-    unify k t a (IndType `Unit);
+    unify ~pos k t a (IndType `Unit);
     let t = check k env ctx t (V.capp b (IndTerm `Unit)) in
     IndType_ind (`Unit, [t])
   | IndType_ind (`Bool, [tf;tt]), Pi (Explicit, _, a, b) ->
-    unify k t a (IndType `Bool);
+    unify ~pos k t a (IndType `Bool);
     let tf = check k env ctx tf (V.capp b (IndTerm (`Bool false))) in
     let tt = check k env ctx tt (V.capp b (IndTerm (`Bool true))) in
     IndType_ind (`Bool, [tf;tt])
@@ -526,7 +522,7 @@ let rec check k env ctx (t:term) (a:value) : term =
     let t = check k ((x,xv)::env) (Context.ext_crisp ctx x a) t (V.capp b (Flatten xv)) in
     Flat_ind (x, t)
   | Refl, Eq (t, u) ->
-    unify k Refl t u; (* TODO: better error *)
+    unify ~pos k Refl t u; (* TODO: better error *)
     Refl
   | J r, Pi (_, Normal, _a, b) ->
     (* we should make sure that b := {y : a} (p : x ≡ y) → P[x,y,p] *)
@@ -570,7 +566,7 @@ let rec check k env ctx (t:term) (a:value) : term =
         let pos = T.Position.find_opt t in
         check k env ctx (T.mk ?pos (T.app ~icit:Implicit t0 (Meta (`Fresh None)))) a
       | _ ->
-        try unify k t0 a' a; t
+        try unify ~pos k t0 a' a; t
         with Unification -> error ~t:t0 "%s has type %s but %s expected" (T.to_string t) (V.to_string k a') (V.to_string k a)
     )
 
