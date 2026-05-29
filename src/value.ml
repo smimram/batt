@@ -37,6 +37,9 @@ type t =
   | Var of int * spine
   | Hole of (Pos.t [@opaque]) * spine
   | Postulate of int * spine
+  | RecordType of (string * crispness * t) list
+  | Record of (string * t) list
+  | RecordField of string * spine
 [@@deriving show]
 
 (** A closure. *)
@@ -127,6 +130,27 @@ let rec eval (env:environment) : Term.t -> t = function
   | Hole pos -> Hole (pos, [])
   | Meta (`Fresh pos) -> fresh_meta ?pos env
   | Meta (`Generated id) -> Meta (Meta.get id, [])
+  | RecordType l ->
+    let l = List.map (fun (x, c, a) -> x, c, eval env a) l in
+    RecordType l
+  | Record (r,l) ->
+    (
+      match r with
+      | `Recursive ->
+        let _, l =
+          List.fold_left_map
+            (fun env (x,t) ->
+               let t = eval env t in
+               let env = (x,t)::env in
+               env, (x, t)
+            ) env l
+        in
+        Record l
+      | `NonRecursive ->
+        Record (List.map (fun (x, t) -> x, eval env t) l)
+    )
+  | RecordField (t, x) ->
+    app (RecordField (x, [])) (eval env t)
 
 (** Make a variable. *)
 and var k = Var (k, [])
@@ -211,5 +235,14 @@ let rec readback k v : Term.t =
   | Var (i, l) -> spine l @@ Var' i
   | Postulate (n, l) -> spine l @@ Postulate (Some n)
   | Hole (pos, l) -> spine l @@ Hole pos
+  | RecordType l -> RecordType (List.map (fun (x, c, a) -> x, c, readback k a) l)
+  | Record l -> Record (`NonRecursive, List.map (fun (x, t) -> x, readback k t) l)
+  | RecordField (x, l) ->
+    assert (l <> []);
+    let t, l =
+      let l = List.rev l in
+      List.hd l, List.rev @@ List.tl l
+    in
+    spine l @@ RecordField (readback k t, x)
 
 let to_string k v = Term.to_string @@ readback k v
