@@ -32,11 +32,18 @@ tens-coassoc {A} {B} {C} (a ⊗ bc) =
   let f : B ⨂ C → A →ₗ (A ⨂ B) ⨂ C = fun (b ⊗ c) aₗ → (a ⊗ b) ⊗ c in
   f bc a
 
+tens-eta-expend ∷ {A B C ∷ U} → (A ⨂ B → C) → A ⨂ B → C
+tens-eta-expend f (a ⊗ b) = f (a ⊗ b)
+
+tens-eta-equation ∷ {A B C ∷ U} (f : A ⨂ B → C) (u : A ⨂ B) → tens-eta-expend f u ≡ f u
+tens-eta-equation f (a ⊗ b) = refl
+
 tens-curry-left :: {A B C :: U} → (A ⨂ B → C) → (B → A →ₗ C)
 tens-curry-left f b aₗ = f (a ⊗ b)
 
 tens-uncurry-left :: {A B C :: U} → (B → A →ₗ C) → (A ⨂ B → C)
 tens-uncurry-left f (a ⊗ b) = f b a
+
 
 tens-curry-right :: {A B C :: U} → (A ⨂ B → C) → (A → B →ᵣ C)
 tens-curry-right f a bᵣ = f (a ⊗ b)
@@ -73,3 +80,9 @@ tens-curry-uncurry-left f = refl
 
 tens-map :: {A B C D :: U} (f :: A → B) (g :: C → D) → A ⨂ C → B ⨂ D
 tens-map f g (a ⊗ c) = (f(a) ⊗ g(c))
+
+tens-uncurry-curry-left ∷ {A B C ∷ U} (f : A ⨂ B → C) (u : A ⨂ B) → tens-uncurry-left (tens-curry-left f) u ≡ f u
+tens-uncurry-curry-left f (a ⊗ b) = refl
+
+tens-curry-uncurry-left ∷ {A B C ∷ U} (f : B → A →ₗ C) (b : B) → tens-curry-left (tens-uncurry-left f) b ≡ f b
+tens-curry-uncurry-left f b = refl
