@@ -45,8 +45,9 @@ decls:
   | decl N decls { $1::$3 }
 
 decl:
-  | x=IDENT c=ccolon a=term N def=def { let y, t = def in assert (x = y); (x, c, a, t) }
-  | POSTULATE x=IDENT c=ccolon a=term { (x, c, a, mk ~pos:$loc @@ Postulate None) }
+  | x=IDENT c=ccolon a=term N def=def { let y, t = def in assert (x = y); Def (x, c, a, t) }
+  | POSTULATE x=IDENT c=ccolon a=term { Def (x, c, a, mk ~pos:$loc @@ Postulate None) }
+  | INCLUDE { Include $1 }
 
 def:
   | y=IDENT args=list(pattern) EQ t=term { y, abss_pattern ~pos:$loc args t }

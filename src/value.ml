@@ -127,20 +127,6 @@ let rec eval (env:environment) : Term.t -> t = function
   | Hole pos -> Hole (pos, [])
   | Meta (`Fresh pos) -> fresh_meta ?pos env
   | Meta (`Generated id) -> Meta (Meta.get id, [])
-  | Import fname ->
-    let dirs = Common.include_directories () in
-    let fname = fname ^ ".batt" in
-    let fname =
-      match List.find_map (fun dir ->
-          let f = Filename.concat dir fname in
-          if Sys.file_exists f then Some f else None) dirs
-      with
-      | Some f -> f
-      | None ->
-        failwith @@ Printf.sprintf "Could not find library file %s (in %s)" fname (String.concat ", " dirs)
-    in
-    Printf.printf "Include %s...\n%!" fname;
-    assert false
 
     (** Make a variable. *)
 and var k = Var (k, [])
