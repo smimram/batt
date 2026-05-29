@@ -161,6 +161,7 @@ module Unification = struct
 
   (** Defer a unification problem. *)
   let defer pos k t u =
+    (* TODO: better data structure *)
     deferred := !deferred @ [pos,k,t,u]
 
   let solvable ((_,_,t,u) : t) =
