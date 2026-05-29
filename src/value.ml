@@ -152,7 +152,7 @@ let rec eval (env:environment) : Term.t -> t = function
   | RecordField (t, x) ->
     app (RecordField (x, [])) (eval env t)
 
-(** Make a variable. *)
+    (** Make a variable. *)
 and var k = Var (k, [])
 
 (** Generate a fresh metavariable. *)

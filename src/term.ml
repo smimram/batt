@@ -63,7 +63,9 @@ type t =
   | RecordField of t * string
 
 (** A declaration. *)
-type decl = string * crispness * t * t
+type decl =
+  | Def of string * crispness * t * t
+  | Include of string
 
 type decls = decl list
 
