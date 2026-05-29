@@ -2,6 +2,7 @@ open import tensor
 open import empty
 open import unit
 open import bool
+open import equality
 
 flat :: ♭U → U
 flat 𝄫A = A
@@ -93,9 +94,13 @@ is-section-crispify-bool = rec-bool (λb. unflatten (crispify-bool b) ≡ b) ref
 open import equivalence
 open import funext
 
--- -- Corollary 6.2
+-- -- Theorem 6.1
 -- flat-path-equiv :: {A :: Type} {x y :: ♭ A} → (𝄫 x ≡ 𝄫 y) ≃ ♭ (x ≡ y)
--- flat-path-equiv = ?
+-- flat-path-equiv {A} {x} {y} =
+  -- let code : ♭ A → ♭ A → Type = fun 𝄫 x → fun 𝄫 y → ♭ (x ≡ y) in
+  -- let lem  : (x y : ♭ A) → (x ≡ y) ≃ code x y = ? in
+  -- let lem' : (x y : ♭ A) → (𝄫 x ≡ 𝄫 y) ≃ ♭ (x ≡ y) = fun 𝄫 x → 𝄫 y → lem (𝄫 x) (𝄫 y) in
+  -- lem' x y
 
 -- Theorem 6.14
 -- forward

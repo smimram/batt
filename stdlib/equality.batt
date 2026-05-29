@@ -1,3 +1,5 @@
+open import function
+
 ---
 --- Identity types
 ---
