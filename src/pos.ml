@@ -33,3 +33,7 @@ let to_string ((p1,p2):t) =
       Printf.sprintf "line %d characters %d-%d" l1 c1 c2
   else
     Printf.sprintf "from line %d character %d to line %d character %d" l1 c1 l2 c2
+
+let opt_to_string = function
+  | Some p -> to_string p
+  | None -> "unknown position"

@@ -12,7 +12,8 @@ let binder_names ~pos t =
 %}
 
 %token COLON CCOLON EQ LPAR RPAR LRPAR LACC RACC COMMA LET IN POSTULATE META HOLE N EOF
-%token TYPE
+%token TYPE LARGETYPE
+%token<int> INT
 %token EMPTY
 %token UNIT TT
 %token BOOL FALSE TRUE BOOL_IND
@@ -20,9 +21,11 @@ let binder_names ~pos t =
 %token FLAT FLATTEN
 %token IDEQ REFL
 %token LEFT RIGHT
+%token EQUIV
 %token<string> IDENT
 %token<string> INCLUDE
 
+%nonassoc EQUIV
 %nonassoc IDEQ
 %right TIMES
 %right TENSP
@@ -50,7 +53,9 @@ def:
   | y=IDENT args=list(pattern) LRPAR { y, abss_pattern ~pos:$loc args (mk ~pos:$loc($3)(IndType_ind (`Empty, []))) }
 
 atom:
-  | TYPE { mk ~pos:$loc @@ Type }
+  | TYPE { mk ~pos:$loc @@ Type 0 }
+  | LARGETYPE { mk ~pos:$loc @@ Type 1 }
+  | TYPE n=INT { mk ~pos:$loc @@ Type n }
   | EMPTY { mk ~pos:$loc @@ IndType `Empty }
   | UNIT { mk ~pos:$loc @@ IndType `Unit }
   | TT { mk ~pos:$loc @@ IndTerm `Unit }
@@ -80,6 +85,7 @@ prod_term:
   | a=prod_term TENSP b=prod_term { mk ~pos:$loc @@ TensPair (a, b) }
   | a=prod_term TIMES b=prod_term { mk ~pos:$loc @@ Sigma ("_", a, b) }
   | t=prod_term IDEQ u=prod_term { mk ~pos:$loc @@ Eq (t, u) }
+  | t=prod_term EQUIV u=prod_term { mk ~pos:$loc @@ apps (mk ~pos:$loc($2) @@ Var "_≃_") [t; u] }
 
 fun_term:
   | prod_term { $1 }

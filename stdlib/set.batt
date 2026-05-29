@@ -3,7 +3,7 @@ open import prop
 is-set :: U → U
 is-set A = (x y : A) → is-prop (x ≡ y)
 
-Set :: U
+Set :: TYPE
 Set = Σ (A : U) . is-set A
 
 type-Set :: Set → U

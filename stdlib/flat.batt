@@ -93,6 +93,10 @@ is-section-crispify-bool = rec-bool (λb. unflatten (crispify-bool b) ≡ b) ref
 open import equivalence
 open import funext
 
+-- -- Corollary 6.2
+-- flat-path-equiv :: {A :: Type} {x y :: ♭ A} → (𝄫 x ≡ 𝄫 y) ≃ ♭ (x ≡ y)
+-- flat-path-equiv = ?
+
 -- Theorem 6.14
 -- forward
 flat-unflatten-target :: {A B :: Type} → ♭(♭B → ♭A) → ♭(♭B → A)
@@ -108,5 +112,21 @@ flat-flatten-target 𝄫f = 𝄫(λ𝄫b.𝄫(f(𝄫b)))
 -- flat-unflatten-target-equiv :: {A B :: Type} → is-equiv (flat-unflatten-target {A} {B})
 -- flat-unflatten-target-equiv {A} {B} = is-iso→is-equiv (flat-unflatten-target {A} {B}) (? , _)
 
--- is-discrete :: (A :: U) → Type
--- is-discrete A = is-equiv (unflatten {A})
+is-discrete :: (A :: U) → Type
+is-discrete A = is-equiv {♭ A} {A} (unflatten {A})
+
+-- Theorem 6.18
+is-discrete-flat :: (A :: U) → is-discrete (♭ A)
+is-discrete-flat A =
+  let f : ♭ ♭ A → ♭ A = unflatten {♭ A} in
+  let g : ♭ A → ♭ ♭ A = λ 𝄫 a . 𝄫 𝄫 a in
+  let fg : (x : ♭ A) → f (g x) ≡ x = fun 𝄫a → refl in
+  let gf : (x : ♭ ♭ A) → g (f x) ≡ x = fun 𝄫 x →
+    let h : (x :: ♭ A) → g (f (𝄫 x)) ≡ 𝄫 x = fun 𝄫 x → refl in
+    h x
+  in
+  ((g , fg) , (g , gf))
+
+-- -- Theorem 6.19
+-- is-discrete-prod :: {A B :: U} → is-discrete A → is-discrete B → is-discrete (A × B)
+-- is-discrete-prod
