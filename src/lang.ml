@@ -381,6 +381,9 @@ let unify ~pos k (t:value) (u:value) =
     | Var (x, l), Var (x', l') ->
       if x <> x' then raise Unification;
       spine k l l'
+    | Hole (pos, l), Hole (pos', l') ->
+      if pos <> pos' then raise Unification;
+      spine k l l'
     | Meta _, Meta _ -> Unification.defer pos k t u
     | Meta (m, l), t -> solve k m l t
     | t, Meta (m, l) -> solve k m l t
