@@ -60,7 +60,9 @@ type t =
   | Meta of [`Fresh of Pos.t option | `Generated of int] (** metavariable with given internal identifier *)
 
 (** A declaration. *)
-type decl = string * crispness * t * t
+type decl =
+  | Def of string * crispness * t * t
+  | Include of string
 
 type decls = decl list
 

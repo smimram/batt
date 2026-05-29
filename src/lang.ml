@@ -738,17 +738,33 @@ and infer k env ctx (t:term) : term * value =
     Meta (`Fresh pos), a
   | _ -> error ~t "cannot infer type"
 
-let check_decl k env ctx ((x, c, a, t):T.decl) =
-  Printf.printf "\nDECL  %s = %s %s %s\n%!" x (T.to_string t) (match c with Normal -> ":" | Crisp -> "::") (T.to_string a);
-  let a, _level = check_type k env ctx a in
-  let a = V.eval env a in
-  let t = check k env (Context.crisp ~crispness:c ctx) t a in
-  let t = V.eval env t in
-  let env = (x,t)::env in
-  let ctx = Context.ext ~crispness:c ctx x a in
-  env, ctx
+let rec check_decl k env ctx = function
+  | Term.Def (x, c, a, t) ->
+    Printf.printf "\nDECL  %s = %s %s %s\n%!" x (T.to_string t) (match c with Normal -> ":" | Crisp -> "::") (T.to_string a);
+    let a, _level = check_type k env ctx a in
+    let a = V.eval env a in
+    let t = check k env (Context.crisp ~crispness:c ctx) t a in
+    let t = V.eval env t in
+    let env = (x,t)::env in
+    let ctx = Context.ext ~crispness:c ctx x a in
+    env, ctx
+  | Include name ->
+    let dirs = Common.include_directories () in
+    let fname = name ^ ".batt" in
+    let fname =
+      match List.find_map (fun dir ->
+          let f = Filename.concat dir fname in
+          if Sys.file_exists f then Some f else None) dirs
+      with
+      | Some f -> f
+      | None ->
+        failwith @@ Printf.sprintf "Could not find library file %s (in %s)" fname (String.concat ", " dirs)
+    in
+    Printf.printf "Include %s...\n%!" fname;
+    let decls = Module.parse fname in
+    check_decls k env ctx decls
 
-let check_decls k env ctx (decls:T.decls) =
+and check_decls k env ctx (decls:T.decls) =
   List.fold_left (fun (env,ctx) decl -> check_decl k env ctx decl) (env,ctx) decls
 
 let check_decls_toplevel decls = ignore @@ check_decls 0 [] Context.empty decls

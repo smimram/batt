@@ -1,44 +1,30 @@
 let () =
   Printexc.record_backtrace true;
   Printf.printf "Welcome to BATT!\n%!";
-  let incdirs =
-    let prefix = Filename.dirname @@ Filename.dirname Sys.executable_name in
-    let share = Filename.concat (Filename.concat prefix "share") "batt" in
-    List.filter Sys.file_exists ["celltt"; "stdlib"; Filename.concat share "stdlib"]
+  let () =
+    let incdirs =
+      let prefix = Filename.dirname @@ Filename.dirname Sys.executable_name in
+      let share = Filename.concat (Filename.concat prefix "share") "batt" in
+      List.filter Sys.file_exists ["celltt"; "stdlib"; Filename.concat share "stdlib"]
+    in
+    Common.include_directories_list := incdirs
   in
-  let incdirs = ref incdirs in
   let files = ref [] in
   Arg.parse
     (Arg.align
        [
-         "-I", Arg.String (fun s -> incdirs := s :: !incdirs), " Include directory";
+         "-I", Arg.String (fun s -> Common.include_directories_list := s :: !Common.include_directories_list), " Include directory";
          "--no-colors", Arg.Unit (fun () -> Terminal.enable_colors := false), " Disable colors";
          "--no-debug", Arg.Unit (fun () -> Common.show_debug := false), " Hide debug messages";
        ]
     )
     (fun s -> files := s :: !files) "batt [options] files";
   let files = List.rev !files in
-  let incdirs = "." :: List.rev !incdirs in
   try
     List.iter
       (fun fname ->
          Printf.printf "\nChecking %s...\n%!" fname;
-         let ic = open_in fname in
-         let lexbuf = Sedlexing.Utf8.from_channel ic in
-         Sedlexing.set_filename lexbuf fname;
-         let decls =
-           try MenhirLib.Convert.Simplified.traditional2revised Parser.main @@ Preprocessor.inline_include incdirs Lexer.token lexbuf
-           with
-           | Failure err ->
-             let pos = Sedlexing.lexing_positions lexbuf in
-             let err = Printf.sprintf "Lexing error %s: %s" (Pos.to_string pos) err in
-             failwith err
-           | Parser.Error ->
-             let pos = Sedlexing.lexing_positions lexbuf in
-             let err = Printf.sprintf "Parsing error %s" (Pos.to_string pos) in
-             failwith err
-         in
-         close_in ic;
+         let decls = Module.parse fname in
          Lang.check_decls_toplevel decls
       ) files;
     Lang.finalize_unify ();

@@ -128,7 +128,7 @@ let rec eval (env:environment) : Term.t -> t = function
   | Meta (`Fresh pos) -> fresh_meta ?pos env
   | Meta (`Generated id) -> Meta (Meta.get id, [])
 
-(** Make a variable. *)
+    (** Make a variable. *)
 and var k = Var (k, [])
 
 (** Generate a fresh metavariable. *)
