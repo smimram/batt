@@ -161,7 +161,7 @@ module Unification = struct
 
   (** Defer a unification problem. *)
   let defer pos k t u =
-    deferred := (pos,k,t,u) :: !deferred
+    deferred := !deferred @ [pos,k,t,u]
 
   let solvable ((_,_,t,u) : t) =
     match V.force t, V.force u with
@@ -688,6 +688,9 @@ and infer k env ctx (t:term) : term * value =
   | Flat a ->
     let a, la = check_type k env (Context.crisp ctx) a in
     Flat a, Type la
+  | Flatten t ->
+    let t, a = infer k env (Context.crisp ctx) t in
+    Flatten t, Flat a
   | Eq (t, u) ->
     let t, a = infer k env ctx t in
     let u = check k env ctx u a in
