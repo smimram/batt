@@ -23,7 +23,8 @@ let binder_names ~pos t =
 %token LEFT RIGHT
 %token EQUIV
 %token<string> IDENT
-%token<string> INCLUDE
+%token OPEN
+%token<string> IMPORT
 
 %nonassoc EQUIV
 %nonassoc IDEQ
@@ -47,7 +48,7 @@ decls:
 decl:
   | x=IDENT c=ccolon a=term N def=def { let y, t = def in assert (x = y); Def (x, c, a, t) }
   | POSTULATE x=IDENT c=ccolon a=term { Def (x, c, a, mk ~pos:$loc @@ Postulate None) }
-  | INCLUDE { Include $1 }
+  | OPEN IMPORT { Include $2 }
 
 def:
   | y=IDENT args=list(pattern) EQ t=term { y, abss_pattern ~pos:$loc args t }

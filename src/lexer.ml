@@ -50,9 +50,10 @@ let rec token lexbuf =
   | "let" -> LET
   | "in" -> IN
   | "postulate" -> POSTULATE
-  | "open import ", Star (letter | '-' | '_') ->
+  | "open" -> OPEN
+  | "import ", Star (letter | '-' | '_') ->
     let s = Sedlexing.Utf8.lexeme lexbuf in
-    INCLUDE (String.sub s 12 (String.length s - 12))
+    IMPORT (String.sub s 7 (String.length s - 7))
   | Plus ('0'..'9') -> INT (int_of_string @@ Sedlexing.Utf8.lexeme lexbuf)
   | (letter, Star (letter | '0'..'9' | '\'' | '-' | '_' | Utf8 "→")) | Utf8 "_≃_" -> IDENT (Sedlexing.Utf8.lexeme lexbuf)
   | "--", Star (Compl '\n') -> token lexbuf
