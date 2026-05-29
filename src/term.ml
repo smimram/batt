@@ -58,6 +58,7 @@ type t =
   | Postulate of int option (** a postulate with given internal identifier *)
   | Hole of Pos.t
   | Meta of [`Fresh of Pos.t option | `Generated of int] (** metavariable with given internal identifier *)
+  | Import of string (** import a file *)
 
 (** A declaration. *)
 type decl = string * crispness * t * t
@@ -130,6 +131,7 @@ module FV = struct
     | Postulate _ -> empty
     | Hole _ -> empty
     | Meta _ -> empty
+    | Import _ -> failwith "unexpected import"
 end
 
 (** String representation of a term. *)
@@ -183,3 +185,4 @@ let rec to_string t =
   | Hole _ -> "?"
   | Meta (`Fresh _) -> "_"
   | Meta (`Generated n) -> Printf.sprintf "?%d" n
+  | Import f -> "import " ^ f
