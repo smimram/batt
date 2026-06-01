@@ -4,6 +4,9 @@ tens-fst (a ⊗ b) = a
 tens-snd :: {A B :: U} → A ⨂ B → B
 tens-snd (a ⊗ b) = b
 
+-- tens-ind :: {A1 A2 :: U} (B : A1 ⨂ A2 → U) (f : (x : A1) (y : A2) → B (x ⊗ y)) (u : A1 ⨂ A2) → B u
+-- tens-ind B f (x ⊗ y) = f x y
+
 tens-to-prod :: {A B :: U} → A ⨂ B → A × B
 tens-to-prod (a ⊗ b) = (a , b)
 
@@ -22,15 +25,28 @@ tens-counit-unit-left (t ⊗ a) =
   let f : (t : ⊤) → tens-counit-left (tens-unit-left (t ⊗ a)) ≡ (t ⊗ a) = λ tt → refl in
   f t
 
--- tens-assoc :: {A B C :: U} → (A ⨂ B) ⨂ C → A ⨂ (B ⨂ C)
--- tens-assoc {A} {B} {C} (ab ⊗ c) =
-  -- let f : A ⨂ B → C →ᵣ A ⨂ (B ⨂ C) = fun (a ⊗ b) cᵣ → a ⊗ (b ⊗ c) in
-  -- f ab c
+tens-assoc :: {A B C :: U} → (A ⨂ B) ⨂ C → A ⨂ (B ⨂ C)
+tens-assoc {A} {B} {C} (ab ⊗ c) =
+  let f :: A ⨂ B → C →ᵣ A ⨂ (B ⨂ C) = fun (a ⊗ b) c → a ⊗ (b ⊗ c) in
+  f ab c
 
--- tens-coassoc :: {A B C :: U} → A ⨂ (B ⨂ C) → (A ⨂ B) ⨂ C
--- tens-coassoc {A} {B} {C} (a ⊗ bc) =
-  -- let f : B ⨂ C → A →ₗ (A ⨂ B) ⨂ C = fun (b ⊗ c) aₗ → (a ⊗ b) ⊗ c in
-  -- f bc a
+tens-coassoc :: {A B C :: U} → A ⨂ (B ⨂ C) → (A ⨂ B) ⨂ C
+tens-coassoc {A} {B} {C} (a ⊗ bc) =
+  let f :: B ⨂ C → A →ₗ (A ⨂ B) ⨂ C = fun (b ⊗ c) a → (a ⊗ b) ⊗ c in
+  f bc a
+
+-- open import equivalence
+-- open import funext
+
+-- tens-assoc-equiv :: {A B C :: U} → (A ⨂ B) ⨂ C ≃ A ⨂ (B ⨂ C)
+-- tens-assoc-equiv {A} {B} {C} =
+  -- let f :: (A ⨂ B) ⨂ C → A ⨂ (B ⨂ C) = tens-assoc in
+  -- let g :: A ⨂ (B ⨂ C) → (A ⨂ B) ⨂ C = tens-coassoc in
+  -- let gf :: (x : (A ⨂ B) ⨂ C) → g (f x) ≡ x = fun (u ⊗ c) →
+    -- let h :: (u : A ⨂ B) (c : C) →ᵣ g (f (u ⊗ c)) ≡ u ⊗ c = ? in
+    -- ?
+  -- in
+  -- (f , (g , ?) , (g , ?))
 
 tens-curry-left :: {A B C :: U} → (A ⨂ B → C) → (B → A →ₗ C)
 tens-curry-left f b a = f (a ⊗ b)
