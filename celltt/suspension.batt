@@ -59,7 +59,7 @@ susp-to-I X = pushout-univ (cylbnd-inclusion X) tens-snd I
 
 -- meridian map
 merid ∷ {X ∷ U} (x : X) → (I →ᵣ susp X)
-merid {X} x sᵣ = cyl-to-susp X (x ⊗ s)
+merid {X} x s = cyl-to-susp X (x ⊗ s)
 
 lcoh-merid ∷ {X ∷ U} (x : X) → merid x I0 ≡ left-susp X
 lcoh-merid x = cyl-to-susp-leftcoh x
