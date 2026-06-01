@@ -59,8 +59,8 @@ module Bunch = struct
     | Tens (l,r) -> FV.union (dom l) (dom r)
 
   (** Split a buch so that we have the given free variables. *)
-  (* TODO: do we only want to split at toplevel? *)
   let split fvl fvr crisp b =
+    debug "SPLIT %s as %s / %s\n" (to_string 0 b) (FV.to_string fvl) (FV.to_string fvr);
     assert (FV.is_empty @@ FV.inter fvl fvr);
     let fvc = FV.of_list @@ List.map fst crisp in
     let is_crisp fv = FV.subset fv fvc in
@@ -718,8 +718,14 @@ and infer k env ctx (t:term) : term * value =
           if icit <> icit' then error ~t:t0 "got an implicit argument where an explicit one was expected";
           let u = check k env (Context.crisp ~crispness:c ctx) u a in
           App (t, icit, u), V.capp b (V.eval env u)
-        | Arr (_s, a, b) ->
-          let u = check k env ctx u a in
+        | Arr (s, a, b) ->
+          let ctxt, ctxu =
+            match s with
+            | Left -> Context.split (FV.term u) (FV.term t) ctx
+            | Right -> Context.split (FV.term t) (FV.term u) ctx
+          in
+          ignore (check k env ctxt t (Arr (s, a, b)));
+          let u = check k env ctxu u a in
           App (t, Explicit, u), b
         | _ -> error ~t:t0 "cannot infer the type of the application"
       )

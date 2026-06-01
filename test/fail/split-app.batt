@@ -1,0 +1,2 @@
+bug :: {X Y Z :: U} → (X → Y →ᵣ Z) → (X ⨂ Y) → Z
+bug {X} {Y} {Z} f (x ⊗ y) = f x y
