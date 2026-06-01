@@ -103,8 +103,8 @@ term:
   | t=fun_term COMMA u=term { mk ~pos:$loc @@ Pair (t, u) }
 
 pattern:
-  | x=identm d=option(dir) { `Var (Explicit,x,d) }
-  | LACC x=identm RACC { `Var (Implicit,x,None) }
+  | x=identm { `Var (Explicit,x) }
+  | LACC x=identm RACC { `Var (Implicit,x) }
   | TT { `Unit }
   | LPAR x=identm COMMA y=identm RPAR { `Pair (x,y) }
   | LPAR x=identm TENSP y=identm RPAR { `Tens (x,y) }

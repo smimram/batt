@@ -2,7 +2,7 @@
 
 open Term
 
-let abs ~pos ?(icit=Explicit) x t = mk ~pos @@ Abs(icit, None, x, t)
+let abs ~pos ?(icit=Explicit) x t = mk ~pos @@ Abs(icit, x, t)
 
 let app ~pos ?(icit=Explicit) t u = mk ~pos @@ App(t, icit, u)
 
@@ -16,7 +16,7 @@ let abs_pattern ~pos x t =
   mk ~pos
     (
       match x with
-      | `Var (icit,x,d) -> Abs (icit, d, x, t)
+      | `Var (icit, x) -> Abs (icit, x, t)
       | `Unit -> IndType_ind (`Unit, [t])
       | `Pair (x, y) -> Pair_ind (x, y, t)
       | `Tens (x, y) -> Tens_ind (x, y, t)

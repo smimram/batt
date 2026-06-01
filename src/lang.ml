@@ -31,12 +31,15 @@ module Bunch = struct
     | Tens (l,r) -> Printf.sprintf "(%s⊗%s)" (to_string k l) (to_string k r)
 
   let ext ctx x a = Prod (ctx,Decl(x,a))
+
+  let tens ?(side=(Right:V.side)) b1 b2 =
+    match side with
+    | Left -> Tens (b2, b1)
+    | Right -> Tens (b1, b2)
   
   let ext_tens ctx (s:V.side) x (a:value) =
     let ext = Decl (x, a) in
-    match s with
-    | Left -> Tens (ext, ctx)
-    | Right -> Tens (ctx, ext)
+    tens ~side:s ctx ext
 
   (** Find the type of a variable. *)
   let rec assoc_opt x = function
@@ -59,8 +62,8 @@ module Bunch = struct
     | Tens (l,r) -> FV.union (dom l) (dom r)
 
   (** Split a buch so that we have the given free variables. *)
-  (* TODO: do we only want to split at toplevel? *)
   let split fvl fvr crisp b =
+    debug "SPLIT %s as %s / %s\n" (to_string 0 b) (FV.to_string fvl) (FV.to_string fvr);
     assert (FV.is_empty @@ FV.inter fvl fvr);
     let fvc = FV.of_list @@ List.map fst crisp in
     let is_crisp fv = FV.subset fv fvc in
@@ -90,9 +93,16 @@ module Bunch = struct
         let fv = FV.union fvl fvr in
         if FV.subset fv (dom b1) then aux fvl fvr b1
         else if FV.subset fv (dom b2) then aux fvl fvr b2
-        else failwith @@ Printf.sprintf "TODO: split prod: %s as %s / %s" (to_string 0 b) (FV.to_string fvl) (FV.to_string fvr)
+        else failwith @@ Printf.sprintf "cannot split %s as %s / %s" (to_string 0 b) (FV.to_string fvl) (FV.to_string fvr)
     in
     aux fvl fvr b
+
+  (*
+  let split fvl fvr crisp b =
+    let l, r = split fvl fvr crisp b in
+    debug "SPLITED AS %s / %s\n" (to_string 0 l) (to_string 0 r);
+    l, r
+  *)
 end
 
 (** A bunched context. *)
@@ -258,10 +268,10 @@ let unify ~pos k (t:value) (u:value) =
           let a = rename r a in
           let b = rename r b in
           Arr (s, a, b)
-        | Abs (s, t) ->
+        | Abs t ->
           let x = var_name r.cod in
           let t = V.capp t (V.var r.dom) in
-          Abs (Explicit, s, x, rename (lift r) t)
+          Abs (Explicit, x, rename (lift r) t)
         | Sigma (a, b) ->
           let x = var_name r.cod in
           let a = rename r a in
@@ -318,7 +328,7 @@ let unify ~pos k (t:value) (u:value) =
     let t = rename m r t in
     let t =
       (* TODO: correctly handle side... *)
-      T.abss (List.init r.cod (fun i -> None, var_name i)) t
+      T.abss (List.init r.cod var_name) t
     in
     Unification.set m t
   in
@@ -343,9 +353,13 @@ let unify ~pos k (t:value) (u:value) =
       if s <> s' then raise Unification;
       unify k a a';
       unify (k+1) (V.capp b (V.var k)) (V.capp b' (V.var k))
-    | Abs (s, t), Abs (s', t') ->
-      if s <> s' then raise Unification;
+    | Abs t, Abs t' ->
       unify (k+1) (V.capp t (V.var k)) (V.capp t' (V.var k))
+    (* eta-expansion *)
+    | (Abs _ as t), u
+    | t, (Abs _ as u) ->
+      let x = V.var k in
+      unify (k+1) (V.app t x) (V.app u x)
     | Meta (m, s), Meta (m', s') when m.id = m'.id ->
       if List.length s <> List.length s' then raise Unification;
       List.iter2 (unify k) s s'
@@ -426,7 +440,7 @@ let finalize_unify () =
       let replace m1 l1 (m2:V.meta) l2 =
         let t =
           let var i = "x~" ^ string_of_int (i+1) in
-          let xx = List.init (List.length l1) (fun i -> None, var i) in
+          let xx = List.init (List.length l1) var in
           let args = List.mapi (fun i x -> if List.mem x l2 then Some (T.Var (var i)) else None) (List.rev l1) |> List.filter_map Fun.id in
           let m2 = T.Meta (`Generated m2.id) in
           let t = T.apps m2 args in
@@ -480,22 +494,21 @@ let rec check k env ctx (t:term) (a:value) : term =
   let t0 = t in
   let pos = T.Position.find_opt t in
   match t, V.force a with
-  | Abs (i, None, x, t), Pi (i', c, a, b) when i = i' ->
+  | Abs (i, x, t), Pi (i', c, a, b) when i = i' ->
     let xv = V.var k in
     let k = k+1 in
     let env = (x,xv)::env in
     let ctx = Context.ext ~crispness:c ctx x a in
     let t = check k env ctx t (V.capp b xv) in
-    Abs (i, None, x, t)
-  | Abs (i, Some s, x, t), Arr (s', a, b) ->
+    Abs (i, x, t)
+  | Abs (i, x, t), Arr (s, a, b) ->
     assert (i = Explicit);
-    assert (s = s');
     let xv = V.var k in
     let k = k+1 in
     let env = (x,xv)::env in
     let ctx = Context.ext_tens ctx s x a in
     let t = check k env ctx t b in
-    Abs (i, Some s, x, t)
+    Abs (i, x, t)
   | Let (c, x, a, t, u), b ->
     let a, _level = check_type k env (Context.crisp ~crispness:c ctx) a in
     let av = V.eval env a in
@@ -513,7 +526,7 @@ let rec check k env ctx (t:term) (a:value) : term =
     Pair (t, u)
   | Pair_ind (x, y, t), Pi (Explicit, c, a, b) ->
     (
-      match a with
+      match V.force a with
       | Sigma (a1, a2) ->
         let x1 = V.var k in
         let x2 = V.var (k+1) in
@@ -531,7 +544,7 @@ let rec check k env ctx (t:term) (a:value) : term =
     TensPair (t, u)
   | Tens_ind (x, y, t), Pi (Explicit, c, a, b) ->
     (
-      match a with
+      match V.force a with
       | Tens (a1, a2) ->
         let x' = V.var k in
         let y' = V.var (k+1) in
@@ -550,17 +563,44 @@ let rec check k env ctx (t:term) (a:value) : term =
         Tens_ind (x, y, t)
       | _ -> failwith "tens_ind"
     )
-  | IndType_ind (`Empty, []), Pi (Explicit, _, a, _) ->
+  | Tens_ind (x, y, t), Arr (side, a, b) ->
+    let a1, a2 =
+      match V.force a with
+      | Tens (a1, a2) -> a1, a2
+      | _ -> error ~t:t0 "tensor expected for the argument of the arrow"
+    in
+    let x' = V.var k in
+    let y' = V.var (k+1) in
+    let k = k+2 in
+    let env = (y,y')::(x,x')::env in
+    let ctx =
+      let cctx, bctx = ctx in
+      let bctx = Bunch.tens ~side bctx (Bunch.Tens (Bunch.Decl (x, a1), Bunch.Decl (y, a2))) in
+      cctx, bctx
+    in
+    let t = check k env ctx t b in
+    Tens_ind (x, y, t)
+  | IndType_ind (`Empty, []), Pi (Explicit, _, a, _)
+  | IndType_ind (`Empty, []), Arr (_, a, _) ->
     unify ~pos k t a (IndType `Empty);
     IndType_ind (`Empty, [])
   | IndType_ind (`Unit, [t]), Pi (Explicit, _, a, b) ->
     unify ~pos k t a (IndType `Unit);
     let t = check k env ctx t (V.capp b (IndTerm `Unit)) in
     IndType_ind (`Unit, [t])
+  | IndType_ind (`Unit, [t]), Arr (_, a, b) ->
+    unify ~pos k t a (IndType `Unit);
+    let t = check k env ctx t b in
+    IndType_ind (`Unit, [t])    
   | IndType_ind (`Bool, [tf;tt]), Pi (Explicit, _, a, b) ->
     unify ~pos k t a (IndType `Bool);
     let tf = check k env ctx tf (V.capp b (IndTerm (`Bool false))) in
     let tt = check k env ctx tt (V.capp b (IndTerm (`Bool true))) in
+    IndType_ind (`Bool, [tf;tt])
+  | IndType_ind (`Bool, [tf;tt]), Arr (_, a, b) ->
+    unify ~pos k t a (IndType `Bool);
+    let tf = check k env ctx tf b in
+    let tt = check k env ctx tt b in
     IndType_ind (`Bool, [tf;tt])
   | Flatten t, Flat a ->
     let t = check k env (Context.crisp ctx) t a in
@@ -598,7 +638,7 @@ let rec check k env ctx (t:term) (a:value) : term =
     J r
   | _, Pi (Implicit, _, _, _) ->
     (* Insert implicit abstraction. *)
-    check k env ctx (Abs (Implicit, None, "_", t)) a
+    check k env ctx (Abs (Implicit, "_", t)) a
   | Pi _, Type m
   | Sigma _, Type m
   | Arr _, Type m
@@ -641,6 +681,7 @@ and check_type k env ctx a : term * int =
 (** Infer the type of a term. *)
 and infer k env ctx (t:term) : term * value =
   debug "INFER %s\n%!" (T.to_string t);
+  (* Printf.printf "ctx: %s\n%!" (Context.to_string k ctx); *)
   let t0 = t in
   (* let cenv, benv = ctx in *)
   match t with
@@ -710,6 +751,7 @@ and infer k env ctx (t:term) : term * value =
           insert_implicits (T.App (t, Implicit, m)) (V.capp b mv)
         | _ -> t, a
       in
+      let t1 = t in
       let t, a = infer k env ctx t in
       let t, a = if icit = Explicit then insert_implicits t a else t, a in
       (
@@ -718,8 +760,14 @@ and infer k env ctx (t:term) : term * value =
           if icit <> icit' then error ~t:t0 "got an implicit argument where an explicit one was expected";
           let u = check k env (Context.crisp ~crispness:c ctx) u a in
           App (t, icit, u), V.capp b (V.eval env u)
-        | Arr (_s, a, b) ->
-          let u = check k env ctx u a in
+        | Arr (s, a, b) ->
+          let ctxt, ctxu =
+            match s with
+            | Left -> Pair.swap @@ Context.split (FV.term u) (FV.term t1) ctx
+            | Right -> Context.split (FV.term t1) (FV.term u) ctx
+          in
+          let t = check k env ctxt t1 (Arr (s, a, b)) in
+          let u = check k env ctxu u a in
           App (t, Explicit, u), b
         | _ -> error ~t:t0 "cannot infer the type of the application"
       )

@@ -2,8 +2,7 @@ unit-ind :: (A :: ⊤ → U) → A tt → (x : ⊤) → A x
 unit-ind A a tt = a
 
 unit-ind-l :: (A :: U) → A → ⊤ →ₗ A
-unit-ind-l A a tₗ =
-  let f : ⊤ → A = λ tt → a in f t
+unit-ind-l A a tt = a
 
 -- terminal arrow
 terminal :: (A : U) → A → ⊤

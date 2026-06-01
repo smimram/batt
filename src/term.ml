@@ -37,7 +37,7 @@ type t =
   | IndType_ind of inductive_type * t list
   | IndTerm of inductive_term
   | Pi of icit * crispness * string * t * t (** pi-type *)
-  | Abs of icit * side option * string * t
+  | Abs of icit * string * t
   | App of t * icit * t
   | Sigma of string * t * t
   | Pair of t * t
@@ -71,7 +71,7 @@ type decls = decl list
 
 let rec abss l t =
   match l with
-  | (s,x)::l -> Abs (Explicit, s, x, abss l t)
+  | x::l -> Abs (Explicit, x, abss l t)
   | [] -> t
 
 let app ?(icit=Explicit) t u =
@@ -115,7 +115,7 @@ module FV = struct
     | IndTerm _ -> empty
     | Pi (_, _, x, a, b)
     | Sigma (x, a, b) -> union (term a) (remove x (term b))
-    | Abs (_, _, x, t) -> remove x (term t)
+    | Abs (_, x, t) -> remove x (term t)
     | App (t, _, u)
     | Pair (t, u) -> union (term t) (term u)
     | Pair_ind (x, y, t) -> remove x (remove y (term t))
@@ -130,7 +130,7 @@ module FV = struct
     | Refl -> empty
     | J r -> term r
     | Var x -> singleton x
-    | Var' _ -> empty
+    | Var' _ -> assert false
     | Let (_c, _x, a, t, u) -> union (term a) @@ union (term t) (term u)
     | Postulate _ -> empty
     | Hole _ -> empty
@@ -159,11 +159,11 @@ let rec to_string t =
       | Explicit -> Printf.sprintf "(%s %s %s) → %s" x (colon c) (to_string a) (to_string t)
       | Implicit -> Printf.sprintf "{%s %s %s} → %s" x (colon c) (to_string a) (to_string t)
     )
-  | Abs (i, s, x, t) ->
+  | Abs (i, x, t) ->
     (
       match i with
-      | Explicit -> Printf.sprintf "λ%s%s.%s" x (string_of_opt_side s) (to_string t)
-      | Implicit -> Printf.sprintf "λ{%s%s}.%s" x (string_of_opt_side s) (to_string t)
+      | Explicit -> Printf.sprintf "λ%s.%s" x (to_string t)
+      | Implicit -> Printf.sprintf "λ{%s}.%s" x (to_string t)
     )
   | App (t, i, u) ->
     (
