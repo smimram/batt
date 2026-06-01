@@ -127,7 +127,7 @@ module FV = struct
     | Refl -> empty
     | J r -> term r
     | Var x -> singleton x
-    | Var' _ -> empty
+    | Var' _ -> assert false
     | Let (_c, _x, a, t, u) -> union (term a) @@ union (term t) (term u)
     | Postulate _ -> empty
     | Hole _ -> empty

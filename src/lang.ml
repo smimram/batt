@@ -722,8 +722,8 @@ and infer k env ctx (t:term) : term * value =
         | Arr (s, a, b) ->
           let ctxt, ctxu =
             match s with
-            | Left -> Context.split (FV.term u) (FV.term t) ctx
-            | Right -> Context.split (FV.term t) (FV.term u) ctx
+            | Left -> Context.split (FV.term u) (FV.term t1) ctx
+            | Right -> Context.split (FV.term t1) (FV.term u) ctx
           in
           let t = check k env ctxt t1 (Arr (s, a, b)) in
           let u = check k env ctxu u a in

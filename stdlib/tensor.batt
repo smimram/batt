@@ -22,27 +22,32 @@ tens-counit-unit-left (t ⊗ a) =
   let f : (t : ⊤) → tens-counit-left (tens-unit-left (t ⊗ a)) ≡ (t ⊗ a) = λ tt → refl in
   f t
 
-tens-assoc :: {A B C :: U} → (A ⨂ B) ⨂ C → A ⨂ (B ⨂ C)
-tens-assoc {A} {B} {C} (ab ⊗ c) =
-  let f : A ⨂ B → C →ᵣ A ⨂ (B ⨂ C) = fun (a ⊗ b) cᵣ → a ⊗ (b ⊗ c) in
-  f ab c
+-- tens-assoc :: {A B C :: U} → (A ⨂ B) ⨂ C → A ⨂ (B ⨂ C)
+-- tens-assoc {A} {B} {C} (ab ⊗ c) =
+  -- let f : A ⨂ B → C →ᵣ A ⨂ (B ⨂ C) = fun (a ⊗ b) cᵣ → a ⊗ (b ⊗ c) in
+  -- f ab c
 
-tens-coassoc :: {A B C :: U} → A ⨂ (B ⨂ C) → (A ⨂ B) ⨂ C
-tens-coassoc {A} {B} {C} (a ⊗ bc) =
-  let f : B ⨂ C → A →ₗ (A ⨂ B) ⨂ C = fun (b ⊗ c) aₗ → (a ⊗ b) ⊗ c in
-  f bc a
+-- tens-coassoc :: {A B C :: U} → A ⨂ (B ⨂ C) → (A ⨂ B) ⨂ C
+-- tens-coassoc {A} {B} {C} (a ⊗ bc) =
+  -- let f : B ⨂ C → A →ₗ (A ⨂ B) ⨂ C = fun (b ⊗ c) aₗ → (a ⊗ b) ⊗ c in
+  -- f bc a
 
 tens-curry-left :: {A B C :: U} → (A ⨂ B → C) → (B → A →ₗ C)
 tens-curry-left f b aₗ = f (a ⊗ b)
 
-tens-uncurry-left :: {A B C :: U} → (B → A →ₗ C) → (A ⨂ B → C)
-tens-uncurry-left f (a ⊗ b) = f b a
+-- tens-uncurry-left :: {A B C :: U} → (B → A →ₗ C) → (A ⨂ B → C)
+-- tens-uncurry-left f (a ⊗ b) = f b a
 
 tens-curry-right :: {A B C :: U} → (A ⨂ B → C) → (A → B →ᵣ C)
 tens-curry-right f a bᵣ = f (a ⊗ b)
 
-tens-uncurry-right :: {A B C :: U} → (A → B →ᵣ C) → (A ⨂ B → C)
-tens-uncurry-right f (a ⊗ b) = f a b
+-- tens-uncurry-right :: {A B C :: U} → (A → B →ᵣ C) → (A ⨂ B → C)
+-- tens-uncurry-right f (a ⊗ b) = f a b
+
+tens-uncurry-right-r :: {A B C :: U} → (A →ᵣ B →ᵣ C) → (A ⨂ B →ᵣ C)
+tens-uncurry-right-r {A} {B} {C} f abᵣ =
+  let g : A ⨂ B → C = fun (a ⊗ b) → f a b in
+  g ab
 
 -- stronger version with a →ₗ
 tens-curry-left-l :: {A B C :: U} → (A ⨂ B →ₗ C) → (B →ₗ A →ₗ C)
@@ -51,11 +56,6 @@ tens-curry-left-l f bₗ aₗ = f (a ⊗ b)
 tens-uncurry-left-l :: {A B C :: U} → (B →ₗ A →ₗ C) → (A ⨂ B →ₗ C)
 tens-uncurry-left-l {A} {B} {C} f abₗ =
   let g : A ⨂ B → C = λ (a ⊗ b) → f b a in
-  g ab
-
-tens-uncurry-right-r :: {A B C :: U} → (A →ᵣ B →ᵣ C) → (A ⨂ B →ᵣ C)
-tens-uncurry-right-r {A} {B} {C} f abᵣ =
-  let g : A ⨂ B → C = fun (a ⊗ b) → f a b in
   g ab
 
 -- version of assoc using curry-l/r
