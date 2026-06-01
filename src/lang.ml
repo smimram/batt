@@ -96,6 +96,13 @@ module Bunch = struct
         else failwith @@ Printf.sprintf "cannot split %s as %s / %s" (to_string 0 b) (FV.to_string fvl) (FV.to_string fvr)
     in
     aux fvl fvr b
+
+  (*
+  let split fvl fvr crisp b =
+    let l, r = split fvl fvr crisp b in
+    debug "SPLITED AS %s / %s\n" (to_string 0 l) (to_string 0 r);
+    l, r
+  *)
 end
 
 (** A bunched context. *)
@@ -669,6 +676,7 @@ and check_type k env ctx a : term * int =
 (** Infer the type of a term. *)
 and infer k env ctx (t:term) : term * value =
   debug "INFER %s\n%!" (T.to_string t);
+  (* Printf.printf "ctx: %s\n%!" (Context.to_string k ctx); *)
   let t0 = t in
   (* let cenv, benv = ctx in *)
   match t with
@@ -750,7 +758,7 @@ and infer k env ctx (t:term) : term * value =
         | Arr (s, a, b) ->
           let ctxt, ctxu =
             match s with
-            | Left -> Context.split (FV.term u) (FV.term t1) ctx
+            | Left -> Pair.swap @@ Context.split (FV.term u) (FV.term t1) ctx
             | Right -> Context.split (FV.term t1) (FV.term u) ctx
           in
           let t = check k env ctxt t1 (Arr (s, a, b)) in
