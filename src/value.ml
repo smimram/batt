@@ -19,7 +19,7 @@ type t =
   | IndTerm of inductive_term
   | IndType_ind of inductive_type * t list * spine
   | Pi of icit * crispness * t * closure
-  | Abs of side option * closure
+  | Abs of closure
   | Sigma of t * closure
   | Pair of t * t
   | Pair_ind of closure2 * spine
@@ -98,7 +98,7 @@ let rec eval (env:environment) : Term.t -> t = function
   | IndTerm t -> IndTerm t
   | IndType_ind (ind, args) -> IndType_ind (ind, List.map (eval env) args, [])
   | Pi (i, c, x, a, t) -> Pi (i, c, eval env a, (x, t, env))
-  | Abs (_, s, x, t) -> Abs (s, (x, t, env))
+  | Abs (_, x, t) -> Abs (x, t, env)
   | App (t, _, u) -> app (eval env t) (eval env u)
   | Sigma (x, a, t) -> Sigma (eval env a, (x, t, env))
   | Pair (t, u) -> Pair (eval env t, eval env u)
@@ -121,7 +121,7 @@ let rec eval (env:environment) : Term.t -> t = function
     )
   | Var' n -> snd @@ List.nth env n
   | Let (_c,x,_a,t,u) ->
-    eval env (Term.app (Abs(Explicit, None, x, u)) t)
+    eval env (Term.app (Abs(Explicit, x, u)) t)
   | Postulate (Some n) -> Postulate (n, [])
   | Postulate None -> assert false
   | Hole pos -> Hole (pos, [])
@@ -141,7 +141,7 @@ and fresh_meta ?pos env =
 (** Apply a value to another. *)
 and app t u =
   match force t, force u with
-  | Abs (_, f), u -> capp f u
+  | Abs f, u -> capp f u
   | IndType_ind (`Unit, [t], []), IndTerm `Unit -> t
   | IndType_ind (`Bool, [tf;_tt], []), IndTerm (`Bool false) -> tf
   | IndType_ind (`Bool, [_tf;tt], []), IndTerm (`Bool true) -> tt
@@ -193,7 +193,7 @@ let rec readback k v : Term.t =
   | IndType_ind (ind, args, l) -> spine l @@ IndType_ind (ind, List.map (readback k) args)
   | IndTerm t -> IndTerm t
   | Pi (i, c, a, b) -> Pi (i, c, var_name k, readback k a, readback (k+1) (capp b (var k)))
-  | Abs (s, f) -> Abs (Explicit, s, var_name k, readback (k+1) (capp f (var k)))
+  | Abs f -> Abs (Explicit, var_name k, readback (k+1) (capp f (var k)))
   | Sigma (a, b) -> Sigma (var_name k, readback k a, readback (k+1) (capp b (var k)))
   | Pair (t, u) -> Pair (readback k t, readback k u)
   | Pair_ind (t, l) -> spine l @@ Pair_ind (var_name k, var_name (k+1), readback (k+2) @@ capp2 t (var k) (var (k+1)))

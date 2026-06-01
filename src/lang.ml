@@ -261,10 +261,10 @@ let unify ~pos k (t:value) (u:value) =
           let a = rename r a in
           let b = rename r b in
           Arr (s, a, b)
-        | Abs (s, t) ->
+        | Abs t ->
           let x = var_name r.cod in
           let t = V.capp t (V.var r.dom) in
-          Abs (Explicit, s, x, rename (lift r) t)
+          Abs (Explicit, x, rename (lift r) t)
         | Sigma (a, b) ->
           let x = var_name r.cod in
           let a = rename r a in
@@ -321,7 +321,7 @@ let unify ~pos k (t:value) (u:value) =
     let t = rename m r t in
     let t =
       (* TODO: correctly handle side... *)
-      T.abss (List.init r.cod (fun i -> None, var_name i)) t
+      T.abss (List.init r.cod var_name) t
     in
     Unification.set m t
   in
@@ -346,8 +346,7 @@ let unify ~pos k (t:value) (u:value) =
       if s <> s' then raise Unification;
       unify k a a';
       unify (k+1) (V.capp b (V.var k)) (V.capp b' (V.var k))
-    | Abs (s, t), Abs (s', t') ->
-      if s <> s' then raise Unification;
+    | Abs t, Abs t' ->
       unify (k+1) (V.capp t (V.var k)) (V.capp t' (V.var k))
     | Meta (m, s), Meta (m', s') when m.id = m'.id ->
       if List.length s <> List.length s' then raise Unification;
@@ -429,7 +428,7 @@ let finalize_unify () =
       let replace m1 l1 (m2:V.meta) l2 =
         let t =
           let var i = "x~" ^ string_of_int (i+1) in
-          let xx = List.init (List.length l1) (fun i -> None, var i) in
+          let xx = List.init (List.length l1) var in
           let args = List.mapi (fun i x -> if List.mem x l2 then Some (T.Var (var i)) else None) (List.rev l1) |> List.filter_map Fun.id in
           let m2 = T.Meta (`Generated m2.id) in
           let t = T.apps m2 args in
@@ -483,22 +482,21 @@ let rec check k env ctx (t:term) (a:value) : term =
   let t0 = t in
   let pos = T.Position.find_opt t in
   match t, V.force a with
-  | Abs (i, None, x, t), Pi (i', c, a, b) when i = i' ->
+  | Abs (i, x, t), Pi (i', c, a, b) when i = i' ->
     let xv = V.var k in
     let k = k+1 in
     let env = (x,xv)::env in
     let ctx = Context.ext ~crispness:c ctx x a in
     let t = check k env ctx t (V.capp b xv) in
-    Abs (i, None, x, t)
-  | Abs (i, Some s, x, t), Arr (s', a, b) ->
+    Abs (i, x, t)
+  | Abs (i, x, t), Arr (s, a, b) ->
     assert (i = Explicit);
-    assert (s = s');
     let xv = V.var k in
     let k = k+1 in
     let env = (x,xv)::env in
     let ctx = Context.ext_tens ctx s x a in
     let t = check k env ctx t b in
-    Abs (i, Some s, x, t)
+    Abs (i, x, t)
   | Let (c, x, a, t, u), b ->
     let a, _level = check_type k env (Context.crisp ~crispness:c ctx) a in
     let av = V.eval env a in
@@ -618,7 +616,7 @@ let rec check k env ctx (t:term) (a:value) : term =
     J r
   | _, Pi (Implicit, _, _, _) ->
     (* Insert implicit abstraction. *)
-    check k env ctx (Abs (Implicit, None, "_", t)) a
+    check k env ctx (Abs (Implicit, "_", t)) a
   | Pi _, Type m
   | Sigma _, Type m
   | Arr _, Type m
