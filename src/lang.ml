@@ -355,6 +355,11 @@ let unify ~pos k (t:value) (u:value) =
       unify (k+1) (V.capp b (V.var k)) (V.capp b' (V.var k))
     | Abs t, Abs t' ->
       unify (k+1) (V.capp t (V.var k)) (V.capp t' (V.var k))
+    (* eta-expansion *)
+    | (Abs (_, _) as t), u
+    | t, (Abs (_, _) as u) ->
+      let x = V.var k in
+      unify (k+1) (V.app t x) (V.app u x)
     | Meta (m, s), Meta (m', s') when m.id = m'.id ->
       if List.length s <> List.length s' then raise Unification;
       List.iter2 (unify k) s s'
