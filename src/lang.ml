@@ -31,12 +31,15 @@ module Bunch = struct
     | Tens (l,r) -> Printf.sprintf "(%s⊗%s)" (to_string k l) (to_string k r)
 
   let ext ctx x a = Prod (ctx,Decl(x,a))
+
+  let tens ?(side=(Right:V.side)) b1 b2 =
+    match side with
+    | Left -> Tens (b2, b1)
+    | Right -> Tens (b1, b2)
   
   let ext_tens ctx (s:V.side) x (a:value) =
     let ext = Decl (x, a) in
-    match s with
-    | Left -> Tens (ext, ctx)
-    | Right -> Tens (ctx, ext)
+    tens ~side:s ctx ext
 
   (** Find the type of a variable. *)
   let rec assoc_opt x = function
@@ -513,7 +516,7 @@ let rec check k env ctx (t:term) (a:value) : term =
     Pair (t, u)
   | Pair_ind (x, y, t), Pi (Explicit, c, a, b) ->
     (
-      match a with
+      match V.force a with
       | Sigma (a1, a2) ->
         let x1 = V.var k in
         let x2 = V.var (k+1) in
@@ -531,7 +534,7 @@ let rec check k env ctx (t:term) (a:value) : term =
     TensPair (t, u)
   | Tens_ind (x, y, t), Pi (Explicit, c, a, b) ->
     (
-      match a with
+      match V.force a with
       | Tens (a1, a2) ->
         let x' = V.var k in
         let y' = V.var (k+1) in
@@ -550,6 +553,23 @@ let rec check k env ctx (t:term) (a:value) : term =
         Tens_ind (x, y, t)
       | _ -> failwith "tens_ind"
     )
+  | Tens_ind (x, y, t), Arr (side, a, b) ->
+    let a1, a2 =
+      match V.force a with
+      | Tens (a1, a2) -> a1, a2
+      | _ -> error ~t:t0 "tensor expected for the argument of the arrow"
+    in
+    let x' = V.var k in
+    let y' = V.var (k+1) in
+    let k = k+2 in
+    let env = (y,y')::(x,x')::env in
+    let ctx =
+      let cctx, bctx = ctx in
+      let bctx = Bunch.tens ~side bctx (Bunch.Tens (Bunch.Decl (x, a1), Bunch.Decl (y, a2))) in
+      cctx, bctx
+    in
+    let t = check k env ctx t b in
+    Tens_ind (x, y, t)
   | IndType_ind (`Empty, []), Pi (Explicit, _, a, _) ->
     unify ~pos k t a (IndType `Empty);
     IndType_ind (`Empty, [])

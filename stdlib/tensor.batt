@@ -46,7 +46,7 @@ tens-curry-right f a bᵣ = f (a ⊗ b)
 
 tens-uncurry-right-r :: {A B C :: U} → (A →ᵣ B →ᵣ C) → (A ⨂ B →ᵣ C)
 tens-uncurry-right-r {A} {B} {C} f abᵣ =
-  let g : A ⨂ B → C = fun (a ⊗ b) → f a b in
+  let g : A ⨂ B →ᵣ C = fun (a ⊗ b) → f a b in
   g ab
 
 -- stronger version with a →ₗ
