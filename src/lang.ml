@@ -356,8 +356,8 @@ let unify ~pos k (t:value) (u:value) =
     | Abs t, Abs t' ->
       unify (k+1) (V.capp t (V.var k)) (V.capp t' (V.var k))
     (* eta-expansion *)
-    | (Abs (_, _) as t), u
-    | t, (Abs (_, _) as u) ->
+    | (Abs _ as t), u
+    | t, (Abs _ as u) ->
       let x = V.var k in
       unify (k+1) (V.app t x) (V.app u x)
     | Meta (m, s), Meta (m', s') when m.id = m'.id ->
