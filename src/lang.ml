@@ -93,7 +93,7 @@ module Bunch = struct
         let fv = FV.union fvl fvr in
         if FV.subset fv (dom b1) then aux fvl fvr b1
         else if FV.subset fv (dom b2) then aux fvl fvr b2
-        else failwith @@ Printf.sprintf "TODO: split prod: %s as %s / %s" (to_string 0 b) (FV.to_string fvl) (FV.to_string fvr)
+        else failwith @@ Printf.sprintf "cannot split %s as %s / %s" (to_string 0 b) (FV.to_string fvl) (FV.to_string fvr)
     in
     aux fvl fvr b
 end
