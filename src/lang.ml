@@ -710,6 +710,7 @@ and infer k env ctx (t:term) : term * value =
           insert_implicits (T.App (t, Implicit, m)) (V.capp b mv)
         | _ -> t, a
       in
+      let t1 = t in
       let t, a = infer k env ctx t in
       let t, a = if icit = Explicit then insert_implicits t a else t, a in
       (
@@ -724,7 +725,7 @@ and infer k env ctx (t:term) : term * value =
             | Left -> Context.split (FV.term u) (FV.term t) ctx
             | Right -> Context.split (FV.term t) (FV.term u) ctx
           in
-          ignore (check k env ctxt t (Arr (s, a, b)));
+          let t = check k env ctxt t1 (Arr (s, a, b)) in
           let u = check k env ctxu u a in
           App (t, Explicit, u), b
         | _ -> error ~t:t0 "cannot infer the type of the application"
