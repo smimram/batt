@@ -33,13 +33,13 @@ tens-counit-unit-left (t ⊗ a) =
   -- f bc a
 
 tens-curry-left :: {A B C :: U} → (A ⨂ B → C) → (B → A →ₗ C)
-tens-curry-left f b aₗ = f (a ⊗ b)
+tens-curry-left f b a = f (a ⊗ b)
 
 -- tens-uncurry-left :: {A B C :: U} → (B → A →ₗ C) → (A ⨂ B → C)
 -- tens-uncurry-left f (a ⊗ b) = f b a
 
 tens-curry-right :: {A B C :: U} → (A ⨂ B → C) → (A → B →ᵣ C)
-tens-curry-right f a bᵣ = f (a ⊗ b)
+tens-curry-right f a b = f (a ⊗ b)
 
 -- tens-uncurry-right :: {A B C :: U} → (A → B →ᵣ C) → (A ⨂ B → C)
 -- tens-uncurry-right f (a ⊗ b) = f a b
@@ -49,24 +49,22 @@ tens-uncurry-right-r {A} {B} {C} f (a ⊗ b) = f a b
 
 -- stronger version with a →ₗ
 tens-curry-left-l :: {A B C :: U} → (A ⨂ B →ₗ C) → (B →ₗ A →ₗ C)
-tens-curry-left-l f bₗ aₗ = f (a ⊗ b)
+tens-curry-left-l f b a = f (a ⊗ b)
 
 tens-uncurry-left-l :: {A B C :: U} → (B →ₗ A →ₗ C) → (A ⨂ B →ₗ C)
-tens-uncurry-left-l {A} {B} {C} f abₗ =
-  let g : A ⨂ B → C = λ (a ⊗ b) → f b a in
-  g ab
+tens-uncurry-left-l {A} {B} {C} f (a ⊗ b) = f b a
 
 -- version of assoc using curry-l/r
 tens-assoc :: {A B C :: U} → (A ⨂ B) ⨂ C → A ⨂ (B ⨂ C)
 tens-assoc {A} {B} {C} =
   tens-uncurry-right
     (tens-uncurry-right {A} {B} {C →ᵣ A ⨂ (B ⨂ C)}
-      (λ a bᵣ cᵣ → a ⊗ (b ⊗ c)))
+      (λ a b c → a ⊗ (b ⊗ c)))
 
 tens-uncurry-curry-left :: {A B C :: U} (f : A ⨂ B → C) (u : A ⨂ B) → tens-uncurry-left (tens-curry-left f) u ≡ f u
 tens-uncurry-curry-left f (a ⊗ b) = refl
 
-tens-curry-uncurry-left :: {A B C :: U} (f : B → A →ₗ C) → tens-curry-left (tens-uncurry-left f) ≡ (λ b aₗ → f b a)
+tens-curry-uncurry-left :: {A B C :: U} (f : B → A →ₗ C) → tens-curry-left (tens-uncurry-left f) ≡ (λ b a → f b a)
 tens-curry-uncurry-left f = refl
 
 tens-map :: {A B C D :: U} (f :: A → B) (g :: C → D) → A ⨂ C → B ⨂ D

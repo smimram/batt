@@ -568,17 +568,27 @@ let rec check k env ctx (t:term) (a:value) : term =
     in
     let t = check k env ctx t b in
     Tens_ind (x, y, t)
-  | IndType_ind (`Empty, []), Pi (Explicit, _, a, _) ->
+  | IndType_ind (`Empty, []), Pi (Explicit, _, a, _)
+  | IndType_ind (`Empty, []), Arr (_, a, _) ->
     unify ~pos k t a (IndType `Empty);
     IndType_ind (`Empty, [])
   | IndType_ind (`Unit, [t]), Pi (Explicit, _, a, b) ->
     unify ~pos k t a (IndType `Unit);
     let t = check k env ctx t (V.capp b (IndTerm `Unit)) in
     IndType_ind (`Unit, [t])
+  | IndType_ind (`Unit, [t]), Arr (_, a, b) ->
+    unify ~pos k t a (IndType `Unit);
+    let t = check k env ctx t b in
+    IndType_ind (`Unit, [t])    
   | IndType_ind (`Bool, [tf;tt]), Pi (Explicit, _, a, b) ->
     unify ~pos k t a (IndType `Bool);
     let tf = check k env ctx tf (V.capp b (IndTerm (`Bool false))) in
     let tt = check k env ctx tt (V.capp b (IndTerm (`Bool true))) in
+    IndType_ind (`Bool, [tf;tt])
+  | IndType_ind (`Bool, [tf;tt]), Arr (_, a, b) ->
+    unify ~pos k t a (IndType `Bool);
+    let tf = check k env ctx tf b in
+    let tt = check k env ctx tt b in
     IndType_ind (`Bool, [tf;tt])
   | Flatten t, Flat a ->
     let t = check k env (Context.crisp ctx) t a in
