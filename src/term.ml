@@ -198,5 +198,7 @@ let rec to_string t =
   | Meta (`Generated n) -> Printf.sprintf "?%d" n
   | Import m -> "import " ^ m
   | Record _ -> "record"
-  | RecordType _ -> "record type"
+  | RecordType l ->
+    let l = String.concat "; " @@ List.map (fun (x,c,a) -> x ^ " " ^ crispy_colon c ^ " " ^ to_string a) l in
+    Printf.sprintf "{ %s }" l
   | RecordField (t,x) -> Printf.sprintf "%s.%s" (to_string t) x
