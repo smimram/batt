@@ -784,38 +784,108 @@ and infer k env ctx (t:term) : term * value =
   | Meta (`Fresh pos) ->
     let a = V.fresh_meta env in
     Meta (`Fresh pos), a
+  | Import m ->
+    let module_type m =
+      match Context.assoc_opt m ctx with
+      | None -> None
+      | Some a ->
+        match V.force a with
+        | RecordType _ -> Some a
+        | _ -> None
+    in
+    (
+      match module_type m with
+      | Some a ->
+        warning "module %s apparently already imported, ignoring" m;
+        Var m, a
+      | None ->
+        let pos = T.Position.find_opt t in
+        let decls = Module.parse ?pos m in
+        let _,tm,ty = check_decls k env ctx decls in
+        if List.mem_assoc m tm then error ~t "module %s contains a field %s, this is expected to cause problems" m m;
+        T.Record (`Recursive, tm), V.RecordType ty
+    )
+  | RecordField (t, x) ->
+    let t0 = t in
+    let t, a = infer k env ctx t in
+    let l =
+      match V.force a with
+      | RecordType l -> l
+      | _ -> error ~t:t0 "record type expected but got %s" (V.to_string k a)
+    in
+    let a =
+      match List.find_opt (fun (y,_,_) -> y = x) l with
+      | Some (_,_,a) -> a
+      | None -> error ~t:t0 "no field %s in %s" x (V.to_string k a);
+    in
+    RecordField (t, x), a
   | _ -> error ~t "cannot infer type"
 
-let rec check_decl k env ctx = function
-  | Term.Def (x, c, a, t) ->
-    Printf.printf "\nDECL  %s = %s %s %s\n%!" x (T.to_string t) (match c with Normal -> ":" | Crisp -> "::") (T.to_string a);
-    let a, _level = check_type k env ctx a in
-    let a = V.eval env a in
-    let t = check k env (Context.crisp ~crispness:c ctx) t a in
-    let t = V.eval env t in
-    let env = (x,t)::env in
-    let ctx = Context.ext ~crispness:c ctx x a in
-    env, ctx
-  | Include name ->
-    let dirs = Common.include_directories () in
-    let fname = name ^ ".batt" in
-    let fname =
-      match List.find_map (fun dir ->
-          let f = Filename.concat dir fname in
-          if Sys.file_exists f then Some f else None) dirs
-      with
-      | Some f -> f
-      | None ->
-        failwith @@ Printf.sprintf "Could not find library file %s (in %s)" fname (String.concat ", " dirs)
-    in
-    Printf.printf "Include %s...\n%!" fname;
-    let decls = Module.parse fname in
-    check_decls k env ctx decls
-
 and check_decls k env ctx (decls:T.decls) =
-  List.fold_left (fun (env,ctx) decl -> check_decl k env ctx decl) (env,ctx) decls
+  let tm = ref [] in
+  let ty = ref [] in
+  let env = ref env in
+  let ctx = ref ctx in
+  let decls = ref decls in
+  while !decls <> [] do
+    let decl = List.hd !decls in
+    decls := List.tl !decls;
+    match decl with
+    | T.Def (x,c,a,t) ->
+      Printf.printf "\nDECL  %s = %s%s\n%!" x (T.to_string t) (match a with Some a -> " " ^ T.crispy_colon c ^ " " ^ T.to_string a | None -> "");
+      let t, a =
+        match a with
+        | Some a ->
+          let a, _ = check_type k !env !ctx a in
+          let a = V.eval !env a in
+          let t = check k !env (Context.crisp ~crispness:c !ctx) t a in
+          t, a
+        | None ->
+          infer k !env (Context.crisp ~crispness:c !ctx) t
+      in
+      tm := (x,t) :: !tm;
+      let t = V.eval !env t in
+      env := (x,t) :: !env;
+      ctx := Context.ext ~crispness:c !ctx x a;
+      ty := (x,c,a) :: !ty
+    | Open t ->
+      let t0 = t in
+      let _, a = infer k !env !ctx t in
+      let l =
+        match V.force a with
+        | RecordType l -> l
+        | _ -> error ~t:t0 "record type exepected but got %s" (V.to_string k a)
+      in
+      let pos = T.Position.find_opt t in
+      List.iter (fun (x,c,_) -> decls := (Def (x,c,None,T.mk ?pos @@ RecordField(t0, x)) :: !decls)) (List.rev l)
+  done;
+  let tm = List.rev !tm in
+  let ty = List.rev !ty in
+  (!env,!ctx),tm,ty
 
-let check_decls_toplevel decls = ignore @@ check_decls 0 [] Context.empty decls
+let check_decls_toplevel decls =
+  let env = ref ([] : V.environment) in
+  let ctx = ref Context.empty in
+  let add ?(crispness=T.Crisp) x a t =
+    env := (x,t) :: !env;
+    ctx := Context.ext ~crispness !ctx x a
+  in
+  let () =
+    let type0 = V.Type 0 in
+    let type1 = V.Type 1 in
+    add "Type" type1 type0;
+    add "U" type1 type0;
+    add "TYPE" (V.Type 2) type1;
+    let empty = V.IndType `Empty in
+    add "empty" type0 empty;
+    let unit = V.IndType `Unit in
+    add "unit" type0 unit;
+    let bool = V.IndType `Bool in
+    add "bool" type0 bool;
+    add "false" bool (V.IndTerm (`Bool false));
+    add "true" bool (V.IndTerm (`Bool true));
+  in
+  ignore @@ check_decls 0 !env !ctx decls
 
 let check_meta () =
   let m =

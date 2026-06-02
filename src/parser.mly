@@ -23,7 +23,8 @@ let binder_names ~pos t =
 %token LEFT RIGHT
 %token EQUIV
 %token<string> IDENT
-%token<string> INCLUDE
+%token OPEN
+%token<string> IMPORT
 
 %nonassoc EQUIV
 %nonassoc IDEQ
@@ -40,14 +41,16 @@ main:
 
 decls:
   | { [] }
-  | decl { [$1] }
+  | decl { $1 }
   | N decls { $2 }
-  | decl N decls { $1::$3 }
+  | decl N decls { $1@$3 }
 
 decl:
-  | x=IDENT c=ccolon a=term N def=def { let y, t = def in assert (x = y); Def (x, c, a, t) }
-  | POSTULATE x=IDENT c=ccolon a=term { Def (x, c, a, mk ~pos:$loc @@ Postulate None) }
-  | INCLUDE { Include $1 }
+  | x=IDENT c=ccolon a=term N def=def { let y, t = def in assert (x = y); [Def (x, c, Some a, t)] }
+  | POSTULATE x=IDENT c=ccolon a=term { [Def (x, c, Some a, mk ~pos:$loc @@ Postulate None)] }
+  | m=IMPORT { [Def (m, Crisp, None, mk ~pos:$loc @@ Import m)] }
+  | OPEN m=IMPORT { [Def (m, Crisp, None, mk ~pos:$loc(m) @@ Import m); Open (mk ~pos:$loc(m) @@ Var m)] }
+  | OPEN t=term { [Open t] }
 
 def:
   | y=IDENT args=list(pattern) EQ t=term { y, abss_pattern ~pos:$loc args t }
@@ -69,6 +72,7 @@ atom:
   | HOLE { mk ~pos:$loc @@ Hole $loc }
   | META { mk ~pos:$loc @@ Meta (`Fresh (Some $loc)) }
   | LPAR t=term RPAR { t }
+  | t=atom DOT x=IDENT { mk ~pos:$loc @@ RecordField (t, x) }
 
 prefix_term:
   | atom { $1 }

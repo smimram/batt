@@ -1,0 +1,14 @@
+rec-bool :: (C : bool → U) → C false → C true → (b : bool) → C b
+rec-bool C cf ct = bool_ind(cf,ct)
+
+ind-bool :: (C : U) → C → C → bool → C
+ind-bool C cf ct = bool_ind(cf,ct)
+
+not :: bool → bool
+not = bool_ind(true,false)
+
+and :: bool → bool → bool
+and = bool_ind(fun _ → false,fun b → b)
+
+or :: bool → bool → bool
+or = bool_ind(fun b → b,fun _ → true)

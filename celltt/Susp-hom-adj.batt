@@ -1,7 +1,7 @@
-open import stdlib
-open import bipointed
-open import suspension
-open import hom
+open import Stdlib
+open import Bipointed
+open import Suspension
+open import Hom
 
 --
 -- The adjunction susp ⊣ hom 
@@ -18,8 +18,8 @@ susphom-counit X' =
   let x0 ∷ X = leftpt X' in
   let x1 ∷ X = rightpt X' in
   let leg-cyl ∷ hom' X' ⨂ I → X = λ (f' ⊗ s) . oplax-oplaxbipt {I'} f' s in
-  let leg-bool ∷ Bool → X = ind-bool X x0 x1 in
-  let ho-legs ∷ (u : hom' X' ⨂ Bool) → leg-cyl (cylbnd-inclusion (hom' X') u) ≡ leg-bool (tens-snd u) =
+  let leg-bool ∷ bool → X = ind-bool X x0 x1 in
+  let ho-legs ∷ (u : hom' X' ⨂ bool) → leg-cyl (cylbnd-inclusion (hom' X') u) ≡ leg-bool (tens-snd u) =
     λ (f' ⊗ b) . rec-bool (λb. leg-cyl (cylbnd-inclusion (hom' X') (f' ⊗ b)) ≡ leg-bool (tens-snd (f' ⊗ b)))
       (oplaxleftcoh {I'} f') (oplaxrightcoh {I'} f') b
   in
@@ -58,8 +58,8 @@ to-hom-from-susp {X} {Y'} f' x =
   -- let y0 ∷ Y = leftpt Y'  in
   -- let y1 ∷ Y = rightpt Y' in
   -- let leg-cyl : X ⨂ I → Y = λ (x ⊗ s) . oplax-oplaxbipt {I'} (g x) s in
-  -- let leg-bool : Bool → Y = ind-bool Y y0 y1 in
-  -- let ho-legs : (u : X ⨂ Bool) → leg-cyl (cylbnd-inclusion X u) ≡ leg-bool (tens-snd u) =
+  -- let leg-bool : bool → Y = ind-bool Y y0 y1 in
+  -- let ho-legs : (u : X ⨂ bool) → leg-cyl (cylbnd-inclusion X u) ≡ leg-bool (tens-snd u) =
     -- λ (x ⊗ b) . rec-bool (λb. leg-cyl (cylbnd-inclusion X (x ⊗ b)) ≡ leg-bool (tens-snd (x ⊗ b)))
       -- (oplaxleftcoh {I'} (g x)) (oplaxrightcoh {I'} (g x)) b
   -- in

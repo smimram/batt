@@ -58,13 +58,18 @@ type t =
   | Postulate of int option (** a postulate with given internal identifier *)
   | Hole of Pos.t
   | Meta of [`Fresh of Pos.t option | `Generated of int] (** metavariable with given internal identifier *)
+  | Import of string (** import a module *)
+  | RecordType of (string * crispness * t) list
+  | Record of [`Recursive | `NonRecursive] * (string * t) list
+  | RecordField of t * string
 
 (** A declaration. *)
-type decl =
-  | Def of string * crispness * t * t
-  | Include of string
+and decl =
+  | Def of (string * crispness * t option * t)
+  | Open of t
 
-type decls = decl list
+(** A list of declarations. *)
+and decls = decl list
 
 let rec abss l t =
   match l with
@@ -132,14 +137,19 @@ module FV = struct
     | Postulate _ -> empty
     | Hole _ -> empty
     | Meta _ -> empty
+    | Import _ -> assert false
+    | Record _ -> failwith "TODO"
+    | RecordType l -> List.fold_left (fun fv (_x, _c, a) -> union fv (term a)) empty l
+    | RecordField (t, _x) -> term t
 end
+
+let crispy_colon = function
+  | Normal -> ":"
+  | Crisp -> "∷"
 
 (** String representation of a term. *)
 let rec to_string t =
-  let colon = function
-    | Normal -> ":"
-    | Crisp -> "∷"
-  in
+  let colon = crispy_colon in
   match t with
   | Type 0 -> "Type"
   | Type n -> Printf.sprintf "Type %d" n
@@ -184,4 +194,11 @@ let rec to_string t =
   | Postulate n -> "postulate" ^ (match n with Some n -> string_of_int n | None -> "")
   | Hole _ -> "?"
   | Meta (`Fresh _) -> "_"
+
   | Meta (`Generated n) -> Printf.sprintf "?%d" n
+  | Import m -> "import " ^ m
+  | Record _ -> "record"
+  | RecordType l ->
+    let l = String.concat "; " @@ List.map (fun (x,c,a) -> x ^ " " ^ crispy_colon c ^ " " ^ to_string a) l in
+    Printf.sprintf "{ %s }" l
+  | RecordField (t,x) -> Printf.sprintf "%s.%s" (to_string t) x

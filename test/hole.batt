@@ -1,5 +1,5 @@
 Vec :: {A : Type} → A → Type
 Vec = ?
 
-x :: Vec Bool
+x :: Vec bool
 x = ?

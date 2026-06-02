@@ -37,6 +37,9 @@ type t =
   | Var of int * spine
   | Hole of (Pos.t [@opaque]) * spine
   | Postulate of int * spine
+  | RecordType of (string * crispness * t) list
+  | Record of (string * t) list
+  | RecordField of string * spine
 [@@deriving show]
 
 (** A closure. *)
@@ -127,6 +130,24 @@ let rec eval (env:environment) : Term.t -> t = function
   | Hole pos -> Hole (pos, [])
   | Meta (`Fresh pos) -> fresh_meta ?pos env
   | Meta (`Generated id) -> Meta (Meta.get id, [])
+  | Import _ -> assert false
+  | Record (`NonRecursive, l) ->
+    Record (List.map (fun (x,t) -> x, eval env t) l)
+  | Record (`Recursive, l) ->
+    let _, l =
+      List.fold_left_map
+        (fun env (x,t) ->
+           let t = eval env t in
+           let env = (x,t)::env in
+           env, (x,t)
+        ) env l
+    in
+    Record l
+  | RecordType l ->
+    let l = List.map (fun (x, c, a) -> x, c, eval env a) l in
+    RecordType l
+  | RecordField (t, x) ->
+    app (RecordField (x, [])) (eval env t)
 
     (** Make a variable. *)
 and var k = Var (k, [])
@@ -158,6 +179,7 @@ and app t u =
   | Meta (m, l), u -> Meta (m, u::l)
   | Hole (pos, l), u -> Hole (pos, u::l)
   | Postulate (n, l), u -> Postulate (n, u::l)
+  | RecordField (x, []), Record l -> List.assoc x l
   | _ -> failwith @@ Printf.sprintf "vapp: %s vs %s" (show t) (show u)
 
 (** Apply a value to a list of values. *)
@@ -211,5 +233,14 @@ let rec readback k v : Term.t =
   | Var (i, l) -> spine l @@ Var' i
   | Postulate (n, l) -> spine l @@ Postulate (Some n)
   | Hole (pos, l) -> spine l @@ Hole pos
+  | RecordType l -> RecordType (List.map (fun (x, c, a) -> x, c, readback k a) l)
+  | Record l -> Record (`NonRecursive, List.map (fun (x, t) -> x, readback k t) l)
+  | RecordField (x, l) ->
+    assert (l <> []);
+    let t, l =
+      let l = List.rev l in
+      List.hd l, List.rev @@ List.tl l
+    in
+    spine l @@ RecordField (readback k t, x)
 
 let to_string k v = Term.to_string @@ readback k v

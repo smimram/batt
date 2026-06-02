@@ -24,7 +24,7 @@ let () =
     List.iter
       (fun fname ->
          Printf.printf "\nChecking %s...\n%!" fname;
-         let decls = Module.parse fname in
+         let decls = Module.parse_file fname in
          Lang.check_decls_toplevel decls
       ) files;
     Lang.finalize_unify ();

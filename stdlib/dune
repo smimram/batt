@@ -1,7 +1,7 @@
 (rule
  (alias runtest)
  (deps (glob_files *.batt))
- (action (run ../src/batt.exe stdlib.batt))
+ (action (run ../src/batt.exe Stdlib.batt))
 )
 
 (install

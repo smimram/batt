@@ -1,0 +1,9 @@
+-- identity on bool
+idbool : bool → bool
+idbool x = x
+
+idbool' : bool → bool
+idbool' = bool_ind(false,true)
+
+idbool'IsId : (b : bool) → idbool' b ≡ b
+idbool'IsId = bool_ind(refl,refl)

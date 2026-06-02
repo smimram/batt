@@ -1,0 +1,10 @@
+open import Prop
+
+is-set :: U → U
+is-set A = (x y : A) → is-prop (x ≡ y)
+
+HSet :: TYPE
+HSet = Σ (A : U) . is-set A
+
+type-HSet :: HSet → U
+type-HSet (A, p) = A

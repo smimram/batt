@@ -1,0 +1,11 @@
+import Bool
+
+import Bool
+
+-- f : bool → bool → bool
+-- f = Bool.or
+
+-- open Bool
+
+-- f : bool → bool → bool
+-- f = or
