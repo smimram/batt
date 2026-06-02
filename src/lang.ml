@@ -788,10 +788,17 @@ and infer k env ctx (t:term) : term * value =
 
 let rec check_decl k env ctx = function
   | Term.Def (x, c, a, t) ->
-    Printf.printf "\nDECL  %s = %s %s %s\n%!" x (T.to_string t) (match c with Normal -> ":" | Crisp -> "::") (T.to_string a);
-    let a, _level = check_type k env ctx a in
-    let a = V.eval env a in
-    let t = check k env (Context.crisp ~crispness:c ctx) t a in
+    Printf.printf "\nDECL  %s = %s%s\n%!" x (T.to_string t) (match a with Some a -> " " ^ T.crispy_colon c ^ " " ^ T.to_string a | None -> "");
+    let t, a =
+      match a with
+      | Some a ->
+        let a, _ = check_type k env ctx a in
+        let a = V.eval env a in
+        let t = check k env (Context.crisp ~crispness:c ctx) t a in
+        t, a
+      | None ->
+        infer k env (Context.crisp ~crispness:c ctx) t
+    in
     let t = V.eval env t in
     let env = (x,t)::env in
     let ctx = Context.ext ~crispness:c ctx x a in

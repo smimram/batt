@@ -65,7 +65,7 @@ type t =
 
 (** A declaration. *)
 type decl =
-  | Def of string * crispness * t * t
+  | Def of string * crispness * t option * t
   | Include of string
 
 type decls = decl list
@@ -142,12 +142,13 @@ module FV = struct
     | RecordField (t, _x) -> term t
 end
 
+let crispy_colon = function
+  | Normal -> ":"
+  | Crisp -> "∷"
+
 (** String representation of a term. *)
 let rec to_string t =
-  let colon = function
-    | Normal -> ":"
-    | Crisp -> "∷"
-  in
+  let colon = crispy_colon in
   match t with
   | Type 0 -> "Type"
   | Type n -> Printf.sprintf "Type %d" n
@@ -192,7 +193,7 @@ let rec to_string t =
   | Postulate n -> "postulate" ^ (match n with Some n -> string_of_int n | None -> "")
   | Hole _ -> "?"
   | Meta (`Fresh _) -> "_"
-    
+
   | Meta (`Generated n) -> Printf.sprintf "?%d" n
   | Import m -> "import " ^ m
   | RecordType _ -> "record type"

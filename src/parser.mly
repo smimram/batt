@@ -46,8 +46,8 @@ decls:
   | decl N decls { $1::$3 }
 
 decl:
-  | x=IDENT c=ccolon a=term N def=def { let y, t = def in assert (x = y); Def (x, c, a, t) }
-  | POSTULATE x=IDENT c=ccolon a=term { Def (x, c, a, mk ~pos:$loc @@ Postulate None) }
+  | x=IDENT c=ccolon a=term N def=def { let y, t = def in assert (x = y); Def (x, c, Some a, t) }
+  | POSTULATE x=IDENT c=ccolon a=term { Def (x, c, Some a, mk ~pos:$loc @@ Postulate None) }
   | OPEN IMPORT { Include $2 }
 
 def:
