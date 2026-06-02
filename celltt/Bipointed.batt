@@ -18,7 +18,7 @@ mapbipt ∷ (X' Y' : Ubipt) → U
 mapbipt X' Y' =
   let X : U = type-Ubipt X' in
   let Y : U = type-Ubipt Y' in
-  Σ (f : X → Y) . ((f (leftpt X') ≡ leftpt Y') × (f (rightpt X') ≡ rightpt Y'))
+  Σ (f : X → Y) . ((f (leftpt X') ≡{ Y } leftpt Y') × (f (rightpt X') ≡{ Y } rightpt Y'))
 
 map-mapbipt ∷ {X' Y' : Ubipt} → mapbipt X' Y' → type-Ubipt X' → type-Ubipt Y'
 map-mapbipt (f, _) = f
@@ -44,12 +44,12 @@ circbipt {X'} {Y'} {Z'} g' f' =
   let Z : U = type-Ubipt Z' in
   let z0 : Z = leftpt Z' in
   let z1 : Z = rightpt Z' in
-  let f : X → Y = map-mapbipt f' in
-  let g : Y → Z = map-mapbipt g' in
-  let fx0-y0 : f x0 ≡ y0 = leftcoh f' in
-  let fx1-y1 : f x1 ≡ y1 = rightcoh f' in
-  let gy0-z0 : g y0 ≡ z0 = leftcoh g' in
-  let gy1-z1 : g y1 ≡ z1 = rightcoh g' in
+  let f : X → Y = map-mapbipt {X'} {Y'} f' in
+  let g : Y → Z = map-mapbipt {Y'} {Z'} g' in
+  let fx0-y0 : f x0 ≡{Y} y0 = leftcoh {X'} {Y'} f' in
+  let fx1-y1 : f x1 ≡{Y} y1 = rightcoh {X'} {Y'} f' in
+  let gy0-z0 : g y0 ≡{Z} z0 = leftcoh {Y'} {Z'} g' in
+  let gy1-z1 : g y1 ≡{Z} z1 = rightcoh {Y'} {Z'} g' in
   let gf : X → Z = circ g f in
   let gfx0-gy0 : g (f x0) ≡ g y0 = cong g fx0-y0 in
   let gfx1-gy1 : g (f x1) ≡ g y1 = cong g fx1-y1 in
