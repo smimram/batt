@@ -1,7 +1,7 @@
-open import stdlib
-open import bipointed
-open import suspension
-open import hom
+open import Stdlib
+open import Bipointed
+open import Suspension
+open import Hom
 
 --
 -- The adjunction susp ⊣ hom 
