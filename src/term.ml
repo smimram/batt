@@ -58,6 +58,7 @@ type t =
   | Postulate of int option (** a postulate with given internal identifier *)
   | Hole of Pos.t
   | Meta of [`Fresh of Pos.t option | `Generated of int] (** metavariable with given internal identifier *)
+  | Import of string (** import a module *)
   | RecordType of (string * crispness * t) list
   | Record of [`Recursive | `NonRecursive] * (string * t) list
   | RecordField of t * string
@@ -135,6 +136,7 @@ module FV = struct
     | Postulate _ -> empty
     | Hole _ -> empty
     | Meta _ -> empty
+    | Import _ -> assert false
     | RecordType l -> List.fold_left (fun fv (_x, _c, a) -> union fv (term a)) empty l
     | Record (_r, l) -> List.fold_left (fun fv (_x, t) -> union fv (term t)) empty l
     | RecordField (t, _x) -> term t
@@ -190,7 +192,9 @@ let rec to_string t =
   | Postulate n -> "postulate" ^ (match n with Some n -> string_of_int n | None -> "")
   | Hole _ -> "?"
   | Meta (`Fresh _) -> "_"
+    
   | Meta (`Generated n) -> Printf.sprintf "?%d" n
-  | RecordType _ -> "module type"
-  | Record _ -> "module"
+  | Import m -> "import " ^ m
+  | RecordType _ -> "record type"
+  | Record _ -> "record"
   | RecordField (t,x) -> Printf.sprintf "%s.%s" (to_string t) x

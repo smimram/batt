@@ -130,6 +130,7 @@ let rec eval (env:environment) : Term.t -> t = function
   | Hole pos -> Hole (pos, [])
   | Meta (`Fresh pos) -> fresh_meta ?pos env
   | Meta (`Generated id) -> Meta (Meta.get id, [])
+  | Import _ -> assert false
   | RecordType l ->
     let l = List.map (fun (x, c, a) -> x, c, eval env a) l in
     RecordType l
