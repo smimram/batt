@@ -238,7 +238,9 @@ let unify ~pos k (t:value) (u:value) =
                 cod+1, IntMap.add x None r
               else
                 cod+1, IntMap.add x (Some cod) r
-            | _ -> raise Unification
+            | _ ->
+              (* raise Unification *)
+              cod+1, r
           )
         | [] -> 0, IntMap.empty
       in

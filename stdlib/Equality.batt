@@ -41,16 +41,16 @@ happly {A} {B} {f} refl x = refl
 --- Basic lemmas
 ---
 
-sym-sym :: {A : Type} {x y : A} (p : x ≡ y) → sym {A} {y} {x} (sym {A} {x} {y} p) ≡ p
+sym-sym :: {A : Type} {x y : A} (p : x ≡ y) → sym (sym p) ≡ p
 sym-sym {A} {x} refl = refl
 
-cong-id :: {A : Type} {x y : A} (p : x ≡ y) → cong (id {A}) p ≡ p
+cong-id :: {A : Type} {x y : A} (p : x ≡ y) → cong id p ≡ p
 cong-id {A} {x} refl = refl
 
-cong-sym :: {A B : Type} (f : A → B) {x y : A} (p : x ≡ y) → cong f (sym {A} p) ≡ sym {A} (cong f p)
+cong-sym :: {A B : Type} (f : A → B) {x y : A} (p : x ≡ y) → cong f (sym p) ≡ sym (cong f p)
 cong-sym f {x} refl = refl
 
-assoc :: {A : Type} {x y : A} (p : x ≡ y) {z : A} (q : y ≡ z) {w : A} (r : z ≡ w) → trans (trans {A} {x} {y} p {z} q) {w} r ≡ trans {A} {x} {y} p (trans q r)
+assoc :: {A : Type} {x y : A} (p : x ≡ y) {z : A} (q : y ≡ z) {w : A} (r : z ≡ w) → trans (trans p q) r ≡ trans p (trans q r)
 assoc p refl refl = refl
 
 ---
