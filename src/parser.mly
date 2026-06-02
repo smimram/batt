@@ -41,15 +41,16 @@ main:
 
 decls:
   | { [] }
-  | decl { [$1] }
+  | decl { $1 }
   | N decls { $2 }
-  | decl N decls { $1::$3 }
+  | decl N decls { $1@$3 }
 
 decl:
-  | x=IDENT c=ccolon a=term N def=def { let y, t = def in assert (x = y); Def (x, c, Some a, t) }
-  | POSTULATE x=IDENT c=ccolon a=term { Def (x, c, Some a, mk ~pos:$loc @@ Postulate None) }
-  | m=IMPORT { Def (m, Crisp, None, mk ~pos:$loc @@ Import m) }
-  | OPEN t=term { Open t }
+  | x=IDENT c=ccolon a=term N def=def { let y, t = def in assert (x = y); [Def (x, c, Some a, t)] }
+  | POSTULATE x=IDENT c=ccolon a=term { [Def (x, c, Some a, mk ~pos:$loc @@ Postulate None)] }
+  | m=IMPORT { [Def (m, Crisp, None, mk ~pos:$loc @@ Import m)] }
+  | OPEN m=IMPORT { [Def (m, Crisp, None, mk ~pos:$loc(m) @@ Import m); Open (mk ~pos:$loc(m) @@ Var m)] }
+  | OPEN t=term { [Open t] }
 
 def:
   | y=IDENT args=list(pattern) EQ t=term { y, abss_pattern ~pos:$loc args t }

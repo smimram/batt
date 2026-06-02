@@ -4,8 +4,7 @@ let parse_file fname =
     (fun ic ->
        let lexbuf = Sedlexing.Utf8.from_channel ic in
        Sedlexing.set_filename lexbuf fname;
-       let token = Lexer.token |> Preprocessor.swap_open_include in
-       try MenhirLib.Convert.Simplified.traditional2revised Parser.main (Sedlexing.with_tokenizer token lexbuf)
+       try MenhirLib.Convert.Simplified.traditional2revised Parser.main (Sedlexing.with_tokenizer Lexer.token lexbuf)
        with
        | Failure err ->
          let pos = Sedlexing.lexing_positions lexbuf in
