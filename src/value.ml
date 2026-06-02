@@ -179,6 +179,7 @@ and app t u =
   | Meta (m, l), u -> Meta (m, u::l)
   | Hole (pos, l), u -> Hole (pos, u::l)
   | Postulate (n, l), u -> Postulate (n, u::l)
+  | RecordField (x, []), Record l -> List.assoc x l
   | _ -> failwith @@ Printf.sprintf "vapp: %s vs %s" (show t) (show u)
 
 (** Apply a value to a list of values. *)
