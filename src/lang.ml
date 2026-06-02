@@ -221,7 +221,7 @@ let error ?t fmt =
 
 (** Unify two values. *)
 let unify ~pos k (t:value) (u:value) =
-  (* debug "UNIFY %s WITH %s\n%!" (V.to_string k t) (V.to_string k u); *)
+  debug "UNIFY %s WITH %s\n%!" (V.to_string k t) (V.to_string k u);
   (* Make sure that metavariable m applied to spine s equals t. *)
   let solve k m s t =
     (* debug "SOLVE %s =? %s\n" (V.to_string k (Meta (m, s))) (V.to_string k t); *)
@@ -756,14 +756,14 @@ and infer k env ctx (t:term) : term * value =
     let t, a = infer k env (Context.crisp ctx) t in
     Flatten t, Flat a
   | Eq (a, t, u) ->
-    let a, _ = check_type k env ctx a in
+    let a, l = check_type k env ctx a in
     let t, u =
       let a = V.eval env a in
       let t = check k env ctx t a in
       let u = check k env ctx u a in
       t, u
     in
-    Eq (a, t, u), Type 0
+    Eq (a, t, u), Type l
   | App (t, icit, u) ->
     (
       let pos = T.Position.find_opt t in
@@ -807,7 +807,8 @@ and infer k env ctx (t:term) : term * value =
     Var' k, a
   | Meta (`Fresh pos) ->
     let a = V.fresh_meta env in
-    Meta (`Fresh pos), a
+    let t = V.readback k @@ V.fresh_meta ?pos env in
+    t, a
   | Import m ->
     let module_type m =
       match Context.assoc_opt m ctx with
