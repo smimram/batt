@@ -38,6 +38,7 @@ type t =
   | Hole of (Pos.t [@opaque]) * spine
   | Postulate of int * spine
   | RecordType of (string * crispness * t) list
+  | Record of (string * t) list
   | RecordField of string * spine
 [@@deriving show]
 
@@ -130,7 +131,18 @@ let rec eval (env:environment) : Term.t -> t = function
   | Meta (`Fresh pos) -> fresh_meta ?pos env
   | Meta (`Generated id) -> Meta (Meta.get id, [])
   | Import _ -> assert false
-  | Module _ -> failwith "TODO: eval module"
+  | Record (`NonRecursive, l) ->
+    Record (List.map (fun (x,t) -> x, eval env t) l)
+  | Record (`Recursive, l) ->
+    let _, l =
+      List.fold_left_map
+        (fun env (x,t) ->
+           let t = eval env t in
+           let env = (x,t)::env in
+           env, (x,t)
+        ) env l
+    in
+    Record l
   | RecordType l ->
     let l = List.map (fun (x, c, a) -> x, c, eval env a) l in
     RecordType l
@@ -221,6 +233,7 @@ let rec readback k v : Term.t =
   | Postulate (n, l) -> spine l @@ Postulate (Some n)
   | Hole (pos, l) -> spine l @@ Hole pos
   | RecordType l -> RecordType (List.map (fun (x, c, a) -> x, c, readback k a) l)
+  | Record l -> Record (`NonRecursive, List.map (fun (x, t) -> x, readback k t) l)
   | RecordField (x, l) ->
     assert (l <> []);
     let t, l =

@@ -807,7 +807,7 @@ and infer k env ctx (t:term) : term * value =
       done;
       let tm = List.rev !tm in
       let ty = List.rev !ty in
-      T.Module tm, V.RecordType ty
+      T.Record (`Recursive, tm), V.RecordType ty
     in
     t, a
   | _ -> error ~t "cannot infer type"
