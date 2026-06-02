@@ -1,7 +1,7 @@
 open import Stdlib
 
 -- type of bipointed types
-Ubipt ∷ U 1
+Ubipt ∷ TYPE
 Ubipt = Σ (X : U) . (X × X)
 
 type-Ubipt ∷ Ubipt → U

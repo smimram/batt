@@ -31,8 +31,8 @@ postulate max-min-dist ∷ (s t u : I) → max s (min t u) ≡ min (max s t) (ma
 -- postulate min-or : (s t : I) → or (min s t ≡ s) (min s t ≡ t)
 -- postulate max-or : (s t : I) → or (max s t ≡ s) (max s t ≡ t)
 
-boundary-inclusion ∷ Bool → I
-boundary-inclusion = Bool_ind(I0,I1)
+boundary-inclusion ∷ bool → I
+boundary-inclusion = bool_ind(I0,I1)
 
 I' ∷ Ubipt
 I' = (I, I0, I1)

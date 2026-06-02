@@ -1,14 +1,14 @@
-rec-bool :: (C : Bool → U) → C false → C true → (b : Bool) → C b
-rec-bool C cf ct = Bool_ind(cf,ct)
+rec-bool :: (C : bool → U) → C false → C true → (b : bool) → C b
+rec-bool C cf ct = bool_ind(cf,ct)
 
-ind-bool :: (C : U) → C → C → Bool → C
-ind-bool C cf ct = Bool_ind(cf,ct)
+ind-bool :: (C : U) → C → C → bool → C
+ind-bool C cf ct = bool_ind(cf,ct)
 
-bnot :: Bool → Bool
-bnot = Bool_ind(true,false)
+not :: bool → bool
+not = bool_ind(true,false)
 
-band :: Bool → Bool → Bool
-band = Bool_ind(fun _ → false,fun b → b)
+and :: bool → bool → bool
+and = bool_ind(fun _ → false,fun b → b)
 
-bor :: Bool → Bool → Bool
-bor = Bool_ind(fun b → b,fun _ → true)
+or :: bool → bool → bool
+or = bool_ind(fun b → b,fun _ → true)

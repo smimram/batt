@@ -5,18 +5,12 @@ let space = [%sedlex.regexp? ' ' | '\t' | '\r']
 
 let rec token lexbuf =
   match%sedlex lexbuf with
-  | "Type" -> TYPE
-  | "TYPE" -> LARGETYPE
-  | "U" -> TYPE
-  | "Empty" -> EMPTY
   | Utf8 "⊥" -> EMPTY
-  | "Unit" -> UNIT
   | Utf8 "⊤" -> UNIT
   | "tt" -> TT
-  | "Bool" -> BOOL
   | "false" -> FALSE
   | "true" -> TRUE
-  | "Bool_ind" -> BOOL_IND
+  | "bool_ind" -> BOOL_IND
   | "::" -> CCOLON
   | Utf8 "∷" -> CCOLON
   | ":" -> COLON

@@ -848,7 +848,29 @@ and check_decls k env ctx (decls:T.decls) =
   let ty = List.rev !ty in
   (!env,!ctx),tm,ty
 
-let check_decls_toplevel decls = ignore @@ check_decls 0 [] Context.empty decls
+let check_decls_toplevel decls =
+  let env = ref ([] : V.environment) in
+  let ctx = ref Context.empty in
+  let add ?(crispness=T.Crisp) x a t =
+    env := (x,t) :: !env;
+    ctx := Context.ext ~crispness !ctx x a
+  in
+  let () =
+    let type0 = V.Type 0 in
+    let type1 = V.Type 1 in
+    add "Type" type1 type0;
+    add "U" type1 type0;
+    add "TYPE" (V.Type 2) type1;
+    let empty = V.IndType `Empty in
+    add "empty" type0 empty;
+    let unit = V.IndType `Unit in
+    add "unit" type0 unit;
+    let bool = V.IndType `Bool in
+    add "bool" type0 bool;
+    add "false" bool (V.IndTerm (`Bool false));
+    add "true" bool (V.IndTerm (`Bool true));
+  in
+  ignore @@ check_decls 0 !env !ctx decls
 
 let check_meta () =
   let m =

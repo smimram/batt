@@ -1,18 +1,18 @@
 -- test η-conversion
 
-f : Bool → Bool
+f : bool → bool
 f = ?
 
 r : f ≡ f
 r = refl
 
-g : Bool → Bool
+g : bool → bool
 g = f
 
 r : f ≡ g
 r = refl
 
-h : Bool → Bool
+h : bool → bool
 h x = f x
 
 r : f ≡ h

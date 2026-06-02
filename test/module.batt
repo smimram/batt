@@ -1,9 +1,9 @@
-import bool
+import Bool
 
-f : Bool → Bool → Bool
-f = bool.bor
+f : bool → bool → bool
+f = Bool.or
 
-open bool
+open Bool
 
-f : Bool → Bool → Bool
-f = bor
+f : bool → bool → bool
+f = or
