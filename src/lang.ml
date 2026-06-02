@@ -786,30 +786,8 @@ and infer k env ctx (t:term) : term * value =
     Meta (`Fresh pos), a
   | Import m ->
     let decls = Module.parse m in
-    let t, a =
-      let tm = ref [] in
-      let ty = ref [] in
-      let env = ref env in
-      let ctx = ref ctx in
-      let decls = ref decls in
-      while !decls <> [] do
-        let decl = List.hd !decls in
-        decls := List.tl !decls;
-        match decl with
-           | T.Def def ->
-             let x, c, a, t = check_def k !env !ctx def in
-             tm := (x,t) :: !tm;
-             let t = V.eval !env t in
-             env := (x,t) :: !env;
-             ctx := Context.ext ~crispness:c !ctx x a;
-             ty := (x,c,a) :: !ty
-           | _ -> failwith "TODO" 
-      done;
-      let tm = List.rev !tm in
-      let ty = List.rev !ty in
-      T.Record (`Recursive, tm), V.RecordType ty
-    in
-    t, a
+    let _,tm,ty = check_decls k env ctx decls in
+    T.Record (`Recursive, tm), V.RecordType ty
   | RecordField (t, x) ->
     let t, a = infer k env ctx t in
     let l =
@@ -825,33 +803,46 @@ and infer k env ctx (t:term) : term * value =
     RecordField (t, x), a
   | _ -> error ~t "cannot infer type"
 
-and check_def k env ctx (x, c, a, t) =
-  let t, a =
-    match a with
-    | Some a ->
-      let a, _ = check_type k env ctx a in
-      let a = V.eval env a in
-      let t = check k env (Context.crisp ~crispness:c ctx) t a in
-      t, a
-    | None ->
-      infer k env (Context.crisp ~crispness:c ctx) t
-  in
-  (x, c, a, (t:term))
-
-let rec check_decl k env ctx = function
-  | T.Def ((x,c,a,t) as def) ->
-    Printf.printf "\nDECL  %s = %s%s\n%!" x (T.to_string t) (match a with Some a -> " " ^ T.crispy_colon c ^ " " ^ T.to_string a | None -> "");
-    let x, c, a, t = check_def k env ctx def in
-    let t = V.eval env t in
-    let env = (x,t)::env in
-    let ctx = Context.ext ~crispness:c ctx x a in
-    env, ctx
-  | Include name ->
-    let decls = Module.parse name in
-    check_decls k env ctx decls
-
 and check_decls k env ctx (decls:T.decls) =
-  List.fold_left (fun (env,ctx) decl -> check_decl k env ctx decl) (env,ctx) decls
+  let tm = ref [] in
+  let ty = ref [] in
+  let env = ref env in
+  let ctx = ref ctx in
+  let decls = ref decls in
+  while !decls <> [] do
+    let decl = List.hd !decls in
+    decls := List.tl !decls;
+    match decl with
+    | T.Def (x,c,a,t) ->
+      Printf.printf "\nDECL  %s = %s%s\n%!" x (T.to_string t) (match a with Some a -> " " ^ T.crispy_colon c ^ " " ^ T.to_string a | None -> "");
+      let t, a =
+        match a with
+        | Some a ->
+          let a, _ = check_type k !env !ctx a in
+          let a = V.eval !env a in
+          let t = check k !env (Context.crisp ~crispness:c !ctx) t a in
+          t, a
+        | None ->
+          infer k !env (Context.crisp ~crispness:c !ctx) t
+      in
+      tm := (x,t) :: !tm;
+      let t = V.eval !env t in
+      env := (x,t) :: !env;
+      ctx := Context.ext ~crispness:c !ctx x a;
+      ty := (x,c,a) :: !ty
+    | Open t ->
+      let t0 = t in
+      let _, a = infer k !env !ctx t in
+      let l =
+        match V.force a with
+        | RecordType l -> l
+        | _ -> error ~t:t0 "record type exepected but got %s" (V.to_string k a)
+      in
+      List.iter (fun (x,c,_) -> decls := (Def (x,c,None,RecordField(t0, x)) :: !decls)) (List.rev l)
+  done;
+  let tm = List.rev !tm in
+  let ty = List.rev !ty in
+  (!env,!ctx),tm,ty
 
 let check_decls_toplevel decls = ignore @@ check_decls 0 [] Context.empty decls
 
