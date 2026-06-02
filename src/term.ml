@@ -66,7 +66,7 @@ type t =
 (** A declaration. *)
 and decl =
   | Def of (string * crispness * t option * t)
-  | Include of string
+  | Open of t
 
 (** A list of declarations. *)
 and decls = decl list
