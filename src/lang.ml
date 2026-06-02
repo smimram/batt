@@ -783,7 +783,8 @@ and infer k env ctx (t:term) : term * value =
     Var' k, a
   | Meta (`Fresh pos) ->
     let a = V.fresh_meta env in
-    Meta (`Fresh pos), a
+    let t = V.readback k @@ V.fresh_meta ?pos env in
+    t, a
   | Import m ->
     let module_type m =
       match Context.assoc_opt m ctx with

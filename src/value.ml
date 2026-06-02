@@ -128,7 +128,7 @@ let rec eval (env:environment) : Term.t -> t = function
   | Postulate (Some n) -> Postulate (n, [])
   | Postulate None -> assert false
   | Hole pos -> Hole (pos, [])
-  | Meta (`Fresh pos) -> fresh_meta ?pos env
+  | Meta (`Fresh _) -> assert false
   | Meta (`Generated id) -> Meta (Meta.get id, [])
   | Import _ -> assert false
   | Record (`NonRecursive, l) ->
