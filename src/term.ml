@@ -49,8 +49,8 @@ type t =
   | Flat of t
   | Flatten of t
   | Flat_ind of string * t
-  | Eq of t * t
-  | Refl
+  | Eq of t * t * t
+  | Refl of t
   | J of t
   | Var of var
   | Var' of int (** a variable given de Bruijn index *) (* TODO: it would be much better to have preterms (strings) and terms (de Bruijn) *)
@@ -128,8 +128,8 @@ module FV = struct
     | Flat a -> term a
     | Flatten t -> term t
     | Flat_ind (x, t) -> remove x (term t)
-    | Eq (t, u) -> union (term t) (term u)
-    | Refl -> empty
+    | Eq (a, t, u) -> union (term a) @@ union (term t) (term u)
+    | Refl t -> term t
     | J r -> term r
     | Var x -> singleton x
     | Var' _ -> assert false
@@ -185,8 +185,8 @@ let rec to_string t =
   | Flat t -> Printf.sprintf "♭%s" (to_string t)
   | Flatten t -> Printf.sprintf "𝄫%s" (to_string t)
   | Flat_ind (x,t) -> Printf.sprintf "♭_ind(%s,%s)" x (to_string t)
-  | Eq (t,u) -> Printf.sprintf "%s ≡ %s" (to_string t) (to_string u)
-  | Refl -> Printf.sprintf "refl"
+  | Eq (_,t,u) -> Printf.sprintf "%s ≡ %s" (to_string t) (to_string u)
+  | Refl t -> Printf.sprintf "refl(%s)" (to_string t)
   | J r -> Printf.sprintf "J(%s)" (to_string r)
   | Var x -> x
   | Var' n -> Printf.sprintf "x-%d" n
