@@ -785,11 +785,26 @@ and infer k env ctx (t:term) : term * value =
     let a = V.fresh_meta env in
     Meta (`Fresh pos), a
   | Import m ->
-    let pos = T.Position.find_opt t in
-    let decls = Module.parse ?pos m in
-    let _,tm,ty = check_decls k env ctx decls in
-    if List.mem_assoc m tm then error ~t "module %s contains a field %s, this is expected to cause problems" m m;
-    T.Record (`Recursive, tm), V.RecordType ty
+    let module_type m =
+      match Context.assoc_opt m ctx with
+      | None -> None
+      | Some a ->
+        match V.force a with
+        | RecordType _ -> Some a
+        | _ -> None
+    in
+    (
+      match module_type m with
+      | Some a ->
+        warning "module %s apparently already imported, ignoring" m;
+        Var m, a
+      | None ->
+        let pos = T.Position.find_opt t in
+        let decls = Module.parse ?pos m in
+        let _,tm,ty = check_decls k env ctx decls in
+        if List.mem_assoc m tm then error ~t "module %s contains a field %s, this is expected to cause problems" m m;
+        T.Record (`Recursive, tm), V.RecordType ty
+    )
   | RecordField (t, x) ->
     let t0 = t in
     let t, a = infer k env ctx t in

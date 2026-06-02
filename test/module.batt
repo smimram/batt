@@ -1,9 +1,11 @@
 import Bool
 
-f : bool → bool → bool
-f = Bool.or
+import Bool
 
-open Bool
+-- f : bool → bool → bool
+-- f = Bool.or
 
-f : bool → bool → bool
-f = or
+-- open Bool
+
+-- f : bool → bool → bool
+-- f = or
