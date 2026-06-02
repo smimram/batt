@@ -5,8 +5,8 @@ open import Product
 open import Function
 open import Equality
 open import Contr
--- open import Prop
--- open import Set
+open import Prop
+open import Set
 open import Tensor
 open import Arrow
 open import Flat

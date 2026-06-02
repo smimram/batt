@@ -788,6 +788,7 @@ and infer k env ctx (t:term) : term * value =
     let pos = T.Position.find_opt t in
     let decls = Module.parse ?pos m in
     let _,tm,ty = check_decls k env ctx decls in
+    if List.mem_assoc m tm then error ~t "module %s contains a field %s, this is expected to cause problems" m m;
     T.Record (`Recursive, tm), V.RecordType ty
   | RecordField (t, x) ->
     let t0 = t in
