@@ -631,7 +631,7 @@ let rec check k env ctx (t:term) (a:value) : term =
       unify_base ~pos k t u';
     );
     Refl t
-  | J r, Pi (_, Normal, _a, b) ->
+  | J r, Pi (_, Normal, a, b) ->
     (* we should make sure that b := {y : a} (p : x ≡ y) → P[x,y,p] *)
     let unpi ?icit a =
       let a0 = a in
