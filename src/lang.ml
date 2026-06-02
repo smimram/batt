@@ -810,6 +810,19 @@ and infer k env ctx (t:term) : term * value =
       T.Record (`Recursive, tm), V.RecordType ty
     in
     t, a
+  | RecordField (t, x) ->
+    let t, a = infer k env ctx t in
+    let l =
+      match V.force a with
+      | RecordType l -> l
+      | _ -> error ~t "record type expected but got %s" (V.to_string k a)
+    in
+    let a =
+      match List.find_opt (fun (y,_,_) -> y = x) l with
+      | Some (_,_,a) -> a
+      | None -> error ~t "no field %s in %s" x (V.to_string k a);
+    in
+    RecordField (t, x), a
   | _ -> error ~t "cannot infer type"
 
 and check_def k env ctx (x, c, a, t) =
