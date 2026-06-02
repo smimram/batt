@@ -70,6 +70,7 @@ atom:
   | HOLE { mk ~pos:$loc @@ Hole $loc }
   | META { mk ~pos:$loc @@ Meta (`Fresh (Some $loc)) }
   | LPAR t=term RPAR { t }
+  | t=atom DOT x=IDENT { mk ~pos:$loc @@ RecordField (t, x) }
 
 prefix_term:
   | atom { $1 }
