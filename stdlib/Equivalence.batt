@@ -59,7 +59,7 @@ _≃_ = equiv
 is-equiv-id ∷ (A : U) → is-equiv {A} {A} (id {A})
 is-equiv-id A =
   let f : A → A = id {A} in
-  let r : (x : A) → eq {A} x x = fun _ → refl in
+  let r : (x : A) → x ≡{ A } x = fun _ → refl in
   ((f , r) , (f , r))
 
 id-equiv ∷ (A : U) → equiv A A
