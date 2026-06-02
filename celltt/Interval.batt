@@ -1,7 +1,6 @@
-
-open import set
-open import empty
-open import bipointed
+open import Set
+open import Empty
+open import Bipointed
 
 postulate I ∷ U
 postulate is-set-I ∷ is-set I

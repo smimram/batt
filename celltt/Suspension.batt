@@ -1,6 +1,6 @@
-open import stdlib
-open import interval
-open import bipointed
+open import Stdlib
+open import Interval
+open import Bipointed
 
 -- Gray cylinder
 cyl ∷ (X ∷ U) → U

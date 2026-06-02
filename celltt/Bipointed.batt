@@ -1,4 +1,4 @@
-open import stdlib
+open import Stdlib
 
 -- type of bipointed types
 Ubipt ∷ U 1
