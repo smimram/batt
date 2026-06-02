@@ -283,6 +283,7 @@ let unify ~pos k (t:value) (u:value) =
         | IndType i -> IndType i
         | IndTerm t -> IndTerm t
         | IndType_ind (i, t, l) -> spine l @@ IndType_ind (i, List.map (rename r) t)
+        | Pair (t, u) -> Pair (rename r t, rename r u)
         | Pair_ind (t, l) ->
           let k = r.dom in
           let x = var_name r.cod in
