@@ -4,6 +4,9 @@ open import Function
 --- Identity types
 ---
 
+eq :: {A : Type} (x y : A) → Type
+eq x y = x ≡ y
+
 refl' :: {A : Type} {x : A} → x ≡ x
 refl' = refl
 
