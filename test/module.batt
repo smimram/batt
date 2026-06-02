@@ -1,0 +1,4 @@
+import bool
+
+f : Bool → Bool → Bool
+f = ? -- bool.bor

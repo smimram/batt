@@ -59,16 +59,17 @@ type t =
   | Hole of Pos.t
   | Meta of [`Fresh of Pos.t option | `Generated of int] (** metavariable with given internal identifier *)
   | Import of string (** import a module *)
+  | Module of (string * t) list
   | RecordType of (string * crispness * t) list
-  | Record of [`Recursive | `NonRecursive] * (string * t) list
   | RecordField of t * string
 
 (** A declaration. *)
-type decl =
-  | Def of string * crispness * t option * t
+and decl =
+  | Def of (string * crispness * t option * t)
   | Include of string
 
-type decls = decl list
+(** A list of declarations. *)
+and decls = decl list
 
 let rec abss l t =
   match l with
@@ -137,8 +138,8 @@ module FV = struct
     | Hole _ -> empty
     | Meta _ -> empty
     | Import _ -> assert false
+    | Module _ -> assert false
     | RecordType l -> List.fold_left (fun fv (_x, _c, a) -> union fv (term a)) empty l
-    | Record (_r, l) -> List.fold_left (fun fv (_x, t) -> union fv (term t)) empty l
     | RecordField (t, _x) -> term t
 end
 
@@ -196,6 +197,6 @@ let rec to_string t =
 
   | Meta (`Generated n) -> Printf.sprintf "?%d" n
   | Import m -> "import " ^ m
+  | Module _ -> "module"
   | RecordType _ -> "record type"
-  | Record _ -> "record"
   | RecordField (t,x) -> Printf.sprintf "%s.%s" (to_string t) x

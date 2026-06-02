@@ -48,7 +48,7 @@ decls:
 decl:
   | x=IDENT c=ccolon a=term N def=def { let y, t = def in assert (x = y); Def (x, c, Some a, t) }
   | POSTULATE x=IDENT c=ccolon a=term { Def (x, c, Some a, mk ~pos:$loc @@ Postulate None) }
-  | OPEN IMPORT { Include $2 }
+  | m=IMPORT { Def (m, Normal, None, mk ~pos:$loc @@ Import m) }
 
 def:
   | y=IDENT args=list(pattern) EQ t=term { y, abss_pattern ~pos:$loc args t }
