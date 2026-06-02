@@ -17,7 +17,7 @@ let parse_file fname =
     )
 
 (** Open module with given name. *)
-let parse name =
+let parse ?pos name =
   let dirs = Common.include_directories () in
   let fname = name ^ ".batt" in
   let fname =
@@ -27,7 +27,7 @@ let parse name =
     with
     | Some f -> f
     | None ->
-      failwith @@ Printf.sprintf "Could not find library file %s (in %s)" fname (String.concat ", " dirs)
+      failwith @@ Printf.sprintf "%s: could not find library file %s (in %s)" (Pos.opt_to_string pos) fname (String.concat ", " dirs)
   in
   Printf.printf "Include %s...\n%!" fname;
   parse_file fname

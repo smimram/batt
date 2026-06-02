@@ -1,15 +1,15 @@
-open import empty
-open import unit
-open import bool
-open import product
-open import function
-open import equality
-open import contr
-open import prop
-open import set
-open import tensor
-open import arrow
-open import flat
-open import pushout
-open import funext
-open import equivalence
+open import Empty
+open import Unit
+open import Bool
+open import Product
+open import Function
+open import Equality
+open import Contr
+-- open import Prop
+-- open import Set
+open import Tensor
+open import Arrow
+open import Flat
+open import Pushout
+open import Funext
+open import Equivalence

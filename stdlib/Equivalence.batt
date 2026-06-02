@@ -1,5 +1,5 @@
-open import product
-open import function
+open import Product
+open import Function
 
 ---
 --- sections and retractions

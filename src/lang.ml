@@ -785,20 +785,22 @@ and infer k env ctx (t:term) : term * value =
     let a = V.fresh_meta env in
     Meta (`Fresh pos), a
   | Import m ->
-    let decls = Module.parse m in
+    let pos = T.Position.find_opt t in
+    let decls = Module.parse ?pos m in
     let _,tm,ty = check_decls k env ctx decls in
     T.Record (`Recursive, tm), V.RecordType ty
   | RecordField (t, x) ->
+    let t0 = t in
     let t, a = infer k env ctx t in
     let l =
       match V.force a with
       | RecordType l -> l
-      | _ -> error ~t "record type expected but got %s" (V.to_string k a)
+      | _ -> error ~t:t0 "record type expected but got %s" (V.to_string k a)
     in
     let a =
       match List.find_opt (fun (y,_,_) -> y = x) l with
       | Some (_,_,a) -> a
-      | None -> error ~t "no field %s in %s" x (V.to_string k a);
+      | None -> error ~t:t0 "no field %s in %s" x (V.to_string k a);
     in
     RecordField (t, x), a
   | _ -> error ~t "cannot infer type"
@@ -838,7 +840,8 @@ and check_decls k env ctx (decls:T.decls) =
         | RecordType l -> l
         | _ -> error ~t:t0 "record type exepected but got %s" (V.to_string k a)
       in
-      List.iter (fun (x,c,_) -> decls := (Def (x,c,None,RecordField(t0, x)) :: !decls)) (List.rev l)
+      let pos = T.Position.find_opt t in
+      List.iter (fun (x,c,_) -> decls := (Def (x,c,None,T.mk ?pos @@ RecordField(t0, x)) :: !decls)) (List.rev l)
   done;
   let tm = List.rev !tm in
   let ty = List.rev !ty in

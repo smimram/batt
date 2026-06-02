@@ -1,8 +1,8 @@
-open import tensor
-open import empty
-open import unit
-open import bool
-open import equality
+open import Tensor
+open import Empty
+open import Unit
+open import Bool
+open import Equality
 
 flat :: ♭U → U
 flat 𝄫A = A
@@ -91,8 +91,8 @@ is-section-crispify-bool = rec-bool (λb. unflatten (crispify-bool b) ≡ b) ref
 --- Discreteness
 ---
 
-open import equivalence
-open import funext
+open import Equivalence
+open import Funext
 
 -- -- Theorem 6.1
 -- flat-path-equiv :: {A :: Type} {x y :: ♭ A} → (𝄫 x ≡ 𝄫 y) ≃ ♭ (x ≡ y)
