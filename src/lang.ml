@@ -157,7 +157,7 @@ type context = Context.t
 (** Unification problems. *)
 module Unification = struct
   let set m t =
-    debug "UNIF %s <- %s\n%!" (V.Meta.to_string m) (T.to_string t);
+    debug "META  %s <- %s\n%!" (V.Meta.to_string m) (T.to_string t);
     assert (m.value = None);
     let t = V.eval [] t in
     m.value <- Some t
