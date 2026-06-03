@@ -497,6 +497,20 @@ let eq k t u =
   if not @@ is_eq k t u then failwith "eq"
 *)
 
+(** Generate a fresh metavariable. *)
+let fresh_meta ?pos env =
+  let m = V.Meta.fresh ?pos () in
+  (* We only keep variables. *)
+  let rec aux i = function
+    | [] -> []
+    | (_x,v)::l ->
+      match V.force v with
+      | Var _ -> (T.Var' i)::(aux (i+1) l)
+      | _ -> aux (i+1) l
+  in
+  let vars = aux 0 env in
+  T.apps (T.Meta (`Generated m.id)) vars
+
 (** Check that term has given type and elaborate it. *)
 let rec check k env ctx (t:term) (a:value) : term =
   debug "CHECK %s : %s\n%!" (T.to_string t) (V.to_string k a);
@@ -810,17 +824,8 @@ and infer k env ctx (t:term) : term * value =
     let a = match Context.assoc_opt x ctx with Some a -> a | None -> error ~t "variable %s is in the context but not in the typing environment (crispness issue?)" x in
     Var' k, a
   | Meta (`Fresh pos) ->
-    let a = V.fresh_meta env in
-    let m_val = V.fresh_meta ?pos env in
-    let m_id, vars = match m_val with V.Meta (m, vars) -> m.id, vars | _ -> assert false in
-    let find_pos v =
-      let rec aux i = function
-        | [] -> failwith "fresh_meta: variable not found in env"
-        | (_, u) :: rest -> if V.force u = v then i else aux (i+1) rest
-      in
-      aux 0 env
-    in
-    let t = T.app_spine (T.Meta (`Generated m_id)) (List.map (fun v -> T.Var' (find_pos v)) vars) in
+    let a = V.eval env @@ fresh_meta env in
+    let t = fresh_meta ?pos env in
     t, a
   | Import m ->
     let module_type m =

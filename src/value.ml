@@ -149,15 +149,8 @@ let rec eval (env:environment) : Term.t -> t = function
   | RecordField (t, x) ->
     app (RecordField (x, [])) (eval env t)
 
-    (** Make a variable. *)
+(** Make a variable. *)
 and var k = Var (k, [])
-
-(** Generate a fresh metavariable. *)
-and fresh_meta ?pos env =
-  let m = Meta.fresh ?pos () in
-  (* We only keep variables in the environment. *)
-  let vars = List.filter_map (fun (_x,v) -> match force v with Var _ -> Some v | _ -> None) env in
-  Meta (m, vars)
 
 (** Apply a value to another. *)
 and app t u =
