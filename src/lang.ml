@@ -221,10 +221,10 @@ let error ?t fmt =
 
 (** Unify two values. *)
 let unify ~pos k (t:value) (u:value) =
-  (* debug "UNIFY %s WITH %s\n%!" (V.to_string k t) (V.to_string k u); *)
+  debug "UNIFY %s WITH %s\n%!" (V.to_string k t) (V.to_string k u);
   (* Make sure that metavariable m applied to spine s equals t. *)
   let solve k m s t =
-    (* debug "SOLVE %s =? %s\n" (V.to_string k (Meta (m, s))) (V.to_string k t); *)
+    debug "SOLVE %s =? %s\n" (V.to_string k (Meta (m, s))) (V.to_string k t);
     (* Construct the initial renaming. Note that we number variables x0, x1, etc so that the furthest variable is x0: this is to avoid having to shift all indices when lifting. *)
     let r =
       let rec aux = function
@@ -238,7 +238,10 @@ let unify ~pos k (t:value) (u:value) =
                 cod+1, IntMap.add x None r
               else
                 cod+1, IntMap.add x (Some cod) r
-            | _ -> raise Unification
+            | _ ->
+              raise Unification
+              (* warning "ignoring non-variable in meta spine\n"; *)
+              (* cod+1, r *)
           )
         | [] -> 0, IntMap.empty
       in
@@ -281,6 +284,7 @@ let unify ~pos k (t:value) (u:value) =
         | IndType i -> IndType i
         | IndTerm t -> IndTerm t
         | IndType_ind (i, t, l) -> spine l @@ IndType_ind (i, List.map (rename r) t)
+        | Pair (t, u) -> Pair (rename r t, rename r u)
         | Pair_ind (t, l) ->
           let k = r.dom in
           let x = var_name r.cod in
@@ -297,7 +301,8 @@ let unify ~pos k (t:value) (u:value) =
           let t = V.capp2 t (V.var k) (V.var (k+1)) in
           let t = rename (lift (lift r)) t in
           spine l @@ Tens_ind (x, y, t)
-        | Eq(t,u) -> Eq (rename r t, rename r u)
+        | Eq(a,t,u) -> Eq (rename r a, rename r t, rename r u)
+        | Refl t -> Refl (rename r t)
         | J (t, l) -> spine l @@ J (rename r t)
         | Flat a -> Flat (rename r a)
         | Flatten t -> Flatten (rename r t)
@@ -370,8 +375,11 @@ let unify ~pos k (t:value) (u:value) =
       unify k a a';
       unify k b b'
     | Pair (t, u), Pair (t', u')
-    | TensPair (t, u), TensPair (t', u')
-    | Eq (t, u), Eq (t', u') ->
+    | TensPair (t, u), TensPair (t', u') ->
+      unify k t t';
+      unify k u u'
+    | Eq (a, t, u), Eq (a', t', u') ->
+      unify k a a';
       unify k t t';
       unify k u u'
     | Pair_ind (t, l), Pair_ind (t', l')
@@ -387,7 +395,8 @@ let unify ~pos k (t:value) (u:value) =
     | Flat_ind (t, l), Flat_ind (t', l') ->
       unify (k+1) (V.capp t (V.var k)) (V.capp t' (V.var k));
       spine k l l'
-    | Refl, Refl -> ()
+    | Refl t, Refl t' ->
+      unify k t t'
     | Postulate (_n, l), Postulate (_n', l') ->
       (* NOTE: disabling for now because we regenerate numbers when we include multiple times *)
       (* if n <> n' then raise Unification; *)
@@ -473,8 +482,10 @@ let finalize_unify () =
     in
     warning "\n%d unsovled unification problems:\n%s\n" (List.length !Unification.deferred) pb
 
+let unify_base = unify
+
 let unify k t a b =
-  try unify k a b
+  try unify ~pos:(T.Position.find_opt t) k a b
   with Unification -> error ~t "term has type %s but %s expected" (V.to_string k a) (V.to_string k b)
 
 (*
@@ -582,23 +593,23 @@ let rec check k env ctx (t:term) (a:value) : term =
     Tens_ind (x, y, t)
   | IndType_ind (`Empty, []), Pi (Explicit, _, a, _)
   | IndType_ind (`Empty, []), Arr (_, a, _) ->
-    unify ~pos k t a (IndType `Empty);
+    unify k t a (IndType `Empty);
     IndType_ind (`Empty, [])
   | IndType_ind (`Unit, [t]), Pi (Explicit, _, a, b) ->
-    unify ~pos k t a (IndType `Unit);
+    unify k t a (IndType `Unit);
     let t = check k env ctx t (V.capp b (IndTerm `Unit)) in
     IndType_ind (`Unit, [t])
   | IndType_ind (`Unit, [t]), Arr (_, a, b) ->
-    unify ~pos k t a (IndType `Unit);
+    unify k t a (IndType `Unit);
     let t = check k env ctx t b in
     IndType_ind (`Unit, [t])    
   | IndType_ind (`Bool, [tf;tt]), Pi (Explicit, _, a, b) ->
-    unify ~pos k t a (IndType `Bool);
+    unify k t a (IndType `Bool);
     let tf = check k env ctx tf (V.capp b (IndTerm (`Bool false))) in
     let tt = check k env ctx tt (V.capp b (IndTerm (`Bool true))) in
     IndType_ind (`Bool, [tf;tt])
   | IndType_ind (`Bool, [tf;tt]), Arr (_, a, b) ->
-    unify ~pos k t a (IndType `Bool);
+    unify k t a (IndType `Bool);
     let tf = check k env ctx tf b in
     let tt = check k env ctx tt b in
     IndType_ind (`Bool, [tf;tt])
@@ -615,10 +626,16 @@ let rec check k env ctx (t:term) (a:value) : term =
     let k = k+1 in
     let t = check k ((x,xv)::env) (Context.ext_crisp ctx x a) t (V.capp b (Flatten xv)) in
     Flat_ind (x, t)
-  | Refl, Eq (t, u) ->
-    unify ~pos k Refl t u; (* TODO: better error *)
-    Refl
-  | J r, Pi (_, Normal, _a, b) ->
+  | Refl t, Eq (a, u, u') ->
+    let t = check k env ctx t a in
+    let pos = T.Position.find_opt t in
+    (
+      let t = V.eval env t in
+      unify_base ~pos k t u;
+      unify_base ~pos k t u';
+    );
+    Refl t
+  | J r, Pi (_, Normal, a, b) ->
     (* we should make sure that b := {y : a} (p : x ≡ y) → P[x,y,p] *)
     let unpi ?icit a =
       let a0 = a in
@@ -626,14 +643,14 @@ let rec check k env ctx (t:term) (a:value) : term =
       | Pi (icit', _, a, b) when icit = None || Some icit' = icit -> a, b
       | _ -> error ~t "got %s but function type expected" (V.to_string k a0)
     in
-    let y, k = V.var k, k+1 in
-    let b', _ = unpi (V.capp b y) in
     let x =
+      let y, k = V.var k, k+1 in
+      let b', _ = unpi (V.capp b y) in
       match b' with
-      | Eq (x, y') when y' = y -> x
+      | Eq (a', x, y') when y' = y -> unify_base ~pos k a a'; x
       | _ -> error ~t "identity type expected"
     in
-    let c = V.capp (snd @@ unpi ~icit:Explicit @@ V.capp b x) Refl in
+    let c = V.capp (snd @@ unpi ~icit:Explicit @@ V.capp b x) (Refl x) in
     let r = check k env ctx r c in
     J r
   | _, Pi (Implicit, _, _, _) ->
@@ -664,19 +681,25 @@ let rec check k env ctx (t:term) (a:value) : term =
         let pos = T.Position.find_opt t in
         check k env ctx (T.mk ?pos (T.app ~icit:Implicit t0 (Meta (`Fresh None)))) a
       | _ ->
-        try unify ~pos k t0 a' a; t
+        try unify k t0 a' a; t
         with Unification -> error ~t:t0 "%s has type %s but %s expected" (T.to_string t) (V.to_string k a') (V.to_string k a)
     )
 
 (** Check that a term is a type; returns the elaborated term and its universe level. *)
 and check_type k env ctx a : term * int =
   debug "CHECK TYPE %s\n%!" (T.to_string a);
+  (*
   match a with
   | Hole pos -> Hole pos, 0
   | _ ->
     match infer k env ctx a with
     | a, Type l -> a, l
     | _, b -> error ~t:a "%s has type %s by type expected" (T.to_string a) (V.to_string k b)
+  *)
+  match infer k env ctx a with
+  | a, Type l -> a, l
+  | a, b -> unify k a b (Type 0); a, 0
+(* error ~t:a "%s has type %s by type expected" (T.to_string a) (V.to_string k b) *)
 
 (** Infer the type of a term. *)
 and infer k env ctx (t:term) : term * value =
@@ -736,10 +759,15 @@ and infer k env ctx (t:term) : term * value =
   | Flatten t ->
     let t, a = infer k env (Context.crisp ctx) t in
     Flatten t, Flat a
-  | Eq (t, u) ->
-    let t, a = infer k env ctx t in
-    let u = check k env ctx u a in
-    Eq (t, u), Type 0
+  | Eq (a, t, u) ->
+    let a, l = check_type k env ctx a in
+    let t, u =
+      let a = V.eval env a in
+      let t = check k env ctx t a in
+      let u = check k env ctx u a in
+      t, u
+    in
+    Eq (a, t, u), Type l
   | App (t, icit, u) ->
     (
       let pos = T.Position.find_opt t in
@@ -783,7 +811,16 @@ and infer k env ctx (t:term) : term * value =
     Var' k, a
   | Meta (`Fresh pos) ->
     let a = V.fresh_meta env in
-    let t = V.readback k @@ V.fresh_meta ?pos env in
+    let m_val = V.fresh_meta ?pos env in
+    let m_id, vars = match m_val with V.Meta (m, vars) -> m.id, vars | _ -> assert false in
+    let find_pos v =
+      let rec aux i = function
+        | [] -> failwith "fresh_meta: variable not found in env"
+        | (_, u) :: rest -> if V.force u = v then i else aux (i+1) rest
+      in
+      aux 0 env
+    in
+    let t = T.app_spine (T.Meta (`Generated m_id)) (List.map (fun v -> T.Var' (find_pos v)) vars) in
     t, a
   | Import m ->
     let module_type m =
@@ -871,21 +908,21 @@ let check_decls_toplevel decls =
     env := (x,t) :: !env;
     ctx := Context.ext ~crispness !ctx x a
   in
-  let () =
-    let type0 = V.Type 0 in
-    let type1 = V.Type 1 in
-    add "Type" type1 type0;
-    add "U" type1 type0;
-    add "TYPE" (V.Type 2) type1;
-    let empty = V.IndType `Empty in
-    add "empty" type0 empty;
-    let unit = V.IndType `Unit in
-    add "unit" type0 unit;
-    let bool = V.IndType `Bool in
-    add "bool" type0 bool;
-    add "false" bool (V.IndTerm (`Bool false));
-    add "true" bool (V.IndTerm (`Bool true));
-  in
+  if !Common.builtins then
+    (
+      let type0 = V.Type 0 in
+      (* add "Type" type1 type0; *)
+      (* add "U" type1 type0; *)
+      add "TYPE" (V.Type 2) (V.Type 1);
+      let empty = V.IndType `Empty in
+      add "empty" type0 empty;
+      let unit = V.IndType `Unit in
+      add "unit" type0 unit;
+      let bool = V.IndType `Bool in
+      add "bool" type0 bool;
+      add "false" bool (V.IndTerm (`Bool false));
+      add "true" bool (V.IndTerm (`Bool true));
+    );
   ignore @@ check_decls 0 !env !ctx decls
 
 let check_meta () =

@@ -15,6 +15,7 @@ let () =
        [
          "-I", Arg.String (fun s -> Common.include_directories_list := s :: !Common.include_directories_list), " Include directory";
          "--no-colors", Arg.Unit (fun () -> Terminal.enable_colors := false), " Disable colors";
+         "--no-builtins", Arg.Unit (fun () -> Common.builtins := false), " Disable builtins";
          "--no-debug", Arg.Unit (fun () -> Common.show_debug := false), " Hide debug messages";
        ]
     )

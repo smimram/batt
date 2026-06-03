@@ -4,6 +4,8 @@ let include_directories_list = ref ([] : string list)
 
 let include_directories () = "." :: !include_directories_list
 
+let builtins = ref true
+
 let debug fmt =
   if !show_debug then
     (

@@ -30,8 +30,8 @@ type t =
   | Flat of t
   | Flatten of t
   | Flat_ind of closure * spine
-  | Eq of t * t
-  | Refl
+  | Eq of t * t * t
+  | Refl of t
   | J of t * spine
   | Meta of meta * spine
   | Var of int * spine
@@ -113,8 +113,8 @@ let rec eval (env:environment) : Term.t -> t = function
   | Flat t -> Flat (eval env t)
   | Flatten t -> Flatten (eval env t)
   | Flat_ind (x, t) -> Flat_ind ((x, t, env), [])
-  | Eq (t, u) -> Eq (eval env t, eval env u)
-  | Refl -> Refl
+  | Eq (a, t, u) -> Eq (eval env a, eval env t, eval env u)
+  | Refl t -> Refl (eval env t)
   | J r -> J (eval env r, [])
   | Var x ->
     (
@@ -173,7 +173,7 @@ and app t u =
   | Tens_ind (t, l), u -> Tens_ind (t, u::l)
   | Flat_ind (t, []), Flatten u -> capp t u
   | Flat_ind (t, l), u -> Flat_ind (t, u::l)
-  | J (r, [_]), Refl -> r
+  | J (r, [_]), Refl _ -> r
   | J (r, l), u -> J (r, u::l)
   | Var (x, l), u -> Var (x, u::l)
   | Meta (m, l), u -> Meta (m, u::l)
@@ -226,8 +226,8 @@ let rec readback k v : Term.t =
   | Flat a -> Flat (readback k a)
   | Flatten t -> Flatten (readback k t)
   | Flat_ind (t, l) -> spine l @@ Flat_ind (var_name k, readback (k+1) (capp t (var k)))
-  | Eq (t, u) -> Eq (readback k t, readback k u)
-  | Refl -> Refl
+  | Eq (a, t, u) -> Eq (readback k a, readback k t, readback k u)
+  | Refl t -> Refl (readback k t)
   | J (r, l) -> spine l @@ J (readback k r)
   | Meta (m, l) -> spine l @@ Meta (`Generated m.id)
   | Var (i, l) -> spine l @@ Var' i

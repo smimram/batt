@@ -118,7 +118,7 @@ flat-flatten-target 𝄫f = 𝄫(λ𝄫b.𝄫(f(𝄫b)))
 -- flat-unflatten-target-equiv {A} {B} = is-iso→is-equiv (flat-unflatten-target {A} {B}) (? , _)
 
 is-discrete :: (A :: U) → Type
-is-discrete A = is-equiv {♭ A} {A} (unflatten {A})
+is-discrete A = is-equiv {♭ A} {A} unflatten
 
 -- Theorem 6.18
 is-discrete-flat :: (A :: U) → is-discrete (♭ A)
@@ -130,6 +130,7 @@ is-discrete-flat A =
     let h : (x :: ♭ A) → g (f (𝄫 x)) ≡ 𝄫 x = fun 𝄫 x → refl in
     h x
   in
+  -- is-iso→is-equiv (g , fg , gf)
   ((g , fg) , (g , gf))
 
 -- -- Theorem 6.19
