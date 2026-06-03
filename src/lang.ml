@@ -643,16 +643,15 @@ let rec check k env ctx (t:term) (a:value) : term =
       | Pi (icit', _, a, b) when icit = None || Some icit' = icit -> a, b
       | _ -> error ~t "got %s but function type expected" (V.to_string k a0)
     in
-    let k0 = k in
-    let y, k = V.var k, k+1 in
-    let b', _ = unpi (V.capp b y) in
     let x =
+      let y, k = V.var k, k+1 in
+      let b', _ = unpi (V.capp b y) in
       match b' with
       | Eq (a', x, y') when y' = y -> unify_base ~pos k a a'; x
       | _ -> error ~t "identity type expected"
     in
     let c = V.capp (snd @@ unpi ~icit:Explicit @@ V.capp b x) (Refl x) in
-    let r = check k0 env ctx r c in
+    let r = check k env ctx r c in
     J r
   | _, Pi (Implicit, _, _, _) ->
     (* Insert implicit abstraction. *)
@@ -698,9 +697,9 @@ and check_type k env ctx a : term * int =
     | _, b -> error ~t:a "%s has type %s by type expected" (T.to_string a) (V.to_string k b)
   *)
   match infer k env ctx a with
-    | a, Type l -> a, l
-    | a, b -> unify k a b (Type 0); a, 0
-      (* error ~t:a "%s has type %s by type expected" (T.to_string a) (V.to_string k b) *)
+  | a, Type l -> a, l
+  | a, b -> unify k a b (Type 0); a, 0
+(* error ~t:a "%s has type %s by type expected" (T.to_string a) (V.to_string k b) *)
 
 (** Infer the type of a term. *)
 and infer k env ctx (t:term) : term * value =
@@ -903,10 +902,9 @@ let check_decls_toplevel decls =
   if !Common.builtins then
     (
       let type0 = V.Type 0 in
-      (* let type1 = V.Type 1 in *)
       (* add "Type" type1 type0; *)
       (* add "U" type1 type0; *)
-      (* add "TYPE" (V.Type 2) type1; *)
+      add "TYPE" (V.Type 2) (V.Type 1);
       let empty = V.IndType `Empty in
       add "empty" type0 empty;
       let unit = V.IndType `Unit in
