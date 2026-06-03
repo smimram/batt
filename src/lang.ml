@@ -239,9 +239,9 @@ let unify ~pos k (t:value) (u:value) =
               else
                 cod+1, IntMap.add x (Some cod) r
             | _ ->
-              (* raise Unification *)
-              warning "ignoring non-variable in meta spine\n";
-              cod+1, r
+              raise Unification
+              (* warning "ignoring non-variable in meta spine\n"; *)
+              (* cod+1, r *)
           )
         | [] -> 0, IntMap.empty
       in
