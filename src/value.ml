@@ -196,8 +196,8 @@ and capp2 ((x,y,t,env):closure2) (u:t) (v:t) =
 (** Remove already evaluated values. *)
 and force t =
   match t with
-  | Meta (m, s) when m.value <> None -> app_spine (Option.get m.value) s
-  | Unfold (_,_,t) -> Lazy.force t
+  | Meta (m, s) when m.value <> None -> force @@ app_spine (Option.get m.value) s
+  | Unfold (_,_,t) -> force @@ Lazy.force t
   | _ -> t
 
 (** Reify a value as a term. *)
