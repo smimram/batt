@@ -8,3 +8,21 @@ id x = x
 
 circ ∷ {A B C : U} → (B → C) → (A → B) → (A → C)
 circ g f a = g (f a)
+
+---
+--- Directed functions
+---
+
+-- one direction only swaps
+right-strong-swap ∷ {A B C ∷ U} → (A →ᵣ B → C) → (B → A →ᵣ C)
+right-strong-swap {A} {B} {C} f b a = f a b
+
+left-strong-swap ∷ {A B C ∷ U} → (A →ₗ B → C) → (B → A →ₗ C)
+left-strong-swap {A} {B} {C} f b a = f a b
+
+-- reversible swaps
+right-left-swap ∷ {A B C ∷ U} → (A →ᵣ B →ₗ C) → (B →ₗ A →ᵣ C)
+right-left-swap {A} {B} {C} f b a = f a b
+
+left-right-swap ∷ {A B C ∷ U} → (A →ₗ B →ᵣ C) → (B →ᵣ A →ₗ C)
+left-right-swap {A} {B} {C} f b a = f a b
