@@ -643,6 +643,7 @@ let rec check k env ctx (t:term) (a:value) : term =
       | Pi (icit', _, a, b) when icit = None || Some icit' = icit -> a, b
       | _ -> error ~t "got %s but function type expected" (V.to_string k a0)
     in
+    let k0 = k in
     let y, k = V.var k, k+1 in
     let b', _ = unpi (V.capp b y) in
     let x =
@@ -651,7 +652,7 @@ let rec check k env ctx (t:term) (a:value) : term =
       | _ -> error ~t "identity type expected"
     in
     let c = V.capp (snd @@ unpi ~icit:Explicit @@ V.capp b x) (Refl x) in
-    let r = check k env ctx r c in
+    let r = check k0 env ctx r c in
     J r
   | _, Pi (Implicit, _, _, _) ->
     (* Insert implicit abstraction. *)
