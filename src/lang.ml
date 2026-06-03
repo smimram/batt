@@ -812,9 +812,7 @@ and infer k env ctx (t:term) : term * value =
   | Meta (`Fresh pos) ->
     let a = V.fresh_meta env in
     let m_val = V.fresh_meta ?pos env in
-    let m_id, vars = (match m_val with V.Meta (m, vars) -> m.id, vars | _ -> assert false) in
-    (* Build term using de Bruijn indices found by scanning env by value, so that
-       V.eval env t = m_val regardless of non-Var let-bindings or duplicate names. *)
+    let m_id, vars = match m_val with V.Meta (m, vars) -> m.id, vars | _ -> assert false in
     let find_pos v =
       let rec aux i = function
         | [] -> failwith "fresh_meta: variable not found in env"
