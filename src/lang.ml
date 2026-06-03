@@ -811,7 +811,18 @@ and infer k env ctx (t:term) : term * value =
     Var' k, a
   | Meta (`Fresh pos) ->
     let a = V.fresh_meta env in
-    let t = V.readback k @@ V.fresh_meta ?pos env in
+    let m_val = V.fresh_meta ?pos env in
+    let m_id, vars = (match m_val with V.Meta (m, vars) -> m.id, vars | _ -> assert false) in
+    (* Build term using de Bruijn indices found by scanning env by value, so that
+       V.eval env t = m_val regardless of non-Var let-bindings or duplicate names. *)
+    let find_pos v =
+      let rec aux i = function
+        | [] -> failwith "fresh_meta: variable not found in env"
+        | (_, u) :: rest -> if V.force u = v then i else aux (i+1) rest
+      in
+      aux 0 env
+    in
+    let t = T.app_spine (T.Meta (`Generated m_id)) (List.map (fun v -> T.Var' (find_pos v)) vars) in
     t, a
   | Import m ->
     let module_type m =
