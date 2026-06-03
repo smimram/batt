@@ -35,6 +35,7 @@ type t =
   | J of t * spine
   | Meta of meta * spine
   | Var of int * spine
+  | Unfold of string * spine * t Lazy.t
   | Hole of (Pos.t [@opaque]) * spine
   | Postulate of int * spine
   | RecordType of (string * crispness * t) list
@@ -119,7 +120,7 @@ let rec eval (env:environment) : Term.t -> t = function
   | Var x ->
     (
       match List.assoc_opt x env with
-      | Some v -> v
+      | Some v -> Unfold (x,[],Lazy.from_val v)
       | None -> failwith @@ Printf.sprintf "eval: could not find %s" x
     )
   | Var' n -> snd @@ List.nth env n
@@ -196,10 +197,11 @@ and capp2 ((x,y,t,env):closure2) (u:t) (v:t) =
 and force t =
   match t with
   | Meta (m, s) when m.value <> None -> app_spine (Option.get m.value) s
+  | Unfold (_,_,t) -> Lazy.force t
   | _ -> t
 
 (** Reify a value as a term. *)
-let rec readback k v : Term.t =
+let rec readback ?(unfold=true) k v : Term.t =
   let var_name k = "x" ^ string_of_int k in
   let spine l t = Term.app_spine t (List.map (readback k) l) in
   match force v with
@@ -224,6 +226,9 @@ let rec readback k v : Term.t =
   | J (r, l) -> spine l @@ J (readback k r)
   | Meta (m, l) -> spine l @@ Meta (`Generated m.id)
   | Var (i, l) -> spine l @@ Var' i
+  | Unfold (x, l, t) ->
+    if unfold then readback k (Lazy.force t)
+    else spine l @@ Var x
   | Postulate (n, l) -> spine l @@ Postulate (Some n)
   | Hole (pos, l) -> spine l @@ Hole pos
   | RecordType l -> RecordType (List.map (fun (x, c, a) -> x, c, readback k a) l)
@@ -236,4 +241,4 @@ let rec readback k v : Term.t =
     in
     spine l @@ RecordField (readback k t, x)
 
-let to_string k v = Term.to_string @@ readback k v
+let to_string ?(unfold=false) k v = Term.to_string @@ readback ~unfold k v
