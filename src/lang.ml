@@ -644,6 +644,7 @@ let rec check k env ctx (t:term) (a:value) : term =
       | _ -> error ~t "got %s but function type expected" (V.to_string k a0)
     in
     let y, k = V.var k, k+1 in
+    let env = ("_", y) :: env in
     let b', _ = unpi (V.capp b y) in
     let x =
       match b' with
