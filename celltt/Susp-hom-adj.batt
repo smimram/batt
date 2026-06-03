@@ -68,13 +68,13 @@ to-hom-from-susp {X} {Y'} f' x =
   -- let f1 : f (right-susp X) ≡ y1 = pushout-univr (cylbnd-inclusion X) tens-snd Y leg-cyl leg-bool ho-legs true in 
   -- (f, (f0, f1))
 
---from-susp-to-hom-from-susp ∷ {X ∷ U} {Y' ∷ Ubipt} → (f' : mapbipt (susp' X) Y') → biptho {susp' X} (from-susp-to-hom (to-hom-from-susp f')) f'
---from-susp-to-hom-from-susp {X} {Y'} f' =
---  let Y ∷ U = type-Ubipt Y' in
---  let y0 ∷ Y = leftpt  Y' in
---  let y1 ∷ Y = rightpt Y' in
---  let f : susp X → Y = map-mapbipt {susp' X} f' in
---  let f0 : f (left-susp  X) ≡ y0 = leftcoh  {susp' X} f' in
---  let f1 : f (right-susp X) ≡ y1 = rightcoh {susp' X} f' in
---  ? -- : (x : X) → 
+from-susp-to-hom-from-susp ∷ {X ∷ U} {Y' ∷ Ubipt} → (f' : mapbipt (susp' X) Y') → biptho {susp' X} (from-susp-to-hom (to-hom-from-susp f')) f'
+from-susp-to-hom-from-susp {X} {Y'} f' =
+  let Y ∷ U = type-Ubipt Y' in
+  let y0 ∷ Y = leftpt  Y' in
+  let y1 ∷ Y = rightpt Y' in
+  let f : susp X → Y = map-mapbipt {susp' X} f' in
+  let f0 : f (left-susp  X) ≡ y0 = leftcoh  {susp' X} f' in
+  let f1 : f (right-susp X) ≡ y1 = rightcoh {susp' X} f' in
+  ? -- : (x : X) → 
 -- aïe ma tête
