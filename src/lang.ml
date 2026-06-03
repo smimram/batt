@@ -224,7 +224,7 @@ let unify ~pos k (t:value) (u:value) =
   debug "UNIFY %s WITH %s\n%!" (V.to_string k t) (V.to_string k u);
   (* Make sure that metavariable m applied to spine s equals t. *)
   let solve k m s t =
-    (* debug "SOLVE %s =? %s\n" (V.to_string k (Meta (m, s))) (V.to_string k t); *)
+    debug "SOLVE %s =? %s\n" (V.to_string k (Meta (m, s))) (V.to_string k t);
     (* Construct the initial renaming. Note that we number variables x0, x1, etc so that the furthest variable is x0: this is to avoid having to shift all indices when lifting. *)
     let r =
       let rec aux = function
