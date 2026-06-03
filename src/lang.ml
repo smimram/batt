@@ -899,21 +899,22 @@ let check_decls_toplevel decls =
     env := (x,t) :: !env;
     ctx := Context.ext ~crispness !ctx x a
   in
-  let () =
-    let type0 = V.Type 0 in
-    let type1 = V.Type 1 in
-    add "Type" type1 type0;
-    add "U" type1 type0;
-    add "TYPE" (V.Type 2) type1;
-    let empty = V.IndType `Empty in
-    add "empty" type0 empty;
-    let unit = V.IndType `Unit in
-    add "unit" type0 unit;
-    let bool = V.IndType `Bool in
-    add "bool" type0 bool;
-    add "false" bool (V.IndTerm (`Bool false));
-    add "true" bool (V.IndTerm (`Bool true));
-  in
+  if !Common.builtins then
+    (
+      let type0 = V.Type 0 in
+      (* let type1 = V.Type 1 in *)
+      (* add "Type" type1 type0; *)
+      (* add "U" type1 type0; *)
+      (* add "TYPE" (V.Type 2) type1; *)
+      let empty = V.IndType `Empty in
+      add "empty" type0 empty;
+      let unit = V.IndType `Unit in
+      add "unit" type0 unit;
+      let bool = V.IndType `Bool in
+      add "bool" type0 bool;
+      add "false" bool (V.IndTerm (`Bool false));
+      add "true" bool (V.IndTerm (`Bool true));
+    );
   ignore @@ check_decls 0 !env !ctx decls
 
 let check_meta () =
