@@ -1,4 +1,4 @@
-open import function
+open import Function
 
 ---
 --- Identity types
@@ -49,6 +49,9 @@ cong-id {A} {x} refl = refl
 
 cong-sym :: {A B : Type} (f : A → B) {x y : A} (p : x ≡ y) → cong f (sym {A} p) ≡ sym {A} (cong f p)
 cong-sym f {x} refl = refl
+
+assoc :: {A : Type} {x y : A} (p : x ≡ y) {z : A} (q : y ≡ z) {w : A} (r : z ≡ w) → trans (trans {A} {x} {y} p {z} q) {w} r ≡ trans {A} {x} {y} p (trans {A} {y} {z} q r)
+assoc p refl refl = refl
 
 ---
 --- Homotopies

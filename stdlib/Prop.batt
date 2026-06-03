@@ -1,12 +1,12 @@
-open import contr
+open import Contr
 
 is-prop :: U → U
 is-prop A = (a b : A) → is-contr (a ≡ b)
 
-Prop :: TYPE
-Prop = Σ (A : U) . is-prop A
+HProp :: TYPE
+HProp = Σ (A : U) . is-prop A
 
-type-Prop :: Prop → U
+type-Prop :: HProp → U
 type-Prop (A, p) = A
 
 -- open import equality

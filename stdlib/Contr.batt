@@ -4,8 +4,8 @@ is-contr A = Σ (a : A) . (x : A) → (a ≡ x)
 center :: (A : U) → is-contr A → A
 center A (a, _) = a
 
-Contr :: TYPE
-Contr = Σ (A : U) . is-contr A
+HContr :: TYPE
+HContr = Σ (A : U) . is-contr A
 
-type-Contr :: Contr → U
-type-Contr (A, _) = A
+type-HContr :: HContr → U
+type-HContr (A, _) = A

@@ -37,7 +37,7 @@ type t =
   | IndType_ind of inductive_type * t list
   | IndTerm of inductive_term
   | Pi of icit * crispness * string * t * t (** pi-type *)
-  | Abs of icit * side option * string * t
+  | Abs of icit * string * t
   | App of t * icit * t
   | Sigma of string * t * t
   | Pair of t * t
@@ -58,15 +58,22 @@ type t =
   | Postulate of int option (** a postulate with given internal identifier *)
   | Hole of Pos.t
   | Meta of [`Fresh of Pos.t option | `Generated of int] (** metavariable with given internal identifier *)
+  | Import of string (** import a module *)
+  | RecordType of (string * crispness * t) list
+  | Record of [`Recursive | `NonRecursive] * (string * t) list
+  | RecordField of t * string
 
 (** A declaration. *)
-type decl = string * crispness * t * t
+and decl =
+  | Def of (string * crispness * t option * t)
+  | Open of t
 
-type decls = decl list
+(** A list of declarations. *)
+and decls = decl list
 
 let rec abss l t =
   match l with
-  | (s,x)::l -> Abs (Explicit, s, x, abss l t)
+  | x::l -> Abs (Explicit, x, abss l t)
   | [] -> t
 
 let app ?(icit=Explicit) t u =
@@ -110,7 +117,7 @@ module FV = struct
     | IndTerm _ -> empty
     | Pi (_, _, x, a, b)
     | Sigma (x, a, b) -> union (term a) (remove x (term b))
-    | Abs (_, _, x, t) -> remove x (term t)
+    | Abs (_, x, t) -> remove x (term t)
     | App (t, _, u)
     | Pair (t, u) -> union (term t) (term u)
     | Pair_ind (x, y, t) -> remove x (remove y (term t))
@@ -125,19 +132,24 @@ module FV = struct
     | Refl -> empty
     | J r -> term r
     | Var x -> singleton x
-    | Var' _ -> empty
+    | Var' _ -> assert false
     | Let (_c, _x, a, t, u) -> union (term a) @@ union (term t) (term u)
     | Postulate _ -> empty
     | Hole _ -> empty
     | Meta _ -> empty
+    | Import _ -> assert false
+    | Record _ -> failwith "TODO"
+    | RecordType l -> List.fold_left (fun fv (_x, _c, a) -> union fv (term a)) empty l
+    | RecordField (t, _x) -> term t
 end
+
+let crispy_colon = function
+  | Normal -> ":"
+  | Crisp -> "∷"
 
 (** String representation of a term. *)
 let rec to_string t =
-  let colon = function
-    | Normal -> ":"
-    | Crisp -> "∷"
-  in
+  let colon = crispy_colon in
   match t with
   | Type 0 -> "Type"
   | Type n -> Printf.sprintf "Type %d" n
@@ -151,11 +163,11 @@ let rec to_string t =
       | Explicit -> Printf.sprintf "(%s %s %s) → %s" x (colon c) (to_string a) (to_string t)
       | Implicit -> Printf.sprintf "{%s %s %s} → %s" x (colon c) (to_string a) (to_string t)
     )
-  | Abs (i, s, x, t) ->
+  | Abs (i, x, t) ->
     (
       match i with
-      | Explicit -> Printf.sprintf "λ%s%s.%s" x (string_of_opt_side s) (to_string t)
-      | Implicit -> Printf.sprintf "λ{%s%s}.%s" x (string_of_opt_side s) (to_string t)
+      | Explicit -> Printf.sprintf "λ%s.%s" x (to_string t)
+      | Implicit -> Printf.sprintf "λ{%s}.%s" x (to_string t)
     )
   | App (t, i, u) ->
     (
@@ -182,4 +194,11 @@ let rec to_string t =
   | Postulate n -> "postulate" ^ (match n with Some n -> string_of_int n | None -> "")
   | Hole _ -> "?"
   | Meta (`Fresh _) -> "_"
+
   | Meta (`Generated n) -> Printf.sprintf "?%d" n
+  | Import m -> "import " ^ m
+  | Record _ -> "record"
+  | RecordType l ->
+    let l = String.concat "; " @@ List.map (fun (x,c,a) -> x ^ " " ^ crispy_colon c ^ " " ^ to_string a) l in
+    Printf.sprintf "{ %s }" l
+  | RecordField (t,x) -> Printf.sprintf "%s.%s" (to_string t) x

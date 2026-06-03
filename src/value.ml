@@ -19,7 +19,7 @@ type t =
   | IndTerm of inductive_term
   | IndType_ind of inductive_type * t list * spine
   | Pi of icit * crispness * t * closure
-  | Abs of side option * closure
+  | Abs of closure
   | Sigma of t * closure
   | Pair of t * t
   | Pair_ind of closure2 * spine
@@ -37,6 +37,9 @@ type t =
   | Var of int * spine
   | Hole of (Pos.t [@opaque]) * spine
   | Postulate of int * spine
+  | RecordType of (string * crispness * t) list
+  | Record of (string * t) list
+  | RecordField of string * spine
 [@@deriving show]
 
 (** A closure. *)
@@ -98,7 +101,7 @@ let rec eval (env:environment) : Term.t -> t = function
   | IndTerm t -> IndTerm t
   | IndType_ind (ind, args) -> IndType_ind (ind, List.map (eval env) args, [])
   | Pi (i, c, x, a, t) -> Pi (i, c, eval env a, (x, t, env))
-  | Abs (_, s, x, t) -> Abs (s, (x, t, env))
+  | Abs (_, x, t) -> Abs (x, t, env)
   | App (t, _, u) -> app (eval env t) (eval env u)
   | Sigma (x, a, t) -> Sigma (eval env a, (x, t, env))
   | Pair (t, u) -> Pair (eval env t, eval env u)
@@ -121,14 +124,32 @@ let rec eval (env:environment) : Term.t -> t = function
     )
   | Var' n -> snd @@ List.nth env n
   | Let (_c,x,_a,t,u) ->
-    eval env (Term.app (Abs(Explicit, None, x, u)) t)
+    eval env (Term.app (Abs(Explicit, x, u)) t)
   | Postulate (Some n) -> Postulate (n, [])
   | Postulate None -> assert false
   | Hole pos -> Hole (pos, [])
-  | Meta (`Fresh pos) -> fresh_meta ?pos env
+  | Meta (`Fresh _) -> assert false
   | Meta (`Generated id) -> Meta (Meta.get id, [])
+  | Import _ -> assert false
+  | Record (`NonRecursive, l) ->
+    Record (List.map (fun (x,t) -> x, eval env t) l)
+  | Record (`Recursive, l) ->
+    let _, l =
+      List.fold_left_map
+        (fun env (x,t) ->
+           let t = eval env t in
+           let env = (x,t)::env in
+           env, (x,t)
+        ) env l
+    in
+    Record l
+  | RecordType l ->
+    let l = List.map (fun (x, c, a) -> x, c, eval env a) l in
+    RecordType l
+  | RecordField (t, x) ->
+    app (RecordField (x, [])) (eval env t)
 
-(** Make a variable. *)
+    (** Make a variable. *)
 and var k = Var (k, [])
 
 (** Generate a fresh metavariable. *)
@@ -141,7 +162,7 @@ and fresh_meta ?pos env =
 (** Apply a value to another. *)
 and app t u =
   match force t, force u with
-  | Abs (_, f), u -> capp f u
+  | Abs f, u -> capp f u
   | IndType_ind (`Unit, [t], []), IndTerm `Unit -> t
   | IndType_ind (`Bool, [tf;_tt], []), IndTerm (`Bool false) -> tf
   | IndType_ind (`Bool, [_tf;tt], []), IndTerm (`Bool true) -> tt
@@ -158,6 +179,7 @@ and app t u =
   | Meta (m, l), u -> Meta (m, u::l)
   | Hole (pos, l), u -> Hole (pos, u::l)
   | Postulate (n, l), u -> Postulate (n, u::l)
+  | RecordField (x, []), Record l -> List.assoc x l
   | _ -> failwith @@ Printf.sprintf "vapp: %s vs %s" (show t) (show u)
 
 (** Apply a value to a list of values. *)
@@ -193,7 +215,7 @@ let rec readback k v : Term.t =
   | IndType_ind (ind, args, l) -> spine l @@ IndType_ind (ind, List.map (readback k) args)
   | IndTerm t -> IndTerm t
   | Pi (i, c, a, b) -> Pi (i, c, var_name k, readback k a, readback (k+1) (capp b (var k)))
-  | Abs (s, f) -> Abs (Explicit, s, var_name k, readback (k+1) (capp f (var k)))
+  | Abs f -> Abs (Explicit, var_name k, readback (k+1) (capp f (var k)))
   | Sigma (a, b) -> Sigma (var_name k, readback k a, readback (k+1) (capp b (var k)))
   | Pair (t, u) -> Pair (readback k t, readback k u)
   | Pair_ind (t, l) -> spine l @@ Pair_ind (var_name k, var_name (k+1), readback (k+2) @@ capp2 t (var k) (var (k+1)))
@@ -211,5 +233,14 @@ let rec readback k v : Term.t =
   | Var (i, l) -> spine l @@ Var' i
   | Postulate (n, l) -> spine l @@ Postulate (Some n)
   | Hole (pos, l) -> spine l @@ Hole pos
+  | RecordType l -> RecordType (List.map (fun (x, c, a) -> x, c, readback k a) l)
+  | Record l -> Record (`NonRecursive, List.map (fun (x, t) -> x, readback k t) l)
+  | RecordField (x, l) ->
+    assert (l <> []);
+    let t, l =
+      let l = List.rev l in
+      List.hd l, List.rev @@ List.tl l
+    in
+    spine l @@ RecordField (readback k t, x)
 
 let to_string k v = Term.to_string @@ readback k v

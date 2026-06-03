@@ -1,0 +1,19 @@
+-- test η-conversion
+
+f : bool → bool
+f = ?
+
+r : f ≡ f
+r = refl
+
+g : bool → bool
+g = f
+
+r : f ≡ g
+r = refl
+
+h : bool → bool
+h x = f x
+
+r : f ≡ h
+r = refl

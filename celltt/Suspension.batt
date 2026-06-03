@@ -1,6 +1,6 @@
-open import stdlib
-open import interval
-open import bipointed
+open import Stdlib
+open import Interval
+open import Bipointed
 
 -- Gray cylinder
 cyl ∷ (X ∷ U) → U
@@ -8,7 +8,7 @@ cyl X = X ⨂ I
 
 -- Boundary of the Gray cylinder
 cylbnd ∷ (X ∷ U) → U
-cylbnd X = X ⨂ Bool
+cylbnd X = X ⨂ bool
 
 -- Inclusion X ⨂ ∂I ↪ X ⨂ I
 cylbnd-inclusion ∷ (X ∷ U) → cylbnd X → cyl X
@@ -23,7 +23,7 @@ cyl-to-susp ∷ (X ∷ U) → X ⨂ I → susp X
 cyl-to-susp X = pushout-inl (cylbnd-inclusion X) tens-snd
 
 -- inclusion ∂I ↪ susp X
-bool-to-susp ∷ (X ∷ U) → Bool → susp X
+bool-to-susp ∷ (X ∷ U) → bool → susp X
 bool-to-susp X = pushout-inr (cylbnd-inclusion X) tens-snd
 
 -- left (source) point of the suspension
@@ -49,7 +49,7 @@ cyl-to-susp-rightcoh {X} x = pushout-eq (cylbnd-inclusion X) tens-snd (x ⊗ tru
 --
 
 -- auxiliary homotopy
-ho-susp-to-I ∷ (X ∷ U) (u : X ⨂ Bool) → tens-snd (cylbnd-inclusion X u) ≡ boundary-inclusion (tens-snd {X} {Bool} u)
+ho-susp-to-I ∷ (X ∷ U) (u : X ⨂ bool) → tens-snd (cylbnd-inclusion X u) ≡ boundary-inclusion (tens-snd {X} {bool} u)
 ho-susp-to-I X (x ⊗ b) = rec-bool (λb. tens-snd (cylbnd-inclusion X (x ⊗ b)) ≡ boundary-inclusion b) refl refl b
 
 -- the projection
@@ -59,7 +59,7 @@ susp-to-I X = pushout-univ (cylbnd-inclusion X) tens-snd I
 
 -- meridian map
 merid ∷ {X ∷ U} (x : X) → (I →ᵣ susp X)
-merid {X} x sᵣ = cyl-to-susp X (x ⊗ s)
+merid {X} x s = cyl-to-susp X (x ⊗ s)
 
 lcoh-merid ∷ {X ∷ U} (x : X) → merid x I0 ≡ left-susp X
 lcoh-merid x = cyl-to-susp-leftcoh x
@@ -77,8 +77,8 @@ merid' x = (merid(x), (lcoh-merid(x), rcoh-merid(x)))
 susp-map ∷ (X Y ∷ U) (f ∷ X → Y) → susp X → susp Y
 susp-map X Y f =
   let leg-cyl ∷ X ⨂ I → susp Y = circ (cyl-to-susp Y) (tens-map f id) in
-  let leg-bool ∷ Bool → susp Y = bool-to-susp Y in
-  let ho-legs ∷ (u : X ⨂ Bool) → leg-cyl (cylbnd-inclusion X u) ≡ leg-bool (tens-snd u) =
+  let leg-bool ∷ bool → susp Y = bool-to-susp Y in
+  let ho-legs ∷ (u : X ⨂ bool) → leg-cyl (cylbnd-inclusion X u) ≡ leg-bool (tens-snd u) =
     λ (x ⊗ b) . pushout-eq (cylbnd-inclusion Y) tens-snd (f(x) ⊗ b)
   in
   pushout-univ (cylbnd-inclusion X) tens-snd (susp Y)

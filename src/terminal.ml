@@ -1,7 +1,7 @@
 let enable_colors = ref true
 
 let color ?(bold=false) c =
-  if !enable_colors then Printf.sprintf "\027["^string_of_int c^(if bold then ";1" else "")^"m"
+  if !enable_colors && Unix.isatty Unix.stdout then Printf.sprintf "\027["^string_of_int c^(if bold then ";1" else "")^"m"
   else ""
 
 let color ?bold c =

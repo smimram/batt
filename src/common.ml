@@ -1,5 +1,9 @@
 let show_debug = ref true
 
+let include_directories_list = ref ([] : string list)
+
+let include_directories () = "." :: !include_directories_list
+
 let debug fmt =
   if !show_debug then
     (

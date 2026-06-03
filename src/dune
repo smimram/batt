@@ -5,7 +5,7 @@
 
 (executable
  (public_name batt)
- (libraries sedlex menhirLib)
+ (libraries sedlex menhirLib unix)
  (preprocess (pps ppx_deriving.show sedlex.ppx))
  (promote (until-clean))
 )
