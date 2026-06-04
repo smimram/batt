@@ -663,9 +663,10 @@ and check_type k env ctx a : term * int =
     | a, Type l -> a, l
     | _, b -> error ~t:a "%s has type %s by type expected" (T.to_string a) (V.to_string k b)
   *)
-  match infer k env ctx a with
-  | a, Type l -> a, l
-  | a, b -> unify k a b (Type 0); a, 0
+  let a, b = infer k env ctx a in
+  match V.force b with
+  | Type l -> a, l
+  | b -> unify k a b (Type 0); a, 0
 (* error ~t:a "%s has type %s by type expected" (T.to_string a) (V.to_string k b) *)
 
 (** Infer the type of a term. *)
