@@ -613,9 +613,9 @@ let rec check k env ctx (t:term) (a:value) : term =
     let x =
       let y, k = V.var k, k+1 in
       let b', _ = unpi (V.capp b y) in
-      match b' with
-      | Eq (a', x, y') when y' = y -> unify_base ~pos k a a'; x
-      | _ -> error ~t "identity type expected"
+      match V.force b' with
+      | Eq (a', x, y') when V.force y' = y -> unify_base ~pos k a a'; x
+      | _ -> error ~t "identity type expected but got %s" (V.to_string k b')
     in
     let c = V.capp (snd @@ unpi ~icit:Explicit @@ V.capp b x) (Refl x) in
     let r = check k env ctx r c in

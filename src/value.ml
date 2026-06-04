@@ -157,7 +157,7 @@ and var k = Var (k, [])
 
 (** Apply a value to another. *)
 and app t u =
-  match unmeta t, unmeta u with
+  match unmeta t, force u with
   | Abs f, u -> capp f u
   | IndType_ind (`Unit, [t], []), IndTerm `Unit -> t
   | IndType_ind (`Bool, [tf;_tt], []), IndTerm (`Bool false) -> tf
