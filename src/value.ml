@@ -125,7 +125,6 @@ let rec eval (env:environment) : Term.t -> t = function
     )
   | Var' n ->
     let x, t = List.nth env n in
-    Printf.printf "%d -> %s\n%!" n x;
     Unfold (x,[],Lazy.from_val t)
   | Let (_c,x,_a,t,u) ->
     eval env (Term.app (Abs(Explicit, x, u)) t)
@@ -177,6 +176,7 @@ and app t u =
   | Hole (pos, l), u -> Hole (pos, u::l)
   | Postulate (n, l), u -> Postulate (n, u::l)
   | RecordField (x, []), Record l -> List.assoc x l
+  | Unfold (x, l, t), u -> Unfold (x, u::l, Lazy.from_fun (fun () -> app (Lazy.force t) u))
   | _ -> failwith @@ Printf.sprintf "app: %s vs %s" (show t) (show u)
 
 (** Apply a value to a list of values. *)
@@ -210,9 +210,10 @@ and unmeta t =
 
 (** Reify a value as a term. *)
 let rec readback ?(unfold=true) k v : Term.t =
+  let readback = readback ~unfold in
   let var_name k = "x" ^ string_of_int k in
   let spine l t = Term.app_spine t (List.map (readback k) l) in
-  match force v with
+  match unmeta v with
   | Type n -> Type n
   | IndType ind -> IndType ind
   | IndType_ind (ind, args, l) -> spine l @@ IndType_ind (ind, List.map (readback k) args)

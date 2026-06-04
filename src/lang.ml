@@ -728,10 +728,8 @@ and infer k env ctx (t:term) : term * value =
     Flatten t, Flat a
   | Eq (a, t, u) ->
     let a, l = check_type k env ctx a in
-    Printf.printf "a is %s in %s\n%!" (T.to_string a) (string_of_environment k env);
     let t, u =
       let a = V.eval env a in
-      Printf.printf "a becomes %s\n%!" (V.to_string k a);
       let t = check k env ctx t a in
       let u = check k env ctx u a in
       t, u
