@@ -120,10 +120,13 @@ let rec eval (env:environment) : Term.t -> t = function
   | Var x ->
     (
       match List.assoc_opt x env with
-      | Some v -> Unfold (x,[],Lazy.from_val v)
+      | Some t -> Unfold (x,[],Lazy.from_val t)
       | None -> failwith @@ Printf.sprintf "eval: could not find %s" x
     )
-  | Var' n -> snd @@ List.nth env n
+  | Var' n ->
+    let x, t = List.nth env n in
+    Printf.printf "%d -> %s\n%!" n x;
+    Unfold (x,[],Lazy.from_val t)
   | Let (_c,x,_a,t,u) ->
     eval env (Term.app (Abs(Explicit, x, u)) t)
   | Postulate (Some n) -> Postulate (n, [])
@@ -155,7 +158,7 @@ and var k = Var (k, [])
 
 (** Apply a value to another. *)
 and app t u =
-  match force t, force u with
+  match unmeta t, unmeta u with
   | Abs f, u -> capp f u
   | IndType_ind (`Unit, [t], []), IndTerm `Unit -> t
   | IndType_ind (`Bool, [tf;_tt], []), IndTerm (`Bool false) -> tf
@@ -174,7 +177,7 @@ and app t u =
   | Hole (pos, l), u -> Hole (pos, u::l)
   | Postulate (n, l), u -> Postulate (n, u::l)
   | RecordField (x, []), Record l -> List.assoc x l
-  | _ -> failwith @@ Printf.sprintf "vapp: %s vs %s" (show t) (show u)
+  | _ -> failwith @@ Printf.sprintf "app: %s vs %s" (show t) (show u)
 
 (** Apply a value to a list of values. *)
 and apps t = function
@@ -195,10 +198,15 @@ and capp2 ((x,y,t,env):closure2) (u:t) (v:t) =
 
 (** Remove already evaluated values. *)
 and force t =
-  match t with
-  | Meta (m, s) when m.value <> None -> force @@ app_spine (Option.get m.value) s
+  match unmeta t with
   | Unfold (_,_,t) -> force @@ Lazy.force t
-  | _ -> t
+  | t -> t
+
+(** Remove meta-variables. *)
+and unmeta t =
+  match t with
+  | Meta (m, s) when m.value <> None -> unmeta @@ app_spine (Option.get m.value) s
+  | t -> t
 
 (** Reify a value as a term. *)
 let rec readback ?(unfold=true) k v : Term.t =

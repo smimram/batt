@@ -638,7 +638,7 @@ let rec check k env ctx (t:term) (a:value) : term =
   | Hole pos, a ->
     important "HOLE %s : %s IN\n%s\n%!" (Pos.to_string pos) (V.to_string k a) (Context.to_string ~multiline:true k ctx);
     Hole pos
-  | t, a ->
+  | t, _ ->
     let t0 = t in
     let t, a' = infer k env ctx t in
     (
@@ -728,8 +728,10 @@ and infer k env ctx (t:term) : term * value =
     Flatten t, Flat a
   | Eq (a, t, u) ->
     let a, l = check_type k env ctx a in
+    Printf.printf "a is %s in %s\n%!" (T.to_string a) (string_of_environment k env);
     let t, u =
       let a = V.eval env a in
+      Printf.printf "a becomes %s\n%!" (V.to_string k a);
       let t = check k env ctx t a in
       let u = check k env ctx u a in
       t, u
