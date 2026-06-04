@@ -120,12 +120,10 @@ let rec eval (env:environment) : Term.t -> t = function
   | Var x ->
     (
       match List.assoc_opt x env with
-      | Some t -> Unfold (x,[],Lazy.from_val t)
+      | Some t -> t
       | None -> failwith @@ Printf.sprintf "eval: could not find %s" x
     )
-  | Var' n ->
-    let x, t = List.nth env n in
-    Unfold (x,[],Lazy.from_val t)
+  | Var' n -> snd @@ List.nth env n
   | Let (_c,x,_a,t,u) ->
     eval env (Term.app (Abs(Explicit, x, u)) t)
   | Postulate (Some n) -> Postulate (n, [])

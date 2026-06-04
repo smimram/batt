@@ -842,6 +842,7 @@ and check_decls k env ctx (decls:T.decls) =
       in
       tm := (x,t) :: !tm;
       let t = V.eval !env t in
+      let t = V.Unfold (x,[],Lazy.from_val t) in
       env := (x,t) :: !env;
       ctx := Context.ext ~crispness:c !ctx x a;
       ty := (x,c,a) :: !ty
