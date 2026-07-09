@@ -5,9 +5,9 @@ type inductive_type = [`Empty | `Unit | `Bool]
 [@@deriving show]
 
 let string_of_inductive_type = function
-  | `Empty -> "Empty"
-  | `Unit -> "Unit"
-  | `Bool -> "Bool"
+  | `Empty -> "empty"
+  | `Unit -> "unit"
+  | `Bool -> "bool"
 
 (** Basic inductive terms. *)
 type inductive_term = [`Unit | `Bool of bool]

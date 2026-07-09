@@ -613,9 +613,9 @@ let rec check k env ctx (t:term) (a:value) : term =
     let x =
       let y, k = V.var k, k+1 in
       let b', _ = unpi (V.capp b y) in
-      match b' with
-      | Eq (a', x, y') when y' = y -> unify_base ~pos k a a'; x
-      | _ -> error ~t "identity type expected"
+      match V.force b' with
+      | Eq (a', x, y') when V.force y' = y -> unify_base ~pos k a a'; x
+      | _ -> error ~t "identity type expected but got %s" (V.to_string k b')
     in
     let c = V.capp (snd @@ unpi ~icit:Explicit @@ V.capp b x) (Refl x) in
     let r = check k env ctx r c in
@@ -638,7 +638,7 @@ let rec check k env ctx (t:term) (a:value) : term =
   | Hole pos, a ->
     important "HOLE %s : %s IN\n%s\n%!" (Pos.to_string pos) (V.to_string k a) (Context.to_string ~multiline:true k ctx);
     Hole pos
-  | t, a ->
+  | t, _ ->
     let t0 = t in
     let t, a' = infer k env ctx t in
     (
@@ -663,9 +663,10 @@ and check_type k env ctx a : term * int =
     | a, Type l -> a, l
     | _, b -> error ~t:a "%s has type %s by type expected" (T.to_string a) (V.to_string k b)
   *)
-  match infer k env ctx a with
-  | a, Type l -> a, l
-  | a, b -> unify k a b (Type 0); a, 0
+  let a, b = infer k env ctx a in
+  match V.force b with
+  | Type l -> a, l
+  | b -> unify k a b (Type 0); a, 0
 (* error ~t:a "%s has type %s by type expected" (T.to_string a) (V.to_string k b) *)
 
 (** Infer the type of a term. *)
@@ -841,6 +842,7 @@ and check_decls k env ctx (decls:T.decls) =
       in
       tm := (x,t) :: !tm;
       let t = V.eval !env t in
+      let t = V.Unfold (x,[],Lazy.from_val t) in
       env := (x,t) :: !env;
       ctx := Context.ext ~crispness:c !ctx x a;
       ty := (x,c,a) :: !ty
