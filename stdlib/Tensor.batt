@@ -70,6 +70,12 @@ tens-curry-left-l f b a = f (a ⊗ b)
 tens-uncurry-left-l :: {A B C :: U} → (B →ₗ A →ₗ C) → (A ⨂ B →ₗ C)
 tens-uncurry-left-l {A} {B} {C} f (a ⊗ b) = f b a
 
+tens-curry-right-r :: {A B C :: U} → (A ⨂ B →ᵣ C) → (A →ᵣ B →ᵣ C)
+tens-curry-right-r f a b = f (a ⊗ b)
+
+tens-uncurry-right-r :: {A B C :: U} → (A →ᵣ B →ᵣ C) → (A ⨂ B →ᵣ C)
+tens-uncurry-right-r {A} {B} {C} f (a ⊗ b) = f a b
+
 -- -- version of assoc using curry-l/r
 -- tens-assoc :: {A B C :: U} → (A ⨂ B) ⨂ C → A ⨂ (B ⨂ C)
 -- tens-assoc {A} {B} {C} =
@@ -86,6 +92,12 @@ tens-uncurry-curry-left-l f = refl
 
 tens-curry-uncurry-left-l :: {A B C :: U} (f : B →ₗ A →ₗ C) → tens-curry-left-l (tens-uncurry-left-l f) ≡ f
 tens-curry-uncurry-left-l f = refl
+
+tens-uncurry-curry-right-r :: {A B C :: U} (f : A ⨂ B →ᵣ C) → tens-uncurry-right-r (tens-curry-right-r f) ≡ f
+tens-uncurry-curry-right-r f = refl
+
+tens-curry-uncurry-right-r :: {A B C :: U} (f : A →ᵣ B →ᵣ C) → tens-curry-right-r (tens-uncurry-right-r f) ≡ f
+tens-curry-uncurry-right-r f = refl
 
 tens-map :: {A B C D :: U} (f :: A → B) (g :: C → D) → A ⨂ C → B ⨂ D
 tens-map f g (a ⊗ c) = (f(a) ⊗ g(c))
