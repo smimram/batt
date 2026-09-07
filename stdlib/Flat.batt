@@ -159,6 +159,7 @@ flat-pair-retraction {A} {B} (r , rr) (r' , rr') =
 is-discrete-prod :: {A B :: U} → is-discrete A → is-discrete B → is-discrete (A × B)
 is-discrete-prod {A} {B} (sA , rA) (sB , rB) = (flat-pair-section sA sB , flat-pair-retraction rA rB)
 
+-- Theorem 6.19
 is-discrete-unit :: is-discrete ⊤
 is-discrete-unit =
   let ret : (x : ♭⊤) → crispify-unit (unflatten x) ≡ x = fun 𝄫x →
@@ -190,7 +191,12 @@ flat-id {A} {x} {y} =
     , (decode 𝄫x 𝄫y , dec-enc 𝄫x 𝄫y) ) )
 
 -- Corollary 6.2
--- flat-id' :: {A :: U} {u v :: ♭A} → (u ≡ v) ≃ ♭(𝄫u ≡ 𝄫v) -- by previous theorem
+flat-id' :: {A :: U} {u v :: ♭A} → (u ≡ v) ≃ ♭(unflatten u ≡ unflatten v)
+flat-id' {A} {u} {v} =
+  -- every crisp u :: ♭A is 𝄫(unflatten u)
+  let h : (u v :: ♭A) → (u ≡ v) ≃ ♭(unflatten u ≡ unflatten v) = fun 𝄫x → fun 𝄫y → flat-id {A} {x} {y} in
+  h u v
 
+-- Theorem 6.19
 is-discrete-id :: {A :: U} {x y :: A} → is-discrete (x ≡ y)
-is-discrete-id = ?
+is-discrete-id = ? -- by flat-id' and is-discrete-flat
