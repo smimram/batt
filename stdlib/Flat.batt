@@ -133,6 +133,28 @@ is-discrete-flat A =
   -- is-iso→is-equiv (g , fg , gf)
   ((g , fg) , (g , gf))
 
--- -- Theorem 6.19
--- is-discrete-prod :: {A B :: U} → is-discrete A → is-discrete B → is-discrete (A × B)
--- is-discrete-prod
+-- pairing of flat elements
+flat-pair :: {A B :: U} → ♭A → ♭B → ♭(A × B)
+flat-pair 𝄫a 𝄫b = 𝄫(a , b)
+
+unflatten-flat-pair :: {A B :: U} (x : ♭A) (y : ♭B) → unflatten (flat-pair x y) ≡ (unflatten x , unflatten y)
+unflatten-flat-pair 𝄫a 𝄫b = refl
+
+-- Theorem 6.19
+flat-pair-section :: {A B :: U} → section (unflatten {A}) → section (unflatten {B}) → section (unflatten {A × B})
+flat-pair-section {A} {B} (s , ss) (s' , ss') =
+  ( (fun (a , b) → flat-pair (s a) (s' b))
+  , (fun (a , b) → trans (unflatten-flat-pair (s a) (s' b)) (cong2 (pair {A} {B}) (ss a) (ss' b))) )
+
+flat-pair-retraction :: {A B :: U} → retraction (unflatten {A}) → retraction (unflatten {B}) → retraction (unflatten {A × B})
+flat-pair-retraction {A} {B} (r , rr) (r' , rr') =
+  let ret : A × B → ♭(A × B) = fun (a , b) → flat-pair (r a) (r' b) in
+  ( ret
+  , (fun 𝄫x →
+      let h : (x :: A × B) → ret (unflatten 𝄫x) ≡ 𝄫x =
+        fun (a , b) → cong2 flat-pair (rr 𝄫a) (rr' 𝄫b)
+      in
+      h x) )
+
+is-discrete-prod :: {A B :: U} → is-discrete A → is-discrete B → is-discrete (A × B)
+is-discrete-prod {A} {B} (sA , rA) (sB , rB) = (flat-pair-section sA sB , flat-pair-retraction rA rB)

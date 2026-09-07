@@ -308,7 +308,7 @@ let unify ~pos k (t:value) (u:value) =
         | Flatten t -> Flatten (rename r t)
         | Flat_ind (t, l) ->
           let x = var_name r.cod in
-          let t = V.capp t (V.var k) in
+          let t = V.capp t (V.var r.dom) in
           let t = rename (lift r) t in
           spine l @@ Flat_ind (x, t)
         | Hole (pos, l) -> spine l @@ Hole pos
