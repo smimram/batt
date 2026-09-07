@@ -23,6 +23,12 @@
 
 (defvar batt-tab-width 4)
 
+(defcustom batt-default-input-method "TeX"
+  "Input method automatically activated in BATT buffers.
+Set to nil to disable automatic activation."
+  :type '(choice (const :tag "None" nil) string)
+  :group 'batt)
+
 (define-derived-mode batt-mode fundamental-mode
   "BATT" "Major mode for BATT files."
   :syntax-table batt-mode-syntax-table
@@ -30,6 +36,8 @@
   (set (make-local-variable 'comment-start-skip) "--+\\s-*")
   (set (make-local-variable 'font-lock-defaults) '(batt-font-lock-keywords))
   (setq mode-name "BATT")
+  (when batt-default-input-method
+    (set-input-method batt-default-input-method))
 )
 
 (provide 'batt-mode)
