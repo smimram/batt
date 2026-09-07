@@ -1,6 +1,19 @@
-open import equivalence
+open import Equivalence
 
-equiv-eq : {A B : U} → A ≡ B → equiv A B
+equiv-eq :: {A B : U} → A ≡ B → equiv A B
 equiv-eq {A} refl = id-equiv A
 
 postulate univalence ∷ (A B : U) → is-equiv equiv-eq
+
+-- transporting along a path lifts to identity types
+cong-equiv-eq :: {A B : U} (P : A ≡ B) (x y : A) → is-equiv (cong (map-equiv (equiv-eq P)) {x} {y})
+cong-equiv-eq {A} refl x y =
+  is-equiv-htpy {x ≡ y} {x ≡ y} {id} {cong (id {A}) {x} {y}} (fun p → sym (cong-id p)) (is-equiv-id (x ≡ y))
+
+-- equivalences lift to identity types
+ap-equiv :: {A B : U} (f : A → B) → is-equiv f → (x y : A) → is-equiv (cong f {x} {y})
+ap-equiv {A} {B} f e x y =
+  let k : section (equiv-eq {A} {B}) → is-equiv (cong f {x} {y}) = fun (ua , uae) →
+    subst {A → B} (fun g → is-equiv (cong g {x} {y})) (cong map-equiv (uae (f , e))) (cong-equiv-eq (ua (f , e)) x y)
+  in
+  k (section-is-equiv equiv-eq (univalence A B))

@@ -397,6 +397,9 @@ let unify ~pos k (t:value) (u:value) =
       spine k l l'
     | Refl t, Refl t' ->
       unify k t t'
+    | J (r, l), J (r', l') ->
+      unify k r r';
+      spine k l l'
     | Postulate (_n, l), Postulate (_n', l') ->
       (* NOTE: disabling for now because we regenerate numbers when we include multiple times *)
       (* if n <> n' then raise Unification; *)
@@ -616,7 +619,7 @@ let rec check k env ctx (t:term) (a:value) : term =
       unify_base ~pos k t u';
     );
     Refl t
-  | J r, Pi (_, Normal, a, b) ->
+  | J r, Pi (_, _, a, b) ->
     (* we should make sure that b := {y : a} (p : x ≡ y) → P[x,y,p] *)
     let unpi ?icit a =
       let a0 = a in

@@ -29,7 +29,7 @@ unflatten 𝄫x = x
 -- flatten : (A :: U) → A → ♭A
 -- flatten = fun A → fun a → 𝄫a
 
---- Formalizing Shulman 2017
+--- Formalizing Shulman 2017 ( https://arxiv.org/abs/1509.07584v3 )
 
 -- Lemma 4.4
 -- flat-unique : (A :: Type) (C : ♭A → Type) (f : (x : ♭A) → C x) (x : ♭A) → ((λ 𝄫u → f 𝄫 u) x) ≡ f x
@@ -169,26 +169,42 @@ is-discrete-unit =
   ((crispify-unit , is-section-crispify-unit) , (crispify-unit , ret))
 
 -- Theorem 6.1
+flat-code :: {A :: U} → ♭A → ♭A → U
+flat-code {A} = fun 𝄫x → fun 𝄫y → ♭(x ≡ y)
+
+flat-refl :: {A :: U} (u : ♭A) → flat-code u u
+flat-refl {A} = fun 𝄫x → 𝄫refl
+
+-- transporting flat-refl along the path
+flat-encode :: {A :: U} (u v : ♭A) → u ≡ v → flat-code u v
+flat-encode {A} u v p = subst (flat-code u) p (flat-refl u)
+
+-- crisp path induction, after matching on everybody
+flat-decode :: {A :: U} (u v : ♭A) → flat-code u v → u ≡ v
+flat-decode {A} = fun 𝄫x → fun 𝄫y → fun 𝄫p →
+  let h : (y :: A) (p :: x ≡ y) → 𝄫x ≡ 𝄫y = fun refl → refl in
+  h y p
+
+flat-encode-decode :: {A :: U} (u v : ♭A) (c : flat-code u v) → flat-encode u v (flat-decode u v c) ≡ c
+flat-encode-decode {A} = fun 𝄫x → fun 𝄫y → fun 𝄫p →
+  let h : (y :: A) (p :: x ≡ y) → flat-encode 𝄫x 𝄫y (flat-decode 𝄫x 𝄫y 𝄫p) ≡ 𝄫p = fun refl → refl in
+  h y p
+
+flat-decode-encode :: {A :: U} (u v : ♭A) (p : u ≡ v) → flat-decode u v (flat-encode u v p) ≡ p
+flat-decode-encode {A} =
+  let lem : (u : ♭A) → flat-decode {A} u u (flat-encode {A} u u refl) ≡ refl = fun 𝄫x → refl in
+  fun u → fun v → fun p → J' (fun u → fun v → fun p → flat-decode {A} u v (flat-encode {A} u v p) ≡ p) lem p
+
 flat-id :: {A :: U} {x y :: A} → (𝄫x ≡ 𝄫y) ≃ ♭(x ≡ y)
 flat-id {A} {x} {y} =
-  let code : ♭A → ♭A → U = fun 𝄫x → fun 𝄫y → ♭(x ≡ y) in
-  let r : (u : ♭A) → code u u = fun 𝄫x → 𝄫refl in
-  let encode : (u v : ♭A) → u ≡ v → code u v = fun u → fun v → fun p → subst (code u) p (r u) in
-  let decode : (u v : ♭A) → code u v → u ≡ v = fun 𝄫x → fun 𝄫y → fun 𝄫p →
-    let h : (y :: A) (p :: x ≡ y) → 𝄫x ≡ 𝄫y = fun refl → refl in
-    h y p
-  in
-  let enc-dec : (u v : ♭A) (c : code u v) → encode u v (decode u v c) ≡ c = fun 𝄫x → fun 𝄫y → fun 𝄫p →
-    let h : (y :: A) (p :: x ≡ y) → encode 𝄫x 𝄫y (decode 𝄫x 𝄫y 𝄫p) ≡ 𝄫p = fun refl → refl in
-    h y p
-  in
-  let dec-enc : (u v : ♭A) (p : u ≡ v) → decode u v (encode u v p) ≡ p =
-    let lem : (u : ♭A) → decode u u (encode u u refl) ≡ refl = fun 𝄫x → refl in
-    fun u → fun v → fun p → J' (fun u → fun v → fun p → decode u v (encode u v p) ≡ p) lem p
-  in
-  ( encode 𝄫x 𝄫y
-  , ( (decode 𝄫x 𝄫y , enc-dec 𝄫x 𝄫y)
-    , (decode 𝄫x 𝄫y , dec-enc 𝄫x 𝄫y) ) )
+  ( flat-encode 𝄫x 𝄫y
+  , ( (flat-decode 𝄫x 𝄫y , flat-encode-decode 𝄫x 𝄫y)
+    , (flat-decode 𝄫x 𝄫y , flat-decode-encode 𝄫x 𝄫y) ) )
+
+flat-id-inv :: {A :: U} {x y :: A} → is-equiv (flat-decode 𝄫x 𝄫y)
+flat-id-inv {A} {x} {y} =
+  ( (flat-encode 𝄫x 𝄫y , flat-decode-encode 𝄫x 𝄫y)
+  , (flat-encode 𝄫x 𝄫y , flat-encode-decode 𝄫x 𝄫y) )
 
 -- Corollary 6.2
 flat-id' :: {A :: U} {u v :: ♭A} → (u ≡ v) ≃ ♭(unflatten u ≡ unflatten v)
@@ -197,6 +213,19 @@ flat-id' {A} {u} {v} =
   let h : (u v :: ♭A) → (u ≡ v) ≃ ♭(unflatten u ≡ unflatten v) = fun 𝄫x → fun 𝄫y → flat-id {A} {x} {y} in
   h u v
 
--- Theorem 6.19
-is-discrete-id :: {A :: U} {x y :: A} → is-discrete (x ≡ y)
-is-discrete-id = ? -- by flat-id' and is-discrete-flat
+open import Univalence
+
+-- unflatten on ♭(x ≡ y) is the action of unflatten on paths
+unflatten-flat-decode :: {A :: U} {x y :: A} (c : ♭(x ≡ y)) → cong (unflatten {A}) (flat-decode 𝄫x 𝄫y c) ≡ unflatten c
+unflatten-flat-decode {A} {x} {y} 𝄫p =
+  let h : (y :: A) (p :: x ≡ y) → cong (unflatten {A}) (flat-decode 𝄫x 𝄫y 𝄫p) ≡ unflatten 𝄫p = fun refl → refl in
+  h y p
+
+-- Theorem 6.19: identity types of a discrete type are discrete
+is-discrete-id :: {A :: U} {x y :: A} → is-discrete A → is-discrete (x ≡ y)
+is-discrete-id {A} {x} {y} d =
+  is-equiv-htpy
+    {♭(x ≡ y)} {x ≡ y}
+    {circ (cong (unflatten {A}) {𝄫x} {𝄫y}) (flat-decode 𝄫x 𝄫y)} {unflatten {x ≡ y}}
+    unflatten-flat-decode
+    (is-equiv-circ (cong (unflatten {A}) {𝄫x} {𝄫y}) (flat-decode 𝄫x 𝄫y) (ap-equiv (unflatten {A}) d 𝄫x 𝄫y) (flat-id-inv {A} {x} {y}))

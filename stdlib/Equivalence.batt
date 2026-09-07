@@ -1,5 +1,6 @@
 open import Product
 open import Function
+open import Equality
 
 ---
 --- sections and retractions
@@ -74,3 +75,31 @@ is-iso {A} {B} f = Σ (g : B → A) . (is-section f g) × (is-retraction f g)
 
 is-iso→is-equiv :: {A B : U} → (f : A → B) → is-iso {A} {B} f → is-equiv f
 is-iso→is-equiv f (g , sr) = (g , prod-fst sr) , (g , prod-snd sr)
+
+-- underlying map of an equivalence
+
+map-equiv ∷ {A B : U} → equiv A B → A → B
+map-equiv (f , _) = f
+
+---
+--- closure properties
+---
+
+-- being an equivalence only depends on the homotopy class of the map
+is-equiv-htpy ∷ {A B : U} {f g : A → B} → ho f g → is-equiv f → is-equiv g
+is-equiv-htpy {A} {B} {f} {g} h e =
+  let sec : section f → section g = fun (s , ss) → (s , fun y → trans (sym (h (s y))) (ss y)) in
+  let ret : retraction f → retraction g = fun (r , rr) → (r , fun x → trans (cong r (sym (h x))) (rr x)) in
+  let k : is-equiv f → is-equiv g = fun (s , r) → (sec s , ret r) in
+  k e
+
+-- equivalences are closed under composition
+is-equiv-circ ∷ {A B C : U} (g : B → C) (f : A → B) → is-equiv g → is-equiv f → is-equiv (circ g f)
+is-equiv-circ {A} {B} {C} g f eg ef =
+  let sec : section g → section f → section (circ g f) =
+    fun (sg , ssg) → fun (sf , ssf) → (circ sf sg , fun z → trans (cong g (ssf (sg z))) (ssg z)) in
+  let ret : retraction g → retraction f → retraction (circ g f) =
+    fun (rg , rrg) → fun (rf , rrf) → (circ rf rg , fun x → trans (cong rf (rrg (f x))) (rrf x)) in
+  let k : is-equiv g → is-equiv f → is-equiv (circ g f) =
+    fun (sg , rg) → fun (sf , rf) → (sec sg sf , ret rg rf) in
+  k eg ef
