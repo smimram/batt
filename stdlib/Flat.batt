@@ -167,4 +167,14 @@ is-discrete-unit =
   in
   ((crispify-unit , is-section-crispify-unit) , (crispify-unit , ret))
 
--- is-discrete-id
+-- Theorem 6.1
+flat-id :: {A :: U} {x y :: A} → (𝄫x ≡ 𝄫y) ≃ ♭(x ≡ y)
+flat-id {A} {x} {y} =
+  let code : ♭A → ♭A → U = λ 𝄫x → λ 𝄫y → ♭(x ≡ y) in
+  let r : (u : ♭A) → code u u = λ 𝄫x → 𝄫refl in
+  let encode : (u v : ♭A) → u ≡ v → code u v = ? in -- from r u by transport
+  let decode : (u v : ♭A) → code u v → u ≡ v = ? in -- by J after maching on everybody
+  ? -- by encode ∘ decode = id
+
+is-discrete-id :: {A :: U} {x y :: A} → is-discrete (x ≡ y)
+is-discrete-id = ?
