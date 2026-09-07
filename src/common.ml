@@ -24,7 +24,7 @@ let important fmt =
 let warning fmt =
   Printf.ksprintf (fun s ->
       print_string (Terminal.color ~bold:true `Purple);
-      print_string s;
+      print_string (s ^ "\n");
       print_string (Terminal.color `Black)
     ) fmt
 
