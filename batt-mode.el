@@ -39,11 +39,14 @@ Set to nil to disable automatic activation."
   :type '(repeat string)
   :group 'batt)
 
+(defconst batt-error-regexp
+  "^Error: in file \\([^ \n]+\\) \\(?:from \\)?line \\([0-9]+\\) characters? \\([0-9]+\\)"
+  "Regexp matching the position of an error in the output of BATT.
+The first group is the file, the second the line and the third the
+character (counted from the beginning of the line).")
+
 (defconst batt-compilation-error-regexp-alist
-  '((batt-single
-     "in file \\([^ \n]+\\) line \\([0-9]+\\) characters? \\([0-9]+\\)" 1 2 3)
-    (batt-multi
-     "in file \\([^ \n]+\\) from line \\([0-9]+\\) character \\([0-9]+\\)" 1 2 3))
+  (list (list 'batt batt-error-regexp 1 2 3))
   "How to locate BATT error positions in the output buffer.")
 
 (defconst batt-output-buffer-name "*batt*"
@@ -84,7 +87,34 @@ the output of the type-checker in a window at the bottom."
           (with-selected-window window
             (goto-char (point-max))
             (recenter -1))))
+      (batt-goto-error)
       (message "BATT: type-checking failed."))))
+
+(defun batt-goto-error ()
+  "Move the point to the error reported in the BATT output buffer.
+Return non-nil when the position of an error could be found."
+  (interactive)
+  (let ((buffer (get-buffer batt-output-buffer-name))
+        file line col)
+    (when buffer
+      (with-current-buffer buffer
+        (save-excursion
+          (goto-char (point-min))
+          (when (re-search-forward batt-error-regexp nil t)
+            (setq file (expand-file-name (match-string 1) default-directory)
+                  line (string-to-number (match-string 2))
+                  col  (string-to-number (match-string 3)))))))
+    (when file
+      (let ((target (or (find-buffer-visiting file) (find-file-noselect file))))
+        (when target
+          (let ((window (get-buffer-window target)))
+            (if window (select-window window) (pop-to-buffer target)))
+          (push-mark)
+          (widen)
+          (goto-char (point-min))
+          (forward-line (1- line))
+          (forward-char (min col (- (line-end-position) (point))))
+          t)))))
 
 (defvar batt-mode-map
   (let ((map (make-sparse-keymap)))
