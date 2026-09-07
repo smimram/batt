@@ -35,18 +35,21 @@ tens-coassoc {A} {B} {C} (a ⊗ bc) =
   let f :: B ⨂ C → A →ₗ (A ⨂ B) ⨂ C = fun (b ⊗ c) a → (a ⊗ b) ⊗ c in
   f bc a
 
--- open import equivalence
--- open import funext
+open import Equivalence
 
--- tens-assoc-equiv :: {A B C :: U} → (A ⨂ B) ⨂ C ≃ A ⨂ (B ⨂ C)
--- tens-assoc-equiv {A} {B} {C} =
-  -- let f :: (A ⨂ B) ⨂ C → A ⨂ (B ⨂ C) = tens-assoc in
-  -- let g :: A ⨂ (B ⨂ C) → (A ⨂ B) ⨂ C = tens-coassoc in
-  -- let gf :: (x : (A ⨂ B) ⨂ C) → g (f x) ≡ x = fun (u ⊗ c) →
-    -- let h :: (u : A ⨂ B) (c : C) →ᵣ g (f (u ⊗ c)) ≡ u ⊗ c = ? in
-    -- ?
-  -- in
-  -- (f , (g , ?) , (g , ?))
+tens-assoc-equiv :: {A B C :: U} → (A ⨂ B) ⨂ C ≃ A ⨂ (B ⨂ C)
+tens-assoc-equiv {A} {B} {C} =
+  let f :: (A ⨂ B) ⨂ C → A ⨂ (B ⨂ C) = tens-assoc in
+  let g :: A ⨂ (B ⨂ C) → (A ⨂ B) ⨂ C = tens-coassoc in
+  let fg :: (y : A ⨂ (B ⨂ C)) → f (g y) ≡ y = fun (a ⊗ w) →
+    let h : (w : B ⨂ C) → f (g (a ⊗ w)) ≡ (a ⊗ w) = fun (b ⊗ c) → refl in
+    h w
+  in
+  let gf :: (x : (A ⨂ B) ⨂ C) → g (f x) ≡ x = fun (u ⊗ c) →
+    let h : (u : A ⨂ B) → g (f (u ⊗ c)) ≡ (u ⊗ c) = fun (a ⊗ b) → refl in
+    h u
+  in
+  (f , (g , fg) , (g , gf))
 
 tens-map :: {A B C D :: U} (f :: A → B) (g :: C → D) → A ⨂ C → B ⨂ D
 tens-map f g (a ⊗ c) = (f(a) ⊗ g(c))
