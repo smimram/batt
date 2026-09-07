@@ -89,6 +89,18 @@ tens-uncurry-curry-right f = refl
 tens-curry-uncurry-right :: {A B C :: U} (f : A →ᵣ B →ᵣ C) → tens-curry-right (tens-uncurry-right f) ≡ f
 tens-curry-uncurry-right f = refl
 
+tens-curry-equiv-left :: {A B C :: U}  → (A ⨂ B →ₗ C) ≃ (B →ₗ A →ₗ C)
+tens-curry-equiv-left =
+  (tens-curry-left ,
+   (tens-uncurry-left , tens-curry-uncurry-left) ,
+   (tens-uncurry-left , tens-uncurry-curry-left))
+
+tens-curry-equiv-right :: {A B C :: U}  → (A ⨂ B →ᵣ C) ≃ (A →ᵣ B →ᵣ C)
+tens-curry-equiv-right =
+  (tens-curry-right ,
+   (tens-uncurry-right , tens-curry-uncurry-right) ,
+   (tens-uncurry-right , tens-uncurry-curry-right))
+
 -- Alternative versions (without ₗ/ᵣ also exist but do not have an inverse)
 
 tens-curry-left' :: {A B C :: U} → (A ⨂ B → C) → (B → A →ₗ C)
