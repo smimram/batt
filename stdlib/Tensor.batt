@@ -35,6 +35,9 @@ tens-coassoc {A} {B} {C} (a ⊗ bc) =
   let f :: B ⨂ C → A →ₗ (A ⨂ B) ⨂ C = fun (b ⊗ c) a → (a ⊗ b) ⊗ c in
   f bc a
 
+tens-map :: {A B C D :: U} (f :: A → B) (g :: C → D) → A ⨂ C → B ⨂ D
+tens-map f g (a ⊗ c) = (f(a) ⊗ g(c))
+
 -- open import equivalence
 -- open import funext
 
@@ -48,33 +51,17 @@ tens-coassoc {A} {B} {C} (a ⊗ bc) =
   -- in
   -- (f , (g , ?) , (g , ?))
 
-tens-curry-left :: {A B C :: U} → (A ⨂ B → C) → (B → A →ₗ C)
+tens-curry-left :: {A B C :: U} → (A ⨂ B →ₗ C) → (B →ₗ A →ₗ C)
 tens-curry-left f b a = f (a ⊗ b)
 
--- tens-uncurry-left :: {A B C :: U} → (B → A →ₗ C) → (A ⨂ B → C)
--- tens-uncurry-left f (a ⊗ b) = f b a
+tens-uncurry-left :: {A B C :: U} → (B →ₗ A →ₗ C) → (A ⨂ B →ₗ C)
+tens-uncurry-left {A} {B} {C} f (a ⊗ b) = f b a
 
-tens-curry-right :: {A B C :: U} → (A ⨂ B → C) → (A → B →ᵣ C)
+tens-curry-right :: {A B C :: U} → (A ⨂ B →ᵣ C) → (A →ᵣ B →ᵣ C)
 tens-curry-right f a b = f (a ⊗ b)
 
--- tens-uncurry-right :: {A B C :: U} → (A → B →ᵣ C) → (A ⨂ B → C)
--- tens-uncurry-right f (a ⊗ b) = f a b
-
-tens-uncurry-right-r :: {A B C :: U} → (A →ᵣ B →ᵣ C) → (A ⨂ B →ᵣ C)
-tens-uncurry-right-r {A} {B} {C} f (a ⊗ b) = f a b
-
--- stronger version with a →ₗ
-tens-curry-left-l :: {A B C :: U} → (A ⨂ B →ₗ C) → (B →ₗ A →ₗ C)
-tens-curry-left-l f b a = f (a ⊗ b)
-
-tens-uncurry-left-l :: {A B C :: U} → (B →ₗ A →ₗ C) → (A ⨂ B →ₗ C)
-tens-uncurry-left-l {A} {B} {C} f (a ⊗ b) = f b a
-
-tens-curry-right-r :: {A B C :: U} → (A ⨂ B →ᵣ C) → (A →ᵣ B →ᵣ C)
-tens-curry-right-r f a b = f (a ⊗ b)
-
-tens-uncurry-right-r :: {A B C :: U} → (A →ᵣ B →ᵣ C) → (A ⨂ B →ᵣ C)
-tens-uncurry-right-r {A} {B} {C} f (a ⊗ b) = f a b
+tens-uncurry-right :: {A B C :: U} → (A →ᵣ B →ᵣ C) → (A ⨂ B →ᵣ C)
+tens-uncurry-right {A} {B} {C} f (a ⊗ b) = f a b
 
 -- -- version of assoc using curry-l/r
 -- tens-assoc :: {A B C :: U} → (A ⨂ B) ⨂ C → A ⨂ (B ⨂ C)
@@ -84,20 +71,31 @@ tens-uncurry-right-r {A} {B} {C} f (a ⊗ b) = f a b
       -- (λ a b c → a ⊗ (b ⊗ c)))
 
 -- NOTE: this cannot be expressed like this because dependent linear application does not make sense
--- tens-uncurry-curry-left-l :: {A B C :: U} (u : A ⨂ B) (f : A ⨂ B →ₗ C) → tens-uncurry-left-l (tens-curry-left-l f) u ≡ f u
--- tens-uncurry-curry-left-l f (a ⊗ b) = refl
+-- tens-uncurry-curry-left :: {A B C :: U} (u : A ⨂ B) (f : A ⨂ B →ₗ C) → tens-uncurry-left (tens-curry-left f) u ≡ f u
+-- tens-uncurry-curry-left f (a ⊗ b) = refl
 
-tens-uncurry-curry-left-l :: {A B C :: U} (f : A ⨂ B →ₗ C) → tens-uncurry-left-l (tens-curry-left-l f) ≡ f
-tens-uncurry-curry-left-l f = refl
+tens-uncurry-curry-left :: {A B C :: U} (f : A ⨂ B →ₗ C) → tens-uncurry-left (tens-curry-left f) ≡ f
+tens-uncurry-curry-left f = refl
 
-tens-curry-uncurry-left-l :: {A B C :: U} (f : B →ₗ A →ₗ C) → tens-curry-left-l (tens-uncurry-left-l f) ≡ f
-tens-curry-uncurry-left-l f = refl
+tens-curry-uncurry-left :: {A B C :: U} (f : B →ₗ A →ₗ C) → tens-curry-left (tens-uncurry-left f) ≡ f
+tens-curry-uncurry-left f = refl
 
-tens-uncurry-curry-right-r :: {A B C :: U} (f : A ⨂ B →ᵣ C) → tens-uncurry-right-r (tens-curry-right-r f) ≡ f
-tens-uncurry-curry-right-r f = refl
+tens-uncurry-curry-right :: {A B C :: U} (f : A ⨂ B →ᵣ C) → tens-uncurry-right (tens-curry-right f) ≡ f
+tens-uncurry-curry-right f = refl
 
-tens-curry-uncurry-right-r :: {A B C :: U} (f : A →ᵣ B →ᵣ C) → tens-curry-right-r (tens-uncurry-right-r f) ≡ f
-tens-curry-uncurry-right-r f = refl
+tens-curry-uncurry-right :: {A B C :: U} (f : A →ᵣ B →ᵣ C) → tens-curry-right (tens-uncurry-right f) ≡ f
+tens-curry-uncurry-right f = refl
 
-tens-map :: {A B C D :: U} (f :: A → B) (g :: C → D) → A ⨂ C → B ⨂ D
-tens-map f g (a ⊗ c) = (f(a) ⊗ g(c))
+-- Alternative versions (without ₗ/ᵣ also exist but do not have an inverse)
+
+tens-curry-left' :: {A B C :: U} → (A ⨂ B → C) → (B → A →ₗ C)
+tens-curry-left' f b a = f (a ⊗ b)
+
+-- tens-uncurry-left :: {A B C :: U} → (B → A →ₗ C) → (A ⨂ B → C)
+-- tens-uncurry-left f (a ⊗ b) = f b a
+
+tens-curry-right' :: {A B C :: U} → (A ⨂ B → C) → (A → B →ᵣ C)
+tens-curry-right' f a b = f (a ⊗ b)
+
+-- tens-uncurry-right :: {A B C :: U} → (A → B →ᵣ C) → (A ⨂ B → C)
+-- tens-uncurry-right f (a ⊗ b) = f a b
