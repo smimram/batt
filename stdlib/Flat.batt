@@ -170,11 +170,27 @@ is-discrete-unit =
 -- Theorem 6.1
 flat-id :: {A :: U} {x y :: A} → (𝄫x ≡ 𝄫y) ≃ ♭(x ≡ y)
 flat-id {A} {x} {y} =
-  let code : ♭A → ♭A → U = λ 𝄫x → λ 𝄫y → ♭(x ≡ y) in
-  let r : (u : ♭A) → code u u = λ 𝄫x → 𝄫refl in
-  let encode : (u v : ♭A) → u ≡ v → code u v = ? in -- from r u by transport
-  let decode : (u v : ♭A) → code u v → u ≡ v = ? in -- by J after maching on everybody
-  ? -- by encode ∘ decode = id
+  let code : ♭A → ♭A → U = fun 𝄫x → fun 𝄫y → ♭(x ≡ y) in
+  let r : (u : ♭A) → code u u = fun 𝄫x → 𝄫refl in
+  let encode : (u v : ♭A) → u ≡ v → code u v = fun u → fun v → fun p → subst (code u) p (r u) in
+  let decode : (u v : ♭A) → code u v → u ≡ v = fun 𝄫x → fun 𝄫y → fun 𝄫p →
+    let h : (y :: A) (p :: x ≡ y) → 𝄫x ≡ 𝄫y = fun refl → refl in
+    h y p
+  in
+  let enc-dec : (u v : ♭A) (c : code u v) → encode u v (decode u v c) ≡ c = fun 𝄫x → fun 𝄫y → fun 𝄫p →
+    let h : (y :: A) (p :: x ≡ y) → encode 𝄫x 𝄫y (decode 𝄫x 𝄫y 𝄫p) ≡ 𝄫p = fun refl → refl in
+    h y p
+  in
+  let dec-enc : (u v : ♭A) (p : u ≡ v) → decode u v (encode u v p) ≡ p =
+    let lem : (u : ♭A) → decode u u (encode u u refl) ≡ refl = fun 𝄫x → refl in
+    fun u → fun v → fun p → J' (fun u → fun v → fun p → decode u v (encode u v p) ≡ p) lem p
+  in
+  ( encode 𝄫x 𝄫y
+  , ( (decode 𝄫x 𝄫y , enc-dec 𝄫x 𝄫y)
+    , (decode 𝄫x 𝄫y , dec-enc 𝄫x 𝄫y) ) )
+
+-- Corollary 6.2
+-- flat-id' :: {A :: U} {u v :: ♭A} → (u ≡ v) ≃ ♭(𝄫u ≡ 𝄫v) -- by previous theorem
 
 is-discrete-id :: {A :: U} {x y :: A} → is-discrete (x ≡ y)
 is-discrete-id = ?
