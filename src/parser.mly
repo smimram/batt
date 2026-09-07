@@ -48,7 +48,7 @@ decls:
   | decl N decls { $1@$3 }
 
 decl:
-  | x=IDENT c=ccolon a=term N def=def { let y, t = def in assert (x = y); [Def (x, c, Some a, t)] }
+  | x=IDENT c=ccolon a=term N def=def { let y, t = def in if x <> y then failwith (Pos.to_string $loc(a) ^ ", function name should be the same as in type declaration"); [Def (x, c, Some a, t)] }
   | POSTULATE x=IDENT c=ccolon a=term { [Def (x, c, Some a, mk ~pos:$loc @@ Postulate None)] }
   | m=IMPORT { [Def (m, Crisp, None, mk ~pos:$loc @@ Import m)] }
   | OPEN m=IMPORT { [Def (m, Crisp, None, mk ~pos:$loc(m) @@ Import m); Open (mk ~pos:$loc(m) @@ Var m)] }
