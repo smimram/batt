@@ -410,6 +410,19 @@ let unify ~pos k (t:value) (u:value) =
     | Meta _, Meta _ -> Unification.defer pos k t u
     | Meta (m, l), t -> solve k m l t
     | t, Meta (m, l) -> solve k m l t
+    (* eta-expansion (needs to be after meta-variables, otherwise the spine might contain a pair and not be a pattern *)
+    | (Pair_ind _ as t), u
+    | t, (Pair_ind _ as u) ->
+      let x = V.var k in
+      let y = V.var (k+1) in
+      let p = V.Pair (x,y) in
+      unify (k+2) (V.app t p) (V.app u p)
+    | (Tens_ind _ as t), u
+    | t, (Tens_ind _ as u) ->
+      let x = V.var k in
+      let y = V.var (k+1) in
+      let p = V.TensPair (x,y) in
+      unify (k+2) (V.app t p) (V.app u p)
     | t, u ->
       debug "CLASH %s VS %s \n%!" (V.to_string k t) (V.to_string k u);
       raise Unification
