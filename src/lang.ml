@@ -515,6 +515,7 @@ let rec check k env ctx (t:term) (a:value) : term =
         Pair_ind (x, y, t)
       | _ -> failwith "pair_ind"
     )
+  | Pair_ind _, Arr _ -> failwith "TODO: pair_ind vs arr"
   | TensPair (t, u), Tens (a, b) ->
     let ctxa, ctxb = Context.split (FV.term t) (FV.term u) ctx in
     let t = check k env ctxa t a in
