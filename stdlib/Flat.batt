@@ -226,6 +226,6 @@ is-discrete-id :: {A :: U} {x y :: A} → is-discrete A → is-discrete (x ≡ y
 is-discrete-id {A} {x} {y} d =
   is-equiv-htpy
     {♭(x ≡ y)} {x ≡ y}
-    {circ (cong (unflatten {A}) {𝄫x} {𝄫y}) (flat-decode 𝄫x 𝄫y)} {unflatten {x ≡ y}}
-    unflatten-flat-decode
-    (is-equiv-circ (cong (unflatten {A}) {𝄫x} {𝄫y}) (flat-decode 𝄫x 𝄫y) (ap-equiv (unflatten {A}) d 𝄫x 𝄫y) (flat-id-inv {A} {x} {y}))
+    {circ (cong (unflatten {A}) {𝄫x} {𝄫y}) (flat-decode {A} 𝄫x 𝄫y)} {unflatten {x ≡ y}}
+    (unflatten-flat-decode {A} {x} {y})
+    (is-equiv-circ (cong (unflatten {A}) {𝄫x} {𝄫y}) (flat-decode {A} 𝄫x 𝄫y) (ap-equiv (unflatten {A}) d 𝄫x 𝄫y) (flat-id-inv {A} {x} {y}))
