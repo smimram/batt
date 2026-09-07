@@ -35,9 +35,6 @@ tens-coassoc {A} {B} {C} (a ⊗ bc) =
   let f :: B ⨂ C → A →ₗ (A ⨂ B) ⨂ C = fun (b ⊗ c) a → (a ⊗ b) ⊗ c in
   f bc a
 
-tens-map :: {A B C D :: U} (f :: A → B) (g :: C → D) → A ⨂ C → B ⨂ D
-tens-map f g (a ⊗ c) = (f(a) ⊗ g(c))
-
 -- open import equivalence
 -- open import funext
 
@@ -50,6 +47,9 @@ tens-map f g (a ⊗ c) = (f(a) ⊗ g(c))
     -- ?
   -- in
   -- (f , (g , ?) , (g , ?))
+
+tens-map :: {A B C D :: U} (f :: A → B) (g :: C → D) → A ⨂ C → B ⨂ D
+tens-map f g (a ⊗ c) = (f(a) ⊗ g(c))
 
 tens-curry-left :: {A B C :: U} → (A ⨂ B →ₗ C) → (B →ₗ A →ₗ C)
 tens-curry-left f b a = f (a ⊗ b)
