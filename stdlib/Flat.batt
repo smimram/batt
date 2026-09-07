@@ -158,3 +158,13 @@ flat-pair-retraction {A} {B} (r , rr) (r' , rr') =
 
 is-discrete-prod :: {A B :: U} → is-discrete A → is-discrete B → is-discrete (A × B)
 is-discrete-prod {A} {B} (sA , rA) (sB , rB) = (flat-pair-section sA sB , flat-pair-retraction rA rB)
+
+is-discrete-unit :: is-discrete ⊤
+is-discrete-unit =
+  let ret : (x : ♭⊤) → crispify-unit (unflatten x) ≡ x = fun 𝄫x →
+    let h : (x :: ⊤) → crispify-unit (unflatten 𝄫x) ≡ 𝄫x = fun tt → refl in
+    h x
+  in
+  ((crispify-unit , is-section-crispify-unit) , (crispify-unit , ret))
+
+-- is-discrete-id
