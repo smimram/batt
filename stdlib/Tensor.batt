@@ -77,8 +77,8 @@ tens-uncurry-left-l {A} {B} {C} f (a ⊗ b) = f b a
     -- (tens-uncurry-right {A} {B} {C →ᵣ A ⨂ (B ⨂ C)}
       -- (λ a b c → a ⊗ (b ⊗ c)))
 
--- tens-uncurry-curry-left :: {A B C :: U} (f : A ⨂ B → C) (u : A ⨂ B) → tens-uncurry-left (tens-curry-left f) u ≡ f u
--- tens-uncurry-curry-left f (a ⊗ b) = refl
+-- tens-uncurry-curry-left-l :: {A B C :: U} (u : A ⨂ B) (f : A ⨂ B →ₗ C) → tens-uncurry-left-l (tens-curry-left-l f) u ≡ f u
+-- tens-uncurry-curry-left-l f (a ⊗ b) = refl
 
 -- tens-curry-uncurry-left :: {A B C :: U} (f : B → A →ₗ C) → tens-curry-left (tens-uncurry-left f) ≡ (λ b a → f b a)
 -- tens-curry-uncurry-left f = refl
