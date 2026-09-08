@@ -134,8 +134,10 @@ flat-id' {A} {u} {v} =
   h u v
 
 -- Corollary 6.3
-flat-path :: {A :: U} (u v :: A) (p :: u ≡ v) → 𝄫u ≡ 𝄫v
-flat-path u refl = refl
+flat-path :: {A :: U} {u v :: A} (p :: u ≡ v) → 𝄫u ≡ 𝄫v
+flat-path {A} {u} {v} p =
+  let f : (v :: A) (p :: u ≡ v) → 𝄫u ≡ 𝄫v = fun refl → refl in
+  f v p
 
 -- Lemma 6.8
 -- the type family u ↦ ♭(B u) on ♭A: since ♭ requires a crisp argument, it is
@@ -230,13 +232,13 @@ unflatten-postcomp-section :: {A B :: Type} (e :: section (unflatten {A})) →
   section (flat-map (unflatten-postcomp {A} {B}))
 unflatten-postcomp-section {A} {B} (s , ss) =
   ( flat-map {B → A} {B → ♭A} (fun g → circ s g)
-  , fun 𝄫g → flat-path (circ unflatten (circ s g)) g (funext-nd _ _ (fun b → ss (g b))) )
+  , fun 𝄫g → flat-path (funext-nd _ _ (fun b → ss (g b))) )
 
 unflatten-postcomp-retraction :: {A B :: Type} (e :: retraction (unflatten {A})) →
   retraction (flat-map (unflatten-postcomp {A} {B}))
 unflatten-postcomp-retraction {A} {B} (r , rr) =
   ( flat-map {B → A} {B → ♭A} (fun h → circ r h)
-  , fun 𝄫f → flat-path (circ r (circ unflatten f)) f (funext-nd _ _ (fun b → rr (f b))) )
+  , fun 𝄫f → flat-path (funext-nd _ _ (fun b → rr (f b))) )
 
 unflatten-equiv :: {A B :: Type} (d :: is-discrete A) → is-equiv (flat-map (unflatten-postcomp {A} {B}))
 unflatten-equiv {A} {B} (sec , ret) =
