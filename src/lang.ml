@@ -240,7 +240,7 @@ let unify ~pos k (t:value) (u:value) =
                 cod+1, IntMap.add x (Some cod) r
             | _ ->
               raise Unification
-              (* warning "ignoring non-variable in meta spine"; *)
+              (* warning "\nignoring non-variable in meta spine\n"; *)
               (* cod+1, r *)
           )
         | [] -> 0, IntMap.empty
@@ -449,7 +449,7 @@ let finalize_unify () =
       |> List.map (fun (pos,k,t,u) -> Printf.sprintf "- %s: %s vs %s" (Pos.opt_to_string pos) (V.to_string k t) (V.to_string k u))
       |> String.concat "\n"
     in
-    warning "\n%d unsolved unification problems:\n%s" (List.length !Unification.deferred) pb
+    warning "\n%d unsolved unification problems:\n%s\n" (List.length !Unification.deferred) pb
 
 let unify_base = unify
 
@@ -650,10 +650,10 @@ let rec check k env ctx (t:term) (a:value) : term =
     t
   | Postulate n, a ->
     let n = match n with Some n -> n | None -> incr V.postulate; !V.postulate in
-    important "POSTULATE %d %s\n%!" n (V.to_string k a);
+    important "\nPOSTULATE %d %s\n%!" n (V.to_string k a);
     Postulate (Some n)
   | Hole pos, a ->
-    important "HOLE %s : %s IN\n%s\n%!" (Pos.to_string pos) (V.to_string k a) (Context.to_string ~multiline:true k ctx);
+    important "\nHOLE %s : %s IN\n%s\n%!" (Pos.to_string pos) (V.to_string k a) (Context.to_string ~multiline:true k ctx);
     Hole pos
   | t, a ->
     let t0 = t in
@@ -809,7 +809,7 @@ and infer k env ctx (t:term) : term * value =
     (
       match module_type m with
       | Some a ->
-        warning "module %s apparently already imported, ignoring" m;
+        warning "\nmodule %s apparently already imported, ignoring\n" m;
         Var m, a
       | None ->
         let pos = T.Position.find_opt t in
