@@ -1,4 +1,4 @@
-let show_debug = ref true
+let show_debug = ref false
 
 let include_directories_list = ref ([] : string list)
 
