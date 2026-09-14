@@ -29,9 +29,44 @@ textarea {
   height: 100%;
 }
 
-#input {
+#input-wrap {
+  position: relative;
   flex: 1;
   min-width: 0;
   height: 100%;
-  box-sizing: border-box;
 }
+
+/* The textarea is transparent and lies over the highlighted pre: both must
+   have exactly the same geometry. */
+#input, #highlight {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  box-sizing: border-box;
+  padding: 4px;
+  border: 1px solid #aaa;
+  font: 14px/1.4 monospace;
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
+  overflow-y: scroll;
+}
+
+#highlight {
+  pointer-events: none;
+  color: black;
+  background: white;
+}
+
+#input {
+  background: transparent;
+  color: transparent;
+  caret-color: black;
+  resize: none;
+}
+
+#highlight .comment { color: #888; font-style: italic; }
+#highlight .keyword { color: #a020f0; }
+#highlight .symbol  { color: #0060c0; }
+#highlight .hole    { color: #d00; }

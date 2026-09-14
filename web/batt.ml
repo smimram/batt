@@ -31,6 +31,7 @@ let run _ =
   let error s =
     print ("^(o.o)^ Error: " ^ s ^ "\n")
   in
+  let highlight () = ignore (Js.Unsafe.eval_string "highlight();") in
   let read () =
     Js.to_string input##.value
   in
@@ -65,6 +66,7 @@ let run _ =
     Html.handler
       (fun _ ->
          input##.value := Js.string "";
+         highlight ();
          output##.value := Js.string "";
          Js.bool true
       );
@@ -78,6 +80,7 @@ let run _ =
              )
          in
          input##.value := Js.string s;
+         highlight ();
          do_send ();
          Js.bool true
       );
