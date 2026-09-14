@@ -1,0 +1,11 @@
+(executable
+ (public_name batt)
+ (libraries batt)
+ (promote (until-clean))
+)
+
+(rule
+ (alias runtest)
+ (deps test.batt)
+ (action (run ./batt.exe -I ../stdlib test.batt))
+)
