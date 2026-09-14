@@ -7,14 +7,13 @@ let rec token lexbuf =
   match%sedlex lexbuf with
   | "Type" -> TYPE
   | "U" -> TYPE
-  | Utf8 "⊥" -> EMPTY
-  | Utf8 "⊤" -> UNIT
+  | Utf8 "⊥" | "\\bot" -> EMPTY
+  | Utf8 "⊤" | "\\top" -> UNIT
   | "tt" -> TT
   | "false" -> FALSE
   | "true" -> TRUE
   | "bool_ind" -> BOOL_IND
-  | "::" -> CCOLON
-  | Utf8 "∷" -> CCOLON
+  | Utf8 "∷" | "::" -> CCOLON
   | ":" -> COLON
   | "=" -> EQ
   | "?" -> HOLE
@@ -24,23 +23,21 @@ let rec token lexbuf =
   | "{" -> LACC
   | "}" -> RACC
   | "," -> COMMA
-  | "->" -> TO
-  | Utf8 "→" -> TO
-  | Utf8 "ₗ" -> LEFT
-  | Utf8 "ᵣ" -> RIGHT
   | "." -> DOT
-  | "fun" -> FUN
-  | Utf8 "λ" -> FUN
+  | Utf8 "→" | "->" -> TO
+  | Utf8 "ₗ" | "_l" -> LEFT
+  | Utf8 "ᵣ" | "_r" -> RIGHT
+  | Utf8 "λ" | "fun" -> FUN
   | Utf8 "ρ" -> FUN
   | Utf8 "∂" -> FUN
-  | Utf8 "Σ" -> SIGMA
-  | Utf8 "×" -> TIMES
-  | Utf8 "⨂" -> TENS
-  | Utf8 "⊗" -> TENSP
-  | Utf8 "♭" -> FLAT
-  | Utf8 "𝄫" -> FLATTEN
-  | Utf8 "≡" -> IDEQ
-  | Utf8 "≃" -> EQUIV
+  | Utf8 "Σ" | "\\Sigma" -> SIGMA
+  | Utf8 "×" | "\\times" -> TIMES
+  | Utf8 "⨂" | "\\bigotimes" -> TENS
+  | Utf8 "⊗" | "\\otimes" -> TENSP
+  | Utf8 "♭" | "\\flat" -> FLAT
+  | Utf8 "𝄫" | "\\fflat" -> FLATTEN
+  | Utf8 "≡" | "\\equiv" -> IDEQ
+  | Utf8 "≃" | "\\simeq" -> EQUIV
   | "_" -> META
   | "refl" -> REFL
   | "let" -> LET
