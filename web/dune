@@ -14,7 +14,7 @@
 )
 
 (install
- (files index.html batt.css batt.js)
+ (files index.html batt.css batman.css batt.js)
  (package batt)
  (section share)
 )
