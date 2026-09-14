@@ -17,3 +17,21 @@ textarea {
 #buttons {
   text-align: right;
 }
+
+#editor {
+  display: flex;
+  gap: 8px;
+  height: 500px;
+}
+
+#files {
+  flex: none;
+  height: 100%;
+}
+
+#input {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  box-sizing: border-box;
+}
