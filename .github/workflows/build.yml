@@ -10,8 +10,26 @@ jobs:
       run: |
         sudo sed -i 's/noble/resolute/g' /etc/apt/sources.list.d/ubuntu.sources
         sudo apt-get -y update
-        sudo apt-get -y install ocaml ocaml-dune menhir libsedlex-ocaml-dev libmenhir-ocaml-dev libppx-deriving-ocaml-dev js-of-ocaml
+        sudo apt-get -y install ocaml ocaml-dune menhir libsedlex-ocaml-dev libmenhir-ocaml-dev libppx-deriving-ocaml-dev js-of-ocaml libjs-of-ocaml-dev
     - name: Build
       run: dune build
     - name: Test
       run: dune runtest
+    - name: Upload webpage
+      uses: actions/upload-pages-artifact@v3
+      with:
+        path: _build/default/web
+  deploy:
+    needs: build
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+    - name: Deploy to GitHub Pages
+      id: deployment
+      uses: actions/deploy-pages@v4
