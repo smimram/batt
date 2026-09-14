@@ -13,3 +13,7 @@ textarea {
   height: 300px;
   font-family: monospace;
 }
+
+div#buttons {
+  text-align: right;
+}

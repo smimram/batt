@@ -3,6 +3,7 @@
   <head>
     <title>BATT</title>
     <link rel="stylesheet" type="text/css" href="batt.css"/>
+    <script type="text/javascript" src="fs.js"></script>
     <script type="text/javascript" src="batt.bc.js"></script>
   </head>
   <body>
@@ -10,18 +11,18 @@
     <textarea id="input">id : {A : Type} → (x : A) → A
 id x = x</textarea>
     <div id="buttons">
-      <button id="send">Send</button>
       <button id="clear">Clear</button>
+      <button id="send">Send</button>
     </div>
     <textarea id="output" placeholder="Output will appear here..." readonly></textarea>
-  </body>
-  <script>
-    function ku(event) {
-      if (event.keyCode == 13)
-        document.getElementById("send").click();
-    }
-    function init() {
-      document.getElementById("input").onkeyup = ku;
-    }
+    <script>
+      function ku(event) {
+        if (event.keyCode == 13)
+          document.getElementById("send").click();
+      }
+      function init() {
+        document.getElementById("input").onkeyup = ku;
+      }
   </script>
+  </body>
 </html>
