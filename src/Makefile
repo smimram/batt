@@ -4,7 +4,7 @@ build:
 	@dune build
 
 test:
-	@dune exec ./batt.exe -- -I ../stdlib test.batt
+	$(MAKE) -C ../bin $@
 
 explain: build
 	@cat ../_build/default/src/parser.conflicts

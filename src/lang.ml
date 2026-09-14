@@ -845,7 +845,7 @@ and check_decls k env ctx (decls:T.decls) =
     decls := List.tl !decls;
     match decl with
     | T.Def (x,c,a,t) ->
-      Printf.printf "\nDECL  %s = %s%s\n%!" x (T.to_string t) (match a with Some a -> " " ^ T.crispy_colon c ^ " " ^ T.to_string a | None -> "");
+      Common.print "\nDECL  %s = %s%s\n%!" x (T.to_string t) (match a with Some a -> " " ^ T.crispy_colon c ^ " " ^ T.to_string a | None -> "");
       let t, a =
         match a with
         | Some a ->

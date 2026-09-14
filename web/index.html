@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>BATT</title>
+    <link rel="stylesheet" type="text/css" href="batt.css"/>
+    <link rel="stylesheet" type="text/css" href="batman.css"/>
+    <script type="text/javascript" src="fs.js"></script>
+    <script type="text/javascript" src="batt.bc.js"></script>
+  </head>
+  <body>
+    <h1 style="font-family: monospace;">/V\(o,o)/V\ BATT /V\(o,o)/V\</h1>
+    <div id="editor">
+      <select id="files" size="10"></select>
+      <div id="input-wrap">
+        <pre id="highlight" aria-hidden="true"></pre>
+        <textarea id="input" spellcheck="false">id : {A : Type} → (x : A) → A
+id x = x</textarea>
+      </div>
+    </div>
+    <div id="buttons">
+      <button id="clear">Clear</button>
+      <button id="send">Send</button>
+    </div>
+    <textarea id="output" placeholder="Output will appear here..." readonly></textarea>
+    <script type="text/javascript" src="batt.js"></script>
+  </body>
+</html>

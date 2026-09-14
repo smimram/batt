@@ -10,7 +10,7 @@ jobs:
       run: |
         sudo sed -i 's/noble/resolute/g' /etc/apt/sources.list.d/ubuntu.sources
         sudo apt-get -y update
-        sudo apt-get -y install ocaml ocaml-dune menhir libsedlex-ocaml-dev libmenhir-ocaml-dev libppx-deriving-ocaml-dev
+        sudo apt-get -y install ocaml ocaml-dune menhir libsedlex-ocaml-dev libmenhir-ocaml-dev libppx-deriving-ocaml-dev js-of-ocaml
     - name: Build
       run: dune build
     - name: Test

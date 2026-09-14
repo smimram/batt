@@ -1,0 +1,122 @@
+/* Batman theme: loaded after batt.css, only overrides colors and decoration
+   (the #input/#highlight geometry is left untouched). */
+
+:root {
+  --night: #0b0d12;
+  --gotham: #151922;
+  --panel: #1c212c;
+  --steel: #3a4150;
+  --text: #d8dce4;
+  --dim: #7a8292;
+  --signal: #f5c518;
+  --signal-glow: rgba(245, 197, 24, 0.35);
+}
+
+body {
+  padding-inline: 16px;
+  color: var(--text);
+  background:
+    radial-gradient(ellipse 60% 35% at 50% 0%, rgba(245, 197, 24, 0.12), transparent 70%),
+    linear-gradient(180deg, var(--gotham) 0%, var(--night) 60%) fixed;
+  background-color: var(--night);
+  min-height: 100vh;
+}
+
+h1 {
+  color: var(--signal);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  text-shadow: 0 0 12px var(--signal-glow), 0 0 30px var(--signal-glow);
+  padding: 18px 0;
+  margin: 0 0 20px;
+  border-bottom: 2px solid var(--signal);
+  box-shadow: 0 12px 20px -18px var(--signal);
+}
+
+::selection { background: var(--signal); color: var(--night); }
+
+#buttons {
+  margin: 10px 0;
+}
+
+button {
+  font: bold 13px/1 "Roboto", sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  padding: 9px 18px;
+  margin-left: 6px;
+  color: var(--signal);
+  background: var(--night);
+  border: 2px solid var(--signal);
+  clip-path: polygon(8px 0, 100% 0, calc(100% - 8px) 100%, 0 100%);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+button:hover, button:focus-visible {
+  background: var(--signal);
+  color: var(--night);
+  outline: none;
+}
+
+#send {
+  background: var(--signal);
+  color: var(--night);
+}
+
+#send:hover, #send:focus-visible {
+  background: #ffd84d;
+}
+
+#files {
+  color: var(--text);
+  background: var(--panel);
+  border: 1px solid var(--steel);
+  font-family: monospace;
+}
+
+#files option:checked {
+  background: var(--signal) linear-gradient(var(--signal), var(--signal));
+  color: var(--night);
+}
+
+#files:focus, #input:focus, #output:focus {
+  outline: none;
+  border-color: var(--signal);
+  box-shadow: 0 0 0 1px var(--signal), 0 0 14px var(--signal-glow);
+}
+
+#input, #highlight {
+  border-color: var(--steel);
+}
+
+#highlight {
+  color: var(--text);
+  background: var(--panel);
+}
+
+#input {
+  caret-color: var(--signal);
+}
+
+#output {
+  box-sizing: border-box;
+  padding: 6px;
+  color: #9fe29f;
+  background: var(--night);
+  border: 1px solid var(--steel);
+  resize: vertical;
+}
+
+#output::placeholder { color: var(--dim); }
+
+#highlight .comment { color: var(--dim); }
+#highlight .keyword { color: var(--signal); }
+#highlight .symbol  { color: #6fa8dc; }
+#highlight .hole    { color: #ff5555; }
+
+::-webkit-scrollbar { width: 10px; }
+::-webkit-scrollbar-track { background: var(--night); }
+::-webkit-scrollbar-thumb { background: var(--steel); }
+::-webkit-scrollbar-thumb:hover { background: var(--signal); }
+* { scrollbar-color: var(--steel) var(--night); }
