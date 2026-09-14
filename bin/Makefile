@@ -4,4 +4,4 @@ build:
 	@dune build
 
 test:
-	@dune exec ./batt.exe -- -I ../stdlib test.batt
+	@dune exec batt -- -I ../stdlib test.batt
