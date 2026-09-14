@@ -17,6 +17,7 @@ let number_of_int n = Js.number_of_float (float n)
 let run _ =
   let jsget x = Js.Opt.get x (fun () -> assert false) in
   let get_element_by_id id = doc##getElementById (Js.string id) |> jsget in
+  let files = get_element_by_id "files" |> Html.CoerceTo.select |> jsget in
   let input = get_element_by_id "input" |> Html.CoerceTo.textarea |> jsget in
   let output = get_element_by_id "output" |> Html.CoerceTo.textarea |> jsget in
   let send = get_element_by_id "send" |> Html.CoerceTo.button |> jsget in
@@ -41,6 +42,18 @@ let run _ =
     | e -> error (Printexc.to_string e)
   in
   Common.print_string := print;
+  Common.include_directories_list := "stdlib" :: !Common.include_directories_list;
+
+  Sys.readdir "stdlib"
+  |> Array.to_list
+  |> List.sort Stdlib.compare
+  |> List.filter (String.ends_with ~suffix:".batt")
+  |> List.iter (fun s ->
+      let o = Html.createOption Html.document in
+      o##.value := Js.string s;
+      o##.innerHTML := Js.string (Filename.remove_extension s);
+      Dom.appendChild files o
+    );
 
   send##.onclick :=
     Html.handler
@@ -53,6 +66,19 @@ let run _ =
       (fun _ ->
          input##.value := Js.string "";
          output##.value := Js.string "";
+         Js.bool true
+      );
+  files##.onclick :=
+    Html.handler
+      (fun _ ->
+         let fname = Filename.concat "stdlib" @@ Js.to_string files##.value in
+         let s =
+           In_channel.with_open_bin fname (fun ic ->
+               really_input_string ic (in_channel_length ic)
+             )
+         in
+         input##.value := Js.string s;
+         do_send ();
          Js.bool true
       );
 

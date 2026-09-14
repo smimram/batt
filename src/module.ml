@@ -35,5 +35,5 @@ let parse ?pos name =
     | None ->
       failwith @@ Printf.sprintf "%s: could not find library file %s (in %s)" (Pos.opt_to_string pos) fname (String.concat ", " dirs)
   in
-  Printf.printf "Include %s...\n%!" fname;
+  Common.print "Include %s...\n%!" fname;
   parse_file fname
