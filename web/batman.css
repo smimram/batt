@@ -111,7 +111,7 @@ button:hover, button:focus-visible {
 #output::placeholder { color: var(--dim); }
 
 #highlight .comment { color: var(--dim); }
-#highlight .keyword { color: var(--signal); font-weight: bold; }
+#highlight .keyword { color: var(--signal); }
 #highlight .symbol  { color: #6fa8dc; }
 #highlight .hole    { color: #ff5555; }
 
