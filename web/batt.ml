@@ -86,7 +86,6 @@ let run _ =
       );
 
   input##focus;
-  input##select;
 
   ignore (Js.Unsafe.eval_string "init();");
 
