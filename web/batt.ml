@@ -70,7 +70,7 @@ let run _ =
          output##.value := Js.string "";
          Js.bool true
       );
-  files##.onclick :=
+  files##.onchange :=
     Html.handler
       (fun _ ->
          let fname = Filename.concat "stdlib" @@ Js.to_string files##.value in
