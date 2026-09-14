@@ -1,0 +1,12 @@
+(executable
+ (name batt)
+ (modes js)
+ (preprocess (pps js_of_ocaml-ppx))
+ (libraries js_of_ocaml batt)
+)
+
+(install
+ (files index.html batt.css)
+ (package batt)
+ (section share)
+)

@@ -1,0 +1,15 @@
+body {
+  font-family: "Roboto", sans-serif;
+  max-width: 800px;
+  margin: 30px auto;
+}
+
+h1 {
+  text-align: center;
+}
+
+textarea {
+  width: 100%;
+  height: 300px;
+  font-family: monospace;
+}
