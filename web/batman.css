@@ -16,10 +16,9 @@ body {
   padding-inline: 16px;
   color: var(--text);
   background:
-    radial-gradient(ellipse 60% 35% at 50% 0%, rgba(245, 197, 24, 0.12), transparent 70%),
+    radial-gradient(ellipse 60% 35% at 50% 0%, rgba(245, 197, 24, 0.12), transparent 70%) fixed,
     linear-gradient(180deg, var(--gotham) 0%, var(--night) 60%) fixed;
   background-color: var(--night);
-  min-height: 100vh;
 }
 
 h1 {
