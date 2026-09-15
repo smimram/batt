@@ -31,9 +31,25 @@ function highlight() {
   hl.scrollTop = input.scrollTop;
   hl.scrollLeft = input.scrollLeft;
 }
+// LaTeX-like shortcuts, replaced when followed by a non-letter character.
+const symbols = {
+  to: "→", tol: "→ₗ", tor: "→ᵣ", Sigma: "Σ", times: "×", bigotimes: "⨂",
+  otimes: "⊗", flat: "♭", fflat: "𝄫", equiv: "≡", simeq: "≃", circ: "∘",
+  top: "⊤", bot: "⊥", lambda: "λ", rho: "ρ", partial: "∂",
+};
+function replaceSymbols(event) {
+  if (event.inputType != "insertText" && event.inputType != "insertLineBreak") return;
+  const input = event.target;
+  const pos = input.selectionStart;
+  const m = input.value.slice(0, pos).match(/\\([A-Za-z]+)([^A-Za-z])$/);
+  if (!m || !(m[1] in symbols)) return;
+  const start = pos - m[0].length;
+  input.setRangeText(symbols[m[1]] + m[2], start, pos, "end");
+}
 function init() {
   const input = document.getElementById("input");
   input.onkeyup = ku;
+  input.addEventListener("input", replaceSymbols);
   input.addEventListener("input", highlight);
   input.addEventListener("scroll", highlight);
   highlight();
