@@ -11,7 +11,7 @@ h1 {
 textarea {
   width: 100%;
   height: 300px;
-  font: 13px/1.4 monospace;
+  font: 1.2em monospace;
 }
 
 #buttons {
@@ -21,7 +21,7 @@ textarea {
 #editor {
   display: flex;
   gap: 8px;
-  height: 500px;
+  height: 600px;
 }
 
 #files {
@@ -47,7 +47,7 @@ textarea {
   box-sizing: border-box;
   padding: 4px;
   border: 1px solid #aaa;
-  font: 13px/1.4 monospace;
+  font: 1.2em monospace;
   white-space: pre-wrap;
   overflow-wrap: break-word;
   overflow-y: scroll;
