@@ -2,10 +2,13 @@ function ku(event) {
   if (event.keyCode == 13)
     document.getElementById("send").click();
 }
+
 function esc(s) {
   return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
+
 const keywords = new Set(["Type", "U", "let", "in", "fun", "postulate", "open", "import", "refl", "tt", "true", "false", "bool_ind"]);
+
 // One combined regex: matching is done on raw text, pieces are escaped afterwards.
 const rules = [
   ["comment", /--[^\n]*/],
@@ -13,7 +16,9 @@ const rules = [
   ["symbol",  /\\(?:bigotimes|otimes|Sigma|times|fflat|flat|equiv|simeq|circ|top|bot|tol|tor|to)|->[lr]?|→[ₗᵣ]?|::|[λρ∂Σ×⨂⊗♭𝄫≡≃∘⊥⊤∷]/],
   ["hole",    /\?|_/],
 ];
+
 const re = new RegExp(rules.map(([_, r]) => "(" + r.source + ")").join("|"), "gu");
+
 function highlight() {
   const input = document.getElementById("input");
   const hl = document.getElementById("highlight");
@@ -31,12 +36,14 @@ function highlight() {
   hl.scrollTop = input.scrollTop;
   hl.scrollLeft = input.scrollLeft;
 }
+
 // LaTeX-like shortcuts, replaced when followed by a non-letter character.
 const symbols = {
   to: "→", tol: "→ₗ", tor: "→ᵣ", Sigma: "Σ", times: "×", bigotimes: "⨂",
   otimes: "⊗", flat: "♭", fflat: "𝄫", equiv: "≡", simeq: "≃", circ: "∘",
   top: "⊤", bot: "⊥", lambda: "λ", rho: "ρ", partial: "∂",
 };
+
 function replaceSymbols(event) {
   if (event.inputType != "insertText" && event.inputType != "insertLineBreak") return;
   const input = event.target;
@@ -46,6 +53,7 @@ function replaceSymbols(event) {
   const start = pos - m[0].length;
   input.setRangeText(symbols[m[1]] + m[2], start, pos, "end");
 }
+
 function init() {
   const input = document.getElementById("input");
   input.onkeyup = ku;
