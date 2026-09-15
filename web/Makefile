@@ -1,5 +1,7 @@
-all:
+all: build
+
+build:
 	@dune build
 
-show:
+show: build
 	firefox ../_build/default/web/index.html
