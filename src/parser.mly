@@ -23,7 +23,7 @@ let meta ~pos = mk ~pos @@ Meta (`Fresh (Some pos))
 %token FLAT FLATTEN
 %token IDEQ REFL
 %token LEFT RIGHT
-%token EQUIV
+%token EQUIV CIRC
 %token<string> IDENT
 %token OPEN
 %token<string> IMPORT
@@ -33,6 +33,7 @@ let meta ~pos = mk ~pos @@ Meta (`Fresh (Some pos))
 %right TIMES
 %right TENSP
 %right TENS
+%left CIRC
 
 %start main
 %type<Term.decls> main
@@ -94,6 +95,7 @@ prod_term:
   | t=prod_term IDEQ u=prod_term { mk ~pos:$loc @@ Eq (meta ~pos:$loc, t, u) }
   | t=prod_term IDEQ LACC a=term RACC u=prod_term %prec IDEQ { mk ~pos:$loc @@ Eq (a, t, u) }
   | t=prod_term EQUIV u=prod_term { mk ~pos:$loc @@ apps (mk ~pos:$loc($2) @@ Var "_≃_") [t; u] }
+  | g=prod_term CIRC f=prod_term { mk ~pos:$loc @@ apps (mk ~pos:$loc($2) @@ Var "circ") [g; f] }
 
 fun_term:
   | prod_term { $1 }

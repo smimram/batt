@@ -94,12 +94,12 @@ is-equiv-htpy {A} {B} {f} {g} h e =
   k e
 
 -- equivalences are closed under composition
-is-equiv-circ ∷ {A B C : U} (g : B → C) (f : A → B) → is-equiv g → is-equiv f → is-equiv (circ g f)
+is-equiv-circ ∷ {A B C : U} (g : B → C) (f : A → B) → is-equiv g → is-equiv f → is-equiv (g ∘ f)
 is-equiv-circ {A} {B} {C} g f eg ef =
-  let sec : section g → section f → section (circ g f) =
-    fun (sg , ssg) → fun (sf , ssf) → (circ sf sg , fun z → trans (cong g (ssf (sg z))) (ssg z)) in
-  let ret : retraction g → retraction f → retraction (circ g f) =
-    fun (rg , rrg) → fun (rf , rrf) → (circ rf rg , fun x → trans (cong rf (rrg (f x))) (rrf x)) in
-  let k : is-equiv g → is-equiv f → is-equiv (circ g f) =
+  let sec : section g → section f → section (g ∘ f) =
+    fun (sg , ssg) → fun (sf , ssf) → (sf ∘ sg , fun z → trans (cong g (ssf (sg z))) (ssg z)) in
+  let ret : retraction g → retraction f → retraction (g ∘ f) =
+    fun (rg , rrg) → fun (rf , rrf) → (rf ∘ rg , fun x → trans (cong rf (rrg (f x))) (rrf x)) in
+  let k : is-equiv g → is-equiv f → is-equiv (g ∘ f) =
     fun (sg , rg) → fun (sf , rf) → (sec sg sf , ret rg rf) in
   k eg ef
