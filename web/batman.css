@@ -25,17 +25,19 @@ h1 {
   color: var(--signal);
   letter-spacing: 0.15em;
   text-transform: uppercase;
-  text-shadow: 0 0 12px var(--signal-glow), 0 0 30px var(--signal-glow);
+  text-shadow: 0 0 4px var(--signal), 0 0 12px var(--signal-glow), 0 0 30px var(--signal-glow), 0 0 60px var(--signal-glow);
   padding: 18px 0;
   margin: 0 0 20px;
   border-bottom: 2px solid var(--signal);
-  box-shadow: 0 12px 20px -18px var(--signal);
+  box-shadow: 0 12px 28px -14px var(--signal);
 }
 
 ::selection { background: var(--signal); color: var(--night); }
 
 #buttons {
   margin: 10px 0;
+  /* glow lives here: the buttons' clip-path would cut off their own shadows */
+  filter: drop-shadow(0 0 6px var(--signal-glow)) drop-shadow(0 0 14px var(--signal-glow));
 }
 
 button {
@@ -49,18 +51,21 @@ button {
   border: 2px solid var(--signal);
   clip-path: polygon(8px 0, 100% 0, calc(100% - 8px) 100%, 0 100%);
   cursor: pointer;
+  text-shadow: 0 0 4px var(--signal), 0 0 10px var(--signal-glow), 0 0 20px var(--signal-glow);
   transition: background 0.15s, color 0.15s;
 }
 
 button:hover, button:focus-visible {
   background: var(--signal);
   color: var(--night);
+  text-shadow: 0 0 4px rgba(255, 255, 255, 0.9), 0 0 10px rgba(255, 255, 255, 0.6);
   outline: none;
 }
 
 #send {
   background: var(--signal);
   color: var(--night);
+  text-shadow: 0 0 4px rgba(255, 255, 255, 0.9), 0 0 10px rgba(255, 255, 255, 0.6);
 }
 
 #send:hover, #send:focus-visible {
