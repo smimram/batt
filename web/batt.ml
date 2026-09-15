@@ -24,7 +24,9 @@ let run _ =
   let clear = get_element_by_id "clear" |> Html.CoerceTo.button |> jsget in
 
   let print s =
-    let s = Js.to_string output##.value ^ s in
+    let old = Js.to_string output##.value in
+    let s = if old = "" && s.[0] = '\n' then String.sub s 1 (String.length s - 1) else s in
+    let s = old ^ s in
     output##.value := Js.string s;
     output##.scrollTop := number_of_int output##.scrollHeight
   in
