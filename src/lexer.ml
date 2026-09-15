@@ -25,8 +25,8 @@ let rec token lexbuf =
   | "," -> COMMA
   | "." -> DOT
   | Utf8 "→" | "->" | "\\to" -> TO
-  | Utf8 "ₗ" -> LEFT
-  | Utf8 "ᵣ" -> RIGHT
+  | Utf8 "→ₗ" | "->l" | "\\tol" -> TOL
+  | Utf8 "→ᵣ" | "->r" | "\\tor" -> TOR
   | Utf8 "λ" | "fun" -> FUN
   | Utf8 "ρ" -> FUN
   | Utf8 "∂" -> FUN

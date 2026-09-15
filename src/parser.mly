@@ -19,10 +19,9 @@ let meta ~pos = mk ~pos @@ Meta (`Fresh (Some pos))
 %token EMPTY
 %token UNIT TT
 %token BOOL FALSE TRUE BOOL_IND
-%token TO FUN DOT SIGMA TIMES TENS TENSP
+%token TO TOL TOR FUN DOT SIGMA TIMES TENS TENSP
 %token FLAT FLATTEN
 %token IDEQ REFL
-%token LEFT RIGHT
 %token EQUIV CIRC
 %token<string> IDENT
 %token OPEN
@@ -99,7 +98,7 @@ prod_term:
 
 fun_term:
   | prod_term { $1 }
-  | a=prod_term TO s=option(dir) b=fun_term { match s with None -> mk ~pos:$loc @@ Pi (Explicit, Normal, "_", a, b) | Some s -> mk ~pos:$loc @@ Arr (s, a, b) }
+  | a=prod_term s=arrow b=fun_term { match s with None -> mk ~pos:$loc @@ Pi (Explicit, Normal, "_", a, b) | Some s -> mk ~pos:$loc @@ Arr (s, a, b) }
   | abs=nonempty_list(binder_group) TO b=fun_term { pis ~pos:$loc abs b }
   | SIGMA LPAR x=IDENT COLON a=term RPAR DOT b=fun_term { mk ~pos:$loc @@ Sigma (x, a, b) }
   | FUN x=nonempty_list(pattern) to_dot t=fun_term { abss_pattern ~pos:$loc x t }
@@ -127,9 +126,10 @@ binder_group:
   | LPAR t=term c=ccolon a=term RPAR { Explicit,c,binder_names ~pos:$loc(t) t,a }
   | LACC x=nonempty_list(IDENT) c=ccolon a=term RACC { Implicit,c,x,a }
 
-dir:
-  | LEFT { Left }
-  | RIGHT { Right }
+arrow:
+  | TO  { None }
+  | TOL { Some Left }
+  | TOR { Some Right }
 
 ccolon:
   | COLON { Normal }
