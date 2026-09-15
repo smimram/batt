@@ -88,8 +88,8 @@ let run _ =
       );
 
   input##focus;
+  ignore (Js.Unsafe.eval_string "init();");
   do_send ();
-  highlight ();
 
   Js._false
 
