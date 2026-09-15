@@ -21,7 +21,7 @@ textarea {
 #editor {
   display: flex;
   gap: 8px;
-  height: 600px;
+  height: 500px;
 }
 
 #files {
