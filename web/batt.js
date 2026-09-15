@@ -10,7 +10,7 @@ const keywords = new Set(["Type", "U", "let", "in", "fun", "postulate", "open", 
 const rules = [
   ["comment", /--[^\n]*/],
   ["ident",   /\p{L}[\p{L}\p{N}'\-_→]*/],
-  ["symbol",  /\\(?:bigotimes|otimes|Sigma|times|fflat|flat|equiv|simeq|circ|top|bot|to)|->|::|[λρ∂Σ×⨂⊗♭𝄫≡≃∘→ₗᵣ⊥⊤∷]/],
+  ["symbol",  /\\(?:bigotimes|otimes|Sigma|times|fflat|flat|equiv|simeq|circ|top|bot|tol|tor|to)|->[lr]?|→[ₗᵣ]?|::|[λρ∂Σ×⨂⊗♭𝄫≡≃∘⊥⊤∷]/],
   ["hole",    /\?|_/],
 ];
 const re = new RegExp(rules.map(([_, r]) => "(" + r.source + ")").join("|"), "gu");

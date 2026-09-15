@@ -50,7 +50,7 @@
       "patterns": [
         {
           "name": "support.type.batt",
-          "match": "\\\\(bigotimes|otimes|Sigma|times|fflat|flat|equiv|simeq|circ|top|bot|to)|\\b(U|Type|Bool|Unit|Empty)\\b|->|→|⨂|⊗|@|≡|≃|∘|Σ|×|⊥|⊤|♭|𝄫"
+          "match": "\\\\(bigotimes|otimes|Sigma|times|fflat|flat|equiv|simeq|circ|top|bot|tol|tor|to)|\\b(U|Type|Bool|Unit|Empty)\\b|->[lr]?|→[ₗᵣ]?|⨂|⊗|@|≡|≃|∘|Σ|×|⊥|⊤|♭|𝄫"
         }
       ]
     }

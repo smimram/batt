@@ -5,7 +5,7 @@
    ("--.*" . 'font-lock-comment-face)
    ("\\<\\(let\\|in\\|fun\\|λ\\|open\\|import\\)\\>\\|:\\|∷\\|=" . font-lock-keyword-face)
    ("\\<\\(true\\|false\\|tt\\|refl\\)\\>" . font-lock-constant-face)
-   ("\\\\\\(bigotimes\\|otimes\\|Sigma\\|times\\|fflat\\|flat\\|equiv\\|simeq\\|circ\\|top\\|bot\\|to\\)\\|\\<\\(U\\|Type\\|TYPE\\|Bool\\|Unit\\|Empty\\)\\>\\|->\\|→\\|⨂\\|⊗\\|@\\|≡\\|≃\\|∘\\|Σ\\|×\\|⊥\\|⊤\\|♭\\|𝄫\\|ₗ\\|ᵣ" . font-lock-builtin-face)
+   ("\\\\\\(bigotimes\\|otimes\\|Sigma\\|times\\|fflat\\|flat\\|equiv\\|simeq\\|circ\\|top\\|bot\\|tol\\|tor\\|to\\)\\|\\<\\(U\\|Type\\|TYPE\\|Bool\\|Unit\\|Empty\\)\\>\\|->l\\|->r\\|->\\|→ₗ\\|→ᵣ\\|→\\|⨂\\|⊗\\|@\\|≡\\|≃\\|∘\\|Σ\\|×\\|⊥\\|⊤\\|♭\\|𝄫" . font-lock-builtin-face)
    ("^\\([^ (=\n]+\\)" 1 'font-lock-function-name-face)
   )
 )
