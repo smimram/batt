@@ -5,6 +5,7 @@ open Helper
 let binder_names ~pos t =
   let rec aux acc = function
     | Var x -> x :: acc
+    | Meta _ -> "_" :: acc
     | App (t, _, Var x) -> aux (x :: acc) t
     | _ -> failwith @@ Printf.sprintf "%s: binder expected" (Pos.to_string pos)
   in
