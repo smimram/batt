@@ -114,3 +114,11 @@ tens-curry-right' f a b = f (a ⊗ b)
 
 -- tens-uncurry-right :: {A B C :: U} → (A → B →ᵣ C) → (A ⨂ B → C)
 -- tens-uncurry-right f (a ⊗ b) = f a b
+
+--- Distributivity
+
+tens-dist-l :: {A B C :: U} → A ⨂ (B × C) → (A ⨂ B) × C
+tens-dist-l (a ⊗ bc) = ((a ⊗ prod-fst bc) , prod-snd bc)
+
+tens-dist-r :: {A B C :: U} → (A × B) ⨂ C → A × (B ⨂ C)
+tens-dist-r (ab ⊗ c) = (prod-fst ab , (prod-snd ab ⊗ c))
