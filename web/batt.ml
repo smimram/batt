@@ -74,7 +74,7 @@ let run _ =
   files##.onchange :=
     Html.handler
       (fun _ ->
-         let fname = Filename.concat "stdlib" @@ Js.to_string files##.value in
+         let fname = Js.to_string files##.value in
          let s =
            In_channel.with_open_bin fname (fun ic ->
                really_input_string ic (in_channel_length ic)
