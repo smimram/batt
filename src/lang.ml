@@ -529,7 +529,7 @@ let rec check k env ctx (t:term) (a:value) : term =
         let ctx = Context.ext ~crispness:c (Context.ext ~crispness:c ctx x a1) y (V.capp a2 x1) in
         let t = check k env ctx t (V.capp b (Pair (x1, x2))) in
         Pair_ind (x, y, t)
-      | _ -> failwith "pair_ind"
+      | _ -> failwith "pair_ind: type of argument is expected to be a Sigma type"
     )
   | Pair_ind _, Arr _ -> failwith "TODO: pair_ind vs arr"
   | TensPair (t, u), Tens (a, b) ->
