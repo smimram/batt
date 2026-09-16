@@ -7,9 +7,9 @@
 
 (rule
  (targets fs.js)
- (deps (source_tree ../stdlib) (source_tree ../celltt))
+ (deps (glob_files ../stdlib/*.batt) (glob_files ../celltt/*.batt))
  (action
-   (run js_of_ocaml build-fs -o fs.js ../stdlib:/static ../celltt:/static)
+   (bash "js_of_ocaml build-fs -o fs.js $(for f in %{deps}; do echo $f:/static/; done)")
  )
 )
 
