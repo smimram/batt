@@ -45,9 +45,8 @@ let run _ =
     | e -> error (Printexc.to_string e)
   in
   Common.print_string := print;
-  Common.include_directories_list := "stdlib" :: !Common.include_directories_list;
 
-  Sys.readdir "stdlib"
+  Sys.readdir "."
   |> Array.to_list
   |> List.sort Stdlib.compare
   |> List.filter (String.ends_with ~suffix:".batt")

@@ -9,7 +9,7 @@
  (targets fs.js)
  (deps (source_tree ../stdlib))
  (action
-   (run js_of_ocaml build-fs -o fs.js ../stdlib:/static/stdlib)
+   (run js_of_ocaml build-fs -o fs.js ../stdlib:/static ../celltt:/static)
  )
 )
 
