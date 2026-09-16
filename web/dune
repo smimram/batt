@@ -7,7 +7,7 @@
 
 (rule
  (targets fs.js)
- (deps (source_tree ../stdlib))
+ (deps (source_tree ../stdlib) (source_tree ../celltt))
  (action
    (run js_of_ocaml build-fs -o fs.js ../stdlib:/static ../celltt:/static)
  )
