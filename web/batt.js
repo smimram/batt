@@ -39,7 +39,7 @@ function highlight() {
 
 // LaTeX-like shortcuts, replaced when followed by a non-letter character.
 const symbols = {
-  to: "→", tol: "→ₗ", tor: "→ᵣ", Sigma: "Σ", times: "×", bigotimes: "⨂", Otimes: "⨂",
+  to: "→", tol: "⇀", tor: "⇁", Sigma: "Σ", times: "×", bigotimes: "⨂", Otimes: "⨂",
   otimes: "⊗", flat: "♭", fflat: "𝄫", equiv: "≡", simeq: "≃", circ: "∘",
   top: "⊤", bot: "⊥", lambda: "λ", rho: "ρ", partial: "∂",
 };
