@@ -6,3 +6,14 @@ duplicate a f = f a a
 
 erase :: {A B :: U} → A →ₗ (B → B)
 erase a b = b
+
+-- In the affine variant we can convert tensor to product
+tens-to-prod :: {A B :: U} → A ⨂ B → A × B
+tens-to-prod (a ⊗ b) = (a , b)
+
+-- And arrow to (op)lax ones
+arr-to-arrₗ :: {A B :: U} → (A → B) → (A →ₗ B)
+arr-to-arrₗ f a = f a
+
+arr-to-arrᵣ :: {A B :: U} → (A → B) → (A →ᵣ B)
+arr-to-arrᵣ f a = f a
