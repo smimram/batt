@@ -1,0 +1,8 @@
+-- Testing bunched implication
+
+-- Classical examples showing that we are not linear
+duplicate :: {A B :: U} → A →ₗ ((A → A → B) → B)
+duplicate a f = f a a
+
+erase :: {A B :: U} → A →ₗ (B → B)
+erase a b = b
