@@ -17,3 +17,13 @@ arr-to-arrₗ f a = f a
 
 arr-to-arrᵣ :: {A B :: U} → (A → B) → (A →ᵣ B)
 arr-to-arrᵣ f a = f a
+
+-- Contraction
+contr0 :: {A B C :: U} (f :: A →ᵣ B →ᵣ C) → A ⨂ B → C
+contr0 f (a ⊗ b) = f a b
+
+contr :: {A B C :: U} (f :: A →ᵣ B × B →ᵣ C) → A ⨂ B → C
+contr f (a ⊗ b) = f a (b , b)
+
+test :: {A B C D :: U} (f :: A ⇁ B ⇁ C) (g :: A ⇁ B ⇁ D) → A ⨂ B → C × D
+test f g (a ⊗ b) = (f a b , g a b)
