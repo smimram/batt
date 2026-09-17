@@ -16,7 +16,7 @@ jobs:
     - name: Test
       run: dune runtest
     - name: Upload webpage
-      uses: actions/upload-pages-artifact@v3
+      uses: actions/upload-pages-artifact@v5
       with:
         path: _build/default/web
   deploy:
