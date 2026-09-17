@@ -1,3 +1,5 @@
+open import Equivalence
+
 tens-fst :: {A B :: U} → A ⨂ B → A
 tens-fst (a ⊗ b) = a
 
@@ -25,6 +27,32 @@ tens-counit-unit-left (t ⊗ a) =
   let f : (t : ⊤) → tens-counit-left (tens-unit-left (t ⊗ a)) ≡ (t ⊗ a) = λ tt → refl in
   f t
 
+tens-unit-equiv-left :: {A :: U} → ⊤ ⨂ A ≃ A
+tens-unit-equiv-left =
+  (tens-unit-left ,
+   (tens-counit-left , tens-unit-counit-left) ,
+   (tens-counit-left , tens-counit-unit-left))
+
+tens-unit-right :: {A :: U} → A ⨂ ⊤ → A
+tens-unit-right (a ⊗ x) = a
+
+tens-counit-right :: {A :: U} → A → A ⨂ ⊤
+tens-counit-right a = (a ⊗ tt)
+
+tens-unit-counit-right :: {A :: U} (a : A) → tens-unit-right (tens-counit-right a) ≡ a
+tens-unit-counit-right a = refl
+
+tens-counit-unit-right :: {A :: U} (x : A ⨂ ⊤) → tens-counit-right (tens-unit-right x) ≡ x
+tens-counit-unit-right (a ⊗ t) =
+  let f : (t : ⊤) → tens-counit-right (tens-unit-right (a ⊗ t)) ≡ (a ⊗ t) = λ tt → refl in
+  f t
+
+tens-unit-equiv-right :: {A :: U} → A ⨂ ⊤ ≃ A
+tens-unit-equiv-right =
+  (tens-unit-right ,
+   (tens-counit-right , tens-unit-counit-right) ,
+   (tens-counit-right , tens-counit-unit-right))
+
 tens-assoc :: {A B C :: U} → (A ⨂ B) ⨂ C → A ⨂ (B ⨂ C)
 tens-assoc {A} {B} {C} (ab ⊗ c) =
   let f :: A ⨂ B → C →ᵣ A ⨂ (B ⨂ C) = fun (a ⊗ b) c → a ⊗ (b ⊗ c) in
@@ -34,8 +62,6 @@ tens-coassoc :: {A B C :: U} → A ⨂ (B ⨂ C) → (A ⨂ B) ⨂ C
 tens-coassoc {A} {B} {C} (a ⊗ bc) =
   let f :: B ⨂ C → A →ₗ (A ⨂ B) ⨂ C = fun (b ⊗ c) a → (a ⊗ b) ⊗ c in
   f bc a
-
-open import Equivalence
 
 tens-assoc-equiv :: {A B C :: U} → (A ⨂ B) ⨂ C ≃ A ⨂ (B ⨂ C)
 tens-assoc-equiv {A} {B} {C} =
