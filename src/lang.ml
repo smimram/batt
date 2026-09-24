@@ -692,8 +692,8 @@ and infer k env ctx (t:term) : term * value =
   let t0 = t in
   (* let cenv, benv = ctx in *)
   match t with
-  | Type n -> Type n, V.Type (n + 1)
-  | IndType ind -> IndType ind, V.Type 0
+  | Type n -> Type n, Type (n + 1)
+  | IndType ind -> IndType ind, Type 0
   | IndTerm `Unit -> IndTerm `Unit, IndType `Unit
   | IndTerm (`Bool b) -> IndTerm (`Bool b), IndType `Bool
   | Pi (i, Crisp, x, a, b) ->
@@ -832,6 +832,9 @@ and infer k env ctx (t:term) : term * value =
       | None -> error ~t:t0 "no field %s in %s" x (V.to_string k a);
     in
     RecordField (t, x), a
+  | I -> I, Type 0
+  | I0 -> I0, I
+  | I1 -> I1, I
   | _ -> error ~t "cannot infer type"
 
 and check_decls k env ctx (decls:T.decls) =
