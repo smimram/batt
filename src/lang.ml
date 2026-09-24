@@ -326,6 +326,11 @@ let unify ~pos k (t:value) (u:value) =
           )
         | Postulate (n, l) ->
           spine l @@ Postulate (Some n)
+        | I -> I
+        | I0 -> I0
+        | I1 -> I1
+        | Iv (i, j) -> Iv (rename r i, rename r j)
+        | Iw (i, j) -> Iw (rename r i, rename r j)
         | t -> failwith @@ Printf.sprintf "TODO: rename %s" (V.to_string k t)
       in
       rename r t
@@ -410,6 +415,11 @@ let unify ~pos k (t:value) (u:value) =
     | Hole (pos, l), Hole (pos', l') ->
       if pos <> pos' then raise Unification;
       spine k l l'
+    | I, I | I0, I0 | I1, I1 -> ()
+    | Iv (i, j), Iv (i', j')
+    | Iw (i, j), Iw (i', j') ->
+      unify k i i';
+      unify k j j'
     | Meta _, Meta _ -> Unification.defer pos k t u
     | Meta (m, l), t -> solve k m l t
     | t, Meta (m, l) -> solve k m l t

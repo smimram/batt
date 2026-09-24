@@ -35,6 +35,7 @@ let meta ~pos = mk ~pos @@ Meta (`Fresh (Some pos))
 %right TENSP
 %right TENS
 %left CIRC
+%left Iv Iw
 
 %start main
 %type<Term.decls> main

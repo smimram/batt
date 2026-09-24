@@ -206,7 +206,6 @@ and force t =
 (** Evaluate an interval expression. *)
 (* TODO: improve by computing a list of list of variables *)
 and interval env = function
-  | Var _ as x -> eval env x
   | I0 -> I0
   | I1 -> I1
   | Iv (i, j) ->
@@ -218,8 +217,16 @@ and interval env = function
       | _, I1 -> I1
       | i, j -> Iv (i, j) (* TODO: distribute *)
     )
-  | Iw (i, j) -> Iw (eval env i, eval env j) (* TODO *)
-  | _ -> assert false
+  | Iw (i, j) ->
+    (
+      match interval env i, interval env j with
+      | I1, j -> j
+      | i, I1 -> i
+      | I0, _ -> I0
+      | _, I0 -> I0
+      | i, j -> Iw (i, j) (* TODO: distribute *)
+    )
+  | t -> eval env t
 
 (** Reify a value as a term. *)
 let rec readback k v : Term.t =
