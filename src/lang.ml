@@ -791,7 +791,7 @@ and infer k env ctx (t:term) : term * value =
           let t = check k env ctxt t1 (Arr (s, a, b)) in
           let u = check k env ctxu u a in
           App (t, Explicit, u), b
-        | _ -> error ~t:t0 "cannot infer the type of the application"
+        | a -> error ~t:t0 "%s is applied to %s but has type %s, which is not a function type" (T.to_string t1) (T.to_string u) (V.to_string k a)
       )
     )
   | Var x ->
