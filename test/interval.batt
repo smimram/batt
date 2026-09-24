@@ -1,8 +1,3 @@
-I :: U
-I = 𝕀
-
--- postulate neq-0-1 ∷ not (I0 ≡ I1)
-
 sup-0 :: (i : 𝕀) → 𝕀0 𝕀∨ i ≡ i
 sup-0 i = refl
 
@@ -77,3 +72,8 @@ median-sym i j k = refl
 
 median-dual :: (i j k : 𝕀) → median i j k ≡ ((i 𝕀∨ j) 𝕀∧ (j 𝕀∨ k)) 𝕀∧ (k 𝕀∨ i)
 median-dual i j k = refl
+
+open import Empty
+
+-- not provable: there is no eliminator out of 𝕀, and 𝕀 = 1 is a model
+postulate neq-0-1 ∷ not (𝕀0 ≡ 𝕀1)
