@@ -27,3 +27,6 @@ contr f (a ⊗ b) = f a (b , b)
 
 test :: {A B C D :: U} (f :: A ⇁ B ⇁ C) (g :: A ⇁ B ⇁ D) → A ⨂ B → C × D
 test f g (a ⊗ b) = (f a b , g a b)
+
+test :: {A B :: U} → A ⨂ B → A × (A ⨂ B)
+test (a ⊗ b) = (a , a ⊗ b)
