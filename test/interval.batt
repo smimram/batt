@@ -17,8 +17,11 @@ I = 𝕀
 sup-0 :: (i : 𝕀) → 𝕀0 𝕀∨ i ≡ i
 sup-0 i = refl
 
--- sup-diag :: (i : 𝕀) → max i i ≡ i
--- sup-diag i = refl
+sup-diag :: (i : 𝕀) → i 𝕀∨ i ≡ i
+sup-diag i = refl
+
+sup-assoc :: (i j k : 𝕀) → (i 𝕀∨ j) 𝕀∨ k ≡ i 𝕀v (j 𝕀∨ k)
+sup-assoc i j k = refl
 
 -- postulate max-diag ∷ (s : I) → max s s ≡ s
 -- postulate max-sym ∷ (s t : I) → max s t ≡ max t s
