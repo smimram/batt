@@ -835,6 +835,14 @@ and infer k env ctx (t:term) : term * value =
   | I -> I, Type 0
   | I0 -> I0, I
   | I1 -> I1, I
+  | Iv (i, j) ->
+    let i = check k env ctx i I in
+    let j = check k env ctx j I in
+    Iv (i, j), I
+  | Iw (i, j) ->
+    let i = check k env ctx i I in
+    let j = check k env ctx j I in
+    Iw (i, j), I
   | _ -> error ~t "cannot infer type"
 
 and check_decls k env ctx (decls:T.decls) =
