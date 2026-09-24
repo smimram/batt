@@ -40,6 +40,7 @@ type t =
   | RecordType of (string * crispness * t) list
   | Record of (string * t) list
   | RecordField of string * spine
+  | I | I0 | I1 | Iv of t * t | Iw of t * t
 [@@deriving show]
 
 (** A closure. *)
@@ -148,6 +149,10 @@ let rec eval (env:environment) : Term.t -> t = function
     RecordType l
   | RecordField (t, x) ->
     app (RecordField (x, [])) (eval env t)
+  | I -> I
+  | I0 -> I0
+  | I1 -> I1
+  | Iv _ | Iw _ as i -> interval env i
 
 (** Make a variable. *)
 and var k = Var (k, [])
@@ -198,6 +203,24 @@ and force t =
   | Meta (m, s) when m.value <> None -> force @@ app_spine (Option.get m.value) s
   | _ -> t
 
+(** Evaluate an interval expression. *)
+(* TODO: improve by computing a list of list of variables *)
+and interval env = function
+  | Var _ as x -> eval env x
+  | I0 -> I0
+  | I1 -> I1
+  | Iv (i, j) ->
+    (
+      match interval env i, interval env j with
+      | I0, j -> j
+      | i, I0 -> i
+      | I1, _ -> I1
+      | _, I1 -> I1
+      | i, j -> Iv (i, j) (* TODO: distribute *)
+    )
+  | Iw (i, j) -> Iw (eval env i, eval env j) (* TODO *)
+  | _ -> assert false
+
 (** Reify a value as a term. *)
 let rec readback k v : Term.t =
   let var_name k = "x" ^ string_of_int k in
@@ -235,5 +258,10 @@ let rec readback k v : Term.t =
       List.hd l, List.rev @@ List.tl l
     in
     spine l @@ RecordField (readback k t, x)
+  | I -> I
+  | I0 -> I0
+  | I1 -> I1
+  | Iv (i, j) -> Iv (readback k i, readback k j)
+  | Iw (i, j) -> Iw (readback k i, readback k j)
 
 let to_string k v = Term.to_string @@ readback k v
