@@ -90,3 +90,7 @@ biptho {X'} {Y'} f' g' =
   let g0 : g x0 ≡ y0 = leftcoh g' in 
   let g1 : g x1 ≡ y1 = rightcoh g' in
   Σ (H : ho f g) . (f0 ≡ trans (H x0) g0) × (f1 ≡ trans (H x1) g1)
+
+-- Bipointed interval
+𝕀' ∷ Ubipt
+𝕀' = (𝕀, 𝕀0, 𝕀1)

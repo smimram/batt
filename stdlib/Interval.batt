@@ -1,0 +1,10 @@
+open import Set
+open import Empty
+open import Bipointed
+
+postulate is-set-𝕀 ∷ is-set 𝕀
+
+postulate neq-𝕀0-𝕀1 ∷ not (𝕀0 ≡ 𝕀1)
+
+boundary-inclusion ∷ bool → 𝕀
+boundary-inclusion = bool_ind(𝕀0,𝕀1)
