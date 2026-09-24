@@ -24,6 +24,7 @@ let meta ~pos = mk ~pos @@ Meta (`Fresh (Some pos))
 %token FLAT FLATTEN
 %token IDEQ REFL
 %token EQUIV CIRC
+%token I I0 I1 Iv Iw
 %token<string> IDENT
 %token OPEN
 %token<string> IMPORT

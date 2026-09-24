@@ -39,6 +39,11 @@ let rec token lexbuf =
   | Utf8 "≡" | "\\equiv" -> IDEQ
   | Utf8 "≃" | "\\simeq" -> EQUIV
   | Utf8 "∘" | "\\circ" -> CIRC
+  | Utf8 "𝕀" | "II" -> I
+  | Utf8 "𝕀0" | "II0" -> I0
+  | Utf8 "𝕀1" | "II1" -> I1
+  | Utf8 "𝕀∨" | "IIv" -> Iv
+  | Utf8 "𝕀∧" | "IIw" -> Iw
   | "_" -> META
   | "refl" -> REFL
   | "let" -> LET
