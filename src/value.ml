@@ -152,7 +152,8 @@ let rec eval (env:environment) : Term.t -> t = function
   | I -> I
   | I0 -> I0
   | I1 -> I1
-  | Iv _ | Iw _ as i -> interval env i
+  | Iv (i, j) -> interval @@ Iv (eval env i, eval env j)
+  | Iw (i, j) -> interval @@ Iw (eval env i, eval env j)
 
 (** Make a variable. *)
 and var k = Var (k, [])
@@ -203,30 +204,37 @@ and force t =
   | Meta (m, s) when m.value <> None -> force @@ app_spine (Option.get m.value) s
   | _ -> t
 
-(** Evaluate an interval expression. *)
-(* TODO: improve by computing a list of list of variables *)
-and interval env = function
-  | I0 -> I0
-  | I1 -> I1
-  | Iv (i, j) ->
-    (
-      match interval env i, interval env j with
-      | I0, j -> j
-      | i, I0 -> i
-      | I1, _ -> I1
-      | _, I1 -> I1
-      | i, j -> Iv (i, j) (* TODO: distribute *)
-    )
-  | Iw (i, j) ->
-    (
-      match interval env i, interval env j with
-      | I1, j -> j
-      | i, I1 -> i
-      | I0, _ -> I0
-      | _, I0 -> I0
-      | i, j -> Iw (i, j) (* TODO: distribute *)
-    )
-  | t -> eval env t
+(** Put an interval value in canonical conjunctive normal form: a meet of joins
+    of atoms, with atoms sorted and deduplicated in each join, and absorbed
+    joins removed. *)
+and interval i =
+  let subset c c' = List.for_all (fun a -> List.mem a c') c in
+  let rec cnf i : t list list =
+    match force i with
+    | I0 -> [[]]
+    | I1 -> []
+    | Iv (i, j) ->
+      let j = cnf j in
+      List.concat_map (fun c -> List.map (fun c' -> c @ c') j) (cnf i)
+    | Iw (i, j) -> cnf i @ cnf j
+    | a -> [[a]]
+  in
+  let clauses = List.map (List.sort_uniq compare) (cnf i) in
+  (* Absorption: remove joins containing another one. *)
+  let clauses = List.stable_sort (fun c c' -> compare (List.length c) (List.length c')) clauses in
+  let clauses = List.fold_left (fun kept c -> if List.exists (fun c' -> subset c' c) kept then kept else c::kept) [] clauses in
+  let clauses = List.sort compare clauses in
+  let rec sup = function
+    | [] -> I0
+    | [i] -> i
+    | i::l -> Iv (i, sup l)
+  in
+  let rec inf = function
+    | [] -> I1
+    | [i] -> i
+    | i::l -> Iw (i, inf l)
+  in
+  inf @@ List.map sup clauses
 
 (** Reify a value as a term. *)
 let rec readback k v : Term.t =
