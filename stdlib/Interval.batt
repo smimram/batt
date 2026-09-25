@@ -1,5 +1,7 @@
 open import Set
 open import Empty
+open import Logic
+open import Product
 
 postulate is-set-𝕀 ∷ is-set 𝕀
 
@@ -22,13 +24,22 @@ geq i j = i 𝕀∨ j ≡ i
 two-simplex ∷ Type
 two-simplex = Σ (i : 𝕀) . Σ (j : 𝕀) . geq i j
 
--- two-spine ∷ Type
--- two-spine = Σ (i : 𝕀) . Σ (j : 𝕀) . i ≡ 0 
+two-spine ∷ Type
+two-spine = Σ (i : 𝕀) . Σ (j : 𝕀) . or (j ≡ 𝕀0) (i ≡ 𝕀1)
+
+two-spine→two-simplex ∷ two-spine → two-simplex
+two-spine→two-simplex (i , y) =
+  let j : 𝕀 = fst _ y in
+  let p : or (j ≡ 𝕀0) (i ≡ 𝕀1) = snd _ y in
+  -- geq i j is an identity type in the set 𝕀, hence a proposition: the truncation can be eliminated
+  (i , j , rec-prop-trunc' (sum (j ≡ 𝕀0) (i ≡ 𝕀1)) (geq i j) (is-set-𝕀 (i 𝕀∨ j) i)
+    (rec-sum {j ≡ 𝕀0} {i ≡ 𝕀1} {geq i j}
+      (λ q . cong (λ k . i 𝕀∨ k) q)                      -- j ≡ 𝕀0 : i 𝕀∨ j ≡ i 𝕀∨ 𝕀0 = i
+      (λ q . trans (cong (λ k . k 𝕀∨ j) q) (sym q)))     -- i ≡ 𝕀1 : i 𝕀∨ j ≡ 𝕀1 𝕀∨ j = 𝕀1 ≡ i
+    p)
 
 gray-square ∷ Type
 gray-square = 𝕀 ⨂ 𝕀
-
-
 
 -- cube ∷ ℕ → Type
 -- cube n = ?
