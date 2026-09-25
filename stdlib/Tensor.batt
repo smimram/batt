@@ -37,7 +37,7 @@ tens-unit-right ∷ {A ∷ U} → A ⨂ ⊤ → A
 tens-unit-right (a ⊗ x) = a
 
 tens-counit-right ∷ {A ∷ U} → A → A ⨂ ⊤
-tens-counit-right a = (a ⊗ tt)
+tens-counit-right a = a ⊗ tt
 
 tens-unit-counit-right ∷ {A ∷ U} (a : A) → tens-unit-right (tens-counit-right a) ≡ a
 tens-unit-counit-right a = refl

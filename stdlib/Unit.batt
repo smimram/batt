@@ -15,7 +15,7 @@ terminal A x = tt
 open import Prop
 
 is-contr-unit ∷ is-contr ⊤
-is-contr-unit = (tt , unit-ind (λ x . tt ≡ x) refl)
+is-contr-unit = (tt , λ tt . refl)
 
 is-prop-unit ∷ is-prop ⊤
 is-prop-unit = is-contr→is-prop is-contr-unit

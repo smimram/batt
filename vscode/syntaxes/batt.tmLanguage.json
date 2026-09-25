@@ -1,12 +1,17 @@
 {
   "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
   "name": "BATT",
+  "comment": "Mirrors src/lexer.ml. Identifiers may contain - ' _ digits → ⁻ ₗ ᵣ 𝕀, so keywords use a negative lookahead on those characters instead of \\b, and a catch-all identifier rule (listed last) consumes whole identifiers so that e.g. `bool` in `rec-bool` is not highlighted. 𝕀 and 𝄫 are astral characters: keep them out of [...] classes.",
   "patterns": [
     { "include": "#comments" },
     { "include": "#declarations" },
+    { "include": "#imports" },
     { "include": "#keywords" },
+    { "include": "#holes" },
     { "include": "#constants" },
-    { "include": "#builtins" }
+    { "include": "#builtins" },
+    { "include": "#operators" },
+    { "include": "#identifiers" }
   ],
   "repository": {
     "comments": {
@@ -20,12 +25,33 @@
     "declarations": {
       "patterns": [
         {
-          "name": "entity.name.function.batt",
-          "match": "^\\s*([^\\s(=]+)",
+          "comment": "postulate name ∷ A",
+          "match": "^(postulate)\\s+((?:[A-Za-z]|𝕀)(?:[A-Za-z0-9'_\\-→⁻ₗᵣ]|𝕀)*)",
           "captures": {
-            "1": {
-              "name": "entity.name.function.batt"
-            }
+            "1": { "name": "keyword.other.postulate.batt" },
+            "2": { "name": "entity.name.function.batt" }
+          }
+        },
+        {
+          "comment": "top-level signature or clause head: an identifier at column 0",
+          "match": "^(?!(?:open|postulate|let|in|import|Type|U|refl|tt|true|false)(?![A-Za-z0-9'_\\-→⁻ₗᵣ]|𝕀))((?:[A-Za-z]|𝕀)(?:[A-Za-z0-9'_\\-→⁻ₗᵣ]|𝕀)*)",
+          "captures": {
+            "1": { "name": "entity.name.function.batt" }
+          }
+        }
+      ]
+    },
+    "imports": {
+      "patterns": [
+        {
+          "match": "(?<![A-Za-z0-9'_\\-])(open)(?![A-Za-z0-9'_\\-→⁻ₗᵣ]|𝕀)",
+          "captures": { "1": { "name": "keyword.control.import.batt" } }
+        },
+        {
+          "match": "(?<![A-Za-z0-9'_\\-])(import) ([A-Za-z_\\-]*)",
+          "captures": {
+            "1": { "name": "keyword.control.import.batt" },
+            "2": { "name": "entity.name.namespace.batt" }
           }
         }
       ]
@@ -33,24 +59,109 @@
     "keywords": {
       "patterns": [
         {
-          "name": "keyword.control.batt",
-          "match": "\\b(let|in|fun|open|import)\\b|λ|:|∷|="
+          "comment": "let x ∷ A = t in u (also highlights the bound name)",
+          "match": "(let)\\s+((?:[A-Za-z]|𝕀)(?:[A-Za-z0-9'_\\-→⁻ₗᵣ]|𝕀)*)",
+          "captures": {
+            "1": { "name": "keyword.other.let.batt" },
+            "2": { "name": "variable.other.definition.batt" }
+          }
+        },
+        {
+          "match": "(?:in|postulate|fun)(?![A-Za-z0-9'_\\-→⁻ₗᵣ]|𝕀)",
+          "name": "keyword.other.batt"
+        },
+        {
+          "comment": "λ, and ρ / ∂ which the lexer also reads as λ",
+          "match": "λ|ρ|∂",
+          "name": "keyword.other.lambda.batt"
+        }
+      ]
+    },
+    "holes": {
+      "patterns": [
+        {
+          "comment": "holes ? never make the checker fail, so make them stand out",
+          "match": "\\?",
+          "name": "invalid.deprecated.hole.batt"
+        },
+        {
+          "comment": "metavariable _ (but not the identifier _≃_)",
+          "match": "_(?!≃_)",
+          "name": "variable.language.meta.batt"
         }
       ]
     },
     "constants": {
       "patterns": [
         {
-          "name": "constant.language.batt",
-          "match": "\\b(true|false|tt|refl)\\b"
+          "match": "(?:tt|true|false|refl|II0|II1)(?![A-Za-z0-9'_\\-→⁻ₗᵣ]|𝕀)",
+          "name": "constant.language.batt"
+        },
+        {
+          "match": "(?:𝕀0|𝕀1)(?![A-Za-z0-9'_\\-→⁻ₗᵣ]|𝕀)",
+          "name": "constant.language.batt"
+        },
+        {
+          "match": "\\(\\)",
+          "name": "constant.language.absurd.batt"
+        },
+        {
+          "comment": "universe levels, as in Type 1",
+          "match": "[0-9]+",
+          "name": "constant.numeric.batt"
         }
       ]
     },
     "builtins": {
       "patterns": [
         {
-          "name": "support.type.batt",
-          "match": "\\\\(bigotimes|otimes|Sigma|times|fflat|flat|equiv|simeq|circ|top|bot|tol|tor|to)|\\b(U|Type|Bool|Unit|Empty|II[01vw]?)\\b|𝕀[01∨∧]?|->[lr]?|→[ₗᵣ]?|⨂|⊗|@|≡|≃|∘|Σ|×|⊥|⊤|♭|𝄫"
+          "comment": "universes and builtin type names (bool, unit, empty, TYPE are bound identifiers, not keywords)",
+          "match": "(?:Type|U|TYPE|bool|unit|empty|II)(?![A-Za-z0-9'_\\-→⁻ₗᵣ]|𝕀)",
+          "name": "support.type.batt"
+        },
+        {
+          "match": "𝕀(?![01∨∧A-Za-z0-9'_\\-→⁻ₗᵣ]|𝕀)|⊥|⊤|\\\\bot|\\\\top",
+          "name": "support.type.batt"
+        },
+        {
+          "comment": "type formers",
+          "match": "Σ|\\\\Sigma|♭|\\\\flat(?![a-z])|⨂|\\\\bigotimes|≡|\\\\equiv|≃|\\\\simeq|×|\\\\times",
+          "name": "support.type.batt"
+        }
+      ]
+    },
+    "operators": {
+      "patterns": [
+        {
+          "comment": "lax / oplax arrows (before the plain arrow)",
+          "match": "→ₗ|→ᵣ|⇀|⇁|->l|->r|\\\\tol|\\\\tor",
+          "name": "keyword.operator.arrow.lax.batt"
+        },
+        {
+          "match": "→|->|\\\\to(?![a-z])",
+          "name": "keyword.operator.arrow.batt"
+        },
+        {
+          "comment": "interval lattice operations",
+          "match": "𝕀∨|𝕀∧|(?:IIv|IIw)(?![A-Za-z0-9'_\\-→⁻ₗᵣ]|𝕀)",
+          "name": "keyword.operator.lattice.batt"
+        },
+        {
+          "match": "⊗|\\\\otimes|𝄫|\\\\fflat|∘|\\\\circ|¬",
+          "name": "keyword.operator.batt"
+        },
+        {
+          "match": "∷|::|:|=",
+          "name": "keyword.control.batt"
+        }
+      ]
+    },
+    "identifiers": {
+      "comment": "consume whole identifiers so that nothing above matches inside them",
+      "patterns": [
+        {
+          "match": "_≃_|(?:[A-Za-z]|𝕀)(?:[A-Za-z0-9'_\\-→⁻ₗᵣ]|𝕀)*",
+          "name": "variable.other.batt"
         }
       ]
     }

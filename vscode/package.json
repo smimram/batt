@@ -1,5 +1,6 @@
 {
   "name": "batt",
+  "publisher": "smimram",
   "displayName": "BATT support",
   "version": "0.0.1",
   "main": "./extension.js",
@@ -38,8 +39,13 @@
     "languages": [
       {
         "id": "batt",
-        "aliases": ["BATT", "batt"],
-        "extensions": [".batt"]
+        "aliases": [
+          "BATT",
+          "batt"
+        ],
+        "extensions": [
+          ".batt"
+        ]
       }
     ],
     "grammars": [
@@ -48,6 +54,29 @@
         "scopeName": "source.batt",
         "path": "./syntaxes/batt.tmLanguage.json"
       }
-    ]
+    ],
+    "configuration": {
+      "title": "BATT",
+      "properties": {
+        "batt.memoryLimitMB": {
+          "type": "number",
+          "default": 4096,
+          "minimum": 0,
+          "description": "Maximum memory (address space, in MB) for one run of the checker. The kernel kills the run beyond it. 0 disables the limit (not recommended)."
+        },
+        "batt.timeoutSeconds": {
+          "type": "number",
+          "default": 60,
+          "minimum": 1,
+          "description": "Maximum duration of one run of the checker, in seconds."
+        },
+        "batt.maxOutputMB": {
+          "type": "number",
+          "default": 64,
+          "minimum": 1,
+          "description": "Maximum amount of checker output read, in MB. The run is stopped beyond it."
+        }
+      }
+    }
   }
 }
