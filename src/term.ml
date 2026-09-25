@@ -11,7 +11,7 @@ let string_of_inductive_type = function
   | `Nat -> "Nat"
 
 (** Basic inductive terms. *)
-type inductive_term = [`Unit | `Bool of bool | `Nat of int | `Succ]
+type inductive_term = [`Unit | `Bool of bool | `Zero | `Succ]
 [@@deriving show]
 
 (** Side for lax arrows. *)
@@ -36,7 +36,7 @@ type t =
   | Type of int (** universe level *)
   | IndType of inductive_type
   | IndType_ind of inductive_type * t list
-  | IndTerm of inductive_term
+  | IndTerm of inductive_term * t list (* Constructors are always applied to arguments (use an eta-expansion if needed) *)
   | Pi of icit * crispness * string * t * t (** pi-type *)
   | Abs of icit * string * t
   | App of t * icit * t
@@ -159,10 +159,11 @@ let rec to_string t =
   | Type n -> Printf.sprintf "Type %d" n
   | IndType ind -> string_of_inductive_type ind
   | IndType_ind (ind, args) -> Printf.sprintf "%s_ind(%s)" (string_of_inductive_type ind) (String.concat "," @@ List.map to_string args)
-  | IndTerm `Unit -> "tt"
-  | IndTerm (`Bool b) -> string_of_bool b
-  | IndTerm (`Nat n) -> string_of_int n
-  | IndTerm `Succ -> "succ"
+  | IndTerm (`Unit, []) -> "tt"
+  | IndTerm (`Bool b, []) ->  string_of_bool b
+  | IndTerm (`Zero, []) ->  "zero"
+  | IndTerm (`Succ, [n]) -> Printf.sprintf "succ(%s)" @@ to_string n
+  | IndTerm _ -> assert false
   | Pi (i, c, x, a, t) ->
     (
       match i with

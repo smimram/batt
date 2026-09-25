@@ -282,8 +282,7 @@ let unify ~pos k (t:value) (u:value) =
           Sigma (x, a, b)
         | Type n -> Type n
         | IndType i -> IndType i
-        | IndTerm t -> IndTerm t
-        | Succ t -> T.app (IndTerm `Succ) (rename r t)
+        | IndTerm (t, l) -> IndTerm (t, List.map (rename r) l)
         | IndType_ind (i, t, l) -> spine l @@ IndType_ind (i, List.map (rename r) t)
         | Pair (t, u) -> Pair (rename r t, rename r u)
         | Pair_ind (t, l) ->
@@ -353,13 +352,9 @@ let unify ~pos k (t:value) (u:value) =
       if l <> l' then raise Unification
     | IndType i, IndType i' ->
       if i <> i' then raise Unification
-    | IndTerm t, IndTerm t' ->
-      if t <> t' then raise Unification
-    | Succ t, Succ t' -> unify k t t'
-    | IndTerm (`Nat n), Succ t
-    | Succ t, IndTerm (`Nat n) ->
-      if n = 0 then raise Unification;
-      unify k (IndTerm (`Nat (n-1))) t
+    | IndTerm (t, l), IndTerm (t', l') ->
+      if t <> t' then raise Unification;
+      spine k l l'
     | IndType_ind (i, t, l), IndType_ind (i', t', l') ->
       if i <> i' then raise Unification;
       spine k t t'; (* NOTE: this is not a spine but ok *)
@@ -597,7 +592,7 @@ let rec check k env ctx (t:term) (a:value) : term =
     IndType_ind (`Empty, [])
   | IndType_ind (`Unit, [t]), Pi (Explicit, _, a, b) ->
     unify k t a (IndType `Unit);
-    let t = check k env ctx t (V.capp b (IndTerm `Unit)) in
+    let t = check k env ctx t (V.capp b (IndTerm (`Unit, []))) in
     IndType_ind (`Unit, [t])
   | IndType_ind (`Unit, [t]), Arr (_, a, b) ->
     unify k t a (IndType `Unit);
@@ -605,8 +600,8 @@ let rec check k env ctx (t:term) (a:value) : term =
     IndType_ind (`Unit, [t])    
   | IndType_ind (`Bool, [tf;tt]), Pi (Explicit, _, a, b) ->
     unify k t a (IndType `Bool);
-    let tf = check k env ctx tf (V.capp b (IndTerm (`Bool false))) in
-    let tt = check k env ctx tt (V.capp b (IndTerm (`Bool true))) in
+    let tf = check k env ctx tf (V.capp b (IndTerm (`Bool false, []))) in
+    let tt = check k env ctx tt (V.capp b (IndTerm (`Bool true, []))) in
     IndType_ind (`Bool, [tf;tt])
   | IndType_ind (`Bool, [tf;tt]), Arr (_, a, b) ->
     unify k t a (IndType `Bool);
@@ -615,11 +610,11 @@ let rec check k env ctx (t:term) (a:value) : term =
     IndType_ind (`Bool, [tf;tt])
   | IndType_ind (`Nat, [tz;ts]), Pi (Explicit, c, a, b) ->
     unify k t a (IndType `Nat);
-    let tz = check k env ctx tz (V.capp b (IndTerm (`Nat 0))) in
+    let tz = check k env ctx tz (V.capp b (IndTerm (`Zero, []))) in
     (* The type (n : ℕ) → C n → C (succ n) of the step. *)
     let s =
       let env = ["C", V.Abs b] in
-      V.eval env @@ T.Pi (Explicit, c, "n", IndType `Nat, T.Pi (Explicit, c, "_", T.app (Var "C") (Var "n"), T.app (Var "C") (T.app (IndTerm `Succ) (Var "n"))))
+      V.eval env @@ T.Pi (Explicit, c, "n", IndType `Nat, T.Pi (Explicit, c, "_", T.app (Var "C") (Var "n"), T.app (Var "C") (IndTerm (`Succ, [Var "n"]))))
     in
     let ts = check k env ctx ts s in
     IndType_ind (`Nat, [tz;ts])
@@ -721,10 +716,13 @@ and infer k env ctx (t:term) : term * value =
   match t with
   | Type n -> Type n, Type (n + 1)
   | IndType ind -> IndType ind, Type 0
-  | IndTerm `Unit -> IndTerm `Unit, IndType `Unit
-  | IndTerm (`Bool b) -> IndTerm (`Bool b), IndType `Bool
-  | IndTerm (`Nat n) -> IndTerm (`Nat n), IndType `Nat
-  | IndTerm `Succ -> IndTerm `Succ, V.Pi (Explicit, Normal, IndType `Nat, ("_", IndType `Nat, []))
+  | IndTerm (`Unit, []) -> IndTerm (`Unit, []), IndType `Unit
+  | IndTerm (`Bool b, []) -> IndTerm (`Bool b, []), IndType `Bool
+  | IndTerm (`Zero, []) -> IndTerm (`Zero, []), IndType `Nat
+  | IndTerm (`Succ, [n]) ->
+    let n = check k env ctx n (IndType `Nat) in
+    IndTerm (`Succ, [n]), IndType `Nat
+  | IndTerm _ -> error ~t "constructor applied to the wrong number of arguments"
   | Pi (i, Crisp, x, a, b) ->
     let a, la = check_type k env (Context.crisp ctx) a in
     let xv = V.var k in
@@ -935,8 +933,8 @@ let check_decls_toplevel decls =
       add "unit" type0 unit;
       let bool = V.IndType `Bool in
       add "bool" type0 bool;
-      add "false" bool (V.IndTerm (`Bool false));
-      add "true" bool (V.IndTerm (`Bool true));
+      add "false" bool (V.IndTerm (`Bool false, []));
+      add "true" bool (V.IndTerm (`Bool true, []));
       add "nat" type0 (V.IndType `Nat);
     );
   ignore @@ check_decls 0 !env !ctx decls

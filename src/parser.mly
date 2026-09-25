@@ -68,18 +68,18 @@ atom:
   | TYPE n=INT { mk ~pos:$loc @@ Type n }
   | EMPTY { mk ~pos:$loc @@ IndType `Empty }
   | UNIT { mk ~pos:$loc @@ IndType `Unit }
-  | TT { mk ~pos:$loc @@ IndTerm `Unit }
+  | TT { mk ~pos:$loc @@ IndTerm (`Unit, []) }
   | BOOL { mk ~pos:$loc @@ IndType `Bool }
-  | FALSE { mk ~pos:$loc @@ IndTerm (`Bool false) }
-  | TRUE { mk ~pos:$loc @@ IndTerm (`Bool true) }
+  | FALSE { mk ~pos:$loc @@ IndTerm (`Bool false, []) }
+  | TRUE { mk ~pos:$loc @@ IndTerm (`Bool true, []) }
   | IDENT { mk ~pos:$loc @@ Var $1 }
   | REFL { mk ~pos:$loc @@ Refl (meta ~pos:$loc) }
   | HOLE { mk ~pos:$loc @@ Hole $loc }
   | META { meta ~pos:$loc }
   | NAT { mk ~pos:$loc @@ IndType `Nat }
-  | ZERO { mk ~pos:$loc @@ IndTerm (`Nat 0) }
-  | n=INT { mk ~pos:$loc @@ IndTerm (`Nat n) }
-  | SUCC { mk ~pos:$loc @@ IndTerm `Succ }
+  | ZERO { mk ~pos:$loc @@ IndTerm (`Zero, []) }
+  | n=INT { nat ~pos:$loc n }
+  | SUCC { succ ~pos:$loc }
   | I { mk ~pos:$loc @@ I }
   | I0 { mk ~pos:$loc @@ I0 }
   | I1 { mk ~pos:$loc @@ I1 }

@@ -4,7 +4,20 @@ open Term
 
 let abs ~pos ?(icit=Explicit) x t = mk ~pos @@ Abs(icit, x, t)
 
-let app ~pos ?(icit=Explicit) t u = mk ~pos @@ App(t, icit, u)
+let app ~pos ?(icit=Explicit) t u =
+  match icit, t with
+  (* Beta-reduce eta-expanded constructors (e.g. succ n) so that they can be inferred. *)
+  | Explicit, Abs (Explicit, x, IndTerm (c, [Var x'])) when x = x' -> mk ~pos @@ IndTerm (c, [u])
+  | _ -> mk ~pos @@ App(t, icit, u)
+
+(** A natural number numeral, as iterated successors of zero. *)
+let rec nat ~pos n =
+  assert (n >= 0);
+  if n = 0 then mk ~pos @@ IndTerm (`Zero, [])
+  else mk ~pos @@ IndTerm (`Succ, [nat ~pos (n-1)])
+
+(** The successor function (constructors are always fully applied, so we eta-expand). *)
+let succ ~pos = abs ~pos "n" @@ mk ~pos @@ IndTerm (`Succ, [Var "n"])
 
 (** Multiple abstractions. *)
 let rec abss ~pos l t =
@@ -60,7 +73,7 @@ let rec compile_clauses ~pos rows =
              match p with
              | `Bool b' -> if b = b' then Some (l, t) else None
              | `Var (Explicit, "_") -> Some (l, t)
-             | `Var (Explicit, x) -> Some (l, mk ~pos @@ Let (Crisp, x, IndType `Bool, IndTerm (`Bool b), t))
+             | `Var (Explicit, x) -> Some (l, mk ~pos @@ Let (Crisp, x, IndType `Bool, IndTerm (`Bool b, []), t))
              | _ -> error "unsupported pattern in boolean matching"
           ) (List.combine heads rows)
       in
@@ -82,7 +95,7 @@ let rec compile_clauses ~pos rows =
                else Some (l, mk ~pos @@ Let (Normal, x, IndType `Nat, Var n, t))
              | `Var (Explicit, "_") -> Some (l, t)
              | `Var (Explicit, x) ->
-               let v = if zero then IndTerm (`Nat 0) else Term.app (IndTerm `Succ) (Var n) in
+               let v = if zero then IndTerm (`Zero, []) else IndTerm (`Succ, [Var n]) in
                Some (l, mk ~pos @@ Let (Normal, x, IndType `Nat, v, t))
              | _ -> error "unsupported pattern in natural number matching"
           ) (List.combine heads rows)
