@@ -6,6 +6,12 @@ let abs ~pos ?(icit=Explicit) x t = mk ~pos @@ Abs(icit, x, t)
 
 let app ~pos ?(icit=Explicit) t u = mk ~pos @@ App(t, icit, u)
 
+(** A natural number numeral, as iterated successors of zero. *)
+let rec nat ~pos n =
+  assert (n >= 0);
+  if n = 0 then mk ~pos @@ IndTerm (`Zero, [])
+  else mk ~pos @@ IndTerm (`Succ, [nat ~pos (n-1)])
+
 (** Multiple abstractions. *)
 let rec abss ~pos l t =
   match l with
@@ -23,6 +29,7 @@ let abs_pattern ~pos x t =
       | `Flatten x -> Flat_ind (x, t)
       | `Refl -> J t
       | `Bool _ -> failwith @@ Printf.sprintf "%s: boolean pattern not allowed here" (Pos.to_string pos)
+      | `Nat _ -> failwith @@ Printf.sprintf "%s: natural number pattern not allowed here" (Pos.to_string pos)
     )
 
 let rec abss_pattern ~pos l t =
@@ -59,11 +66,36 @@ let rec compile_clauses ~pos rows =
              match p with
              | `Bool b' -> if b = b' then Some (l, t) else None
              | `Var (Explicit, "_") -> Some (l, t)
-             | `Var (Explicit, x) -> Some (l, mk ~pos @@ Let (Crisp, x, IndType `Bool, IndTerm (`Bool b), t))
+             | `Var (Explicit, x) -> Some (l, mk ~pos @@ Let (Crisp, x, IndType `Bool, IndTerm (`Bool b, []), t))
              | _ -> error "unsupported pattern in boolean matching"
           ) (List.combine heads rows)
       in
       mk ~pos @@ IndType_ind (`Bool, [compile_clauses ~pos (branch false); compile_clauses ~pos (branch true)])
+    else if List.exists (function `Nat _ -> true | _ -> false) heads then
+      (* Case analysis on natural numbers (no recursive calls). *)
+      let n =
+        List.find_map (function `Nat (Some x) when x <> "_" -> Some x | _ -> None) heads
+        |> Option.value ~default:"_n"
+      in
+      let branch zero =
+        List.filter_map
+          (fun (p, (l, t)) ->
+             match p with
+             | `Nat None -> if zero then Some (l, t) else None
+             | `Nat (Some x) ->
+               if zero then None
+               else if x = n || x = "_" then Some (l, t)
+               else Some (l, mk ~pos @@ Let (Normal, x, IndType `Nat, Var n, t))
+             | `Var (Explicit, "_") -> Some (l, t)
+             | `Var (Explicit, x) ->
+               let v = if zero then IndTerm (`Zero, []) else IndTerm (`Succ, [Var n]) in
+               Some (l, mk ~pos @@ Let (Normal, x, IndType `Nat, v, t))
+             | _ -> error "unsupported pattern in natural number matching"
+          ) (List.combine heads rows)
+      in
+      let tz = compile_clauses ~pos (branch true) in
+      let ts = abss ~pos [n; "_"] (compile_clauses ~pos (branch false)) in
+      mk ~pos @@ IndType_ind (`Nat, [tz; ts])
     else if List.for_all (function `Var _ -> true | _ -> false) heads then
       let icit = match List.hd heads with `Var (i, _) -> i | _ -> assert false in
       let names = List.filter_map (function `Var (i, x) -> if i <> icit then error "implicit and explicit arguments mixed in clauses" else if x = "_" then None else Some x | _ -> assert false) heads in
@@ -81,7 +113,7 @@ type item =
   | Clause of Pos.t * string * pattern list * t (** defining clause *)
   | Decls of decls (** other declarations *)
 
-and pattern = [`Var of icit * string | `Unit | `Pair of string * string | `Tens of string * string | `Flatten of string | `Refl | `Bool of bool]
+and pattern = [`Var of icit * string | `Unit | `Pair of string * string | `Tens of string * string | `Flatten of string | `Refl | `Bool of bool | `Nat of string option]
 
 (** Group signatures with their defining clauses. *)
 let rec group_decls = function

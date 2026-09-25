@@ -24,11 +24,14 @@ let meta ~pos = mk ~pos @@ Meta (`Fresh (Some pos))
 %token FLAT FLATTEN
 %token IDEQ REFL
 %token EQUIV CIRC
+%token NAT ZERO SUCC NATIND
 %token I I0 I1 Iv Iw
 %token<string> IDENT
 %token OPEN
 %token<string> IMPORT
 
+%nonassoc below_INT
+%nonassoc INT
 %nonassoc EQUIV
 %nonassoc IDEQ
 %right TIMES
@@ -60,19 +63,23 @@ item:
   | OPEN t=term { Decls [Open t] }
 
 atom:
-  | TYPE { mk ~pos:$loc @@ Type 0 }
+  | TYPE %prec below_INT { mk ~pos:$loc @@ Type 0 }
   | LARGETYPE { mk ~pos:$loc @@ Type 1 }
   | TYPE n=INT { mk ~pos:$loc @@ Type n }
   | EMPTY { mk ~pos:$loc @@ IndType `Empty }
   | UNIT { mk ~pos:$loc @@ IndType `Unit }
-  | TT { mk ~pos:$loc @@ IndTerm `Unit }
+  | TT { mk ~pos:$loc @@ IndTerm (`Unit, []) }
   | BOOL { mk ~pos:$loc @@ IndType `Bool }
-  | FALSE { mk ~pos:$loc @@ IndTerm (`Bool false) }
-  | TRUE { mk ~pos:$loc @@ IndTerm (`Bool true) }
+  | FALSE { mk ~pos:$loc @@ IndTerm (`Bool false, []) }
+  | TRUE { mk ~pos:$loc @@ IndTerm (`Bool true, []) }
   | IDENT { mk ~pos:$loc @@ Var $1 }
   | REFL { mk ~pos:$loc @@ Refl (meta ~pos:$loc) }
   | HOLE { mk ~pos:$loc @@ Hole $loc }
   | META { meta ~pos:$loc }
+  | NAT { mk ~pos:$loc @@ IndType `Nat }
+  | ZERO { mk ~pos:$loc @@ IndTerm (`Zero, []) }
+  | n=INT { nat ~pos:$loc n }
+  | SUCC { mk ~pos:$loc @@ Var "succ" }
   | I { mk ~pos:$loc @@ I }
   | I0 { mk ~pos:$loc @@ I0 }
   | I1 { mk ~pos:$loc @@ I1 }
@@ -88,6 +95,7 @@ app_term:
   | prefix_term { $1 }
   | t=app_term u=prefix_term { app ~pos:$loc t u }
   | t=app_term LACC u=term RACC { app ~pos:$loc ~icit:Implicit t u }
+  | NATIND z=prefix_term s=prefix_term { mk ~pos:$loc @@ IndType_ind (`Nat, [z; s]) }
 
 prod_term:
   | app_term { $1 }
@@ -124,6 +132,9 @@ pattern:
   | REFL { `Refl }
   | FALSE { `Bool false }
   | TRUE { `Bool true }
+  | ZERO { `Nat None }
+  | n=INT { if n <> 0 then failwith (Printf.sprintf "%s: only 0 is allowed as a numeral pattern" (Pos.to_string $loc)); `Nat None }
+  | LPAR SUCC x=identm RPAR { `Nat (Some x) }
 
 identm:
   | IDENT { $1 }

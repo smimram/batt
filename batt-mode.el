@@ -4,7 +4,9 @@
  '(
    ("--.*" . 'font-lock-comment-face)
    ("\\<\\(let\\|in\\|fun\\|λ\\|open\\|import\\)\\>\\|:\\|∷\\|=" . font-lock-keyword-face)
-   ("\\<\\(true\\|false\\|tt\\|refl\\)\\>" . font-lock-constant-face)
+   ("\\<\\(true\\|false\\|tt\\|refl\\|zero\\|succ\\|[0-9]+\\)\\>" . font-lock-constant-face)
+   ;; ℕ but not ℕ-ind (the - is not a word constituent)
+   ("\\<\\(Nat\\|ℕ\\)\\(?:[^-[:word:]]\\|$\\)" 1 font-lock-builtin-face)
    ("\\\\\\(bigotimes\\|otimes\\|Sigma\\|times\\|fflat\\|flat\\|equiv\\|simeq\\|circ\\|top\\|bot\\|tol\\|tor\\|to\\)\\|\\<\\(U\\|Type\\|TYPE\\|Bool\\|Unit\\|Empty\\|II[01vw]?\\)\\>\\|𝕀[01∨∧]?\\|->l\\|->r\\|->\\|→ₗ\\|→ᵣ\\|⇀\\|⇁\\|→\\|⨂\\|⊗\\|@\\|≡\\|≃\\|∘\\|Σ\\|×\\|⊥\\|⊤\\|♭\\|𝄫" . font-lock-builtin-face)
    ("^\\([^ (=\n]+\\)" 1 'font-lock-function-name-face)
   )
