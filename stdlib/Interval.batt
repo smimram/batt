@@ -4,6 +4,9 @@ open import Bipointed
 
 postulate is-set-𝕀 ∷ is-set 𝕀
 
+-- This one is not provable as for now (we have the trivial model for the
+-- interval). It might become the case if we assume some form of directed
+-- univalence.
 postulate neq-𝕀0-𝕀1 ∷ ¬ (𝕀0 ≡ 𝕀1)
 
 boundary-inclusion ∷ bool → 𝕀
