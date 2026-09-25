@@ -17,6 +17,7 @@ type t =
   | Type of int (** universe level *)
   | IndType of inductive_type
   | IndTerm of inductive_term
+  | Succ of t
   | IndType_ind of inductive_type * t list * spine
   | Pi of icit * crispness * t * closure
   | Abs of closure
@@ -158,13 +159,25 @@ let rec eval (env:environment) : Term.t -> t = function
 (** Make a variable. *)
 and var k = Var (k, [])
 
+(** Successor of a natural number. *)
+and succ n =
+  match force n with
+  | IndTerm (`Nat n) -> IndTerm (`Nat (n+1))
+  | n -> Succ n
+
 (** Apply a value to another. *)
 and app t u =
   match force t, force u with
   | Abs f, u -> capp f u
+  | IndTerm `Succ, u -> succ u
   | IndType_ind (`Unit, [t], []), IndTerm `Unit -> t
   | IndType_ind (`Bool, [tf;_tt], []), IndTerm (`Bool false) -> tf
   | IndType_ind (`Bool, [_tf;tt], []), IndTerm (`Bool true) -> tt
+  | IndType_ind (`Nat, [tz;_ts], []), IndTerm (`Nat 0) -> tz
+  | IndType_ind (`Nat, [_tz;ts], []), IndTerm (`Nat n) ->
+    let n = IndTerm (`Nat (n-1)) in
+    apps ts [n; app t n]
+  | IndType_ind (`Nat, [_tz;ts], []), Succ n -> apps ts [n; app t n]
   | IndType_ind (ind, t, l), u -> IndType_ind (ind, t, u::l)
   | Pair_ind (t, []), Pair (u, v) -> capp2 t u v
   | Pair_ind (t, l), u -> Pair_ind (t, u::l)
@@ -245,6 +258,7 @@ let rec readback k v : Term.t =
   | IndType ind -> IndType ind
   | IndType_ind (ind, args, l) -> spine l @@ IndType_ind (ind, List.map (readback k) args)
   | IndTerm t -> IndTerm t
+  | Succ t -> Term.app (IndTerm `Succ) (readback k t)
   | Pi (i, c, a, b) -> Pi (i, c, var_name k, readback k a, readback (k+1) (capp b (var k)))
   | Abs f -> Abs (Explicit, var_name k, readback (k+1) (capp f (var k)))
   | Sigma (a, b) -> Sigma (var_name k, readback k a, readback (k+1) (capp b (var k)))

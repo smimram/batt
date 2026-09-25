@@ -283,6 +283,7 @@ let unify ~pos k (t:value) (u:value) =
         | Type n -> Type n
         | IndType i -> IndType i
         | IndTerm t -> IndTerm t
+        | Succ t -> T.app (IndTerm `Succ) (rename r t)
         | IndType_ind (i, t, l) -> spine l @@ IndType_ind (i, List.map (rename r) t)
         | Pair (t, u) -> Pair (rename r t, rename r u)
         | Pair_ind (t, l) ->
@@ -354,6 +355,11 @@ let unify ~pos k (t:value) (u:value) =
       if i <> i' then raise Unification
     | IndTerm t, IndTerm t' ->
       if t <> t' then raise Unification
+    | Succ t, Succ t' -> unify k t t'
+    | IndTerm (`Nat n), Succ t
+    | Succ t, IndTerm (`Nat n) ->
+      if n = 0 then raise Unification;
+      unify k (IndTerm (`Nat (n-1))) t
     | IndType_ind (i, t, l), IndType_ind (i', t', l') ->
       if i <> i' then raise Unification;
       spine k t t'; (* NOTE: this is not a spine but ok *)
@@ -607,6 +613,17 @@ let rec check k env ctx (t:term) (a:value) : term =
     let tf = check k env ctx tf b in
     let tt = check k env ctx tt b in
     IndType_ind (`Bool, [tf;tt])
+  | IndType_ind (`Nat, [tz;ts]), Pi (Explicit, c, a, b) ->
+    unify k t a (IndType `Nat);
+    let tz = check k env ctx tz (V.capp b (IndTerm (`Nat 0))) in
+    (* The type (n : ℕ) → C n → C (succ n) of the step. *)
+    let s =
+      let env = ["C", V.Abs b] in
+      V.eval env @@ T.Pi (Explicit, c, "n", IndType `Nat, T.Pi (Explicit, c, "_", T.app (Var "C") (Var "n"), T.app (Var "C") (T.app (IndTerm `Succ) (Var "n"))))
+    in
+    let ts = check k env ctx ts s in
+    IndType_ind (`Nat, [tz;ts])
+  | IndType_ind (`Nat, _), Arr _ -> error ~t "induction on natural numbers is not supported for lax arrows"
   | Flatten t, Flat a ->
     let t = check k env (Context.crisp ctx) t a in
     Flatten t
@@ -706,6 +723,8 @@ and infer k env ctx (t:term) : term * value =
   | IndType ind -> IndType ind, Type 0
   | IndTerm `Unit -> IndTerm `Unit, IndType `Unit
   | IndTerm (`Bool b) -> IndTerm (`Bool b), IndType `Bool
+  | IndTerm (`Nat n) -> IndTerm (`Nat n), IndType `Nat
+  | IndTerm `Succ -> IndTerm `Succ, V.Pi (Explicit, Normal, IndType `Nat, ("_", IndType `Nat, []))
   | Pi (i, Crisp, x, a, b) ->
     let a, la = check_type k env (Context.crisp ctx) a in
     let xv = V.var k in
@@ -918,6 +937,7 @@ let check_decls_toplevel decls =
       add "bool" type0 bool;
       add "false" bool (V.IndTerm (`Bool false));
       add "true" bool (V.IndTerm (`Bool true));
+      add "nat" type0 (V.IndType `Nat);
     );
   ignore @@ check_decls 0 !env !ctx decls
 

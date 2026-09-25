@@ -1,16 +1,17 @@
 type var = string
 
 (** Basic inductive types. *)
-type inductive_type = [`Empty | `Unit | `Bool]
+type inductive_type = [`Empty | `Unit | `Bool | `Nat]
 [@@deriving show]
 
 let string_of_inductive_type = function
   | `Empty -> "Empty"
   | `Unit -> "Unit"
   | `Bool -> "Bool"
+  | `Nat -> "Nat"
 
 (** Basic inductive terms. *)
-type inductive_term = [`Unit | `Bool of bool]
+type inductive_term = [`Unit | `Bool of bool | `Nat of int | `Succ]
 [@@deriving show]
 
 (** Side for lax arrows. *)
@@ -160,6 +161,8 @@ let rec to_string t =
   | IndType_ind (ind, args) -> Printf.sprintf "%s_ind(%s)" (string_of_inductive_type ind) (String.concat "," @@ List.map to_string args)
   | IndTerm `Unit -> "tt"
   | IndTerm (`Bool b) -> string_of_bool b
+  | IndTerm (`Nat n) -> string_of_int n
+  | IndTerm `Succ -> "succ"
   | Pi (i, c, x, a, t) ->
     (
       match i with
