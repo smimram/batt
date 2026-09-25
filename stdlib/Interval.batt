@@ -9,7 +9,9 @@ postulate is-set-𝕀 ∷ is-set 𝕀
 postulate neq-𝕀0-𝕀1 ∷ ¬ (𝕀0 ≡ 𝕀1)
 
 boundary-inclusion ∷ bool → 𝕀
-boundary-inclusion = bool_ind(𝕀0,𝕀1)
+boundary-inclusion false = 𝕀0
+boundary-inclusion true  = 𝕀1
+
 
 leq :: 𝕀 → 𝕀 → Type
 leq i j = i 𝕀∨ j ≡ j

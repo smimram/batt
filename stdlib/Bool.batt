@@ -1,15 +1,19 @@
 rec-bool :: (C : bool → U) → C false → C true → (b : bool) → C b
-rec-bool C cf ct = bool_ind(cf,ct)
+rec-bool C cf ct false = cf
+rec-bool C cf ct true  = ct
 
 ind-bool :: (C : U) → C → C → bool → C
-ind-bool C cf ct = bool_ind(cf,ct)
+ind-bool C cf ct false = cf
+ind-bool C cf ct true  = ct
 
 not :: bool → bool
 not false = true
-not true = false
+not true  = false
 
 and :: bool → bool → bool
-and = bool_ind(fun _ → false,fun b → b)
+and false _ = false
+and true  b = b
 
 or :: bool → bool → bool
-or = bool_ind(fun b → b,fun _ → true)
+or false b = b
+or true  b = b

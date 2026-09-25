@@ -11,7 +11,8 @@ comp : {A B C : U} → (B → C) → (A → B) → (A → C)
 comp g f a = g (f a)
 
 not : bool → bool
-not = bool_ind(false, true)
+not false = true
+not true  = false
 
 f : bool → bool
 f = comp not (id {bool})

@@ -12,7 +12,6 @@ let rec token lexbuf =
   | "tt" -> TT
   | "false" -> FALSE
   | "true" -> TRUE
-  | "bool_ind" -> BOOL_IND
   | Utf8 "∷" | "::" -> CCOLON
   | ":" -> COLON
   | "=" -> EQ
