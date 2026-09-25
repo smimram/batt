@@ -40,6 +40,7 @@ type t =
   | RecordType of (string * crispness * t) list
   | Record of (string * t) list
   | RecordField of string * spine
+  | I | I0 | I1 | Iv of t * t | Iw of t * t
 [@@deriving show]
 
 (** A closure. *)
@@ -148,6 +149,11 @@ let rec eval (env:environment) : Term.t -> t = function
     RecordType l
   | RecordField (t, x) ->
     app (RecordField (x, [])) (eval env t)
+  | I -> I
+  | I0 -> I0
+  | I1 -> I1
+  | Iv (i, j) -> interval @@ Iv (eval env i, eval env j)
+  | Iw (i, j) -> interval @@ Iw (eval env i, eval env j)
 
 (** Make a variable. *)
 and var k = Var (k, [])
@@ -198,6 +204,38 @@ and force t =
   | Meta (m, s) when m.value <> None -> force @@ app_spine (Option.get m.value) s
   | _ -> t
 
+(** Put an interval value in canonical conjunctive normal form: a meet of joins
+    of atoms, with atoms sorted and deduplicated in each join, and absorbed
+    joins removed. *)
+and interval i =
+  let subset c c' = List.for_all (fun a -> List.mem a c') c in
+  let rec cnf i : t list list =
+    match force i with
+    | I0 -> [[]]
+    | I1 -> []
+    | Iv (i, j) ->
+      let j = cnf j in
+      List.concat_map (fun c -> List.map (fun c' -> c @ c') j) (cnf i)
+    | Iw (i, j) -> cnf i @ cnf j
+    | a -> [[a]]
+  in
+  let clauses = List.map (List.sort_uniq compare) (cnf i) in
+  (* Absorption: remove joins containing another one. *)
+  let clauses = List.stable_sort (fun c c' -> compare (List.length c) (List.length c')) clauses in
+  let clauses = List.fold_left (fun kept c -> if List.exists (fun c' -> subset c' c) kept then kept else c::kept) [] clauses in
+  let clauses = List.sort compare clauses in
+  let rec sup = function
+    | [] -> I0
+    | [i] -> i
+    | i::l -> Iv (i, sup l)
+  in
+  let rec inf = function
+    | [] -> I1
+    | [i] -> i
+    | i::l -> Iw (i, inf l)
+  in
+  inf @@ List.map sup clauses
+
 (** Reify a value as a term. *)
 let rec readback k v : Term.t =
   let var_name k = "x" ^ string_of_int k in
@@ -235,5 +273,10 @@ let rec readback k v : Term.t =
       List.hd l, List.rev @@ List.tl l
     in
     spine l @@ RecordField (readback k t, x)
+  | I -> I
+  | I0 -> I0
+  | I1 -> I1
+  | Iv (i, j) -> Iv (readback k i, readback k j)
+  | Iw (i, j) -> Iw (readback k i, readback k j)
 
 let to_string k v = Term.to_string @@ readback k v

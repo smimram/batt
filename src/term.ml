@@ -62,6 +62,7 @@ type t =
   | RecordType of (string * crispness * t) list
   | Record of [`Recursive | `NonRecursive] * (string * t) list
   | RecordField of t * string
+  | I | I0 | I1 | Iv of t * t | Iw of t * t
 
 (** A declaration. *)
 and decl =
@@ -141,6 +142,8 @@ module FV = struct
     | Record _ -> failwith "TODO"
     | RecordType l -> List.fold_left (fun fv (_x, _c, a) -> union fv (term a)) empty l
     | RecordField (t, _x) -> term t
+    | I | I0 | I1 -> empty
+    | Iv (i, j) | Iw (i, j) -> union (term i) (term j)
 end
 
 let crispy_colon = function
@@ -202,3 +205,8 @@ let rec to_string t =
     let l = String.concat "; " @@ List.map (fun (x,c,a) -> x ^ " " ^ crispy_colon c ^ " " ^ to_string a) l in
     Printf.sprintf "{ %s }" l
   | RecordField (t,x) -> Printf.sprintf "%s.%s" (to_string t) x
+  | I -> "𝕀"
+  | I0 -> "𝕀0"
+  | I1 -> "𝕀1"
+  | Iv (i, j) -> Printf.sprintf "%s 𝕀∨ %s" (to_string i) (to_string j)
+  | Iw (i, j) -> Printf.sprintf "%s 𝕀∧ %s" (to_string i) (to_string j)

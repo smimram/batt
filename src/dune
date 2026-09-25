@@ -3,15 +3,9 @@
  ; (flags --strict --unused-token INCLUDE)
 )
 
-(executable
- (public_name batt)
+(library
+ (name batt)
+ (wrapped false)
  (libraries sedlex menhirLib unix)
  (preprocess (pps ppx_deriving.show sedlex.ppx))
- (promote (until-clean))
-)
-
-(rule
- (alias runtest)
- (deps test.batt)
- (action (run ./batt.exe -I ../stdlib test.batt))
 )

@@ -29,18 +29,12 @@ unflatten 𝄫x = x
 -- flatten : (A :: U) → A → ♭A
 -- flatten = fun A → fun a → 𝄫a
 
---- Formalizing Shulman 2017
-
--- Lemma 4.4
--- flat-unique : (A :: Type) (C : ♭A → Type) (f : (x : ♭A) → C x) (x : ♭A) → ((λ 𝄫u → f 𝄫 u) x) ≡ f x
--- flat-unique A C f 𝄫x = refl
-
--- -- Lemma 5.2
--- flat-commutation : (A : Type) (B : ♭A → Type) (M : ♭A) (N : (u : A) → B 𝄫u) →
+--- Formalizing Shulman 2017 ( https://arxiv.org/abs/1509.07584v3 )
 
 flat-eta :: {A :: Type} (C : ♭A → Type) (f : (x : ♭A) → C x) (x : ♭A) → C x
 flat-eta C f 𝄫x = f 𝄫x
 
+-- Lemma 4.4
 flat-unique :: {A :: Type} (C : ♭A → Type) (f : (x : ♭A) → C x) (x : ♭A) → flat-eta C f x ≡ f x
 flat-unique C f 𝄫x = refl
 
@@ -82,7 +76,8 @@ is-section-crispify-unit :: (t : ⊤) → unflatten (crispify-unit t) ≡ t
 is-section-crispify-unit tt = refl
 
 crispify-bool :: bool → ♭bool
-crispify-bool = bool_ind(𝄫false, 𝄫true)
+crispify-bool false = 𝄫false
+crispify-bool true  = 𝄫true
 
 is-section-crispify-bool :: (b : bool) → unflatten (crispify-bool b) ≡ b
 is-section-crispify-bool = rec-bool (λb. unflatten (crispify-bool b) ≡ b) refl refl
@@ -94,13 +89,123 @@ is-section-crispify-bool = rec-bool (λb. unflatten (crispify-bool b) ≡ b) ref
 open import Equivalence
 open import Funext
 
--- -- Theorem 6.1
--- flat-path-equiv :: {A :: Type} {x y :: ♭ A} → (𝄫 x ≡ 𝄫 y) ≃ ♭ (x ≡ y)
--- flat-path-equiv {A} {x} {y} =
-  -- let code : ♭ A → ♭ A → Type = fun 𝄫 x → fun 𝄫 y → ♭ (x ≡ y) in
-  -- let lem  : (x y : ♭ A) → (x ≡ y) ≃ code x y = ? in
-  -- let lem' : (x y : ♭ A) → (𝄫 x ≡ 𝄫 y) ≃ ♭ (x ≡ y) = fun 𝄫 x → 𝄫 y → lem (𝄫 x) (𝄫 y) in
-  -- lem' x y
+-- Theorem 6.1
+flat-code :: {A :: U} → ♭A → ♭A → U
+flat-code {A} = fun 𝄫x → fun 𝄫y → ♭(x ≡ y)
+
+flat-refl :: {A :: U} (u : ♭A) → flat-code u u
+flat-refl {A} = fun 𝄫x → 𝄫refl
+
+-- transporting flat-refl along the path
+flat-encode :: {A :: U} (u v : ♭A) → u ≡ v → flat-code u v
+flat-encode {A} u v p = subst (flat-code u) p (flat-refl u)
+
+-- crisp path induction, after matching on everybody
+flat-decode :: {A :: U} (u v : ♭A) → flat-code u v → u ≡ v
+flat-decode {A} = fun 𝄫x → fun 𝄫y → fun 𝄫p →
+  let h : (y :: A) (p :: x ≡ y) → 𝄫x ≡ 𝄫y = fun refl → refl in
+  h y p
+
+flat-encode-decode :: {A :: U} (u v : ♭A) (c : flat-code u v) → flat-encode u v (flat-decode u v c) ≡ c
+flat-encode-decode {A} = fun 𝄫x → fun 𝄫y → fun 𝄫p →
+  let h : (y :: A) (p :: x ≡ y) → flat-encode 𝄫x 𝄫y (flat-decode 𝄫x 𝄫y 𝄫p) ≡ 𝄫p = fun refl → refl in
+  h y p
+
+flat-decode-encode :: {A :: U} (u v : ♭A) (p : u ≡ v) → flat-decode u v (flat-encode u v p) ≡ p
+flat-decode-encode {A} =
+  let lem : (u : ♭A) → flat-decode {A} u u (flat-encode {A} u u refl) ≡ refl = fun 𝄫x → refl in
+  fun u → fun v → fun p → J' (fun u → fun v → fun p → flat-decode {A} u v (flat-encode {A} u v p) ≡ p) lem p
+
+flat-id :: {A :: U} {x y :: A} → (𝄫x ≡ 𝄫y) ≃ ♭(x ≡ y)
+flat-id {A} {x} {y} =
+  ( flat-encode 𝄫x 𝄫y
+  , ( (flat-decode 𝄫x 𝄫y , flat-encode-decode 𝄫x 𝄫y)
+    , (flat-decode 𝄫x 𝄫y , flat-decode-encode 𝄫x 𝄫y) ) )
+
+flat-id-inv :: {A :: U} {x y :: A} → is-equiv (flat-decode 𝄫x 𝄫y)
+flat-id-inv {A} {x} {y} =
+  ( (flat-encode 𝄫x 𝄫y , flat-decode-encode 𝄫x 𝄫y)
+  , (flat-encode 𝄫x 𝄫y , flat-encode-decode 𝄫x 𝄫y) )
+
+-- Corollary 6.2
+flat-id' :: {A :: U} {u v :: ♭A} → (u ≡ v) ≃ ♭(unflatten u ≡ unflatten v)
+flat-id' {A} {u} {v} =
+  -- every crisp u :: ♭A is 𝄫(unflatten u)
+  let h : (u v :: ♭A) → (u ≡ v) ≃ ♭(unflatten u ≡ unflatten v) = fun 𝄫x → fun 𝄫y → flat-id {A} {x} {y} in
+  h u v
+
+-- Corollary 6.3
+flat-path :: {A :: U} {u v :: A} (p :: u ≡ v) → 𝄫u ≡ 𝄫v
+flat-path {A} {u} {v} p =
+  let f : (v :: A) (p :: u ≡ v) → 𝄫u ≡ 𝄫v = fun refl → refl in
+  f v p
+
+-- Lemma 6.8
+-- the type family u ↦ ♭(B u) on ♭A: since ♭ requires a crisp argument, it is
+-- defined by ♭-induction (it computes to ♭(B a) on 𝄫a)
+flat-fam :: {A :: U} (B :: A → U) → ♭A → U
+flat-fam {A} B = fun 𝄫a → ♭(B a)
+
+flat-sigma-split :: {A :: U} {B :: A → U} → ♭(Σ (x : A) . B x) → Σ (u : ♭A) . flat-fam B u
+flat-sigma-split {A} {B} 𝄫p =
+  let h : (p :: Σ (x : A) . B x) → Σ (u : ♭A) . flat-fam B u = fun (a , b) → (𝄫a , 𝄫b) in
+  h p
+
+flat-sigma-unsplit :: {A :: U} {B :: A → U} → (Σ (u : ♭A) . flat-fam B u) → ♭(Σ (x : A) . B x)
+flat-sigma-unsplit {A} {B} (u , v) =
+  let h : (u : ♭A) → flat-fam B u → ♭(Σ (x : A) . B x) = fun 𝄫a → fun 𝄫b → 𝄫(a , b) in
+  h u v
+
+flat-sigma-split-unsplit :: {A :: U} {B :: A → U} (y : Σ (u : ♭A) . flat-fam B u) →
+  flat-sigma-split {A} {B} (flat-sigma-unsplit {A} {B} y) ≡ y
+flat-sigma-split-unsplit {A} {B} (u , v) =
+  let h : (u : ♭A) (v : flat-fam B u) →
+    flat-sigma-split {A} {B} (flat-sigma-unsplit {A} {B} (u , v)) ≡ (u , v) =
+    fun 𝄫a → fun 𝄫b → refl
+  in
+  h u v
+
+flat-sigma-unsplit-split :: {A :: U} {B :: A → U} (x : ♭(Σ (x : A) . B x)) →
+  flat-sigma-unsplit {A} {B} (flat-sigma-split {A} {B} x) ≡ x
+flat-sigma-unsplit-split {A} {B} 𝄫p =
+  let h : (p :: Σ (x : A) . B x) →
+    flat-sigma-unsplit {A} {B} (flat-sigma-split {A} {B} 𝄫p) ≡ 𝄫p = fun (a , b) → refl in
+  h p
+
+flat-sigma-equiv :: {A :: Type} {B :: A → Type} → ♭(Σ (x : A) . B x) ≃ (Σ (u : ♭A) . flat-fam B u)
+flat-sigma-equiv {A} {B} =
+  ( flat-sigma-split {A} {B}
+  , ( (flat-sigma-unsplit {A} {B} , flat-sigma-split-unsplit {A} {B})
+    , (flat-sigma-unsplit {A} {B} , flat-sigma-unsplit-split {A} {B}) ) )
+
+-- Theorem 6.9
+flat-split :: {A B :: U} → ♭(A × B) → ♭A × ♭B
+flat-split {A} {B} 𝄫x =
+  let h : (x :: A × B) → ♭A × ♭B = fun (a , b) → (𝄫a , 𝄫b) in
+  h x
+
+flat-unsplit :: {A B :: U} → ♭A × ♭B → ♭(A × B)
+flat-unsplit {A} {B} (u , v) =
+  let h : (u : ♭A) (v : ♭B) → ♭(A × B) = fun 𝄫a → fun 𝄫b → 𝄫(a , b) in
+  h u v
+
+flat-split-unsplit :: {A B :: U} (y : ♭A × ♭B) → flat-split (flat-unsplit y) ≡ y
+flat-split-unsplit {A} {B} (u , v) =
+  let h : (u : ♭A) (v : ♭B) → flat-split (flat-unsplit (u , v)) ≡ (u , v) =
+    fun 𝄫a → fun 𝄫b → refl
+  in
+  h u v
+
+flat-unsplit-split :: {A B :: U} (x : ♭(A × B)) → flat-unsplit (flat-split x) ≡ x
+flat-unsplit-split {A} {B} 𝄫x =
+  let h : (x :: A × B) → flat-unsplit (flat-split 𝄫x) ≡ 𝄫x = fun (a , b) → refl in
+  h x
+
+flat-prod-equiv :: {A B :: Type} → ♭(A × B) ≃ ♭A × ♭B
+flat-prod-equiv {A} {B} =
+  ( flat-split {A} {B}
+  , ( (flat-unsplit {A} {B} , flat-split-unsplit {A} {B})
+    , (flat-unsplit {A} {B} , flat-unsplit-split {A} {B}) ) )
 
 -- Theorem 6.14
 -- forward
@@ -120,6 +225,26 @@ flat-flatten-target 𝄫f = 𝄫(λ𝄫b.𝄫(f(𝄫b)))
 is-discrete :: (A :: U) → Type
 is-discrete A = is-equiv {♭ A} {A} unflatten
 
+unflatten-postcomp :: {A B :: Type} → (B → ♭A) → (B → A)
+unflatten-postcomp f = unflatten ∘ f
+
+-- Corollary 6.15
+unflatten-postcomp-section :: {A B :: Type} (e :: section (unflatten {A})) →
+  section (flat-map (unflatten-postcomp {A} {B}))
+unflatten-postcomp-section {A} {B} (s , ss) =
+  ( flat-map {B → A} {B → ♭A} (fun g → s ∘ g)
+  , fun 𝄫g → flat-path (funext-nd _ _ (fun b → ss (g b))) )
+
+unflatten-postcomp-retraction :: {A B :: Type} (e :: retraction (unflatten {A})) →
+  retraction (flat-map (unflatten-postcomp {A} {B}))
+unflatten-postcomp-retraction {A} {B} (r , rr) =
+  ( flat-map {B → A} {B → ♭A} (fun h → r ∘ h)
+  , fun 𝄫f → flat-path (funext-nd _ _ (fun b → rr (f b))) )
+
+unflatten-equiv :: {A B :: Type} (d :: is-discrete A) → is-equiv (flat-map (unflatten-postcomp {A} {B}))
+unflatten-equiv {A} {B} (sec , ret) =
+  (unflatten-postcomp-section {A} {B} sec , unflatten-postcomp-retraction {A} {B} ret)
+
 -- Theorem 6.18
 is-discrete-flat :: (A :: U) → is-discrete (♭ A)
 is-discrete-flat A =
@@ -133,6 +258,54 @@ is-discrete-flat A =
   -- is-iso→is-equiv (g , fg , gf)
   ((g , fg) , (g , gf))
 
--- -- Theorem 6.19
--- is-discrete-prod :: {A B :: U} → is-discrete A → is-discrete B → is-discrete (A × B)
--- is-discrete-prod
+-- pairing of flat elements
+flat-pair :: {A B :: U} → ♭A → ♭B → ♭(A × B)
+flat-pair 𝄫a 𝄫b = 𝄫(a , b)
+
+unflatten-flat-pair :: {A B :: U} (x : ♭A) (y : ♭B) → unflatten (flat-pair x y) ≡ (unflatten x , unflatten y)
+unflatten-flat-pair 𝄫a 𝄫b = refl
+
+-- Theorem 6.19
+flat-pair-section :: {A B :: U} → section (unflatten {A}) → section (unflatten {B}) → section (unflatten {A × B})
+flat-pair-section {A} {B} (s , ss) (s' , ss') =
+  ( (fun (a , b) → flat-pair (s a) (s' b))
+  , (fun (a , b) → trans (unflatten-flat-pair (s a) (s' b)) (cong2 (pair {A} {B}) (ss a) (ss' b))) )
+
+flat-pair-retraction :: {A B :: U} → retraction (unflatten {A}) → retraction (unflatten {B}) → retraction (unflatten {A × B})
+flat-pair-retraction {A} {B} (r , rr) (r' , rr') =
+  let ret : A × B → ♭(A × B) = fun (a , b) → flat-pair (r a) (r' b) in
+  ( ret
+  , (fun 𝄫x →
+      let h : (x :: A × B) → ret (unflatten 𝄫x) ≡ 𝄫x =
+        fun (a , b) → cong2 flat-pair (rr 𝄫a) (rr' 𝄫b)
+      in
+      h x) )
+
+is-discrete-prod :: {A B :: U} → is-discrete A → is-discrete B → is-discrete (A × B)
+is-discrete-prod {A} {B} (sA , rA) (sB , rB) = (flat-pair-section sA sB , flat-pair-retraction rA rB)
+
+-- Theorem 6.19
+is-discrete-unit :: is-discrete ⊤
+is-discrete-unit =
+  let ret : (x : ♭⊤) → crispify-unit (unflatten x) ≡ x = fun 𝄫x →
+    let h : (x :: ⊤) → crispify-unit (unflatten 𝄫x) ≡ 𝄫x = fun tt → refl in
+    h x
+  in
+  ((crispify-unit , is-section-crispify-unit) , (crispify-unit , ret))
+
+open import Univalence
+
+-- unflatten on ♭(x ≡ y) is the action of unflatten on paths
+unflatten-flat-decode :: {A :: U} {x y :: A} (c : ♭(x ≡ y)) → cong (unflatten {A}) (flat-decode 𝄫x 𝄫y c) ≡ unflatten c
+unflatten-flat-decode {A} {x} {y} 𝄫p =
+  let h : (y :: A) (p :: x ≡ y) → cong (unflatten {A}) (flat-decode 𝄫x 𝄫y 𝄫p) ≡ unflatten 𝄫p = fun refl → refl in
+  h y p
+
+-- Theorem 6.19: identity types of a discrete type are discrete
+is-discrete-id :: {A :: U} {x y :: A} → is-discrete A → is-discrete (x ≡ y)
+is-discrete-id {A} {x} {y} d =
+  is-equiv-htpy
+    {♭(x ≡ y)} {x ≡ y}
+    {cong (unflatten {A}) {𝄫x} {𝄫y} ∘ flat-decode {A} 𝄫x 𝄫y} {unflatten {x ≡ y}}
+    (unflatten-flat-decode {A} {x} {y})
+    (is-equiv-circ (cong (unflatten {A}) {𝄫x} {𝄫y}) (flat-decode {A} 𝄫x 𝄫y) (ap-equiv (unflatten {A}) d 𝄫x 𝄫y) (flat-id-inv {A} {x} {y}))

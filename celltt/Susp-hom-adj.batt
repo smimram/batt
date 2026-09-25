@@ -17,11 +17,11 @@ susphom-counit X' =
   let X ∷ U = type-Ubipt X' in
   let x0 ∷ X = leftpt X' in
   let x1 ∷ X = rightpt X' in
-  let leg-cyl ∷ hom' X' ⨂ I → X = λ (f' ⊗ s) . oplax-oplaxbipt {I'} f' s in
+  let leg-cyl ∷ hom' X' ⨂ 𝕀 → X = λ (f' ⊗ s) . oplax-oplaxbipt {𝕀'} f' s in
   let leg-bool ∷ bool → X = ind-bool X x0 x1 in
   let ho-legs ∷ (u : hom' X' ⨂ bool) → leg-cyl (cylbnd-inclusion (hom' X') u) ≡ leg-bool (tens-snd u) =
     λ (f' ⊗ b) . rec-bool (λb. leg-cyl (cylbnd-inclusion (hom' X') (f' ⊗ b)) ≡ leg-bool (tens-snd (f' ⊗ b)))
-      (oplaxleftcoh {I'} f') (oplaxrightcoh {I'} f') b
+      (oplaxleftcoh {𝕀'} f') (oplaxrightcoh {𝕀'} f') b
   in
   let counit-map : susp (hom' X') → X = pushout-univ (cylbnd-inclusion (hom' X')) tens-snd X leg-cyl leg-bool ho-legs in
   let counit-lcoh : counit-map (left-susp (hom' X')) ≡ x0 =
@@ -44,12 +44,12 @@ to-hom-from-susp {X} {Y'} f' x =
   let f : susp X → Y = map-mapbipt {susp' X} f' in
   let f0 : f (left-susp X)  ≡ y0 = leftcoh  {susp' X} f' in
   let f1 : f (right-susp X) ≡ y1 = rightcoh {susp' X} f' in
-  let cyl-to-Y : X ⨂ I → Y = circ f (cyl-to-susp X) in
-  let arrow-x : I →ᵣ Y = λ s. cyl-to-Y (x ⊗ s) in
-  let p0 : arrow-x I0 ≡ f (left-susp X)  = cong f (cyl-to-susp-leftcoh x)  in
-  let p1 : arrow-x I1 ≡ f (right-susp X) = cong f (cyl-to-susp-rightcoh x) in
-  let leftcoh-arrow-x  : arrow-x I0 ≡ y0 = trans p0 f0 in
-  let rightcoh-arrow-x : arrow-x I1 ≡ y1 = trans p1 f1 in
+  let cyl-to-Y : X ⨂ 𝕀 → Y = circ f (cyl-to-susp X) in
+  let arrow-x : 𝕀 →ᵣ Y = λ s. cyl-to-Y (x ⊗ s) in
+  let p0 : arrow-x 𝕀0 ≡ f (left-susp X)  = cong f (cyl-to-susp-leftcoh x)  in
+  let p1 : arrow-x 𝕀1 ≡ f (right-susp X) = cong f (cyl-to-susp-rightcoh x) in
+  let leftcoh-arrow-x  : arrow-x 𝕀0 ≡ y0 = trans p0 f0 in
+  let rightcoh-arrow-x : arrow-x 𝕀1 ≡ y1 = trans p1 f1 in
   (arrow-x, (leftcoh-arrow-x, rightcoh-arrow-x))
 
 -- from-susp-to-hom ∷ {X ∷ U} {Y' ∷ Ubipt} → (X → hom' Y') → mapbipt (susp' X) Y'
@@ -57,11 +57,11 @@ to-hom-from-susp {X} {Y'} f' x =
   -- let Y ∷ U = type-Ubipt Y' in
   -- let y0 ∷ Y = leftpt Y'  in
   -- let y1 ∷ Y = rightpt Y' in
-  -- let leg-cyl : X ⨂ I → Y = λ (x ⊗ s) . oplax-oplaxbipt {I'} (g x) s in
+  -- let leg-cyl : X ⨂ 𝕀 → Y = λ (x ⊗ s) . oplax-oplaxbipt {𝕀'} (g x) s in
   -- let leg-bool : bool → Y = ind-bool Y y0 y1 in
   -- let ho-legs : (u : X ⨂ bool) → leg-cyl (cylbnd-inclusion X u) ≡ leg-bool (tens-snd u) =
     -- λ (x ⊗ b) . rec-bool (λb. leg-cyl (cylbnd-inclusion X (x ⊗ b)) ≡ leg-bool (tens-snd (x ⊗ b)))
-      -- (oplaxleftcoh {I'} (g x)) (oplaxrightcoh {I'} (g x)) b
+      -- (oplaxleftcoh {𝕀'} (g x)) (oplaxrightcoh {𝕀'} (g x)) b
   -- in
   -- let f : susp X → Y = pushout-univ (cylbnd-inclusion X) tens-snd Y leg-cyl leg-bool ho-legs in
   -- let f0  : f (left-susp  X) ≡ y0 = pushout-univr (cylbnd-inclusion X) tens-snd Y leg-cyl leg-bool ho-legs false in

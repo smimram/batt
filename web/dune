@@ -1,0 +1,20 @@
+(executable
+ (name batt)
+ (modes js)
+ (preprocess (pps js_of_ocaml-ppx))
+ (libraries js_of_ocaml batt)
+)
+
+(rule
+ (targets fs.js)
+ (deps (glob_files ../stdlib/*.batt) (glob_files ../celltt/*.batt))
+ (action
+   (bash "js_of_ocaml build-fs -o fs.js $(for f in %{deps}; do echo $f:/static/; done)")
+ )
+)
+
+(install
+ (files index.html batt.css batman.css batt.js)
+ (package batt)
+ (section share)
+)

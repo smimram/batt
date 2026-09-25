@@ -1,4 +1,4 @@
-open import bool
+open import Bool
 
 -- broken because Type is not of type Type
 -- maybe we need native sum types ?

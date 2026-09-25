@@ -31,6 +31,9 @@ trans p refl = p
 cong :: {A B : Type} (f : A → B) {x y : A} → x ≡ y → f x ≡ f y
 cong f {x} refl = refl
 
+cong2 :: {A B C : Type} (f : A → B → C) {x x' : A} → x ≡ x' → {y y' : B} → y ≡ y' → f x y ≡ f x' y'
+cong2 f {x} refl {y} refl = refl
+
 transport :: {A B : Type} → A ≡ B → A → B
 transport {A} refl a = a
 

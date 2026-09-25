@@ -240,7 +240,7 @@ let unify ~pos k (t:value) (u:value) =
                 cod+1, IntMap.add x (Some cod) r
             | _ ->
               raise Unification
-              (* warning "ignoring non-variable in meta spine\n"; *)
+              (* warning "\nignoring non-variable in meta spine\n"; *)
               (* cod+1, r *)
           )
         | [] -> 0, IntMap.empty
@@ -308,7 +308,7 @@ let unify ~pos k (t:value) (u:value) =
         | Flatten t -> Flatten (rename r t)
         | Flat_ind (t, l) ->
           let x = var_name r.cod in
-          let t = V.capp t (V.var k) in
+          let t = V.capp t (V.var r.dom) in
           let t = rename (lift r) t in
           spine l @@ Flat_ind (x, t)
         | Hole (pos, l) -> spine l @@ Hole pos
@@ -326,6 +326,11 @@ let unify ~pos k (t:value) (u:value) =
           )
         | Postulate (n, l) ->
           spine l @@ Postulate (Some n)
+        | I -> I
+        | I0 -> I0
+        | I1 -> I1
+        | Iv (i, j) -> Iv (rename r i, rename r j)
+        | Iw (i, j) -> Iw (rename r i, rename r j)
         | t -> failwith @@ Printf.sprintf "TODO: rename %s" (V.to_string k t)
       in
       rename r t
@@ -397,6 +402,9 @@ let unify ~pos k (t:value) (u:value) =
       spine k l l'
     | Refl t, Refl t' ->
       unify k t t'
+    | J (r, l), J (r', l') ->
+      unify k r r';
+      spine k l l'
     | Postulate (_n, l), Postulate (_n', l') ->
       (* NOTE: disabling for now because we regenerate numbers when we include multiple times *)
       (* if n <> n' then raise Unification; *)
@@ -407,6 +415,11 @@ let unify ~pos k (t:value) (u:value) =
     | Hole (pos, l), Hole (pos', l') ->
       if pos <> pos' then raise Unification;
       spine k l l'
+    | I, I | I0, I0 | I1, I1 -> ()
+    | Iv (i, j), Iv (i', j')
+    | Iw (i, j), Iw (i', j') ->
+      unify k i i';
+      unify k j j'
     | Meta _, Meta _ -> Unification.defer pos k t u
     | Meta (m, l), t -> solve k m l t
     | t, Meta (m, l) -> solve k m l t
@@ -446,7 +459,7 @@ let finalize_unify () =
       |> List.map (fun (pos,k,t,u) -> Printf.sprintf "- %s: %s vs %s" (Pos.opt_to_string pos) (V.to_string k t) (V.to_string k u))
       |> String.concat "\n"
     in
-    warning "\n%d unsovled unification problems:\n%s\n" (List.length !Unification.deferred) pb
+    warning "\n%d unsolved unification problems:\n%s\n" (List.length !Unification.deferred) pb
 
 let unify_base = unify
 
@@ -526,7 +539,7 @@ let rec check k env ctx (t:term) (a:value) : term =
         let ctx = Context.ext ~crispness:c (Context.ext ~crispness:c ctx x a1) y (V.capp a2 x1) in
         let t = check k env ctx t (V.capp b (Pair (x1, x2))) in
         Pair_ind (x, y, t)
-      | _ -> failwith "pair_ind"
+      | _ -> failwith "pair_ind: type of argument is expected to be a Sigma type"
     )
   | Pair_ind _, Arr _ -> failwith "TODO: pair_ind vs arr"
   | TensPair (t, u), Tens (a, b) ->
@@ -616,7 +629,7 @@ let rec check k env ctx (t:term) (a:value) : term =
       unify_base ~pos k t u';
     );
     Refl t
-  | J r, Pi (_, Normal, a, b) ->
+  | J r, Pi (_, _, a, b) ->
     (* we should make sure that b := {y : a} (p : x ≡ y) → P[x,y,p] *)
     let unpi ?icit a =
       let a0 = a in
@@ -647,10 +660,10 @@ let rec check k env ctx (t:term) (a:value) : term =
     t
   | Postulate n, a ->
     let n = match n with Some n -> n | None -> incr V.postulate; !V.postulate in
-    important "POSTULATE %d %s\n%!" n (V.to_string k a);
+    important "\nPOSTULATE %d %s\n%!" n (V.to_string k a);
     Postulate (Some n)
   | Hole pos, a ->
-    important "HOLE %s : %s IN\n%s\n%!" (Pos.to_string pos) (V.to_string k a) (Context.to_string ~multiline:true k ctx);
+    important "\nHOLE %s : %s IN\n%s\n%!" (Pos.to_string pos) (V.to_string k a) (Context.to_string ~multiline:true k ctx);
     Hole pos
   | t, a ->
     let t0 = t in
@@ -689,8 +702,8 @@ and infer k env ctx (t:term) : term * value =
   let t0 = t in
   (* let cenv, benv = ctx in *)
   match t with
-  | Type n -> Type n, V.Type (n + 1)
-  | IndType ind -> IndType ind, V.Type 0
+  | Type n -> Type n, Type (n + 1)
+  | IndType ind -> IndType ind, Type 0
   | IndTerm `Unit -> IndTerm `Unit, IndType `Unit
   | IndTerm (`Bool b) -> IndTerm (`Bool b), IndType `Bool
   | Pi (i, Crisp, x, a, b) ->
@@ -778,7 +791,7 @@ and infer k env ctx (t:term) : term * value =
           let t = check k env ctxt t1 (Arr (s, a, b)) in
           let u = check k env ctxu u a in
           App (t, Explicit, u), b
-        | _ -> error ~t:t0 "cannot infer the type of the application"
+        | a -> error ~t:t0 "%s is applied to %s but has type %s, which is not a function type" (T.to_string t1) (T.to_string u) (V.to_string k a)
       )
     )
   | Var x ->
@@ -806,7 +819,7 @@ and infer k env ctx (t:term) : term * value =
     (
       match module_type m with
       | Some a ->
-        warning "module %s apparently already imported, ignoring" m;
+        warning "\nmodule %s apparently already imported, ignoring\n" m;
         Var m, a
       | None ->
         let pos = T.Position.find_opt t in
@@ -829,6 +842,17 @@ and infer k env ctx (t:term) : term * value =
       | None -> error ~t:t0 "no field %s in %s" x (V.to_string k a);
     in
     RecordField (t, x), a
+  | I -> I, Type 0
+  | I0 -> I0, I
+  | I1 -> I1, I
+  | Iv (i, j) ->
+    let i = check k env ctx i I in
+    let j = check k env ctx j I in
+    Iv (i, j), I
+  | Iw (i, j) ->
+    let i = check k env ctx i I in
+    let j = check k env ctx j I in
+    Iw (i, j), I
   | _ -> error ~t "cannot infer type"
 
 and check_decls k env ctx (decls:T.decls) =
@@ -842,7 +866,7 @@ and check_decls k env ctx (decls:T.decls) =
     decls := List.tl !decls;
     match decl with
     | T.Def (x,c,a,t) ->
-      Printf.printf "\nDECL  %s = %s%s\n%!" x (T.to_string t) (match a with Some a -> " " ^ T.crispy_colon c ^ " " ^ T.to_string a | None -> "");
+      Common.print "\nDECL  %s = %s%s\n%!" x (T.to_string t) (match a with Some a -> " " ^ T.crispy_colon c ^ " " ^ T.to_string a | None -> "");
       let t, a =
         match a with
         | Some a ->

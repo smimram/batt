@@ -1,0 +1,32 @@
+-- Testing bunched implication
+
+-- Classical examples showing that we are not linear
+duplicate :: {A B :: U} → A →ₗ ((A → A → B) → B)
+duplicate a f = f a a
+
+erase :: {A B :: U} → A →ₗ (B → B)
+erase a b = b
+
+-- In the affine variant we can convert tensor to product
+tens-to-prod :: {A B :: U} → A ⨂ B → A × B
+tens-to-prod (a ⊗ b) = (a , b)
+
+-- And arrow to (op)lax ones
+arr-to-arrₗ :: {A B :: U} → (A → B) → (A →ₗ B)
+arr-to-arrₗ f a = f a
+
+arr-to-arrᵣ :: {A B :: U} → (A → B) → (A →ᵣ B)
+arr-to-arrᵣ f a = f a
+
+-- Contraction
+contr0 :: {A B C :: U} (f :: A →ᵣ B →ᵣ C) → A ⨂ B → C
+contr0 f (a ⊗ b) = f a b
+
+contr :: {A B C :: U} (f :: A →ᵣ B × B →ᵣ C) → A ⨂ B → C
+contr f (a ⊗ b) = f a (b , b)
+
+test :: {A B C D :: U} (f :: A ⇁ B ⇁ C) (g :: A ⇁ B ⇁ D) → A ⨂ B → C × D
+test f g (a ⊗ b) = (f a b , g a b)
+
+test :: {A B :: U} → A ⨂ B → A × (A ⨂ B)
+test (a ⊗ b) = (a , a ⊗ b)

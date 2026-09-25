@@ -5,6 +5,7 @@ open Helper
 let binder_names ~pos t =
   let rec aux acc = function
     | Var x -> x :: acc
+    | Meta _ -> "_" :: acc
     | App (t, _, Var x) -> aux (x :: acc) t
     | _ -> failwith @@ Printf.sprintf "%s: binder expected" (Pos.to_string pos)
   in
@@ -18,12 +19,12 @@ let meta ~pos = mk ~pos @@ Meta (`Fresh (Some pos))
 %token<int> INT
 %token EMPTY
 %token UNIT TT
-%token BOOL FALSE TRUE BOOL_IND
-%token TO FUN DOT SIGMA TIMES TENS TENSP
+%token BOOL FALSE TRUE
+%token TO TOL TOR FUN DOT SIGMA TIMES TENS TENSP
 %token FLAT FLATTEN
 %token IDEQ REFL
-%token LEFT RIGHT
-%token EQUIV
+%token EQUIV CIRC
+%token I I0 I1 Iv Iw
 %token<string> IDENT
 %token OPEN
 %token<string> IMPORT
@@ -33,30 +34,30 @@ let meta ~pos = mk ~pos @@ Meta (`Fresh (Some pos))
 %right TIMES
 %right TENSP
 %right TENS
+%left CIRC
+%left Iv Iw
 
 %start main
 %type<Term.decls> main
 %%
 
 main:
-  | decls EOF { $1 }
+  | items EOF { group_decls $1 }
 
-decls:
+items:
   | { [] }
-  | decl { $1 }
-  | N decls { $2 }
-  | decl N decls { $1@$3 }
+  | item { [$1] }
+  | N items { $2 }
+  | item N items { $1::$3 }
 
-decl:
-  | x=IDENT c=ccolon a=term N def=def { let y, t = def in assert (x = y); [Def (x, c, Some a, t)] }
-  | POSTULATE x=IDENT c=ccolon a=term { [Def (x, c, Some a, mk ~pos:$loc @@ Postulate None)] }
-  | m=IMPORT { [Def (m, Crisp, None, mk ~pos:$loc @@ Import m)] }
-  | OPEN m=IMPORT { [Def (m, Crisp, None, mk ~pos:$loc(m) @@ Import m); Open (mk ~pos:$loc(m) @@ Var m)] }
-  | OPEN t=term { [Open t] }
-
-def:
-  | y=IDENT args=list(pattern) EQ t=term { y, abss_pattern ~pos:$loc args t }
-  | y=IDENT args=list(pattern) LRPAR { y, abss_pattern ~pos:$loc args (mk ~pos:$loc($3)(IndType_ind (`Empty, []))) }
+item:
+  | x=IDENT c=ccolon a=term { Sig ($loc, x, c, a) }
+  | y=IDENT args=list(pattern) EQ t=term { Clause ($loc, y, args, t) }
+  | y=IDENT args=list(pattern) LRPAR { Clause ($loc, y, args, mk ~pos:$loc($3) (IndType_ind (`Empty, []))) }
+  | POSTULATE x=IDENT c=ccolon a=term { Decls [Def (x, c, Some a, mk ~pos:$loc @@ Postulate None)] }
+  | m=IMPORT { Decls [Def (m, Crisp, None, mk ~pos:$loc @@ Import m)] }
+  | OPEN m=IMPORT { Decls [Def (m, Crisp, None, mk ~pos:$loc(m) @@ Import m); Open (mk ~pos:$loc(m) @@ Var m)] }
+  | OPEN t=term { Decls [Open t] }
 
 atom:
   | TYPE { mk ~pos:$loc @@ Type 0 }
@@ -67,12 +68,14 @@ atom:
   | TT { mk ~pos:$loc @@ IndTerm `Unit }
   | BOOL { mk ~pos:$loc @@ IndType `Bool }
   | FALSE { mk ~pos:$loc @@ IndTerm (`Bool false) }
-  | BOOL_IND LPAR tf=fun_term COMMA tt=term RPAR { mk ~pos:$loc @@ IndType_ind (`Bool, [tf;tt]) }
   | TRUE { mk ~pos:$loc @@ IndTerm (`Bool true) }
   | IDENT { mk ~pos:$loc @@ Var $1 }
   | REFL { mk ~pos:$loc @@ Refl (meta ~pos:$loc) }
   | HOLE { mk ~pos:$loc @@ Hole $loc }
   | META { meta ~pos:$loc }
+  | I { mk ~pos:$loc @@ I }
+  | I0 { mk ~pos:$loc @@ I0 }
+  | I1 { mk ~pos:$loc @@ I1 }
   | LPAR t=term RPAR { t }
   | t=atom DOT x=IDENT { mk ~pos:$loc @@ RecordField (t, x) }
 
@@ -94,10 +97,13 @@ prod_term:
   | t=prod_term IDEQ u=prod_term { mk ~pos:$loc @@ Eq (meta ~pos:$loc, t, u) }
   | t=prod_term IDEQ LACC a=term RACC u=prod_term %prec IDEQ { mk ~pos:$loc @@ Eq (a, t, u) }
   | t=prod_term EQUIV u=prod_term { mk ~pos:$loc @@ apps (mk ~pos:$loc($2) @@ Var "_≃_") [t; u] }
+  | g=prod_term CIRC f=prod_term { mk ~pos:$loc @@ apps (mk ~pos:$loc($2) @@ Var "circ") [g; f] }
+  | i=prod_term Iv j=prod_term { mk ~pos:$loc @@ Iv (i, j) }
+  | i=prod_term Iw j=prod_term { mk ~pos:$loc @@ Iw (i, j) }
 
 fun_term:
   | prod_term { $1 }
-  | a=prod_term TO s=option(dir) b=fun_term { match s with None -> mk ~pos:$loc @@ Pi (Explicit, Normal, "_", a, b) | Some s -> mk ~pos:$loc @@ Arr (s, a, b) }
+  | a=prod_term s=arrow b=fun_term { match s with None -> mk ~pos:$loc @@ Pi (Explicit, Normal, "_", a, b) | Some s -> mk ~pos:$loc @@ Arr (s, a, b) }
   | abs=nonempty_list(binder_group) TO b=fun_term { pis ~pos:$loc abs b }
   | SIGMA LPAR x=IDENT COLON a=term RPAR DOT b=fun_term { mk ~pos:$loc @@ Sigma (x, a, b) }
   | FUN x=nonempty_list(pattern) to_dot t=fun_term { abss_pattern ~pos:$loc x t }
@@ -116,6 +122,8 @@ pattern:
   | LPAR x=identm TENSP y=identm RPAR { `Tens (x,y) }
   | FLATTEN x=identm { `Flatten x }
   | REFL { `Refl }
+  | FALSE { `Bool false }
+  | TRUE { `Bool true }
 
 identm:
   | IDENT { $1 }
@@ -125,9 +133,10 @@ binder_group:
   | LPAR t=term c=ccolon a=term RPAR { Explicit,c,binder_names ~pos:$loc(t) t,a }
   | LACC x=nonempty_list(IDENT) c=ccolon a=term RACC { Implicit,c,x,a }
 
-dir:
-  | LEFT { Left }
-  | RIGHT { Right }
+arrow:
+  | TO  { None }
+  | TOL { Some Left }
+  | TOR { Some Right }
 
 ccolon:
   | COLON { Normal }

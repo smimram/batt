@@ -3,7 +3,34 @@ idbool : bool → bool
 idbool x = x
 
 idbool' : bool → bool
-idbool' = bool_ind(false,true)
+idbool' false = false
+idbool' true  = true
 
 idbool'IsId : (b : bool) → idbool' b ≡ b
-idbool'IsId = bool_ind(refl,refl)
+idbool'IsId false = refl
+idbool'IsId true = refl
+
+-- definitions by multiple clauses
+not : bool → bool
+not false = true
+not true  = false
+
+and : bool → bool → bool
+and false _ = false
+and true  b = b
+
+or : bool → bool → bool
+or b false = b
+or _ true  = true
+
+xor : bool → bool → bool
+xor false x = x
+xor true  y = not y
+
+notnot : (b : bool) → not (not b) ≡ b
+notnot false = refl
+notnot true  = refl
+
+andfalse : (b : bool) → and b false ≡ false
+andfalse false = refl
+andfalse true  = refl
