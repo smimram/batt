@@ -1,6 +1,29 @@
 open import Bool
 
--- broken because Type is not of type Type
--- maybe we need native sum types ?
-sum ∷ U → U → U
-sum A B = Σ (b : Bool) . ind-bool U A B
+-- Binary sums, encoded as Σ (b : bool) . (A if b = false, B if b = true).
+-- The family needs a large elimination of bool: rec-bool only eliminates into
+-- C : U (and U is not in U), so it is defined by clauses instead.
+-- Only the cartesian eliminators are available. The paper's eliminators into
+-- ⇁ / ⇀ with non-crisp branches, (A ⇁ C) × (B ⇁ C) → (sum A B ⇁ C), are NOT
+-- derivable: they need the checker's missing "pair_ind vs arr" case (or native
+-- sums). With crisp branches one only gets κ ∘ rec-sum (pi-to-arr-right).
+
+sum-fam ∷ Type → Type → bool → Type
+sum-fam A B false = A
+sum-fam A B true  = B
+
+sum ∷ Type → Type → Type
+sum A B = Σ (b : bool) . sum-fam A B b
+
+inl ∷ {A B : Type} → A → sum A B
+inl a = (false , a)
+
+inr ∷ {A B : Type} → B → sum A B
+inr b = (true , b)
+
+-- dependent eliminator; β holds judgmentally
+ind-sum ∷ {A B : Type} (C : sum A B → Type) → ((a : A) → C (inl a)) → ((b : B) → C (inr b)) → (u : sum A B) → C u
+ind-sum {A} {B} C l r (b , x) = ind-bool (λ b . (x : sum-fam A B b) → C (b , x)) l r b x
+
+rec-sum ∷ {A B C : Type} → (A → C) → (B → C) → sum A B → C
+rec-sum {A} {B} {C} l r = ind-sum {A} {B} (λ _ . C) l r

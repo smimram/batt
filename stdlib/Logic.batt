@@ -1,0 +1,9 @@
+open import Prop
+open import Trunc
+open import Sum
+
+or ∷ Type → Type → Type
+or A B = type-prop-trunc (sum A B)
+
+prop-or ∷ HProp → HProp → HProp
+prop-or (A,_) (B,_) = (or A B, is-prop-type-prop-trunc _)

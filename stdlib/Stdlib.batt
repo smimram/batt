@@ -1,11 +1,13 @@
 open import Empty
 open import Unit
 open import Bool
+open import Sum
 open import Product
 open import Function
 open import Equality
 open import Contr
 open import Prop
+open import Trunc
 open import Set
 open import Tensor
 open import Arrow
