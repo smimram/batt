@@ -79,7 +79,7 @@ atom:
   | NAT { mk ~pos:$loc @@ IndType `Nat }
   | ZERO { mk ~pos:$loc @@ IndTerm (`Zero, []) }
   | n=INT { nat ~pos:$loc n }
-  | SUCC { succ ~pos:$loc }
+  | SUCC { mk ~pos:$loc @@ Var "succ" }
   | I { mk ~pos:$loc @@ I }
   | I0 { mk ~pos:$loc @@ I0 }
   | I1 { mk ~pos:$loc @@ I1 }

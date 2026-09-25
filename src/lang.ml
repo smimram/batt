@@ -921,6 +921,8 @@ let check_decls_toplevel decls =
     env := (x,t) :: !env;
     ctx := Context.ext ~crispness !ctx x a
   in
+  (* The successor function (constructors are always fully applied, so we eta-expand). *)
+  add "succ" (V.Pi (Explicit, Normal, IndType `Nat, ("_", IndType `Nat, []))) (V.eval [] @@ Abs (Explicit, "n", IndTerm (`Succ, [Var "n"])));
   if !Common.builtins then
     (
       let type0 = V.Type 0 in
