@@ -52,7 +52,7 @@ map-retraction-is-equiv {A} {B} f (_, r') = map-retraction f r'
 equiv ∷ U → U → U
 equiv A B = Σ (f : A → B) . is-equiv f
 
-_≃_ :: U → U → U
+_≃_ ∷ U → U → U
 _≃_ = equiv
 
 -- identity equivalence
@@ -70,10 +70,10 @@ id-equiv A = (id {A} , is-equiv-id A)
 --- isomorphisms
 ---
 
-is-iso :: {A B : U} → (A → B) → U
+is-iso ∷ {A B : U} → (A → B) → U
 is-iso {A} {B} f = Σ (g : B → A) . (is-section f g) × (is-retraction f g)
 
-is-iso→is-equiv :: {A B : U} → (f : A → B) → is-iso {A} {B} f → is-equiv f
+is-iso→is-equiv ∷ {A B : U} → (f : A → B) → is-iso {A} {B} f → is-equiv f
 is-iso→is-equiv f (g , sr) = (g , prod-fst sr) , (g , prod-snd sr)
 
 -- underlying map of an equivalence

@@ -1,127 +1,127 @@
 open import Equivalence
 
-tens-fst :: {A B :: U} → A ⨂ B → A
+tens-fst ∷ {A B ∷ U} → A ⨂ B → A
 tens-fst (a ⊗ b) = a
 
-tens-snd :: {A B :: U} → A ⨂ B → B
+tens-snd ∷ {A B ∷ U} → A ⨂ B → B
 tens-snd (a ⊗ b) = b
 
--- tens-ind :: {A1 A2 :: U} (B : A1 ⨂ A2 → U) (f : (x : A1) (y : A2) → B (x ⊗ y)) (u : A1 ⨂ A2) → B u
+-- tens-ind ∷ {A1 A2 ∷ U} (B : A1 ⨂ A2 → U) (f : (x : A1) (y : A2) → B (x ⊗ y)) (u : A1 ⨂ A2) → B u
 -- tens-ind B f (x ⊗ y) = f x y
 
-tens-to-prod :: {A B :: U} → A ⨂ B → A × B
+tens-to-prod ∷ {A B ∷ U} → A ⨂ B → A × B
 tens-to-prod (a ⊗ b) = (a , b)
 
-tens-unit-left :: {A :: U} → ⊤ ⨂ A → A
+tens-unit-left ∷ {A ∷ U} → ⊤ ⨂ A → A
 tens-unit-left (x ⊗ a) = a
 
-tens-counit-left :: {A :: U} → A → ⊤ ⨂ A
+tens-counit-left ∷ {A ∷ U} → A → ⊤ ⨂ A
 tens-counit-left a = (tt ⊗ a)
 
-tens-unit-counit-left :: {A :: U} (a : A) → tens-unit-left (tens-counit-left a) ≡ a
+tens-unit-counit-left ∷ {A ∷ U} (a : A) → tens-unit-left (tens-counit-left a) ≡ a
 tens-unit-counit-left a = refl
 
-tens-counit-unit-left :: {A :: U} (x : ⊤ ⨂ A) → tens-counit-left (tens-unit-left x) ≡ x
+tens-counit-unit-left ∷ {A ∷ U} (x : ⊤ ⨂ A) → tens-counit-left (tens-unit-left x) ≡ x
 tens-counit-unit-left (t ⊗ a) =
   -- let tt = t in refl
   let f : (t : ⊤) → tens-counit-left (tens-unit-left (t ⊗ a)) ≡ (t ⊗ a) = λ tt → refl in
   f t
 
-tens-unit-equiv-left :: {A :: U} → ⊤ ⨂ A ≃ A
+tens-unit-equiv-left ∷ {A ∷ U} → ⊤ ⨂ A ≃ A
 tens-unit-equiv-left =
   (tens-unit-left ,
    (tens-counit-left , tens-unit-counit-left) ,
    (tens-counit-left , tens-counit-unit-left))
 
-tens-unit-right :: {A :: U} → A ⨂ ⊤ → A
+tens-unit-right ∷ {A ∷ U} → A ⨂ ⊤ → A
 tens-unit-right (a ⊗ x) = a
 
-tens-counit-right :: {A :: U} → A → A ⨂ ⊤
+tens-counit-right ∷ {A ∷ U} → A → A ⨂ ⊤
 tens-counit-right a = (a ⊗ tt)
 
-tens-unit-counit-right :: {A :: U} (a : A) → tens-unit-right (tens-counit-right a) ≡ a
+tens-unit-counit-right ∷ {A ∷ U} (a : A) → tens-unit-right (tens-counit-right a) ≡ a
 tens-unit-counit-right a = refl
 
-tens-counit-unit-right :: {A :: U} (x : A ⨂ ⊤) → tens-counit-right (tens-unit-right x) ≡ x
+tens-counit-unit-right ∷ {A ∷ U} (x : A ⨂ ⊤) → tens-counit-right (tens-unit-right x) ≡ x
 tens-counit-unit-right (a ⊗ t) =
   let f : (t : ⊤) → tens-counit-right (tens-unit-right (a ⊗ t)) ≡ (a ⊗ t) = λ tt → refl in
   f t
 
-tens-unit-equiv-right :: {A :: U} → A ⨂ ⊤ ≃ A
+tens-unit-equiv-right ∷ {A ∷ U} → A ⨂ ⊤ ≃ A
 tens-unit-equiv-right =
   (tens-unit-right ,
    (tens-counit-right , tens-unit-counit-right) ,
    (tens-counit-right , tens-counit-unit-right))
 
-tens-assoc :: {A B C :: U} → (A ⨂ B) ⨂ C → A ⨂ (B ⨂ C)
+tens-assoc ∷ {A B C ∷ U} → (A ⨂ B) ⨂ C → A ⨂ (B ⨂ C)
 tens-assoc {A} {B} {C} (ab ⊗ c) =
-  let f :: A ⨂ B → C →ᵣ A ⨂ (B ⨂ C) = fun (a ⊗ b) c → a ⊗ (b ⊗ c) in
+  let f ∷ A ⨂ B → C →ᵣ A ⨂ (B ⨂ C) = fun (a ⊗ b) c → a ⊗ (b ⊗ c) in
   f ab c
 
-tens-coassoc :: {A B C :: U} → A ⨂ (B ⨂ C) → (A ⨂ B) ⨂ C
+tens-coassoc ∷ {A B C ∷ U} → A ⨂ (B ⨂ C) → (A ⨂ B) ⨂ C
 tens-coassoc {A} {B} {C} (a ⊗ bc) =
-  let f :: B ⨂ C → A →ₗ (A ⨂ B) ⨂ C = fun (b ⊗ c) a → (a ⊗ b) ⊗ c in
+  let f ∷ B ⨂ C → A →ₗ (A ⨂ B) ⨂ C = fun (b ⊗ c) a → (a ⊗ b) ⊗ c in
   f bc a
 
-tens-assoc-equiv :: {A B C :: U} → (A ⨂ B) ⨂ C ≃ A ⨂ (B ⨂ C)
+tens-assoc-equiv ∷ {A B C ∷ U} → (A ⨂ B) ⨂ C ≃ A ⨂ (B ⨂ C)
 tens-assoc-equiv {A} {B} {C} =
-  let f :: (A ⨂ B) ⨂ C → A ⨂ (B ⨂ C) = tens-assoc in
-  let g :: A ⨂ (B ⨂ C) → (A ⨂ B) ⨂ C = tens-coassoc in
-  let fg :: (y : A ⨂ (B ⨂ C)) → f (g y) ≡ y = fun (a ⊗ w) →
+  let f ∷ (A ⨂ B) ⨂ C → A ⨂ (B ⨂ C) = tens-assoc in
+  let g ∷ A ⨂ (B ⨂ C) → (A ⨂ B) ⨂ C = tens-coassoc in
+  let fg ∷ (y : A ⨂ (B ⨂ C)) → f (g y) ≡ y = fun (a ⊗ w) →
     let h : (w : B ⨂ C) → f (g (a ⊗ w)) ≡ (a ⊗ w) = fun (b ⊗ c) → refl in
     h w
   in
-  let gf :: (x : (A ⨂ B) ⨂ C) → g (f x) ≡ x = fun (u ⊗ c) →
+  let gf ∷ (x : (A ⨂ B) ⨂ C) → g (f x) ≡ x = fun (u ⊗ c) →
     let h : (u : A ⨂ B) → g (f (u ⊗ c)) ≡ (u ⊗ c) = fun (a ⊗ b) → refl in
     h u
   in
   (f , (g , fg) , (g , gf))
 
-tens-map :: {A B C D :: U} (f :: A → B) (g :: C → D) → A ⨂ C → B ⨂ D
+tens-map ∷ {A B C D ∷ U} (f ∷ A → B) (g ∷ C → D) → A ⨂ C → B ⨂ D
 tens-map f g (a ⊗ c) = (f(a) ⊗ g(c))
 
-tens-curry-left :: {A B C :: U} → (A ⨂ B →ₗ C) → (B →ₗ A →ₗ C)
+tens-curry-left ∷ {A B C ∷ U} → (A ⨂ B →ₗ C) → (B →ₗ A →ₗ C)
 tens-curry-left f b a = f (a ⊗ b)
 
-tens-uncurry-left :: {A B C :: U} → (B →ₗ A →ₗ C) → (A ⨂ B →ₗ C)
+tens-uncurry-left ∷ {A B C ∷ U} → (B →ₗ A →ₗ C) → (A ⨂ B →ₗ C)
 tens-uncurry-left {A} {B} {C} f (a ⊗ b) = f b a
 
-tens-curry-right :: {A B C :: U} → (A ⨂ B →ᵣ C) → (A →ᵣ B →ᵣ C)
+tens-curry-right ∷ {A B C ∷ U} → (A ⨂ B →ᵣ C) → (A →ᵣ B →ᵣ C)
 tens-curry-right f a b = f (a ⊗ b)
 
-tens-uncurry-right :: {A B C :: U} → (A →ᵣ B →ᵣ C) → (A ⨂ B →ᵣ C)
+tens-uncurry-right ∷ {A B C ∷ U} → (A →ᵣ B →ᵣ C) → (A ⨂ B →ᵣ C)
 tens-uncurry-right {A} {B} {C} f (a ⊗ b) = f a b
 
 -- -- version of assoc using curry-l/r
--- tens-assoc :: {A B C :: U} → (A ⨂ B) ⨂ C → A ⨂ (B ⨂ C)
+-- tens-assoc ∷ {A B C ∷ U} → (A ⨂ B) ⨂ C → A ⨂ (B ⨂ C)
 -- tens-assoc {A} {B} {C} =
   -- tens-uncurry-right
     -- (tens-uncurry-right {A} {B} {C →ᵣ A ⨂ (B ⨂ C)}
       -- (λ a b c → a ⊗ (b ⊗ c)))
 
 -- NOTE: this cannot be expressed like this because dependent linear application does not make sense
--- tens-uncurry-curry-left :: {A B C :: U} (u : A ⨂ B) (f : A ⨂ B →ₗ C) → tens-uncurry-left (tens-curry-left f) u ≡ f u
+-- tens-uncurry-curry-left ∷ {A B C ∷ U} (u : A ⨂ B) (f : A ⨂ B →ₗ C) → tens-uncurry-left (tens-curry-left f) u ≡ f u
 -- tens-uncurry-curry-left f (a ⊗ b) = refl
 
-tens-uncurry-curry-left :: {A B C :: U} (f : A ⨂ B →ₗ C) → tens-uncurry-left (tens-curry-left f) ≡ f
+tens-uncurry-curry-left ∷ {A B C ∷ U} (f : A ⨂ B →ₗ C) → tens-uncurry-left (tens-curry-left f) ≡ f
 tens-uncurry-curry-left f = refl
 
-tens-curry-uncurry-left :: {A B C :: U} (f : B →ₗ A →ₗ C) → tens-curry-left (tens-uncurry-left f) ≡ f
+tens-curry-uncurry-left ∷ {A B C ∷ U} (f : B →ₗ A →ₗ C) → tens-curry-left (tens-uncurry-left f) ≡ f
 tens-curry-uncurry-left f = refl
 
-tens-uncurry-curry-right :: {A B C :: U} (f : A ⨂ B →ᵣ C) → tens-uncurry-right (tens-curry-right f) ≡ f
+tens-uncurry-curry-right ∷ {A B C ∷ U} (f : A ⨂ B →ᵣ C) → tens-uncurry-right (tens-curry-right f) ≡ f
 tens-uncurry-curry-right f = refl
 
-tens-curry-uncurry-right :: {A B C :: U} (f : A →ᵣ B →ᵣ C) → tens-curry-right (tens-uncurry-right f) ≡ f
+tens-curry-uncurry-right ∷ {A B C ∷ U} (f : A →ᵣ B →ᵣ C) → tens-curry-right (tens-uncurry-right f) ≡ f
 tens-curry-uncurry-right f = refl
 
-tens-curry-equiv-left :: {A B C :: U}  → (A ⨂ B →ₗ C) ≃ (B →ₗ A →ₗ C)
+tens-curry-equiv-left ∷ {A B C ∷ U}  → (A ⨂ B →ₗ C) ≃ (B →ₗ A →ₗ C)
 tens-curry-equiv-left =
   (tens-curry-left ,
    (tens-uncurry-left , tens-curry-uncurry-left) ,
    (tens-uncurry-left , tens-uncurry-curry-left))
 
-tens-curry-equiv-right :: {A B C :: U}  → (A ⨂ B →ᵣ C) ≃ (A →ᵣ B →ᵣ C)
+tens-curry-equiv-right ∷ {A B C ∷ U}  → (A ⨂ B →ᵣ C) ≃ (A →ᵣ B →ᵣ C)
 tens-curry-equiv-right =
   (tens-curry-right ,
    (tens-uncurry-right , tens-curry-uncurry-right) ,
@@ -129,26 +129,26 @@ tens-curry-equiv-right =
 
 -- Alternative versions (without ₗ/ᵣ also exist but do not have an inverse)
 
-tens-curry-left' :: {A B C :: U} → (A ⨂ B → C) → (B → A →ₗ C)
+tens-curry-left' ∷ {A B C ∷ U} → (A ⨂ B → C) → (B → A →ₗ C)
 tens-curry-left' f b a = f (a ⊗ b)
 
--- tens-uncurry-left :: {A B C :: U} → (B → A →ₗ C) → (A ⨂ B → C)
+-- tens-uncurry-left ∷ {A B C ∷ U} → (B → A →ₗ C) → (A ⨂ B → C)
 -- tens-uncurry-left f (a ⊗ b) = f b a
 
-tens-curry-right' :: {A B C :: U} → (A ⨂ B → C) → (A → B →ᵣ C)
+tens-curry-right' ∷ {A B C ∷ U} → (A ⨂ B → C) → (A → B →ᵣ C)
 tens-curry-right' f a b = f (a ⊗ b)
 
--- tens-uncurry-right :: {A B C :: U} → (A → B →ᵣ C) → (A ⨂ B → C)
+-- tens-uncurry-right ∷ {A B C ∷ U} → (A → B →ᵣ C) → (A ⨂ B → C)
 -- tens-uncurry-right f (a ⊗ b) = f a b
 
 --- Distributivity
 
-tens-dist-l :: {A B C :: U} → A ⨂ (B × C) → (A ⨂ B) × C
+tens-dist-l ∷ {A B C ∷ U} → A ⨂ (B × C) → (A ⨂ B) × C
 tens-dist-l (a ⊗ bc) = ((a ⊗ prod-fst bc) , prod-snd bc)
 
-tens-dist-r :: {A B C :: U} → (A × B) ⨂ C → A × (B ⨂ C)
+tens-dist-r ∷ {A B C ∷ U} → (A × B) ⨂ C → A × (B ⨂ C)
 tens-dist-r (ab ⊗ c) = (prod-fst ab , (prod-snd ab ⊗ c))
 
 -- the converse goes through only when the C is crisp
-tens-dist-l⁻ :: {A B C :: U} → (A ⨂ B) → (_ :: C) → A ⨂ (B × C)
+tens-dist-l⁻ ∷ {A B C ∷ U} → (A ⨂ B) → (_ ∷ C) → A ⨂ (B × C)
 tens-dist-l⁻ (a ⊗ b) c = a ⊗ (b , c)

@@ -13,22 +13,22 @@ boundary-inclusion false = 𝕀0
 boundary-inclusion true  = 𝕀1
 
 
-leq :: 𝕀 → 𝕀 → Type
+leq ∷ 𝕀 → 𝕀 → Type
 leq i j = i 𝕀∨ j ≡ j
 
-geq :: 𝕀 → 𝕀 → Type
+geq ∷ 𝕀 → 𝕀 → Type
 geq i j = i 𝕀∨ j ≡ i
 
-two-simplex :: Type
+two-simplex ∷ Type
 two-simplex = Σ (i : 𝕀) . Σ (j : 𝕀) . geq i j
 
--- two-spine :: Type
+-- two-spine ∷ Type
 -- two-spine = Σ (i : 𝕀) . Σ (j : 𝕀) . i ≡ 0 
 
-gray-square :: Type
+gray-square ∷ Type
 gray-square = 𝕀 ⨂ 𝕀
 
 
 
--- cube :: ℕ → Type
+-- cube ∷ ℕ → Type
 -- cube n = ?

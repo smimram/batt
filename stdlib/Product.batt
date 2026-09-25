@@ -4,11 +4,27 @@ fst B (x,y) = x
 snd ∷ {A : U} (B : A → U) → (u : Σ (x : A) . B x) → B (fst B u)
 snd B (x,y) = y
 
-pair :: {A B : U} → A → B → A × B
+pair ∷ {A B : U} → A → B → A × B
 pair x y = (x , y)
 
-prod-fst :: {A B : U} → A × B → A
+prod-fst ∷ {A B : U} → A × B → A
 prod-fst (x , y) = x
 
-prod-snd :: {A B : U} → A × B → B
+prod-snd ∷ {A B : U} → A × B → B
 prod-snd (x , y) = y
+
+---
+--- Products preserve contractible types and propositions
+---
+
+open import Prop
+
+is-contr-prod ∷ {A B : U} → is-contr A → is-contr B → is-contr (A × B)
+is-contr-prod {A} {B} (a , p) (b , q) = ((a , b) , λ (x , y) . cong2 {A} {B} {A × B} pair (p x) (q y))
+
+-- an inhabited proposition is contractible, and A × B is then a product of contractible types
+is-prop-prod ∷ {A B : U} → is-prop A → is-prop B → is-prop (A × B)
+is-prop-prod {A} {B} pA pB (a , b) v =
+  let cA : is-contr A = (a , λ x . center (a ≡ x) (pA a x)) in
+  let cB : is-contr B = (b , λ y . center (b ≡ y) (pB b y)) in
+  is-contr→is-prop {A × B} (is-contr-prod {A} {B} cA cB) (a , b) v

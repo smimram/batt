@@ -1,9 +1,21 @@
-unit-ind :: (A :: ⊤ → U) → A tt → (x : ⊤) → A x
+unit-ind ∷ (A ∷ ⊤ → U) → A tt → (x : ⊤) → A x
 unit-ind A a tt = a
 
-unit-rec-l :: (A :: U) → A → ⊤ →ₗ A
+unit-rec-l ∷ (A ∷ U) → A → ⊤ →ₗ A
 unit-rec-l A a tt = a
 
 -- terminal arrow
-terminal :: (A : U) → A → ⊤
+terminal ∷ (A : U) → A → ⊤
 terminal A x = tt
+
+---
+--- The unit type is a proposition
+---
+
+open import Prop
+
+is-contr-unit ∷ is-contr ⊤
+is-contr-unit = (tt , unit-ind (λ x . tt ≡ x) refl)
+
+is-prop-unit ∷ is-prop ⊤
+is-prop-unit = is-contr→is-prop is-contr-unit
