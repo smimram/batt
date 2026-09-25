@@ -24,6 +24,7 @@ let meta ~pos = mk ~pos @@ Meta (`Fresh (Some pos))
 %token FLAT FLATTEN
 %token IDEQ REFL
 %token EQUIV CIRC
+%token I I0 I1 Iv Iw
 %token<string> IDENT
 %token OPEN
 %token<string> IMPORT
@@ -34,6 +35,7 @@ let meta ~pos = mk ~pos @@ Meta (`Fresh (Some pos))
 %right TENSP
 %right TENS
 %left CIRC
+%left Iv Iw
 
 %start main
 %type<Term.decls> main
@@ -74,6 +76,9 @@ atom:
   | REFL { mk ~pos:$loc @@ Refl (meta ~pos:$loc) }
   | HOLE { mk ~pos:$loc @@ Hole $loc }
   | META { meta ~pos:$loc }
+  | I { mk ~pos:$loc @@ I }
+  | I0 { mk ~pos:$loc @@ I0 }
+  | I1 { mk ~pos:$loc @@ I1 }
   | LPAR t=term RPAR { t }
   | t=atom DOT x=IDENT { mk ~pos:$loc @@ RecordField (t, x) }
 
@@ -96,6 +101,8 @@ prod_term:
   | t=prod_term IDEQ LACC a=term RACC u=prod_term %prec IDEQ { mk ~pos:$loc @@ Eq (a, t, u) }
   | t=prod_term EQUIV u=prod_term { mk ~pos:$loc @@ apps (mk ~pos:$loc($2) @@ Var "_≃_") [t; u] }
   | g=prod_term CIRC f=prod_term { mk ~pos:$loc @@ apps (mk ~pos:$loc($2) @@ Var "circ") [g; f] }
+  | i=prod_term Iv j=prod_term { mk ~pos:$loc @@ Iv (i, j) }
+  | i=prod_term Iw j=prod_term { mk ~pos:$loc @@ Iw (i, j) }
 
 fun_term:
   | prod_term { $1 }

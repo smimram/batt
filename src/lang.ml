@@ -326,6 +326,11 @@ let unify ~pos k (t:value) (u:value) =
           )
         | Postulate (n, l) ->
           spine l @@ Postulate (Some n)
+        | I -> I
+        | I0 -> I0
+        | I1 -> I1
+        | Iv (i, j) -> Iv (rename r i, rename r j)
+        | Iw (i, j) -> Iw (rename r i, rename r j)
         | t -> failwith @@ Printf.sprintf "TODO: rename %s" (V.to_string k t)
       in
       rename r t
@@ -410,6 +415,11 @@ let unify ~pos k (t:value) (u:value) =
     | Hole (pos, l), Hole (pos', l') ->
       if pos <> pos' then raise Unification;
       spine k l l'
+    | I, I | I0, I0 | I1, I1 -> ()
+    | Iv (i, j), Iv (i', j')
+    | Iw (i, j), Iw (i', j') ->
+      unify k i i';
+      unify k j j'
     | Meta _, Meta _ -> Unification.defer pos k t u
     | Meta (m, l), t -> solve k m l t
     | t, Meta (m, l) -> solve k m l t
@@ -692,8 +702,8 @@ and infer k env ctx (t:term) : term * value =
   let t0 = t in
   (* let cenv, benv = ctx in *)
   match t with
-  | Type n -> Type n, V.Type (n + 1)
-  | IndType ind -> IndType ind, V.Type 0
+  | Type n -> Type n, Type (n + 1)
+  | IndType ind -> IndType ind, Type 0
   | IndTerm `Unit -> IndTerm `Unit, IndType `Unit
   | IndTerm (`Bool b) -> IndTerm (`Bool b), IndType `Bool
   | Pi (i, Crisp, x, a, b) ->
@@ -781,7 +791,7 @@ and infer k env ctx (t:term) : term * value =
           let t = check k env ctxt t1 (Arr (s, a, b)) in
           let u = check k env ctxu u a in
           App (t, Explicit, u), b
-        | _ -> error ~t:t0 "cannot infer the type of the application"
+        | a -> error ~t:t0 "%s is applied to %s but has type %s, which is not a function type" (T.to_string t1) (T.to_string u) (V.to_string k a)
       )
     )
   | Var x ->
@@ -832,6 +842,17 @@ and infer k env ctx (t:term) : term * value =
       | None -> error ~t:t0 "no field %s in %s" x (V.to_string k a);
     in
     RecordField (t, x), a
+  | I -> I, Type 0
+  | I0 -> I0, I
+  | I1 -> I1, I
+  | Iv (i, j) ->
+    let i = check k env ctx i I in
+    let j = check k env ctx j I in
+    Iv (i, j), I
+  | Iw (i, j) ->
+    let i = check k env ctx i I in
+    let j = check k env ctx j I in
+    Iw (i, j), I
   | _ -> error ~t "cannot infer type"
 
 and check_decls k env ctx (decls:T.decls) =
