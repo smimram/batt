@@ -3,3 +3,5 @@ _build
 *.agdai
 batt
 *.exe
+
+.vscode/agda.code-snippets
