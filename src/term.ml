@@ -161,8 +161,19 @@ let rec to_string t =
   | IndType_ind (ind, args) -> Printf.sprintf "%s_ind(%s)" (string_of_inductive_type ind) (String.concat "," @@ List.map to_string args)
   | IndTerm (`Unit, []) -> "tt"
   | IndTerm (`Bool b, []) ->  string_of_bool b
-  | IndTerm (`Zero, []) ->  "zero"
-  | IndTerm (`Succ, [n]) -> Printf.sprintf "succ(%s)" @@ to_string n
+  | IndTerm (`Zero, []) -> "0"
+  | IndTerm (`Succ, [n]) ->
+    (* Print closed natural numbers as numerals. *)
+    let rec numeral k = function
+      | IndTerm (`Zero, []) -> Some k
+      | IndTerm (`Succ, [n]) -> numeral (k+1) n
+      | _ -> None
+    in
+    (
+      match numeral 1 n with
+      | Some k -> string_of_int k
+      | None -> Printf.sprintf "succ(%s)" @@ to_string n
+    )
   | IndTerm _ -> assert false
   | Pi (i, c, x, a, t) ->
     (
