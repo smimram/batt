@@ -13,3 +13,4 @@ open import Flat
 open import Pushout
 open import Funext
 open import Equivalence
+open import Interval

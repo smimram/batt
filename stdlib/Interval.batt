@@ -10,3 +10,12 @@ postulate neq-𝕀0-𝕀1 ∷ ¬ (𝕀0 ≡ 𝕀1)
 
 boundary-inclusion ∷ bool → 𝕀
 boundary-inclusion = bool_ind(𝕀0,𝕀1)
+
+leq :: 𝕀 → 𝕀 → Type
+leq i j = i 𝕀∨ j ≡ j
+
+two-simplex :: Type
+two-simplex = Σ (i : 𝕀) . Σ (j : 𝕀) . leq i j
+
+-- cube :: ℕ → Type
+-- cube n = ?
