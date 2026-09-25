@@ -42,24 +42,22 @@ let meta ~pos = mk ~pos @@ Meta (`Fresh (Some pos))
 %%
 
 main:
-  | decls EOF { $1 }
+  | items EOF { group_decls $1 }
 
-decls:
+items:
   | { [] }
-  | decl { $1 }
-  | N decls { $2 }
-  | decl N decls { $1@$3 }
+  | item { [$1] }
+  | N items { $2 }
+  | item N items { $1::$3 }
 
-decl:
-  | x=IDENT c=ccolon a=term N def=def { let y, t = def in if x <> y then failwith (Pos.to_string $loc(a) ^ ", function name should be the same as in type declaration"); [Def (x, c, Some a, t)] }
-  | POSTULATE x=IDENT c=ccolon a=term { [Def (x, c, Some a, mk ~pos:$loc @@ Postulate None)] }
-  | m=IMPORT { [Def (m, Crisp, None, mk ~pos:$loc @@ Import m)] }
-  | OPEN m=IMPORT { [Def (m, Crisp, None, mk ~pos:$loc(m) @@ Import m); Open (mk ~pos:$loc(m) @@ Var m)] }
-  | OPEN t=term { [Open t] }
-
-def:
-  | y=IDENT args=list(pattern) EQ t=term { y, abss_pattern ~pos:$loc args t }
-  | y=IDENT args=list(pattern) LRPAR { y, abss_pattern ~pos:$loc args (mk ~pos:$loc($3)(IndType_ind (`Empty, []))) }
+item:
+  | x=IDENT c=ccolon a=term { Sig ($loc, x, c, a) }
+  | y=IDENT args=list(pattern) EQ t=term { Clause ($loc, y, args, t) }
+  | y=IDENT args=list(pattern) LRPAR { Clause ($loc, y, args, mk ~pos:$loc($3) (IndType_ind (`Empty, []))) }
+  | POSTULATE x=IDENT c=ccolon a=term { Decls [Def (x, c, Some a, mk ~pos:$loc @@ Postulate None)] }
+  | m=IMPORT { Decls [Def (m, Crisp, None, mk ~pos:$loc @@ Import m)] }
+  | OPEN m=IMPORT { Decls [Def (m, Crisp, None, mk ~pos:$loc(m) @@ Import m); Open (mk ~pos:$loc(m) @@ Var m)] }
+  | OPEN t=term { Decls [Open t] }
 
 atom:
   | TYPE { mk ~pos:$loc @@ Type 0 }
@@ -125,6 +123,8 @@ pattern:
   | LPAR x=identm TENSP y=identm RPAR { `Tens (x,y) }
   | FLATTEN x=identm { `Flatten x }
   | REFL { `Refl }
+  | FALSE { `Bool false }
+  | TRUE { `Bool true }
 
 identm:
   | IDENT { $1 }

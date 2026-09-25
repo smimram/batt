@@ -5,7 +5,8 @@ ind-bool :: (C : U) → C → C → bool → C
 ind-bool C cf ct = bool_ind(cf,ct)
 
 not :: bool → bool
-not = bool_ind(true,false)
+not false = true
+not true = false
 
 and :: bool → bool → bool
 and = bool_ind(fun _ → false,fun b → b)
