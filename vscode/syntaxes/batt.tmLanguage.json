@@ -42,7 +42,11 @@
       "patterns": [
         {
           "name": "constant.language.batt",
-          "match": "\\b(true|false|tt|refl)\\b"
+          "match": "\\b(true|false|tt|refl|zero|succ)\\b"
+        },
+        {
+          "name": "constant.numeric.batt",
+          "match": "\\b[0-9]+\\b"
         }
       ]
     },
@@ -50,7 +54,7 @@
       "patterns": [
         {
           "name": "support.type.batt",
-          "match": "\\\\(bigotimes|otimes|Sigma|times|fflat|flat|equiv|simeq|circ|top|bot|tol|tor|to)|\\b(U|Type|Bool|Unit|Empty|II[01vw]?)\\b|𝕀[01∨∧]?|->[lr]?|→[ₗᵣ]?|⨂|⊗|@|≡|≃|∘|Σ|×|⊥|⊤|♭|𝄫"
+          "match": "\\\\(bigotimes|otimes|Sigma|times|fflat|flat|equiv|simeq|circ|top|bot|tol|tor|to)|\\b(U|Type|Bool|Unit|Empty|II[01vw]?)\\b|\\b(Nat|ℕ)\\b(?!-)|𝕀[01∨∧]?|->[lr]?|→[ₗᵣ]?|⨂|⊗|@|≡|≃|∘|Σ|×|⊥|⊤|♭|𝄫"
         }
       ]
     }
