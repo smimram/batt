@@ -71,13 +71,12 @@ class BattOutputViewProvider {
     try {
       const source = await this.materializeDocument(document, workspaceFolder.uri.fsPath);
       try {
-        const result = await runBatt(workspaceFolder.uri.fsPath, source.filePath);
-        const shownName = path.relative(workspaceFolder.uri.fsPath, document.fileName);
-        if (result.stopped) {
-          this.update(stoppedMessage(result, shownName));
-          return;
-        }
-        this.lastModel = parseOutput(result, source.filePath, shownName);
+        const root = workspaceFolder.uri.fsPath;
+        const shownName = path.relative(root, document.fileName);
+        const result = await runBatt(root, source.filePath);
+        this.lastModel = result.stopped
+          ? await this.rescue(result, source.filePath, document, root, shownName)
+          : locateErrors(parseOutput(result, source.filePath, shownName), document.getText());
         this.lastDocUri = document.uri;
         this.render();
       } finally {
@@ -92,6 +91,61 @@ class BattOutputViewProvider {
       this.update(`Failed to run batt.\n\n${message}`);
     } finally {
       this.isRunning = false;
+    }
+  }
+
+  // The checker was stopped (memory, time or output limit), typically because some
+  // declaration makes it loop. Find that declaration in the (complete, see runBatt)
+  // partial output, replace its body by a hole in a temporary copy and check again, so
+  // that the rest of the file and the goal of the stopped declaration are still shown.
+  async rescue(firstResult, firstPath, document, root, shownName) {
+    const MAX_RESCUES = 3;
+    const stops = [];
+    let result = firstResult;
+    let runPath = firstPath;
+    let text = document.getText();
+    const dir = document.uri.scheme === 'untitled' ? root : path.dirname(document.fileName);
+    for (;;) {
+      const partial = parseOutput(result, runPath, shownName);
+      const d = partial.lastDecl;
+      const stop = {
+        reason: result.stopped,
+        limits: result.limits,
+        trace: result.trace,
+        name: d && d.name,
+        inImport: d && !d.own ? partial.openImport : undefined
+      };
+      stops.push(stop);
+      const rewrite = d && d.own && stops.length <= MAX_RESCUES ? replaceBodyWithHole(text, d.name, d.occurrence) : undefined;
+      if (rewrite) {
+        stop.line = rewrite.line;
+        stop.holeLines = rewrite.clauseLines;
+      }
+      const again = stops.slice(0, -1).some((s) => s.name === stop.name && s.line === stop.line);
+      if (!rewrite || again) {
+        // cannot go further: show what we have
+        if (again) {
+          stop.inType = true;
+        }
+        partial.stops = stops;
+        partial.partial = true;
+        return locateErrors(partial, text);
+      }
+      stop.rescued = true;
+      text = rewrite.text;
+      this.render(`declaration ${stop.name} made the checker loop, re-checking without its body…`);
+      const tmp = await writeTemp(dir, text);
+      try {
+        result = await runBatt(root, tmp.filePath);
+        runPath = tmp.filePath;
+      } finally {
+        await tmp.dispose();
+      }
+      if (!result.stopped) {
+        const model = parseOutput(result, runPath, shownName);
+        model.stops = stops;
+        return locateErrors(model, text);
+      }
     }
   }
 
@@ -250,6 +304,11 @@ class BattOutputViewProvider {
     .card { border-left: 3px solid; border-radius: 4px; background: var(--c-box); padding: 0.45rem 0.7rem; margin: 0 0 0.6rem; }
     .card.goal { border-color: var(--c-hole); }
     .card.error { border-color: var(--c-err); }
+    .card.stopped { border-color: var(--c-err); border-left-width: 4px; }
+    .stopped .tag { color: var(--c-err); }
+    .stopped p { margin: 0.2rem 0; }
+    .stopped .decl-name { font-weight: 700; color: var(--c-name); }
+    .from-stop { font-size: 0.75em; color: var(--c-err); font-style: italic; }
     .card-head { display: flex; align-items: baseline; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.25rem; }
     .tag { font-size: 0.72em; font-weight: 700; letter-spacing: 0.04em; padding: 0 0.35em; border-radius: 3px; border: 1px solid currentColor; }
     .goal .tag, .meta .tag { color: var(--c-hole); }
@@ -542,6 +601,7 @@ function parseOutput(result, runPath, shownName) {
   // `M = import M` opens M's own output, which ends with M's re-exports `x = M.x`
   const importStack = [];
   let lastDecl;
+  const ownCount = {};
   let i = 0;
 
   const readBlock = () => {
@@ -579,6 +639,10 @@ function parseOutput(result, runPath, shownName) {
         decl.own = importStack.length === 0;
         (decl.own ? model.ownDecls : model.importedDecls).push(decl);
       }
+      if (decl.own) {
+        ownCount[name] = (ownCount[name] || 0) + 1;
+        decl.occurrence = ownCount[name];
+      }
       lastDecl = decl;
     } else if ((m = /^POSTULATE (\d+) (.*)$/.exec(line))) {
       // the postulate's name is on the DECL line just before
@@ -600,7 +664,9 @@ function parseOutput(result, runPath, shownName) {
       while (firstLocal < entries.length && globals.has(entries[firstLocal].name)) {
         firstLocal++;
       }
+      const truncated = i >= lines.length && Boolean(result.stopped);
       model.holes.push({
+        truncated,
         pos: parsePos(m[1]),
         posText: m[1],
         goal: m[2],
@@ -622,6 +688,16 @@ function parseOutput(result, runPath, shownName) {
         i++;
       }
       model.errors.push(error);
+    } else if ((m = /^Fatal error: (.*)$/.exec(line)) && !/allocation failure|Out of memory/.test(m[1])) {
+      // an exception escaping the checker: no position, but we know which declaration
+      const error = { message: m[1], trace: [], decl: lastDecl && lastDecl.own ? lastDecl : undefined };
+      while (i < lines.length && (lines[i].trim() === '' || /^(Raised at|Called from|Re-raised at|Raised by primitive operation at) /.test(lines[i]))) {
+        if (lines[i].trim() !== '') {
+          error.trace.push(lines[i]);
+        }
+        i++;
+      }
+      model.errors.push(error);
     } else if (/^\d+ unsolved unification problems:$/.test(line)) {
       model.warnings.push([line].concat(readBlock()).join('\n'));
     } else if (/apparently already imported/.test(line) || /^Include .*\.\.\.$/.test(line)) {
@@ -631,6 +707,9 @@ function parseOutput(result, runPath, shownName) {
       model.other.push(line);
     }
   }
+  // the declaration being checked last (the checker prints DECL before checking it)
+  model.lastDecl = lastDecl;
+  model.openImport = importStack[0];
   return model;
 }
 
@@ -859,6 +938,46 @@ function cursorKey(model, cursorLine) {
   return h ? `${model.holes.indexOf(h)}:${h.pos && h.pos.line === cursorLine}` : '';
 }
 
+// the stop whose rewritten clauses contain this hole, if any
+function holeFromStop(model, hole) {
+  if (!model.stops || !hole.pos || hole.pos.file !== model.file) {
+    return undefined;
+  }
+  return model.stops.find((s) => s.rescued && s.holeLines && s.holeLines.includes(hole.pos.line));
+}
+
+function renderStop(stop, k, model, openState) {
+  const l = stop.limits;
+  const why = {
+    memory: `it ran out of memory (limit ${l.memoryLimitMB} MB)`,
+    timeout: `it did not finish within ${l.timeoutSeconds} s`,
+    output: `it produced more than ${l.maxOutputMB} MB of output`
+  }[stop.reason] || 'it was stopped';
+  const decl = stop.name
+    ? `<span class="decl-name">${escapeHtml(stop.name)}</span>${stop.line ? ` <span class="link" data-line="${stop.line}" data-col="0" title="Go to line ${stop.line}">line ${stop.line}</span>` : ''}`
+    : 'the file';
+  let what;
+  if (stop.inImport) {
+    what = `<p>This happened inside the imported module <b>${escapeHtml(stop.inImport)}</b>, so it cannot be worked around from this file.</p>`;
+  } else if (stop.inType) {
+    what = '<p>The loop is in the declaration\'s <b>type</b> (it persists with its body replaced by a hole), so the rest of the file could not be checked.</p>';
+  } else if (stop.rescued) {
+    what = '<p>To show the rest of the file, its body was replaced by a hole <code>?</code> and the file checked again: its goal below is what it has to prove.</p>';
+  } else {
+    what = '<p>What follows is what the checker produced before it was stopped; it may be incomplete.</p>';
+  }
+  const trace = stop.trace && stop.trace.length
+    ? details(`stop-trace-${k}`, `Last checker steps before the stop (${stop.trace.length})`,
+      () => `<div class="code">${stop.trace.map(highlight).join('\n')}</div>`, openState, 'trace')
+    : '';
+  return `<div class="card stopped">
+    <div class="card-head"><span class="tag">STOPPED</span>${decl}</div>
+    <p>The checker was stopped while checking ${decl}: ${why}. This usually means it was looping (for instance while unifying a term stuck on a hole or a variable; see test/todo/eta-stuck-eliminator.md). The run was killed, your machine is safe.</p>
+    ${what}
+    ${trace}
+  </div>`;
+}
+
 function renderModel(model, cursorLine, openState, bunchMode) {
   const inFile = (pos) => pos && pos.file === model.file;
   const holesHere = model.holes.filter((h) => inFile(h.pos)).sort((a, b) => a.pos.line - b.pos.line || a.pos.col - b.pos.col);
@@ -867,7 +986,12 @@ function renderModel(model, cursorLine, openState, bunchMode) {
 
   // summary chips
   const chips = [];
-  if (model.code !== 0) {
+  if (model.stops && model.stops.length) {
+    chips.push(`<span class="chip bad">⏹ checker stopped${model.partial ? ', partial output' : ''}</span>`);
+  }
+  if (model.partial) {
+    // stopped and not rescued: no status can be claimed for the file
+  } else if (model.code !== 0) {
     chips.push(`<span class="chip bad">✗ failed (exit ${model.code})</span>`);
   } else if (model.holes.length || model.metas.length) {
     chips.push('<span class="chip holey">◐ checked, incomplete</span>');
@@ -890,9 +1014,15 @@ function renderModel(model, cursorLine, openState, bunchMode) {
   }
   out.push(`<div class="summary">${chips.join('')}</div>`);
 
+  // runs that had to be stopped come first
+  if (model.stops) {
+    model.stops.forEach((stop, k) => out.push(renderStop(stop, k, model, openState)));
+  }
+
   // errors first
   model.errors.forEach((error, k) => {
-    const where = error.pos ? `<span class="link"${jumpAttrs(error.pos)}>line ${error.pos.line}</span>` : '';
+    const where = (error.decl ? `<span class="muted">uncaught checker exception while checking <b>${escapeHtml(error.decl.name)}</b></span>` : '') +
+      (error.pos ? `<span class="link"${jumpAttrs(error.pos)}>line ${error.pos.line}</span>` : '');
     const trace = error.trace.length
       ? details(`trace-${k}`, `OCaml backtrace (${error.trace.length} lines)`, () => `<div class="code">${error.trace.map(escapeHtml).join('\n')}</div>`, openState, 'trace')
       : '';
@@ -903,17 +1033,19 @@ function renderModel(model, cursorLine, openState, bunchMode) {
 
   if (current) {
     const atCursor = current.pos && current.pos.line === cursorLine && inFile(current.pos) ? '<span class="at-cursor">at cursor</span>' : '';
+    const fromStop = holeFromStop(model, current) ? `<span class="from-stop">body of ${escapeHtml(holeFromStop(model, current).name)}, replaced by a hole</span>` : '';
     const where = inFile(current.pos)
       ? `<span class="link"${jumpAttrs(current.pos)}>line ${current.pos.line}</span>`
       : `<span class="muted">${escapeHtml(current.posText)}</span>`;
     const locals = current.locals.map((e) => `<div class="ctx-entry code"><span class="var bv" data-crisp="1" data-name="${escapeHtml(e.name)}">${escapeHtml(e.name)}</span> : ${highlight(e.type)}</div>`).join('');
     const hidden = current.hiddenGlobals ? `<div class="muted">+ ${pluralise(current.hiddenGlobals, 'global name')} in scope (hidden)</div>` : '';
     out.push(`<div class="card goal">
-      <div class="card-head"><span class="tag">GOAL</span>${where}${atCursor}</div>
+      <div class="card-head"><span class="tag">GOAL</span>${where}${atCursor}${fromStop}</div>
       <div class="goaltype code">${highlight(current.goal)}</div>
       ${locals ? `<div class="label">Crisp context</div>${locals}` : ''}
       ${current.bunch ? renderBunchSection(current.bunch, bunchMode) : ''}
       ${hidden}
+      ${current.truncated ? '<div class="muted">(context cut off: the checker was stopped while printing it)</div>' : ''}
     </div>`);
   } else if (!model.errors.length) {
     out.push(model.metas.length ? '' : '<div class="nogoal">✓ No open goals.</div>');
@@ -972,6 +1104,102 @@ function renderModel(model, cursorLine, openState, bunchMode) {
   return out.join('\n');
 }
 
+const { StringDecoder } = require('string_decoder');
+
+// debug lines printed by --debug (src/lang.ml), removed from the output
+const DEBUG_LINE = /^(UNIFY|SOLVE|META|OCCURS|CHECK TYPE|CHECK|INFER|SPLIT|SPLITED AS|ESCAPED|DUPLICATE|CLASH) /;
+const TRACE_LINES = 12;
+
+// Write `text` next to the document, for a check of a modified copy.
+async function writeTemp(dir, text) {
+  const filePath = path.join(dir, `.batt-live-${process.pid}-${Date.now()}-${Math.random().toString(16).slice(2)}.batt`);
+  await fs.promises.writeFile(filePath, text, 'utf8');
+  return {
+    filePath,
+    dispose: async () => {
+      try {
+        await fs.promises.unlink(filePath);
+      } catch (error) {
+        void error;
+      }
+    }
+  };
+}
+
+function escapeRegExp(t) {
+  return t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+// 1-based line of the signature of the `occurrence`-th top-level definition `name`
+function findDeclLine(text, name, occurrence) {
+  const signature = new RegExp(`^${escapeRegExp(name)}\\s*(∷|::|:)(\\s|$)`);
+  const lines = text.split('\n');
+  let seen = 0;
+  for (let i = 0; i < lines.length; i++) {
+    if (signature.test(lines[i]) && ++seen === occurrence) {
+      return i + 1;
+    }
+  }
+  return undefined;
+}
+
+function locateErrors(model, text) {
+  for (const error of model.errors) {
+    if (!error.pos && error.decl) {
+      const line = findDeclLine(text, error.decl.name, error.decl.occurrence);
+      if (line) {
+        error.pos = { file: model.file, line, col: 0 };
+      }
+    }
+  }
+  return model;
+}
+
+// Replace the body of every clause of the `occurrence`-th top-level definition `name`
+// by a hole, keeping its signature and patterns (so the hole has the right context).
+// Continuation lines become blank lines, so line numbers do not move.
+function replaceBodyWithHole(text, name, occurrence) {
+  const lines = text.split('\n');
+  const n = escapeRegExp(name);
+  const signature = new RegExp(`^${n}\\s*(∷|::|:)(\\s|$)`);
+  const clause = new RegExp(`^${n}(\\s|=|$)`);
+  let seen = 0;
+  let sig = -1;
+  for (let i = 0; i < lines.length; i++) {
+    if (signature.test(lines[i]) && ++seen === occurrence) {
+      sig = i;
+      break;
+    }
+  }
+  if (sig < 0) {
+    return undefined;
+  }
+  let i = sig + 1;
+  while (i < lines.length && /^\s+\S/.test(lines[i])) {
+    i++; // signature continued on indented lines
+  }
+  const clauseLines = [];
+  for (; i < lines.length; i++) {
+    const line = lines[i];
+    if (line.trim() === '') {
+      continue;
+    }
+    if (!clause.test(line) || signature.test(line)) {
+      break;
+    }
+    const m = /^(.*?)\s=(\s|$)/.exec(line);
+    lines[i] = (m ? m[1] : name) + ' = ?';
+    clauseLines.push(i + 1);
+    while (i + 1 < lines.length && /^\s+\S/.test(lines[i + 1])) {
+      lines[++i] = '';
+    }
+  }
+  if (!clauseLines.length) {
+    return undefined;
+  }
+  return { text: lines.join('\n'), line: sig + 1, clauseLines };
+}
+
 // Process groups of checker runs still alive, killed on deactivation.
 const runningGroups = new Set();
 
@@ -997,7 +1225,11 @@ function runBatt(workspaceRoot, fileName) {
   if (memoryLimitMB > 0) {
     limits.push(`ulimit -v ${Math.floor(memoryLimitMB) * 1024}`);
   }
-  const script = `${limits.map((l) => `${l} 2>/dev/null`).join('; ')}; exec batt --no-colors "$1"`;
+  // --debug makes the checker flush stdout after every debug line. Its normal printing
+  // is not flushed (ksprintf ignores %!), so without it up to 64 KB of output (e.g. the
+  // declaration being checked) would be lost when a run is killed. The debug lines are
+  // filtered out below as they arrive; only the last few are kept, as a trace.
+  const script = `${limits.map((l) => `${l} 2>/dev/null`).join('; ')}; exec batt --no-colors --debug "$1"`;
 
   return new Promise((resolve, reject) => {
     const child = cp.spawn('/bin/sh', ['-c', script, 'batt', fileName], {
@@ -1006,9 +1238,11 @@ function runBatt(workspaceRoot, fileName) {
       stdio: ['ignore', 'pipe', 'pipe']
     });
     runningGroups.add(child.pid);
-    const stdout = [];
+    const kept = [];
+    const trace = [];
     const stderr = [];
     let size = 0;
+    let rawSize = 0;
     let stopped;
     const stop = (reason) => {
       if (!stopped) {
@@ -1016,16 +1250,38 @@ function runBatt(workspaceRoot, fileName) {
         killGroup(child.pid);
       }
     };
-    const collect = (chunks) => (chunk) => {
-      size += chunk.length;
+    const decoder = new StringDecoder('utf8');
+    let pending = '';
+    const takeLine = (line) => {
+      if (DEBUG_LINE.test(line)) {
+        trace.push(line.length > 400 ? line.slice(0, 400) + ' …' : line);
+        if (trace.length > TRACE_LINES) {
+          trace.shift();
+        }
+        return;
+      }
+      size += line.length + 1;
       if (size > maxOutputBytes) {
         stop('output');
         return;
       }
-      chunks.push(chunk);
+      kept.push(line);
     };
-    child.stdout.on('data', collect(stdout));
-    child.stderr.on('data', collect(stderr));
+    child.stdout.on('data', (chunk) => {
+      rawSize += chunk.length;
+      if (rawSize > maxOutputBytes * 20) {
+        stop('output'); // debug output can be much larger; bound it too
+        return;
+      }
+      const lines = (pending + decoder.write(chunk)).split('\n');
+      pending = lines.pop();
+      lines.forEach(takeLine);
+    });
+    child.stderr.on('data', (chunk) => {
+      if (stderr.length < 1000) {
+        stderr.push(chunk);
+      }
+    });
     const timer = setTimeout(() => stop('timeout'), timeoutSeconds * 1000);
 
     child.on('error', (error) => {
@@ -1037,7 +1293,11 @@ function runBatt(workspaceRoot, fileName) {
       clearTimeout(timer);
       killGroup(child.pid); // no stragglers
       runningGroups.delete(child.pid);
-      const out = Buffer.concat(stdout).toString('utf8');
+      pending += decoder.end();
+      if (pending) {
+        takeLine(pending);
+      }
+      const out = kept.join('\n');
       const err = Buffer.concat(stderr).toString('utf8');
       if (!stopped && code !== 0 && /allocation failure|Out of memory|Stack overflow/i.test(out + err)) {
         stopped = 'memory';
@@ -1049,23 +1309,11 @@ function runBatt(workspaceRoot, fileName) {
         stdout: out,
         stderr: err,
         stopped,
+        trace,
         limits: { timeoutSeconds, memoryLimitMB, maxOutputMB: maxOutputBytes / (1024 * 1024) }
       });
     });
   });
-}
-
-function stoppedMessage(result, name) {
-  const l = result.limits;
-  const why = {
-    memory: `it ran out of memory (limit: ${l.memoryLimitMB} MB)`,
-    timeout: `it did not finish within ${l.timeoutSeconds} s`,
-    output: `it produced more than ${l.maxOutputMB} MB of output`
-  }[result.stopped];
-  return `batt was stopped on ${name}: ${why}.\n\n` +
-    'This usually means the checker is looping, for instance while unifying a term that is stuck on a hole ' +
-    '(a definition used by a later `refl` whose body is `?`). Your machine is protected: the run was killed.\n\n' +
-    'The limits can be changed in the settings batt.memoryLimitMB, batt.timeoutSeconds and batt.maxOutputMB.';
 }
 
 function escapeHtml(value) {

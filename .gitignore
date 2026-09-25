@@ -5,3 +5,4 @@ batt
 *.exe
 
 .vscode/agda.code-snippets
+CLAUDE.md
