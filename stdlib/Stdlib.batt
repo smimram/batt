@@ -16,3 +16,4 @@ open import Pushout
 open import Funext
 open import Equivalence
 open import Interval
+open import Cube
