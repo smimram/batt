@@ -1,9 +1,9 @@
--- predecessor, with pred 0 = 0
+-- Predecessor
 pred ∷ ℕ → ℕ
 pred zero = zero
 pred (succ n) = n
 
--- addition, by induction on the second argument
+-- Addition
 add ∷ ℕ → ℕ → ℕ
 add m zero = m
 add m (succ n) = succ rec
