@@ -22,4 +22,4 @@ gray-square = 𝕀 ⨂ 𝕀
 
 cube ∷ (n ∷ ℕ) → Type
 cube zero = unit
-cube (succ n) = 𝕀 ⨂ rec
+cube (succ n) = rec ⨂ 𝕀
