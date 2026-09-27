@@ -20,5 +20,6 @@ two-spine→two-simplex (i , y) =
 gray-square ∷ Type
 gray-square = 𝕀 ⨂ 𝕀
 
--- cube ∷ ℕ → Type
--- cube n = ?
+cube ∷ (n ∷ ℕ) → Type
+cube zero = unit
+cube (succ n) = 𝕀 ⨂ rec
