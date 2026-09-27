@@ -19,12 +19,12 @@ let meta ~pos = mk ~pos @@ Meta (`Fresh (Some pos))
 %token<int> INT
 %token EMPTY
 %token UNIT TT
-%token BOOL FALSE TRUE
+%token FALSE TRUE
 %token TO TOL TOR FUN DOT SIGMA TIMES TENS TENSP
 %token FLAT FLATTEN
 %token IDEQ REFL
 %token EQUIV CIRC
-%token NAT ZERO SUCC NATIND
+%token NAT ZERO SUCC
 %token I I0 I1 Iv Iw
 %token<string> IDENT
 %token OPEN
@@ -69,7 +69,6 @@ atom:
   | EMPTY { mk ~pos:$loc @@ IndType `Empty }
   | UNIT { mk ~pos:$loc @@ IndType `Unit }
   | TT { mk ~pos:$loc @@ IndTerm (`Unit, []) }
-  | BOOL { mk ~pos:$loc @@ IndType `Bool }
   | FALSE { mk ~pos:$loc @@ IndTerm (`Bool false, []) }
   | TRUE { mk ~pos:$loc @@ IndTerm (`Bool true, []) }
   | IDENT { mk ~pos:$loc @@ Var $1 }
@@ -95,7 +94,6 @@ app_term:
   | prefix_term { $1 }
   | t=app_term u=prefix_term { app ~pos:$loc t u }
   | t=app_term LACC u=term RACC { app ~pos:$loc ~icit:Implicit t u }
-  | NATIND z=prefix_term s=prefix_term { mk ~pos:$loc @@ IndType_ind (`Nat, [z; s]) }
 
 prod_term:
   | app_term { $1 }
