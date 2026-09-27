@@ -16,7 +16,7 @@ type var = string
 type t =
   | Type of int (** universe level *)
   | IndType of inductive_type
-  | IndTerm of inductive_term
+  | IndTerm of inductive_term * t list
   | IndType_ind of inductive_type * t list * spine
   | Pi of icit * crispness * t * closure
   | Abs of closure
@@ -99,7 +99,7 @@ let postulate = ref (-1)
 let rec eval (env:environment) : Term.t -> t = function
   | Type n -> Type n
   | IndType a -> IndType a
-  | IndTerm t -> IndTerm t
+  | IndTerm (t,l) -> IndTerm (t, List.map (eval env) l)
   | IndType_ind (ind, args) -> IndType_ind (ind, List.map (eval env) args, [])
   | Pi (i, c, x, a, t) -> Pi (i, c, eval env a, (x, t, env))
   | Abs (_, x, t) -> Abs (x, t, env)
@@ -162,9 +162,11 @@ and var k = Var (k, [])
 and app t u =
   match force t, force u with
   | Abs f, u -> capp f u
-  | IndType_ind (`Unit, [t], []), IndTerm `Unit -> t
-  | IndType_ind (`Bool, [tf;_tt], []), IndTerm (`Bool false) -> tf
-  | IndType_ind (`Bool, [_tf;tt], []), IndTerm (`Bool true) -> tt
+  | IndType_ind (`Unit, [t], []), IndTerm (`Unit, []) -> t
+  | IndType_ind (`Bool, [tf;_tt], []), IndTerm (`Bool false, []) -> tf
+  | IndType_ind (`Bool, [_tf;tt], []), IndTerm (`Bool true, []) -> tt
+  | IndType_ind (`Nat, [tz;_ts], []), IndTerm (`Zero, []) -> tz
+  | IndType_ind (`Nat, [_tz;ts], []), IndTerm (`Succ, [n]) -> apps ts [n; app t n]
   | IndType_ind (ind, t, l), u -> IndType_ind (ind, t, u::l)
   | Pair_ind (t, []), Pair (u, v) -> capp2 t u v
   | Pair_ind (t, l), u -> Pair_ind (t, u::l)
@@ -244,7 +246,7 @@ let rec readback k v : Term.t =
   | Type n -> Type n
   | IndType ind -> IndType ind
   | IndType_ind (ind, args, l) -> spine l @@ IndType_ind (ind, List.map (readback k) args)
-  | IndTerm t -> IndTerm t
+  | IndTerm (t, l) -> IndTerm (t, List.map (readback k) l)
   | Pi (i, c, a, b) -> Pi (i, c, var_name k, readback k a, readback (k+1) (capp b (var k)))
   | Abs f -> Abs (Explicit, var_name k, readback (k+1) (capp f (var k)))
   | Sigma (a, b) -> Sigma (var_name k, readback k a, readback (k+1) (capp b (var k)))
