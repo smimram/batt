@@ -72,7 +72,7 @@ let rec compile_clauses ~pos rows =
       in
       mk ~pos @@ IndType_ind (`Bool, [compile_clauses ~pos (branch false); compile_clauses ~pos (branch true)])
     else if List.exists (function `Nat _ -> true | _ -> false) heads then
-      (* Case analysis on natural numbers (no recursive calls). *)
+      (* Case analysis on natural numbers: in the successor case, the result of the recursive call is bound to rec. *)
       let n =
         List.find_map (function `Nat (Some x) when x <> "_" -> Some x | _ -> None) heads
         |> Option.value ~default:"_n"
@@ -94,7 +94,7 @@ let rec compile_clauses ~pos rows =
           ) (List.combine heads rows)
       in
       let tz = compile_clauses ~pos (branch true) in
-      let ts = abss ~pos [n; "_"] (compile_clauses ~pos (branch false)) in
+      let ts = abss ~pos [n; "rec"] (compile_clauses ~pos (branch false)) in
       mk ~pos @@ IndType_ind (`Nat, [tz; ts])
     else if List.for_all (function `Var _ -> true | _ -> false) heads then
       let icit = match List.hd heads with `Var (i, _) -> i | _ -> assert false in
