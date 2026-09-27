@@ -425,14 +425,16 @@ let unify ~pos k (t:value) (u:value) =
     | Meta (m, l), t -> solve k m l t
     | t, Meta (m, l) -> solve k m l t
     (* eta-expansion (needs to be after meta-variables, otherwise the spine might contain a pair and not be a pattern *)
-    | (Pair_ind _ as t), u
-    | t, (Pair_ind _ as u) ->
+    (* only for unapplied eliminators: an applied one is stuck (neutral) and
+       applying it to a pair would only grow its spine, looping forever *)
+    | (Pair_ind (_, []) as t), u
+    | t, (Pair_ind (_, []) as u) ->
       let x = V.var k in
       let y = V.var (k+1) in
       let p = V.Pair (x,y) in
       unify (k+2) (V.app t p) (V.app u p)
-    | (Tens_ind _ as t), u
-    | t, (Tens_ind _ as u) ->
+    | (Tens_ind (_, []) as t), u
+    | t, (Tens_ind (_, []) as u) ->
       let x = V.var k in
       let y = V.var (k+1) in
       let p = V.TensPair (x,y) in
@@ -634,11 +636,13 @@ let rec check k env ctx (t:term) (a:value) : term =
     Flat_ind (x, t)
   | Refl t, Eq (a, u, u') ->
     let t = check k env ctx t a in
-    let pos = T.Position.find_opt t in
     (
       let t = V.eval env t in
-      unify_base ~pos k t u;
-      unify_base ~pos k t u';
+      try
+        unify_base ~pos k t u;
+        unify_base ~pos k t u'
+      with Unification ->
+        error ~t:t0 "reflexivity cannot prove %s ≡ %s" (V.to_string k u) (V.to_string k u')
     );
     Refl t
   | J r, Pi (_, _, a, b) ->

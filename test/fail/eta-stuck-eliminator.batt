@@ -1,0 +1,9 @@
+-- https://github.com/smimram/batt/issues/20
+-- f u is stuck on u and is not a: this should be rejected (and used to make
+-- the unifier loop by eta-expanding the stuck eliminator).
+
+f ∷ {A ∷ U} → A ⨂ ⊤ → A
+f (a ⊗ x) = a
+
+t ∷ {A ∷ U} (u : A ⨂ ⊤) (a : A) → f u ≡ a
+t u a = refl

@@ -1,0 +1,5 @@
+f ∷ {A ∷ U} → A × ⊤ → A
+f (a , x) = a
+
+t ∷ {A ∷ U} (u : A × ⊤) (a : A) → f u ≡ a
+t u a = refl
