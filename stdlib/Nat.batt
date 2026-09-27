@@ -1,0 +1,8 @@
+-- predecessor, with pred 0 = 0
+pred ∷ ℕ → ℕ
+pred zero = zero
+pred (succ n) = n
+
+-- addition, by induction on the second argument
+add ∷ ℕ → ℕ → ℕ
+add m = ℕ-ind m (λ _ r . succ r)
