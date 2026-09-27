@@ -1,76 +1,76 @@
-sup-0 :: (i : 𝕀) → 𝕀0 𝕀∨ i ≡ i
+sup-0 ∷ (i : 𝕀) → 𝕀0 𝕀∨ i ≡ i
 sup-0 i = refl
 
-sup-1 :: (i : 𝕀) → 𝕀1 𝕀∨ i ≡ 𝕀1
+sup-1 ∷ (i : 𝕀) → 𝕀1 𝕀∨ i ≡ 𝕀1
 sup-1 i = refl
 
-sup-diag :: (i : 𝕀) → i 𝕀∨ i ≡ i
+sup-diag ∷ (i : 𝕀) → i 𝕀∨ i ≡ i
 sup-diag i = refl
 
-sup-assoc :: (i j k : 𝕀) → (i 𝕀∨ j) 𝕀∨ k ≡ i 𝕀∨ (j 𝕀∨ k)
+sup-assoc ∷ (i j k : 𝕀) → (i 𝕀∨ j) 𝕀∨ k ≡ i 𝕀∨ (j 𝕀∨ k)
 sup-assoc i j k = refl
 
-sup-sym :: (i j : 𝕀) → i 𝕀∨ j ≡ j 𝕀∨ i
+sup-sym ∷ (i j : 𝕀) → i 𝕀∨ j ≡ j 𝕀∨ i
 sup-sym i j = refl
 
-sup-0' :: (i : 𝕀) → i 𝕀∨ 𝕀0 ≡ i
+sup-0' ∷ (i : 𝕀) → i 𝕀∨ 𝕀0 ≡ i
 sup-0' i = refl
 
-sup-1' :: (i : 𝕀) → i 𝕀∨ 𝕀1 ≡ 𝕀1
+sup-1' ∷ (i : 𝕀) → i 𝕀∨ 𝕀1 ≡ 𝕀1
 sup-1' i = refl
 
-inf-0 :: (i : 𝕀) → 𝕀0 𝕀∧ i ≡ 𝕀0
+inf-0 ∷ (i : 𝕀) → 𝕀0 𝕀∧ i ≡ 𝕀0
 inf-0 i = refl
 
-inf-1 :: (i : 𝕀) → 𝕀1 𝕀∧ i ≡ i
+inf-1 ∷ (i : 𝕀) → 𝕀1 𝕀∧ i ≡ i
 inf-1 i = refl
 
-inf-0' :: (i : 𝕀) → i 𝕀∧ 𝕀0 ≡ 𝕀0
+inf-0' ∷ (i : 𝕀) → i 𝕀∧ 𝕀0 ≡ 𝕀0
 inf-0' i = refl
 
-inf-1' :: (i : 𝕀) → i 𝕀∧ 𝕀1 ≡ i
+inf-1' ∷ (i : 𝕀) → i 𝕀∧ 𝕀1 ≡ i
 inf-1' i = refl
 
-inf-diag :: (i : 𝕀) → i 𝕀∧ i ≡ i
+inf-diag ∷ (i : 𝕀) → i 𝕀∧ i ≡ i
 inf-diag i = refl
 
-inf-sym :: (i j : 𝕀) → i 𝕀∧ j ≡ j 𝕀∧ i
+inf-sym ∷ (i j : 𝕀) → i 𝕀∧ j ≡ j 𝕀∧ i
 inf-sym i j = refl
 
-inf-assoc :: (i j k : 𝕀) → (i 𝕀∧ j) 𝕀∧ k ≡ i 𝕀∧ (j 𝕀∧ k)
+inf-assoc ∷ (i j k : 𝕀) → (i 𝕀∧ j) 𝕀∧ k ≡ i 𝕀∧ (j 𝕀∧ k)
 inf-assoc i j k = refl
 
-sup-inf :: (i j : 𝕀) → i 𝕀∨ (i 𝕀∧ j) ≡ i
+sup-inf ∷ (i j : 𝕀) → i 𝕀∨ (i 𝕀∧ j) ≡ i
 sup-inf i j = refl
 
-inf-sup :: (i j : 𝕀) → i 𝕀∧ (i 𝕀∨ j) ≡ i
+inf-sup ∷ (i j : 𝕀) → i 𝕀∧ (i 𝕀∨ j) ≡ i
 inf-sup i j = refl
 
-inf-sup-dist :: (i j k : 𝕀) → i 𝕀∧ (j 𝕀∨ k) ≡ (i 𝕀∧ j) 𝕀∨ (i 𝕀∧ k)
+inf-sup-dist ∷ (i j k : 𝕀) → i 𝕀∧ (j 𝕀∨ k) ≡ (i 𝕀∧ j) 𝕀∨ (i 𝕀∧ k)
 inf-sup-dist i j k = refl
 
-sup-inf-dist :: (i j k : 𝕀) → i 𝕀∨ (j 𝕀∧ k) ≡ (i 𝕀∨ j) 𝕀∧ (i 𝕀∨ k)
+sup-inf-dist ∷ (i j k : 𝕀) → i 𝕀∨ (j 𝕀∧ k) ≡ (i 𝕀∨ j) 𝕀∧ (i 𝕀∨ k)
 sup-inf-dist i j k = refl
 
-sup-inf-dist-r :: (i j k : 𝕀) → (i 𝕀∧ j) 𝕀∨ k ≡ (i 𝕀∨ k) 𝕀∧ (j 𝕀∨ k)
+sup-inf-dist-r ∷ (i j k : 𝕀) → (i 𝕀∧ j) 𝕀∨ k ≡ (i 𝕀∨ k) 𝕀∧ (j 𝕀∨ k)
 sup-inf-dist-r i j k = refl
 
 -- the constants are the unit of the operations
-sup-inf-const :: (i : 𝕀) → (𝕀0 𝕀∧ i) 𝕀∨ (𝕀1 𝕀∧ i) ≡ i
+sup-inf-const ∷ (i : 𝕀) → (𝕀0 𝕀∧ i) 𝕀∨ (𝕀1 𝕀∧ i) ≡ i
 sup-inf-const i = refl
 
 -- a more involved normalization
-big :: (i j k l : 𝕀) → (i 𝕀∨ j) 𝕀∧ (k 𝕀∨ l) ≡ (((i 𝕀∧ k) 𝕀∨ (j 𝕀∧ l)) 𝕀∨ (i 𝕀∧ l)) 𝕀∨ (j 𝕀∧ k)
+big ∷ (i j k l : 𝕀) → (i 𝕀∨ j) 𝕀∧ (k 𝕀∨ l) ≡ (((i 𝕀∧ k) 𝕀∨ (j 𝕀∧ l)) 𝕀∨ (i 𝕀∧ l)) 𝕀∨ (j 𝕀∧ k)
 big i j k l = refl
 
 -- median is symmetric
-median :: 𝕀 → 𝕀 → 𝕀 → 𝕀
+median ∷ 𝕀 → 𝕀 → 𝕀 → 𝕀
 median i j k = ((i 𝕀∧ j) 𝕀∨ (j 𝕀∧ k)) 𝕀∨ (k 𝕀∧ i)
 
-median-sym :: (i j k : 𝕀) → median i j k ≡ median j k i
+median-sym ∷ (i j k : 𝕀) → median i j k ≡ median j k i
 median-sym i j k = refl
 
-median-dual :: (i j k : 𝕀) → median i j k ≡ ((i 𝕀∨ j) 𝕀∧ (j 𝕀∨ k)) 𝕀∧ (k 𝕀∨ i)
+median-dual ∷ (i j k : 𝕀) → median i j k ≡ ((i 𝕀∨ j) 𝕀∧ (j 𝕀∨ k)) 𝕀∧ (k 𝕀∨ i)
 median-dual i j k = refl
 
 open import Empty

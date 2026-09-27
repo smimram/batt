@@ -1,5 +1,7 @@
 open import Set
 open import Empty
+open import Logic
+open import Product
 
 postulate is-set-𝕀 ∷ is-set 𝕀
 
@@ -12,12 +14,9 @@ boundary-inclusion ∷ bool → 𝕀
 boundary-inclusion false = 𝕀0
 boundary-inclusion true  = 𝕀1
 
-
-leq :: 𝕀 → 𝕀 → Type
+leq ∷ 𝕀 → 𝕀 → Type
 leq i j = i 𝕀∨ j ≡ j
 
-two-simplex :: Type
-two-simplex = Σ (i : 𝕀) . Σ (j : 𝕀) . leq i j
+geq ∷ 𝕀 → 𝕀 → Type
+geq i j = i 𝕀∨ j ≡ i
 
--- cube :: ℕ → Type
--- cube n = ?

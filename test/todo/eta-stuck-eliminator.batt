@@ -1,0 +1,15 @@
+-- KNOWN BUG, see eta-stuck-eliminator.md next to this file.
+--
+-- Expected: a type error (`f u` is stuck, it is not `a`).
+-- Actual:   the unifier loops forever and allocates without bound
+--           ("Fatal error: allocation failure during minor GC" once memory runs out).
+--
+-- WARNING: do not run this uncapped, it can freeze the whole machine. Use e.g.
+--   ( ulimit -v 1000000; timeout -s KILL 10 _build/install/default/bin/batt test/todo/eta-stuck-eliminator.batt )
+-- (This directory is not globbed by any dune rule, so `dune runtest` does not run it.)
+
+f ∷ {A ∷ U} → A ⨂ ⊤ → A
+f (a ⊗ x) = a
+
+t ∷ {A ∷ U} (u : A ⨂ ⊤) (a : A) → f u ≡ a
+t u a = refl

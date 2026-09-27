@@ -1,17 +1,17 @@
 open import Contr
 
-is-prop :: U → U
+is-prop ∷ U → U
 is-prop A = (a b : A) → is-contr (a ≡ b)
 
-HProp :: TYPE
+HProp ∷ TYPE
 HProp = Σ (A : U) . is-prop A
 
-type-Prop :: HProp → U
+type-Prop ∷ HProp → U
 type-Prop (A, p) = A
 
 open import Equality
 
-is-contr→is-prop :: {A : U} → is-contr A → is-prop A
+is-contr→is-prop ∷ {A : U} → is-contr A → is-prop A
 is-contr→is-prop {A} (a , p) x y =
   let trans-sym : {z : A} (r : a ≡ z) → trans (sym r) r ≡ refl = J a (fun z r → trans (sym r) r ≡ refl) refl in
   let lem : {z : A} (q : x ≡ z) → trans (sym (p x)) (p z) ≡ q = J x (fun z q → trans (sym (p x)) (p z) ≡ q) (trans-sym (p x)) in

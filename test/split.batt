@@ -1,12 +1,12 @@
-postulate A :: U
+postulate A ∷ U
 
-f :: A ⨂ bool → ⊤
+f ∷ A ⨂ bool → ⊤
 f _ = tt
 
-test : (x :: A) → f (x ⊗ false) ≡ tt
+test : (x ∷ A) → f (x ⊗ false) ≡ tt
 test _ = refl
 
-postulate b :: bool
+postulate b ∷ bool
 
-test :: (x :: A) → f (x ⊗ b) ≡ tt
+test ∷ (x ∷ A) → f (x ⊗ b) ≡ tt
 test _ = refl

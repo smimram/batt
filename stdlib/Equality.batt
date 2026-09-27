@@ -4,59 +4,59 @@ open import Function
 --- Identity types
 ---
 
-eq :: {A : Type} (x y : A) → Type
+eq ∷ {A : Type} (x y : A) → Type
 eq x y = x ≡ y
 
-refl' :: {A : Type} {x : A} → x ≡ x
+refl' ∷ {A : Type} {x : A} → x ≡ x
 refl' = refl
 
-J :: {A : Type} (x : A) (P : (y : A) → x ≡ y → Type) → P x refl → {y : A} (p : x ≡ y) → P y p
+J ∷ {A : Type} (x : A) (P : (y : A) → x ≡ y → Type) → P x refl → {y : A} (p : x ≡ y) → P y p
 J x P r refl = r
 
-J' :: {A : Type} (P : (x y : A) → x ≡ y → Type) → ((x : A) → P x x refl) → {x y : A} (p : x ≡ y) → P x y p
+J' ∷ {A : Type} (P : (x y : A) → x ≡ y → Type) → ((x : A) → P x x refl) → {x y : A} (p : x ≡ y) → P x y p
 J' P r {x} refl = r x
 
--- J-from-J' :: {A : Type} (x : A) (P : (y : A) → x ≡ y → Type) → P x refl → (y : A) (p : x ≡ y) → P y p
+-- J-from-J' ∷ {A : Type} (x : A) (P : (y : A) → x ≡ y → Type) → P x refl → (y : A) (p : x ≡ y) → P y p
 -- J-from-J' {A} x P r y p =
   -- let D : (x y : A) → x ≡ y → Type 1 = fun x y p → (P : (y : A) → x ≡ y → Type) → P x refl → P y p in
   -- let R : (x : A) → D x x refl = fun x P r → r in
   -- J' D R p P r
 
-sym :: {A : Type} {x y : A} → x ≡ y → y ≡ x
+sym ∷ {A : Type} {x y : A} → x ≡ y → y ≡ x
 sym {A} {x} refl = refl
 
-trans :: {A : Type} {x y : A} → x ≡ y → {z : A} → y ≡ z → x ≡ z
+trans ∷ {A : Type} {x y : A} → x ≡ y → {z : A} → y ≡ z → x ≡ z
 trans p refl = p
 
-cong :: {A B : Type} (f : A → B) {x y : A} → x ≡ y → f x ≡ f y
+cong ∷ {A B : Type} (f : A → B) {x y : A} → x ≡ y → f x ≡ f y
 cong f {x} refl = refl
 
-cong2 :: {A B C : Type} (f : A → B → C) {x x' : A} → x ≡ x' → {y y' : B} → y ≡ y' → f x y ≡ f x' y'
+cong2 ∷ {A B C : Type} (f : A → B → C) {x x' : A} → x ≡ x' → {y y' : B} → y ≡ y' → f x y ≡ f x' y'
 cong2 f {x} refl {y} refl = refl
 
-transport :: {A B : Type} → A ≡ B → A → B
+transport ∷ {A B : Type} → A ≡ B → A → B
 transport {A} refl a = a
 
-subst :: {A : Type} (P : A → Type) {x y : A} → x ≡ y → P x → P y
+subst ∷ {A : Type} (P : A → Type) {x y : A} → x ≡ y → P x → P y
 subst P {x} refl z = z
 
-happly :: {A : Type} {B : A → Type} {f g : (x : A) → B x} → f ≡ g → (x : A) → f x ≡ g x
+happly ∷ {A : Type} {B : A → Type} {f g : (x : A) → B x} → f ≡ g → (x : A) → f x ≡ g x
 happly {A} {B} {f} refl x = refl
 
 ---
 --- Basic lemmas
 ---
 
-sym-sym :: {A : Type} {x y : A} (p : x ≡ y) → sym (sym p) ≡ p
+sym-sym ∷ {A : Type} {x y : A} (p : x ≡ y) → sym (sym p) ≡ p
 sym-sym {A} {x} refl = refl
 
-cong-id :: {A : Type} {x y : A} (p : x ≡ y) → cong id p ≡ p
+cong-id ∷ {A : Type} {x y : A} (p : x ≡ y) → cong id p ≡ p
 cong-id {A} {x} refl = refl
 
-cong-sym :: {A B : Type} (f : A → B) {x y : A} (p : x ≡ y) → cong f (sym p) ≡ sym (cong f p)
+cong-sym ∷ {A B : Type} (f : A → B) {x y : A} (p : x ≡ y) → cong f (sym p) ≡ sym (cong f p)
 cong-sym f {x} refl = refl
 
-assoc :: {A : Type} {x y : A} (p : x ≡ y) {z : A} (q : y ≡ z) {w : A} (r : z ≡ w) → trans (trans p q) r ≡ trans p (trans q r)
+assoc ∷ {A : Type} {x y : A} (p : x ≡ y) {z : A} (q : y ≡ z) {w : A} (r : z ≡ w) → trans (trans p q) r ≡ trans p (trans q r)
 assoc p refl refl = refl
 
 ---
