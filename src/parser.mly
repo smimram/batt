@@ -23,7 +23,7 @@ let meta ~pos = mk ~pos @@ Meta (`Fresh (Some pos))
 %token TO TOL TOR FUN DOT SIGMA TIMES TENS TENSP
 %token FLAT FLATTEN
 %token IDEQ REFL
-%token EQUIV CIRC
+%token<string> INFIX0 INFIX1
 %token NAT ZERO SUCC
 %token I I0 I1 Iv Iw
 %token<string> IDENT
@@ -32,12 +32,12 @@ let meta ~pos = mk ~pos @@ Meta (`Fresh (Some pos))
 
 %nonassoc below_INT
 %nonassoc INT
-%nonassoc EQUIV
+%nonassoc INFIX0
 %nonassoc IDEQ
 %right TIMES
 %right TENSP
 %right TENS
-%left CIRC
+%left INFIX1
 %left Iv Iw
 
 %start main
@@ -102,8 +102,8 @@ prod_term:
   | a=prod_term TIMES b=prod_term { mk ~pos:$loc @@ Sigma ("_", a, b) }
   | t=prod_term IDEQ u=prod_term { mk ~pos:$loc @@ Eq (meta ~pos:$loc, t, u) }
   | t=prod_term IDEQ LACC a=term RACC u=prod_term %prec IDEQ { mk ~pos:$loc @@ Eq (a, t, u) }
-  | t=prod_term EQUIV u=prod_term { mk ~pos:$loc @@ apps (mk ~pos:$loc($2) @@ Var "_≃_") [t; u] }
-  | g=prod_term CIRC f=prod_term { mk ~pos:$loc @@ apps (mk ~pos:$loc($2) @@ Var "circ") [g; f] }
+  | t=prod_term op=INFIX0 u=prod_term { mk ~pos:$loc @@ apps (mk ~pos:$loc(op) @@ Var op) [t; u] }
+  | t=prod_term op=INFIX1 u=prod_term { mk ~pos:$loc @@ apps (mk ~pos:$loc(op) @@ Var op) [t; u] }
   | i=prod_term Iv j=prod_term { mk ~pos:$loc @@ Iv (i, j) }
   | i=prod_term Iw j=prod_term { mk ~pos:$loc @@ Iw (i, j) }
 
