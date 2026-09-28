@@ -8,7 +8,7 @@ type value = V.t
 
 module FV = Term.FV
 
-let string_of_environment k env = List.map (fun (x,t) -> x ^ "=" ^ V.to_string k t) env |> String.concat ", "
+let string_of_environment k env = String.concat ", " @@ snd @@ List.fold_left_map (fun vars (x,t) -> x::vars, x ^ "=" ^ V.to_string vars k t) [] env
 
 type var = string
 
@@ -24,11 +24,11 @@ module Bunch = struct
     | Prod of t * t
     | Tens of t * t
 
-  let rec to_string k = function
+  let rec to_string vars k = function
     | Empty -> "()"
-    | Decl (x, a) -> Printf.sprintf "%s:%s" x (V.to_string k a)
-    | Prod (l,r) -> Printf.sprintf "(%s,%s)" (to_string k l) (to_string k r)
-    | Tens (l,r) -> Printf.sprintf "(%s⊗%s)" (to_string k l) (to_string k r)
+    | Decl (x, a) -> Printf.sprintf "%s:%s" x (V.to_string vars k a)
+    | Prod (l,r) -> Printf.sprintf "(%s,%s)" (to_string vars k l) (to_string vars k r)
+    | Tens (l,r) -> Printf.sprintf "(%s⊗%s)" (to_string vars k l) (to_string vars k r)
 
   let ext ctx x a = Prod (ctx,Decl(x,a))
 
@@ -63,7 +63,7 @@ module Bunch = struct
 
   (** Split a buch so that we have the given free variables. *)
   let split fvl fvr crisp b =
-    debug "SPLIT %s as %s / %s\n" (to_string 0 b) (FV.to_string fvl) (FV.to_string fvr);
+    debug "SPLIT %s as %s / %s\n" (to_string [] 0 b) (FV.to_string fvl) (FV.to_string fvr);
     assert (FV.is_empty @@ FV.inter fvl fvr);
     let fvc = FV.of_list @@ List.map fst crisp in
     let is_crisp fv = FV.subset fv fvc in
@@ -88,12 +88,12 @@ module Bunch = struct
         else failwith "split"
       | Prod (Empty, b)
       | Prod (b, Empty) -> aux fvl fvr b
-      | Decl _ -> failwith @@ Printf.sprintf "trying to split %s as %s / %s" (to_string 0 b) (FV.to_string fvl) (FV.to_string fvr)
+      | Decl _ -> failwith @@ Printf.sprintf "trying to split %s as %s / %s" (to_string [] 0 b) (FV.to_string fvl) (FV.to_string fvr)
       | Prod (b1, b2) ->
         let fv = FV.union fvl fvr in
         if FV.subset fv (dom b1) then aux fvl fvr b1
         else if FV.subset fv (dom b2) then aux fvl fvr b2
-        else failwith @@ Printf.sprintf "cannot split %s as %s / %s" (to_string 0 b) (FV.to_string fvl) (FV.to_string fvr)
+        else failwith @@ Printf.sprintf "cannot split %s as %s / %s" (to_string [] 0 b) (FV.to_string fvl) (FV.to_string fvr)
     in
     aux fvl fvr b
 
@@ -158,7 +158,7 @@ type context = Context.t
 (** Unification problems. *)
 module Unification = struct
   let set m t =
-    debug "META  %s <- %s\n%!" (V.Meta.to_string m) (T.to_string t);
+    debug "META  %s <- %s\n%!" (V.Meta.to_string m) (T.to_string [] t);
     assert (m.value = None);
     let t = V.eval [] t in
     m.value <- Some t
@@ -222,10 +222,10 @@ let error ?t fmt =
 
 (** Unify two values. *)
 let unify ~pos k (t:value) (u:value) =
-  debug "UNIFY %s WITH %s\n%!" (V.to_string k t) (V.to_string k u);
+  debug "UNIFY %s WITH %s\n%!" (V.to_string [] k t) (V.to_string [] k u);
   (* Make sure that metavariable m applied to spine s equals t. *)
   let solve k m s t =
-    debug "SOLVE %s =? %s\n" (V.to_string k (Meta (m, s))) (V.to_string k t);
+    debug "SOLVE %s =? %s\n" (V.to_string [] k (Meta (m, s))) (V.to_string [] k t);
     (* Construct the initial renaming. Note that we number variables x0, x1, etc so that the furthest variable is x0: this is to avoid having to shift all indices when lifting. *)
     let r =
       let rec aux = function
@@ -319,10 +319,10 @@ let unify ~pos k (t:value) (u:value) =
             match IntMap.find_opt x r.ren with
             | Some (Some y) -> var y
             | Some None ->
-              debug "DUPLICATE %s\n" (V.to_string k (V.var x));
+              debug "DUPLICATE %s\n" (V.to_string [] k (V.var x));
               raise Unification
             | None ->
-              debug "ESCAPED %s\n" (V.to_string k (V.var x));
+              debug "ESCAPED %s\n" (V.to_string [] k (V.var x));
               raise Unification
           )
         | Postulate (n, l) ->
@@ -332,7 +332,7 @@ let unify ~pos k (t:value) (u:value) =
         | I1 -> I1
         | Iv (i, j) -> Iv (rename r i, rename r j)
         | Iw (i, j) -> Iw (rename r i, rename r j)
-        | t -> failwith @@ Printf.sprintf "TODO: rename %s" (V.to_string k t)
+        | t -> failwith @@ Printf.sprintf "TODO: rename %s" (V.to_string [] k t)
       in
       rename r t
     in
@@ -441,7 +441,7 @@ let unify ~pos k (t:value) (u:value) =
       let p = V.TensPair (x,y) in
       unify (k+2) (V.app t p) (V.app u p)
     | t, u ->
-      debug "CLASH %s VS %s \n%!" (V.to_string k t) (V.to_string k u);
+      debug "CLASH %s VS %s \n%!" (V.to_string [] k t) (V.to_string [] k u);
       raise Unification
   in
   Unification.defer pos k t u;
@@ -460,7 +460,7 @@ let finalize_unify () =
   if not @@ Unification.is_empty () then
     let pb =
       List.rev !Unification.deferred
-      |> List.map (fun (pos,k,t,u) -> Printf.sprintf "- %s: %s vs %s" (Pos.opt_to_string pos) (V.to_string k t) (V.to_string k u))
+      |> List.map (fun (pos,k,t,u) -> Printf.sprintf "- %s: %s vs %s" (Pos.opt_to_string pos) (V.to_string [] k t) (V.to_string [] k u))
       |> String.concat "\n"
     in
     warning "\n%d unsolved unification problems:\n%s\n" (List.length !Unification.deferred) pb
@@ -469,7 +469,7 @@ let unify_base = unify
 
 let unify k t a b =
   try unify ~pos:(T.Position.find_opt t) k a b
-  with Unification -> error ~t "term has type %s but %s expected" (V.to_string k a) (V.to_string k b)
+  with Unification -> error ~t "term has type %s but %s expected" (V.to_string [] k a) (V.to_string [] k b)
 
 (*
 (** Comparison of values. *)
@@ -496,7 +496,8 @@ let fresh_meta ?pos env =
 
 (** Check that term has given type and elaborate it. *)
 let rec check k env ctx (t:term) (a:value) : term =
-  debug "CHECK %s : %s\n%!" (T.to_string t) (V.to_string k a);
+  let vars = List.map fst env in
+  debug "CHECK %s : %s\n%!" (T.to_string vars t) (V.to_string vars k a);
   (* let cenv, benv = ctx in *)
   (* Printf.printf "      %s\n%!" (Context.to_string k ctx); *)
   let t0 = t in
@@ -643,7 +644,7 @@ let rec check k env ctx (t:term) (a:value) : term =
         unify_base ~pos k t u;
         unify_base ~pos k t u'
       with Unification ->
-        error ~t:t0 "reflexivity cannot prove %s ≡ %s" (V.to_string k u) (V.to_string k u')
+        error ~t:t0 "reflexivity cannot prove %s ≡ %s" (V.to_string vars k u) (V.to_string vars k u')
     );
     Refl t
   | J r, Pi (_, _, a, b) ->
@@ -652,7 +653,7 @@ let rec check k env ctx (t:term) (a:value) : term =
       let a0 = a in
       match V.force a with
       | Pi (icit', _, a, b) when icit = None || Some icit' = icit -> a, b
-      | _ -> error ~t "got %s but function type expected" (V.to_string k a0)
+      | _ -> error ~t "got %s but function type expected" (V.to_string vars k a0)
     in
     let x =
       let y, k = V.var k, k+1 in
@@ -677,10 +678,10 @@ let rec check k env ctx (t:term) (a:value) : term =
     t
   | Postulate n, a ->
     let n = match n with Some n -> n | None -> incr V.postulate; !V.postulate in
-    important "\nPOSTULATE %d %s\n%!" n (V.to_string k a);
+    important "\nPOSTULATE %d %s\n%!" n (V.to_string vars k a);
     Postulate (Some n)
   | Hole pos, a ->
-    important "\nHOLE %s : %s IN\n%s\n%!" (Pos.to_string pos) (V.to_string k a) (Context.to_string ~multiline:true ~crisp:false k ctx);
+    important "\nHOLE %s : %s IN\n%s\n%!" (Pos.to_string pos) (V.to_string vars k a) (Context.to_string ~multiline:true ~crisp:false k ctx);
     Hole pos
   | t, a ->
     let t0 = t in
@@ -693,12 +694,13 @@ let rec check k env ctx (t:term) (a:value) : term =
         check k env ctx (T.mk ?pos (T.app ~icit:Implicit t0 (Meta (`Fresh None)))) a
       | _ ->
         try unify k t0 a' a; t
-        with Unification -> error ~t:t0 "%s has type %s but %s expected" (T.to_string t) (V.to_string k a') (V.to_string k a)
+        with Unification -> error ~t:t0 "%s has type %s but %s expected" (T.to_string vars t) (V.to_string vars k a') (V.to_string vars k a)
     )
 
 (** Check that a term is a type; returns the elaborated term and its universe level. *)
 and check_type k env ctx a : term * int =
-  debug "CHECK TYPE %s\n%!" (T.to_string a);
+  let vars = List.map fst env in
+  debug "CHECK TYPE %s\n%!" (T.to_string vars a);
   (*
   match a with
   | Hole pos -> Hole pos, 0
@@ -714,7 +716,8 @@ and check_type k env ctx a : term * int =
 
 (** Infer the type of a term. *)
 and infer k env ctx (t:term) : term * value =
-  debug "INFER %s\n%!" (T.to_string t);
+  let vars = List.map fst env in
+  debug "INFER %s\n%!" (T.to_string vars t);
   (* Printf.printf "ctx: %s\n%!" (Context.to_string k ctx); *)
   let t0 = t in
   (* let cenv, benv = ctx in *)
@@ -813,7 +816,7 @@ and infer k env ctx (t:term) : term * value =
           let t = check k env ctxt t1 (Arr (s, a, b)) in
           let u = check k env ctxu u a in
           App (t, Explicit, u), b
-        | a -> error ~t:t0 "%s is applied to %s but has type %s, which is not a function type" (T.to_string t1) (T.to_string u) (V.to_string k a)
+        | a -> error ~t:t0 "%s is applied to %s but has type %s, which is not a function type" (T.to_string vars t1) (T.to_string vars u) (V.to_string vars k a)
       )
     )
   | Var x ->
@@ -856,12 +859,12 @@ and infer k env ctx (t:term) : term * value =
     let l =
       match V.force a with
       | RecordType l -> l
-      | _ -> error ~t:t0 "record type expected but got %s" (V.to_string k a)
+      | _ -> error ~t:t0 "record type expected but got %s" (V.to_string vars k a)
     in
     let a =
       match List.find_opt (fun (y,_,_) -> y = x) l with
       | Some (_,_,a) -> a
-      | None -> error ~t:t0 "no field %s in %s" x (V.to_string k a);
+      | None -> error ~t:t0 "no field %s in %s" x (V.to_string vars k a);
     in
     RecordField (t, x), a
   | I -> I, Type 0
@@ -878,6 +881,7 @@ and infer k env ctx (t:term) : term * value =
   | _ -> error ~t "cannot infer type"
 
 and check_decls k env ctx (decls:T.decls) =
+  let vars = List.map fst env in
   let tm = ref [] in
   let ty = ref [] in
   let env = ref env in
@@ -888,7 +892,7 @@ and check_decls k env ctx (decls:T.decls) =
     decls := List.tl !decls;
     match decl with
     | T.Def (x,c,a,t) ->
-      Common.print "\nDECL  %s = %s%s\n%!" x (T.to_string t) (match a with Some a -> " " ^ T.crispy_colon c ^ " " ^ T.to_string a | None -> "");
+      Common.print "\nDECL  %s = %s%s\n%!" x (T.to_string vars t) (match a with Some a -> " " ^ T.crispy_colon c ^ " " ^ T.to_string vars a | None -> "");
       let t, a =
         match a with
         | Some a ->
@@ -910,7 +914,7 @@ and check_decls k env ctx (decls:T.decls) =
       let l =
         match V.force a with
         | RecordType l -> l
-        | _ -> error ~t:t0 "record type exepected but got %s" (V.to_string k a)
+        | _ -> error ~t:t0 "record type exepected but got %s" (V.to_string vars k a)
       in
       let pos = T.Position.find_opt t in
       List.iter (fun (x,c,_) -> decls := (Def (x,c,None,T.mk ?pos @@ RecordField(t0, x)) :: !decls)) (List.rev l)
