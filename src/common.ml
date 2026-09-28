@@ -6,7 +6,11 @@ let include_directories_list = ref ([] : string list)
 
 let include_directories () = "." :: !include_directories_list
 
+(** Define builtins. *)
 let builtins = ref true
+
+(** Use de Buijn indices for variables. *)
+let de_bruijn = ref false
 
 let print fmt =
   Printf.ksprintf !print_string fmt
