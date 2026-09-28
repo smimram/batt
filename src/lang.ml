@@ -8,7 +8,7 @@ type value = V.t
 
 module FV = Term.FV
 
-let string_of_environment k env = String.concat ", " @@ snd @@ List.fold_left_map (fun vars (x,t) -> x::vars, x ^ "=" ^ V.to_string vars k t) [] env
+let string_of_environment k env = String.concat ", " @@ snd @@ List.fold_left_map (fun vars (x,t) -> x::vars, x ^ "=" ^ V.to_string vars k t) [] (List.rev env)
 
 type var = string
 
@@ -113,13 +113,16 @@ module Context = struct
   type t = crisp * bunch
 
   let to_string ?(multiline=false) ?(crisp=true) k (cenv,benv) =
+    let vars = List.map fst cenv in
     let cenv = if crisp then cenv else [] in
+    let cenv =
+      snd @@ List.fold_left_map (fun vars (x,a) -> x::vars, Printf.sprintf "%s ∷ %s" x (V.to_string vars k a)) [] @@ List.rev cenv
+    in
+    let benv = Bunch.to_string vars k benv in
     if multiline then
-      let benv = Bunch.to_string k benv in
-      String.concat "\n" @@ (List.rev_map (fun (x,a) -> Printf.sprintf "%s ∷ %s" x (V.to_string k a)) cenv @ [benv])
+      String.concat "\n" @@ (cenv @ [benv])
     else
-      let cenv = String.concat ", " @@ List.rev_map (fun (x,a) -> Printf.sprintf "%s∷%s" x (V.to_string k a)) cenv in
-      let benv = Bunch.to_string k benv in
+      let cenv = String.concat ", " cenv in
       Printf.sprintf "%s / %s" cenv benv
 
   let empty : t = [],Bunch.Empty
