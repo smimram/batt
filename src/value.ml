@@ -242,25 +242,25 @@ and interval i =
 
 (** Reify a value as a term, [k] being the current level: value variables are levels, whereas term variables are de Bruijn indices. *)
 let rec readback k v : Term.t =
-  let var_name k = "x" ^ string_of_int k in
+  (* Binders keep the name of the original variable (Term.to_string takes care of avoiding clashes). *)
   let spine l t = Term.app_spine t (List.map (readback k) l) in
   match force v with
   | Type n -> Type n
   | IndType ind -> IndType ind
   | IndType_ind (ind, args, l) -> spine l @@ IndType_ind (ind, List.map (readback k) args)
   | IndTerm (t, l) -> IndTerm (t, List.map (readback k) l)
-  | Pi (i, c, a, b) -> Pi (i, c, var_name k, readback k a, readback (k+1) (capp b (var k)))
-  | Abs f -> Abs (Explicit, var_name k, readback (k+1) (capp f (var k)))
-  | Sigma (a, b) -> Sigma (var_name k, readback k a, readback (k+1) (capp b (var k)))
+  | Pi (i, c, a, ((x,_,_) as b)) -> Pi (i, c, x, readback k a, readback (k+1) (capp b (var k)))
+  | Abs ((x,_,_) as f) -> Abs (Explicit, x, readback (k+1) (capp f (var k)))
+  | Sigma (a, ((x,_,_) as b)) -> Sigma (x, readback k a, readback (k+1) (capp b (var k)))
   | Pair (t, u) -> Pair (readback k t, readback k u)
-  | Pair_ind (t, l) -> spine l @@ Pair_ind (var_name k, var_name (k+1), readback (k+2) @@ capp2 t (var k) (var (k+1)))
+  | Pair_ind ((x,y,_,_) as t, l) -> spine l @@ Pair_ind (x, y, readback (k+2) @@ capp2 t (var k) (var (k+1)))
   | Arr (s, a, b) -> Arr (s, readback k a, readback k b)
   | Tens (a, b) -> Tens (readback k a, readback k b)
   | TensPair (t, u) -> TensPair (readback k t, readback k u)
-  | Tens_ind (t, l) -> spine l @@ Tens_ind (var_name k, var_name (k+1), readback (k+2) @@ capp2 t (var k) (var (k+1)))
+  | Tens_ind ((x,y,_,_) as t, l) -> spine l @@ Tens_ind (x, y, readback (k+2) @@ capp2 t (var k) (var (k+1)))
   | Flat a -> Flat (readback k a)
   | Flatten t -> Flatten (readback k t)
-  | Flat_ind (t, l) -> spine l @@ Flat_ind (var_name k, readback (k+1) (capp t (var k)))
+  | Flat_ind ((x,_,_) as t, l) -> spine l @@ Flat_ind (x, readback (k+1) (capp t (var k)))
   | Eq (a, t, u) -> Eq (readback k a, readback k t, readback k u)
   | Refl t -> Refl (readback k t)
   | J (r, l) -> spine l @@ J (readback k r)
