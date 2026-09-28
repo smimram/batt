@@ -680,7 +680,7 @@ let rec check k env ctx (t:term) (a:value) : term =
     important "\nPOSTULATE %d %s\n%!" n (V.to_string k a);
     Postulate (Some n)
   | Hole pos, a ->
-    important "\nHOLE %s : %s IN\n%s\n%!" (Pos.to_string pos) (V.to_string k a) (Context.to_string ~multiline:true k ctx);
+    important "\nHOLE %s : %s IN\n%s\n%!" (Pos.to_string pos) (V.to_string k a) (Context.to_string ~multiline:true ~crisp:false k ctx);
     Hole pos
   | t, a ->
     let t0 = t in
