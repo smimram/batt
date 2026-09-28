@@ -20,6 +20,42 @@ two-spine→two-simplex (i , y) =
 gray-square ∷ Type
 gray-square = 𝕀 ⨂ 𝕀
 
-cube ∷ (n ∷ ℕ) → Type
-cube zero = unit
-cube (succ n) = rec ⨂ 𝕀
+cart-square ∷ Type
+cart-square = 𝕀 × 𝕀
+
+gray-cube ∷ (n ∷ ℕ) → Type
+gray-cube zero = unit
+gray-cube (succ n) = 𝕀 ⨂ rec
+
+cart-cube ∷ (n ∷ ℕ) → Type
+cart-cube zero = unit
+cart-cube (succ n) = 𝕀 × rec
+
+fst-cube ∷ (n ∷ ℕ) → (x : cart-cube (succ n)) → 𝕀
+fst-cube n x = prod-fst x
+
+is-sorted ∷ (n ∷ ℕ) → (x : cart-cube (succ n)) → Type
+is-sorted zero x = ⊤
+is-sorted (succ n) x = 
+  let x1 : 𝕀 = prod-fst x in
+  let x2 : 𝕀 = prod-fst (prod-snd x) in
+  (geq x1 x2) × (rec (prod-snd x))
+
+simplex ∷ (n ∷ ℕ) → Type
+simplex zero = unit
+simplex (succ n) = Σ (x : cart-cube (succ n)) . is-sorted n x
+
+-- zero-cube ∷ (n ∷ ℕ) → cart-cube n
+-- zero-cube zero = ?
+-- zero-cube (succ n) = ?
+
+-- is-in-spine ∷ (n ∷ ℕ) → (x : cart-cube n) → Type
+-- is-in-spine zero _ = ⊤
+-- is-in-spine (succ n) x =
+--   let x1 : 𝕀 = prod-fst x in
+--   let x2 : 𝕀 = prod-fst (prod-snd x) in
+--   ?
+
+-- spine ∷ (n ∷ ℕ) → Type
+-- spine zero = unit
+-- spine (succ n) = Σ (x : cart-cube (succ n)) . ?

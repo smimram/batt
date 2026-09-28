@@ -1,0 +1,30 @@
+open import Cube
+
+--
+-- Defining the four sides of the Gray square
+--
+
+--  .---top-->.
+--  ^  ^^     ^
+-- left \\  right
+--  |    \\   |
+--  .-bottom->.
+
+-- bottom side
+bottom : 𝕀 → gray-square
+bottom i = i ⊗ 𝕀0
+
+-- top side
+top : 𝕀 → gray-square
+top i = i ⊗ 𝕀1
+
+-- left side
+left : 𝕀 → gray-square
+left i = 𝕀0 ⊗ i
+
+-- right side
+right : 𝕀 → gray-square
+right i = 𝕀1 ⊗ i
+
+-- right-bottom composite
+-- rb-comp : 𝕀 →
