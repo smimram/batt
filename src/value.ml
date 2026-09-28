@@ -34,7 +34,7 @@ type t =
   | Refl of t
   | J of t * spine
   | Meta of meta * spine
-  | Var of int * spine
+  | Var of int * spine (** a variable given by its de Bruijn level (0 is the outermost variable) *)
   | Hole of (Pos.t [@opaque]) * spine
   | Postulate of int * spine
   | RecordType of (string * crispness * t) list
@@ -49,7 +49,7 @@ and closure = var * (term[@opaque]) * (environment[@opaque])
 (** A binary closure. *)
 and closure2 = var * var * (term[@opaque]) * (environment[@opaque])
 
-(** An environment. *)
+(** An environment: the most recent entry comes first, so that it is indexed by de Bruijn indices (see [Var'] in [eval]). *)
 and environment = (var * t) list
 
 (** A metavariable. *)
@@ -123,7 +123,7 @@ let rec eval (env:environment) : Term.t -> t = function
       | Some v -> v
       | None -> failwith @@ Printf.sprintf "eval: could not find %s" x
     )
-  | Var' n -> snd @@ List.nth env n
+  | Var' n -> snd @@ List.nth env n (* n is a de Bruijn index *)
   | Let (_c,x,_a,t,u) ->
     eval env (Term.app (Abs(Explicit, x, u)) t)
   | Postulate (Some n) -> Postulate (n, [])
@@ -155,7 +155,7 @@ let rec eval (env:environment) : Term.t -> t = function
   | Iv (i, j) -> interval @@ Iv (eval env i, eval env j)
   | Iw (i, j) -> interval @@ Iw (eval env i, eval env j)
 
-(** Make a variable. *)
+(** Make a variable with given de Bruijn level. *)
 and var k = Var (k, [])
 
 (** Apply a value to another. *)
@@ -238,7 +238,7 @@ and interval i =
   in
   inf @@ List.map sup clauses
 
-(** Reify a value as a term. *)
+(** Reify a value as a term, [k] being the current level: value variables are levels, whereas term variables are de Bruijn indices. *)
 let rec readback k v : Term.t =
   let var_name k = "x" ^ string_of_int k in
   let spine l t = Term.app_spine t (List.map (readback k) l) in
@@ -263,7 +263,7 @@ let rec readback k v : Term.t =
   | Refl t -> Refl (readback k t)
   | J (r, l) -> spine l @@ J (readback k r)
   | Meta (m, l) -> spine l @@ Meta (`Generated m.id)
-  | Var (i, l) -> spine l @@ Var' i
+  | Var (i, l) -> spine l @@ Var' (k - i - 1) (* convert the level i into an index *)
   | Postulate (n, l) -> spine l @@ Postulate (Some n)
   | Hole (pos, l) -> spine l @@ Hole pos
   | RecordType l -> RecordType (List.map (fun (x, c, a) -> x, c, readback k a) l)
@@ -281,4 +281,5 @@ let rec readback k v : Term.t =
   | Iv (i, j) -> Iv (readback k i, readback k j)
   | Iw (i, j) -> Iw (readback k i, readback k j)
 
+(** String representation of a value at level [k]: [vars] are the names of the variables at levels [k-1], ..., [0]. *)
 let to_string vars k v = Term.to_string vars @@ readback k v

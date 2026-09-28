@@ -151,7 +151,7 @@ let crispy_colon = function
   | Normal -> ":"
   | Crisp -> "∷"
 
-(** String representation of a term. *)
+(** String representation of a term. The list [vars] gives the names of the variables, indexed by de Bruijn indices (most recent first). *)
 let rec to_string vars t =
   let colon = crispy_colon in
   match t with

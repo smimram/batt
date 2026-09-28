@@ -8,7 +8,20 @@ type value = V.t
 
 module FV = Term.FV
 
-let string_of_environment k env = String.concat ", " @@ snd @@ List.fold_left_map (fun vars (x,t) -> x::vars, x ^ "=" ^ V.to_string vars k t) [] (List.rev env)
+(** Names of the variables at levels [k-1], ..., [0] in an environment, as expected by [V.to_string]. The environment also contains definitions, which do not have a level, so that we look for the entries whose value is a variable. *)
+let names k env =
+  let a = Array.init k (fun i -> "x" ^ string_of_int i) in
+  (* Go from the most recent entry to the oldest one, so that the binder of a variable wins over later definitions such as let y = x. *)
+  List.iter (fun (x,v) -> match V.force v with V.Var (i, []) when 0 <= i && i < k -> a.(i) <- x | _ -> ()) env;
+  List.rev @@ Array.to_list a
+
+(** String representation of a value at level [k] in environment [env]. *)
+let string_of_value k env v = V.to_string (names k env) k v
+
+(** String representation of an elaborated term in environment [env]: its variables are de Bruijn indices in [env]. *)
+let string_of_term env t = T.to_string (List.map fst env) t
+
+let string_of_environment k env = List.map (fun (x,t) -> x ^ "=" ^ string_of_value k env t) env |> String.concat ", "
 
 type var = string
 
@@ -112,17 +125,14 @@ type bunch = Bunch.t
 module Context = struct
   type t = crisp * bunch
 
-  let to_string ?(multiline=false) ?(crisp=true) k (cenv,benv) =
-    let vars = List.map fst cenv in
+  (** String representation of a context at level [k]: [vars] are the names of the variables at levels [k-1], ..., [0]. *)
+  let to_string ?(multiline=false) ?(crisp=true) vars k (cenv,benv) =
     let cenv = if crisp then cenv else [] in
-    let cenv =
-      snd @@ List.fold_left_map (fun vars (x,a) -> x::vars, Printf.sprintf "%s ∷ %s" x (V.to_string vars k a)) [] @@ List.rev cenv
-    in
     let benv = Bunch.to_string vars k benv in
     if multiline then
-      String.concat "\n" @@ (cenv @ [benv])
+      String.concat "\n" @@ (List.rev_map (fun (x,a) -> Printf.sprintf "%s ∷ %s" x (V.to_string vars k a)) cenv @ [benv])
     else
-      let cenv = String.concat ", " cenv in
+      let cenv = String.concat ", " @@ List.rev_map (fun (x,a) -> Printf.sprintf "%s∷%s" x (V.to_string vars k a)) cenv in
       Printf.sprintf "%s / %s" cenv benv
 
   let empty : t = [],Bunch.Empty
@@ -210,9 +220,9 @@ module IntMap = Map.Make(Int)
 (** Partial renaming of variables. *)
 type partial_renaming =
   {
-    dom : int; (** domain *)
-    cod : int; (** codomain *)
-    ren : int option IntMap.t; (** renaming function *)
+    dom : int; (** domain (a level) *)
+    cod : int; (** codomain (a level) *)
+    ren : int option IntMap.t; (** renaming function, from levels in the domain to levels in the codomain *)
   }
 
 let error ?t fmt =
@@ -317,6 +327,7 @@ let unify ~pos k (t:value) (u:value) =
           spine l @@ Flat_ind (x, t)
         | Hole (pos, l) -> spine l @@ Hole pos
         | Var (x, l) ->
+          (* x is a level in the domain and y a level in the codomain. *)
           spine l @@
           (
             match IntMap.find_opt x r.ren with
@@ -470,9 +481,9 @@ let finalize_unify () =
 
 let unify_base = unify
 
-let unify k t a b =
+let unify k env t a b =
   try unify ~pos:(T.Position.find_opt t) k a b
-  with Unification -> error ~t "term has type %s but %s expected" (V.to_string [] k a) (V.to_string [] k b)
+  with Unification -> error ~t "term has type %s but %s expected" (string_of_value k env a) (string_of_value k env b)
 
 (*
 (** Comparison of values. *)
@@ -486,7 +497,7 @@ let eq k t u =
 (** Generate a fresh metavariable. *)
 let fresh_meta ?pos env =
   let m = V.Meta.fresh ?pos () in
-  (* We only keep variables. *)
+  (* We only keep variables. Here, i is a de Bruijn index in env. *)
   let rec aux i = function
     | [] -> []
     | (_x,v)::l ->
@@ -497,10 +508,9 @@ let fresh_meta ?pos env =
   let vars = aux 0 env in
   T.apps (T.Meta (`Generated m.id)) vars
 
-(** Check that term has given type and elaborate it. *)
+(** Check that term has given type and elaborate it. Here, [k] is the current level (the number of bound variables, which is the length of [env] minus the number of definitions), values use de Bruijn levels and the elaborated terms use de Bruijn indices in [env]. *)
 let rec check k env ctx (t:term) (a:value) : term =
-  let vars = List.map fst env in
-  debug "CHECK %s : %s\n%!" (T.to_string vars t) (V.to_string vars k a);
+  debug "CHECK %s : %s\n%!" (string_of_term env t) (string_of_value k env a);
   (* let cenv, benv = ctx in *)
   (* Printf.printf "      %s\n%!" (Context.to_string k ctx); *)
   let t0 = t in
@@ -595,28 +605,28 @@ let rec check k env ctx (t:term) (a:value) : term =
     Tens_ind (x, y, t)
   | IndType_ind (`Empty, []), Pi (Explicit, _, a, _)
   | IndType_ind (`Empty, []), Arr (_, a, _) ->
-    unify k t a (IndType `Empty);
+    unify k env t a (IndType `Empty);
     IndType_ind (`Empty, [])
   | IndType_ind (`Unit, [t]), Pi (Explicit, _, a, b) ->
-    unify k t a (IndType `Unit);
+    unify k env t a (IndType `Unit);
     let t = check k env ctx t (V.capp b (IndTerm (`Unit, []))) in
     IndType_ind (`Unit, [t])
   | IndType_ind (`Unit, [t]), Arr (_, a, b) ->
-    unify k t a (IndType `Unit);
+    unify k env t a (IndType `Unit);
     let t = check k env ctx t b in
     IndType_ind (`Unit, [t])    
   | IndType_ind (`Bool, [tf;tt]), Pi (Explicit, _, a, b) ->
-    unify k t a (IndType `Bool);
+    unify k env t a (IndType `Bool);
     let tf = check k env ctx tf (V.capp b (IndTerm (`Bool false, []))) in
     let tt = check k env ctx tt (V.capp b (IndTerm (`Bool true, []))) in
     IndType_ind (`Bool, [tf;tt])
   | IndType_ind (`Bool, [tf;tt]), Arr (_, a, b) ->
-    unify k t a (IndType `Bool);
+    unify k env t a (IndType `Bool);
     let tf = check k env ctx tf b in
     let tt = check k env ctx tt b in
     IndType_ind (`Bool, [tf;tt])
   | IndType_ind (`Nat, [tz;ts]), Pi (Explicit, c, a, b) ->
-    unify k t a (IndType `Nat);
+    unify k env t a (IndType `Nat);
     let tz = check k env ctx tz (V.capp b (IndTerm (`Zero, []))) in
     (* The type (n : ℕ) → C n → C (succ n) of the step. *)
     let s =
@@ -647,25 +657,25 @@ let rec check k env ctx (t:term) (a:value) : term =
         unify_base ~pos k t u;
         unify_base ~pos k t u'
       with Unification ->
-        error ~t:t0 "reflexivity cannot prove %s ≡ %s" (V.to_string vars k u) (V.to_string vars k u')
+        error ~t:t0 "reflexivity cannot prove %s ≡ %s" (string_of_value k env u) (string_of_value k env u')
     );
     Refl t
   | J r, Pi (_, _, a, b) ->
     (* we should make sure that b := {y : a} (p : x ≡ y) → P[x,y,p] *)
-    let unpi ?icit a =
+    let unpi ?icit k a =
       let a0 = a in
       match V.force a with
       | Pi (icit', _, a, b) when icit = None || Some icit' = icit -> a, b
-      | _ -> error ~t "got %s but function type expected" (V.to_string vars k a0)
+      | _ -> error ~t "got %s but function type expected" (string_of_value k env a0)
     in
     let x =
       let y, k = V.var k, k+1 in
-      let b', _ = unpi (V.capp b y) in
+      let b', _ = unpi k (V.capp b y) in
       match b' with
       | Eq (a', x, y') when y' = y -> unify_base ~pos k a a'; x
       | _ -> error ~t "identity type expected"
     in
-    let c = V.capp (snd @@ unpi ~icit:Explicit @@ V.capp b x) (Refl x) in
+    let c = V.capp (snd @@ unpi ~icit:Explicit k @@ V.capp b x) (Refl x) in
     let r = check k env ctx r c in
     J r
   | _, Pi (Implicit, _, _, _) ->
@@ -681,10 +691,10 @@ let rec check k env ctx (t:term) (a:value) : term =
     t
   | Postulate n, a ->
     let n = match n with Some n -> n | None -> incr V.postulate; !V.postulate in
-    important "\nPOSTULATE %d %s\n%!" n (V.to_string vars k a);
+    important "\nPOSTULATE %d %s\n%!" n (string_of_value k env a);
     Postulate (Some n)
   | Hole pos, a ->
-    important "\nHOLE %s : %s IN\n%s\n%!" (Pos.to_string pos) (V.to_string vars k a) (Context.to_string ~multiline:true ~crisp:false k ctx);
+    important "\nHOLE %s : %s IN\n%s\n%!" (Pos.to_string pos) (string_of_value k env a) (Context.to_string ~multiline:true ~crisp:true (names k env) k ctx);
     Hole pos
   | t, a ->
     let t0 = t in
@@ -696,14 +706,13 @@ let rec check k env ctx (t:term) (a:value) : term =
         let pos = T.Position.find_opt t in
         check k env ctx (T.mk ?pos (T.app ~icit:Implicit t0 (Meta (`Fresh None)))) a
       | _ ->
-        try unify k t0 a' a; t
-        with Unification -> error ~t:t0 "%s has type %s but %s expected" (T.to_string vars t) (V.to_string vars k a') (V.to_string vars k a)
+        try unify k env t0 a' a; t
+        with Unification -> error ~t:t0 "%s has type %s but %s expected" (string_of_term env t) (string_of_value k env a') (string_of_value k env a)
     )
 
 (** Check that a term is a type; returns the elaborated term and its universe level. *)
 and check_type k env ctx a : term * int =
-  let vars = List.map fst env in
-  debug "CHECK TYPE %s\n%!" (T.to_string vars a);
+  debug "CHECK TYPE %s\n%!" (string_of_term env a);
   (*
   match a with
   | Hole pos -> Hole pos, 0
@@ -714,13 +723,12 @@ and check_type k env ctx a : term * int =
   *)
   match infer k env ctx a with
   | a, Type l -> a, l
-  | a, b -> unify k a b (Type 0); a, 0
+  | a, b -> unify k env a b (Type 0); a, 0
 (* error ~t:a "%s has type %s by type expected" (T.to_string a) (V.to_string k b) *)
 
 (** Infer the type of a term. *)
 and infer k env ctx (t:term) : term * value =
-  let vars = List.map fst env in
-  debug "INFER %s\n%!" (T.to_string vars t);
+  debug "INFER %s\n%!" (string_of_term env t);
   (* Printf.printf "ctx: %s\n%!" (Context.to_string k ctx); *)
   let t0 = t in
   (* let cenv, benv = ctx in *)
@@ -819,7 +827,7 @@ and infer k env ctx (t:term) : term * value =
           let t = check k env ctxt t1 (Arr (s, a, b)) in
           let u = check k env ctxu u a in
           App (t, Explicit, u), b
-        | a -> error ~t:t0 "%s is applied to %s but has type %s, which is not a function type" (T.to_string vars t1) (T.to_string vars u) (V.to_string vars k a)
+        | a -> error ~t:t0 "%s is applied to %s but has type %s, which is not a function type" (string_of_term env t1) (string_of_term env u) (string_of_value k env a)
       )
     )
   | Var x ->
@@ -828,9 +836,10 @@ and infer k env ctx (t:term) : term * value =
       | _::l -> aux (n+1) l
       | [] -> error ~t "undefined variable %s" x
     in
-    let k = aux 0 env in
+    (* The de Bruijn index of x in env (not a level!). *)
+    let n = aux 0 env in
     let a = match Context.assoc_opt x ctx with Some a -> a | None -> error ~t "variable %s is in the context but not in the typing environment (crispness issue?)" x in
-    Var' k, a
+    Var' n, a
   | Meta (`Fresh pos) ->
     let a = V.eval env @@ fresh_meta env in
     let t = fresh_meta ?pos env in
@@ -862,12 +871,12 @@ and infer k env ctx (t:term) : term * value =
     let l =
       match V.force a with
       | RecordType l -> l
-      | _ -> error ~t:t0 "record type expected but got %s" (V.to_string vars k a)
+      | _ -> error ~t:t0 "record type expected but got %s" (string_of_value k env a)
     in
     let a =
       match List.find_opt (fun (y,_,_) -> y = x) l with
       | Some (_,_,a) -> a
-      | None -> error ~t:t0 "no field %s in %s" x (V.to_string vars k a);
+      | None -> error ~t:t0 "no field %s in %s" x (string_of_value k env a);
     in
     RecordField (t, x), a
   | I -> I, Type 0
@@ -884,7 +893,6 @@ and infer k env ctx (t:term) : term * value =
   | _ -> error ~t "cannot infer type"
 
 and check_decls k env ctx (decls:T.decls) =
-  let vars = List.map fst env in
   let tm = ref [] in
   let ty = ref [] in
   let env = ref env in
@@ -895,7 +903,7 @@ and check_decls k env ctx (decls:T.decls) =
     decls := List.tl !decls;
     match decl with
     | T.Def (x,c,a,t) ->
-      Common.print "\nDECL  %s = %s%s\n%!" x (T.to_string vars t) (match a with Some a -> " " ^ T.crispy_colon c ^ " " ^ T.to_string vars a | None -> "");
+      Common.print "\nDECL  %s = %s%s\n%!" x (string_of_term !env t) (match a with Some a -> " " ^ T.crispy_colon c ^ " " ^ string_of_term !env a | None -> "");
       let t, a =
         match a with
         | Some a ->
@@ -917,7 +925,7 @@ and check_decls k env ctx (decls:T.decls) =
       let l =
         match V.force a with
         | RecordType l -> l
-        | _ -> error ~t:t0 "record type exepected but got %s" (V.to_string vars k a)
+        | _ -> error ~t:t0 "record type exepected but got %s" (string_of_value k !env a)
       in
       let pos = T.Position.find_opt t in
       List.iter (fun (x,c,_) -> decls := (Def (x,c,None,T.mk ?pos @@ RecordField(t0, x)) :: !decls)) (List.rev l)
