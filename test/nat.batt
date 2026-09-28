@@ -1,0 +1,7 @@
+addl ∷ ℕ → ℕ → ℕ
+addl zero n = n
+addl (succ m) n = succ (rec n) 
+
+addr ∷ ℕ → ℕ → ℕ
+addr m zero = m
+addr m (succ n) = succ rec 

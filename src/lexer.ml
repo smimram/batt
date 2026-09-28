@@ -36,9 +36,15 @@ let rec token lexbuf =
   | Utf8 "♭" | "\\flat" -> FLAT
   | Utf8 "𝄫" | "\\fflat" -> FLATTEN
   | Utf8 "≡" | "\\equiv" -> IDEQ
-  | Utf8 "≃" | "\\simeq" -> EQUIV
-  | Utf8 "∘" | "\\circ" -> CIRC
+  | Utf8 "≃" | "\\simeq" -> INFIX0 "_≃_"
+  | Utf8 "≤" -> INFIX0 "leq"
+  | Utf8 "≥" -> INFIX0 "geq"
+  | Utf8 "∘" | "\\circ" -> INFIX1 "circ"
+  | Utf8 "∨" -> INFIX1 "or"
   | Utf8 "¬" -> IDENT "not"
+  | Utf8 "ℕ" | "Nat" -> NAT
+  | "zero" -> ZERO
+  | "succ" -> SUCC
   | Utf8 "𝕀0" | "II0" -> I0
   | Utf8 "𝕀1" | "II1" -> I1
   | Utf8 "𝕀∨" | "IIv" -> Iv

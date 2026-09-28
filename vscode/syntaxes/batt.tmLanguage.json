@@ -67,7 +67,7 @@
           }
         },
         {
-          "match": "(?:in|postulate|fun)(?![A-Za-z0-9'_\\-→⁻ₗᵣ]|𝕀)",
+          "match": "(?:in|postulate|fun|ℕ-ind|Nat-ind)(?![A-Za-z0-9'_\\-→⁻ₗᵣ]|𝕀)",
           "name": "keyword.other.batt"
         },
         {
@@ -94,7 +94,7 @@
     "constants": {
       "patterns": [
         {
-          "match": "(?:tt|true|false|refl|II0|II1)(?![A-Za-z0-9'_\\-→⁻ₗᵣ]|𝕀)",
+          "match": "(?:tt|true|false|refl|zero|succ|II0|II1)(?![A-Za-z0-9'_\\-→⁻ₗᵣ]|𝕀)",
           "name": "constant.language.batt"
         },
         {
@@ -116,11 +116,11 @@
       "patterns": [
         {
           "comment": "universes and builtin type names (bool, unit, empty, TYPE are bound identifiers, not keywords)",
-          "match": "(?:Type|U|TYPE|bool|unit|empty|II)(?![A-Za-z0-9'_\\-→⁻ₗᵣ]|𝕀)",
+          "match": "(?:Type|U|TYPE|bool|unit|empty|II|Nat)(?![A-Za-z0-9'_\\-→⁻ₗᵣ]|𝕀)",
           "name": "support.type.batt"
         },
         {
-          "match": "𝕀(?![01∨∧A-Za-z0-9'_\\-→⁻ₗᵣ]|𝕀)|⊥|⊤|\\\\bot|\\\\top",
+          "match": "𝕀(?![01∨∧A-Za-z0-9'_\\-→⁻ₗᵣ]|𝕀)|ℕ(?!-ind)|⊥|⊤|\\\\bot|\\\\top",
           "name": "support.type.batt"
         },
         {

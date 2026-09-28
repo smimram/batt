@@ -7,7 +7,7 @@ function esc(s) {
   return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 
-const keywords = new Set(["Type", "U", "let", "in", "fun", "postulate", "open", "import", "refl", "tt", "true", "false"]);
+const keywords = new Set(["Type", "U", "let", "in", "fun", "postulate", "open", "import", "refl", "tt", "true", "false", "ℕ", "Nat", "zero", "succ"]);
 
 // One combined regex: matching is done on raw text, pieces are escaped afterwards.
 const rules = [
@@ -15,6 +15,7 @@ const rules = [
   ["symbol",  /𝕀[∨∧]|(?:(?:𝕀|II)[01]?|II[vw])(?![\p{L}\p{N}'\-_→⁻ₗᵣ])/],
   ["ident",   /\p{L}[\p{L}\p{N}'\-_→]*/],
   ["symbol",  /\\(?:bigotimes|otimes|Sigma|times|fflat|flat|equiv|simeq|circ|top|bot|tol|tor|to)|->[lr]?|→[ₗᵣ]?|::|[λρ∂Σ×⨂⊗♭𝄫≡≃∘⊥⊤∷]/],
+  ["keyword", /[0-9]+/],
   ["hole",    /\?|_/],
 ];
 
@@ -43,7 +44,7 @@ const symbols = {
   to: "→", tol: "⇀", tor: "⇁", Sigma: "Σ", times: "×", bigotimes: "⨂", Otimes: "⨂",
   otimes: "⊗", flat: "♭", fflat: "𝄫", equiv: "≡", simeq: "≃", circ: "∘",
   top: "⊤", bot: "⊥", lambda: "λ", rho: "ρ", partial: "∂",
-  bbI: "𝕀", II: "𝕀", IIv: "𝕀∨", IIw: "𝕀∧", vee: "∨", wedge: "∧",
+  bbI: "𝕀", bN: "ℕ", bbN: "ℕ", Nat: "ℕ", II: "𝕀", IIv: "𝕀∨", IIw: "𝕀∧", vee: "∨", wedge: "∧",
 };
 
 function replaceSymbols(event) {

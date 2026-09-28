@@ -282,7 +282,7 @@ let unify ~pos k (t:value) (u:value) =
           Sigma (x, a, b)
         | Type n -> Type n
         | IndType i -> IndType i
-        | IndTerm t -> IndTerm t
+        | IndTerm (t, l) -> IndTerm (t, List.map (rename r) l)
         | IndType_ind (i, t, l) -> spine l @@ IndType_ind (i, List.map (rename r) t)
         | Pair (t, u) -> Pair (rename r t, rename r u)
         | Pair_ind (t, l) ->
@@ -352,8 +352,9 @@ let unify ~pos k (t:value) (u:value) =
       if l <> l' then raise Unification
     | IndType i, IndType i' ->
       if i <> i' then raise Unification
-    | IndTerm t, IndTerm t' ->
-      if t <> t' then raise Unification
+    | IndTerm (t, l), IndTerm (t', l') ->
+      if t <> t' then raise Unification;
+      spine k l l'
     | IndType_ind (i, t, l), IndType_ind (i', t', l') ->
       if i <> i' then raise Unification;
       spine k t t'; (* NOTE: this is not a spine but ok *)
@@ -424,14 +425,16 @@ let unify ~pos k (t:value) (u:value) =
     | Meta (m, l), t -> solve k m l t
     | t, Meta (m, l) -> solve k m l t
     (* eta-expansion (needs to be after meta-variables, otherwise the spine might contain a pair and not be a pattern *)
-    | (Pair_ind _ as t), u
-    | t, (Pair_ind _ as u) ->
+    (* only for unapplied eliminators: an applied one is stuck (neutral) and
+       applying it to a pair would only grow its spine, looping forever *)
+    | (Pair_ind (_, []) as t), u
+    | t, (Pair_ind (_, []) as u) ->
       let x = V.var k in
       let y = V.var (k+1) in
       let p = V.Pair (x,y) in
       unify (k+2) (V.app t p) (V.app u p)
-    | (Tens_ind _ as t), u
-    | t, (Tens_ind _ as u) ->
+    | (Tens_ind (_, []) as t), u
+    | t, (Tens_ind (_, []) as u) ->
       let x = V.var k in
       let y = V.var (k+1) in
       let p = V.TensPair (x,y) in
@@ -591,7 +594,7 @@ let rec check k env ctx (t:term) (a:value) : term =
     IndType_ind (`Empty, [])
   | IndType_ind (`Unit, [t]), Pi (Explicit, _, a, b) ->
     unify k t a (IndType `Unit);
-    let t = check k env ctx t (V.capp b (IndTerm `Unit)) in
+    let t = check k env ctx t (V.capp b (IndTerm (`Unit, []))) in
     IndType_ind (`Unit, [t])
   | IndType_ind (`Unit, [t]), Arr (_, a, b) ->
     unify k t a (IndType `Unit);
@@ -599,14 +602,25 @@ let rec check k env ctx (t:term) (a:value) : term =
     IndType_ind (`Unit, [t])    
   | IndType_ind (`Bool, [tf;tt]), Pi (Explicit, _, a, b) ->
     unify k t a (IndType `Bool);
-    let tf = check k env ctx tf (V.capp b (IndTerm (`Bool false))) in
-    let tt = check k env ctx tt (V.capp b (IndTerm (`Bool true))) in
+    let tf = check k env ctx tf (V.capp b (IndTerm (`Bool false, []))) in
+    let tt = check k env ctx tt (V.capp b (IndTerm (`Bool true, []))) in
     IndType_ind (`Bool, [tf;tt])
   | IndType_ind (`Bool, [tf;tt]), Arr (_, a, b) ->
     unify k t a (IndType `Bool);
     let tf = check k env ctx tf b in
     let tt = check k env ctx tt b in
     IndType_ind (`Bool, [tf;tt])
+  | IndType_ind (`Nat, [tz;ts]), Pi (Explicit, c, a, b) ->
+    unify k t a (IndType `Nat);
+    let tz = check k env ctx tz (V.capp b (IndTerm (`Zero, []))) in
+    (* The type (n : ℕ) → C n → C (succ n) of the step. *)
+    let s =
+      let env = ["C", V.Abs b] in
+      V.eval env @@ T.Pi (Explicit, c, "n", IndType `Nat, T.Pi (Explicit, c, "_", T.app (Var "C") (Var "n"), T.app (Var "C") (IndTerm (`Succ, [Var "n"]))))
+    in
+    let ts = check k env ctx ts s in
+    IndType_ind (`Nat, [tz;ts])
+  | IndType_ind (`Nat, _), Arr _ -> error ~t "induction on natural numbers is not supported for lax arrows"
   | Flatten t, Flat a ->
     let t = check k env (Context.crisp ctx) t a in
     Flatten t
@@ -622,11 +636,13 @@ let rec check k env ctx (t:term) (a:value) : term =
     Flat_ind (x, t)
   | Refl t, Eq (a, u, u') ->
     let t = check k env ctx t a in
-    let pos = T.Position.find_opt t in
     (
       let t = V.eval env t in
-      unify_base ~pos k t u;
-      unify_base ~pos k t u';
+      try
+        unify_base ~pos k t u;
+        unify_base ~pos k t u'
+      with Unification ->
+        error ~t:t0 "reflexivity cannot prove %s ≡ %s" (V.to_string k u) (V.to_string k u')
     );
     Refl t
   | J r, Pi (_, _, a, b) ->
@@ -704,8 +720,13 @@ and infer k env ctx (t:term) : term * value =
   match t with
   | Type n -> Type n, Type (n + 1)
   | IndType ind -> IndType ind, Type 0
-  | IndTerm `Unit -> IndTerm `Unit, IndType `Unit
-  | IndTerm (`Bool b) -> IndTerm (`Bool b), IndType `Bool
+  | IndTerm (`Unit, []) -> IndTerm (`Unit, []), IndType `Unit
+  | IndTerm (`Bool b, []) -> IndTerm (`Bool b, []), IndType `Bool
+  | IndTerm (`Zero, []) -> IndTerm (`Zero, []), IndType `Nat
+  | IndTerm (`Succ, [n]) ->
+    let n = check k env ctx n (IndType `Nat) in
+    IndTerm (`Succ, [n]), IndType `Nat
+  | IndTerm _ -> error ~t "constructor applied to the wrong number of arguments"
   | Pi (i, Crisp, x, a, b) ->
     let a, la = check_type k env (Context.crisp ctx) a in
     let xv = V.var k in
@@ -785,7 +806,7 @@ and infer k env ctx (t:term) : term * value =
         | Arr (s, a, b) ->
           let ctxt, ctxu =
             match s with
-            | Left -> Pair.swap @@ Context.split (FV.term u) (FV.term t1) ctx
+            | Left -> let ctxu, ctxt = Context.split (FV.term u) (FV.term t1) ctx in ctxt, ctxu
             | Right -> Context.split (FV.term t1) (FV.term u) ctx
           in
           let t = check k env ctxt t1 (Arr (s, a, b)) in
@@ -916,8 +937,18 @@ let check_decls_toplevel decls =
       add "unit" type0 unit;
       let bool = V.IndType `Bool in
       add "bool" type0 bool;
-      add "false" bool (V.IndTerm (`Bool false));
-      add "true" bool (V.IndTerm (`Bool true));
+      add "false" bool (V.IndTerm (`Bool false, []));
+      add "true" bool (V.IndTerm (`Bool true, []));
+      (* The successor function (constructors are always fully applied, so we eta-expand). *)
+      add "succ" (V.Pi (Explicit, Normal, IndType `Nat, ("_", IndType `Nat, []))) (V.eval [] @@ Abs (Explicit, "n", IndTerm (`Succ, [Var "n"])));
+      (* Induction on natural numbers: {C : ℕ → Type} → C 0 → ((n : ℕ) → C n → C (succ n)) → (n : ℕ) → C n. *)
+      add "Nat-ind"
+        (V.eval [] @@
+           Pi (Implicit, Normal, "C", Pi (Explicit, Normal, "_", IndType `Nat, Type 0),
+               Pi (Explicit, Normal, "_", T.app (Var "C") (IndTerm (`Zero, [])),
+                   Pi (Explicit, Normal, "_", Pi (Explicit, Normal, "n", IndType `Nat, Pi (Explicit, Normal, "_", T.app (Var "C") (Var "n"), T.app (Var "C") (IndTerm (`Succ, [Var "n"])))),
+                       Pi (Explicit, Normal, "n", IndType `Nat, T.app (Var "C") (Var "n"))))))
+        (V.eval [] @@ Abs (Implicit, "C", T.abss ["z"; "s"; "n"] (T.app (IndType_ind (`Nat, [Var "z"; Var "s"])) (Var "n"))));
     );
   ignore @@ check_decls 0 !env !ctx decls
 
