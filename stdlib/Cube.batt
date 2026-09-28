@@ -45,17 +45,16 @@ simplex ∷ (n ∷ ℕ) → Type
 simplex zero = unit
 simplex (succ n) = Σ (x : cart-cube (succ n)) . is-sorted n x
 
--- zero-cube ∷ (n ∷ ℕ) → cart-cube n
--- zero-cube zero = ?
--- zero-cube (succ n) = ?
+zero-cube ∷ (n ∷ ℕ) → cart-cube n
+zero-cube zero = tt
+zero-cube (succ n) = (𝕀0, rec)
 
--- is-in-spine ∷ (n ∷ ℕ) → (x : cart-cube n) → Type
--- is-in-spine zero _ = ⊤
--- is-in-spine (succ n) x =
---   let x1 : 𝕀 = prod-fst x in
---   let x2 : 𝕀 = prod-fst (prod-snd x) in
---   ?
+is-in-spine ∷ (n ∷ ℕ) → (x : cart-cube n) → Type
+is-in-spine zero _ = ⊤
+is-in-spine (succ n) x =
+  let x1 : 𝕀 = prod-fst x in
+  let xs : cart-cube n = prod-snd x in
+  or (xs ≡ zero-cube n) ((x1 ≡ 𝕀1) × (rec xs))
 
--- spine ∷ (n ∷ ℕ) → Type
--- spine zero = unit
--- spine (succ n) = Σ (x : cart-cube (succ n)) . ?
+spine ∷ (n ∷ ℕ) → Type
+spine n = Σ (x : cart-cube n) . is-in-spine n x
