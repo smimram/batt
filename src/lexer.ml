@@ -40,6 +40,7 @@ let rec token lexbuf =
   | Utf8 "≤" -> INFIX0 "leq"
   | Utf8 "≥" -> INFIX0 "geq"
   | Utf8 "∘" | "\\circ" -> INFIX1 "circ"
+  | Utf8 "∨" -> INFIX1 "or"
   | Utf8 "¬" -> IDENT "not"
   | Utf8 "ℕ" | "Nat" -> NAT
   | "zero" -> ZERO
