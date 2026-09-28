@@ -112,12 +112,13 @@ type bunch = Bunch.t
 module Context = struct
   type t = crisp * bunch
 
-  let to_string ?(multiline=false) k (cenv,benv) =
+  let to_string ?(multiline=false) ?(crisp=true) k (cenv,benv) =
+    let cenv = if crisp then cenv else [] in
     if multiline then
       let benv = Bunch.to_string k benv in
-      String.concat "\n" @@ (List.rev_map (fun (x,a) -> Printf.sprintf "%s : %s" x (V.to_string k a)) cenv @ [benv])
+      String.concat "\n" @@ (List.rev_map (fun (x,a) -> Printf.sprintf "%s ∷ %s" x (V.to_string k a)) cenv @ [benv])
     else
-      let cenv = String.concat ", " @@ List.rev_map (fun (x,a) -> Printf.sprintf "%s:%s" x (V.to_string k a)) cenv in
+      let cenv = String.concat ", " @@ List.rev_map (fun (x,a) -> Printf.sprintf "%s∷%s" x (V.to_string k a)) cenv in
       let benv = Bunch.to_string k benv in
       Printf.sprintf "%s / %s" cenv benv
 
@@ -679,7 +680,7 @@ let rec check k env ctx (t:term) (a:value) : term =
     important "\nPOSTULATE %d %s\n%!" n (V.to_string k a);
     Postulate (Some n)
   | Hole pos, a ->
-    important "\nHOLE %s : %s IN\n%s\n%!" (Pos.to_string pos) (V.to_string k a) (Context.to_string ~multiline:true k ctx);
+    important "\nHOLE %s : %s IN\n%s\n%!" (Pos.to_string pos) (V.to_string k a) (Context.to_string ~multiline:true ~crisp:false k ctx);
     Hole pos
   | t, a ->
     let t0 = t in
