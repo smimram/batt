@@ -11,6 +11,8 @@ type side = Term.side
 type term = Term.t
 type var = string
 [@@deriving show]
+type level = int
+[@@deriving show]
 
 (** A value. *)
 type t =
@@ -34,7 +36,7 @@ type t =
   | Refl of t
   | J of t * spine
   | Meta of meta * spine
-  | Var of int * spine (** a variable given by its de Bruijn level (0 is the outermost variable) *)
+  | Var of level * spine (** a variable given by its de Bruijn level (0 is the outermost variable) *)
   | Hole of (Pos.t [@opaque]) * spine
   | Postulate of int * spine
   | RecordType of (string * crispness * t) list
