@@ -152,13 +152,13 @@ let crispy_colon = function
   | Crisp -> "∷"
 
 (** String representation of a term. *)
-let rec to_string t =
+let rec to_string vars t =
   let colon = crispy_colon in
   match t with
   | Type 0 -> "Type"
   | Type n -> Printf.sprintf "Type %d" n
   | IndType ind -> string_of_inductive_type ind
-  | IndType_ind (ind, args) -> Printf.sprintf "%s_ind(%s)" (string_of_inductive_type ind) (String.concat "," @@ List.map to_string args)
+  | IndType_ind (ind, args) -> Printf.sprintf "%s_ind(%s)" (string_of_inductive_type ind) (String.concat "," @@ List.map (to_string vars) args)
   | IndTerm (`Unit, []) -> "tt"
   | IndTerm (`Bool b, []) ->  string_of_bool b
   | IndTerm (`Zero, []) -> "0"
@@ -172,43 +172,43 @@ let rec to_string t =
     (
       match numeral 1 n with
       | Some k -> string_of_int k
-      | None -> Printf.sprintf "succ(%s)" @@ to_string n
+      | None -> Printf.sprintf "succ(%s)" @@ to_string vars n
     )
   | IndTerm _ -> assert false
   | Pi (i, c, x, a, t) ->
     (
       match i with
-      | Explicit -> Printf.sprintf "(%s %s %s) → %s" x (colon c) (to_string a) (to_string t)
-      | Implicit -> Printf.sprintf "{%s %s %s} → %s" x (colon c) (to_string a) (to_string t)
+      | Explicit -> Printf.sprintf "(%s %s %s) → %s" x (colon c) (to_string vars a) (to_string (x::vars) t)
+      | Implicit -> Printf.sprintf "{%s %s %s} → %s" x (colon c) (to_string vars a) (to_string (x::vars) t)
     )
   | Abs (i, x, t) ->
     (
       match i with
-      | Explicit -> Printf.sprintf "λ%s.%s" x (to_string t)
-      | Implicit -> Printf.sprintf "λ{%s}.%s" x (to_string t)
+      | Explicit -> Printf.sprintf "λ%s.%s" x (to_string (x::vars) t)
+      | Implicit -> Printf.sprintf "λ{%s}.%s" x (to_string (x::vars) t)
     )
   | App (t, i, u) ->
     (
       match i with
-      | Explicit -> Printf.sprintf "(%s %s)" (to_string t) (to_string u)
-      | Implicit -> Printf.sprintf "(%s {%s})" (to_string t) (to_string u)
+      | Explicit -> Printf.sprintf "(%s %s)" (to_string vars t) (to_string vars u)
+      | Implicit -> Printf.sprintf "(%s {%s})" (to_string vars t) (to_string vars u)
     )
-  | Sigma (x, a, t) -> Printf.sprintf "(Σ(%s : %s).%s)" x (to_string a) (to_string t)
-  | Pair (t, u) -> Printf.sprintf "(%s, %s)" (to_string t) (to_string u)
-  | Pair_ind (x, y, t) -> Printf.sprintf "(λ(%s,%s).%s)" x y (to_string t)
-  | Arr (s, a, b) -> Printf.sprintf "%s →%s %s" (to_string a) (string_of_side s) (to_string b)
-  | Tens (a, b) -> Printf.sprintf "(%s ⨂ %s)" (to_string a) (to_string b)
-  | TensPair (t, u) -> Printf.sprintf "(%s ⊗ %s)" (to_string t) (to_string u)
-  | Tens_ind (x, y, t) -> Printf.sprintf "(λ(%s⊗%s).%s)" x y (to_string t)
-  | Flat t -> Printf.sprintf "♭%s" (to_string t)
-  | Flatten t -> Printf.sprintf "𝄫%s" (to_string t)
-  | Flat_ind (x,t) -> Printf.sprintf "♭_ind(%s,%s)" x (to_string t)
-  | Eq (_,t,u) -> Printf.sprintf "%s ≡ %s" (to_string t) (to_string u)
-  | Refl t -> Printf.sprintf "refl(%s)" (to_string t)
-  | J r -> Printf.sprintf "J(%s)" (to_string r)
+  | Sigma (x, a, t) -> Printf.sprintf "(Σ(%s : %s).%s)" x (to_string vars a) (to_string (x::vars) t)
+  | Pair (t, u) -> Printf.sprintf "(%s, %s)" (to_string vars t) (to_string vars u)
+  | Pair_ind (x, y, t) -> Printf.sprintf "(λ(%s,%s).%s)" x y (to_string (y::x::vars) t)
+  | Arr (s, a, b) -> Printf.sprintf "%s →%s %s" (to_string vars a) (string_of_side s) (to_string vars b)
+  | Tens (a, b) -> Printf.sprintf "(%s ⨂ %s)" (to_string vars a) (to_string vars b)
+  | TensPair (t, u) -> Printf.sprintf "(%s ⊗ %s)" (to_string vars t) (to_string vars u)
+  | Tens_ind (x, y, t) -> Printf.sprintf "(λ(%s⊗%s).%s)" x y (to_string (y::x::vars) t)
+  | Flat t -> Printf.sprintf "♭%s" (to_string vars t)
+  | Flatten t -> Printf.sprintf "𝄫%s" (to_string vars t)
+  | Flat_ind (x,t) -> Printf.sprintf "♭_ind(%s,%s)" x (to_string (x::vars) t)
+  | Eq (_,t,u) -> Printf.sprintf "%s ≡ %s" (to_string vars t) (to_string vars u)
+  | Refl t -> Printf.sprintf "refl(%s)" (to_string vars t)
+  | J r -> Printf.sprintf "J(%s)" (to_string vars r)
   | Var x -> x
-  | Var' n -> Printf.sprintf "x-%d" n
-  | Let (c,x,a,t,u) -> Printf.sprintf "let %s %s %s = %s in %s" x (colon c) (to_string a) (to_string t) (to_string u)
+  | Var' n -> if !Common.de_bruijn || n < 0 || n >= List.length vars then Printf.sprintf "x-%d" n else List.nth vars n
+  | Let (c,x,a,t,u) -> Printf.sprintf "let %s %s %s = %s in %s" x (colon c) (to_string vars a) (to_string vars t) (to_string (x::vars) u)
   | Postulate n -> "postulate" ^ (match n with Some n -> string_of_int n | None -> "")
   | Hole _ -> "?"
   | Meta (`Fresh _) -> "_"
@@ -217,11 +217,11 @@ let rec to_string t =
   | Import m -> "import " ^ m
   | Record _ -> "record"
   | RecordType l ->
-    let l = String.concat "; " @@ List.map (fun (x,c,a) -> x ^ " " ^ crispy_colon c ^ " " ^ to_string a) l in
+    let l = String.concat "; " @@ List.map (fun (x,c,a) -> x ^ " " ^ crispy_colon c ^ " " ^ to_string vars a) l in
     Printf.sprintf "{ %s }" l
-  | RecordField (t,x) -> Printf.sprintf "%s.%s" (to_string t) x
+  | RecordField (t,x) -> Printf.sprintf "%s.%s" (to_string vars t) x
   | I -> "𝕀"
   | I0 -> "𝕀0"
   | I1 -> "𝕀1"
-  | Iv (i, j) -> Printf.sprintf "%s 𝕀∨ %s" (to_string i) (to_string j)
-  | Iw (i, j) -> Printf.sprintf "%s 𝕀∧ %s" (to_string i) (to_string j)
+  | Iv (i, j) -> Printf.sprintf "%s 𝕀∨ %s" (to_string vars i) (to_string vars j)
+  | Iw (i, j) -> Printf.sprintf "%s 𝕀∧ %s" (to_string vars i) (to_string vars j)

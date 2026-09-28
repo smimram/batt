@@ -281,4 +281,4 @@ let rec readback k v : Term.t =
   | Iv (i, j) -> Iv (readback k i, readback k j)
   | Iw (i, j) -> Iw (readback k i, readback k j)
 
-let to_string k v = Term.to_string @@ readback k v
+let to_string vars k v = Term.to_string vars @@ readback k v
