@@ -58,3 +58,6 @@ is-in-spine (succ n) x =
 
 spine ∷ (n ∷ ℕ) → Type
 spine n = Σ (x : cart-cube n) . is-in-spine n x
+
+-- spine→simplex ∷ (n ∷ ℕ) → (spine n) → (simplex n)
+-- spine→simplex n = ?

@@ -68,3 +68,10 @@ ho {A} f g = (x : A) → f x ≡ g x
 
 depho ∷ {A : U} {B : A → U} (f g : (x : A) → B x) → U
 depho {A} f g = (x : A) → f x ≡ g x
+
+---
+--- Paths type
+---
+
+paths ∷ (A : U) → U
+paths A = Σ (x : A) . Σ (y : A) . x ≡ y
