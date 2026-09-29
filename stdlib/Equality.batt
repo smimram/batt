@@ -75,3 +75,6 @@ depho {A} f g = (x : A) → f x ≡ g x
 
 paths ∷ (A : U) → U
 paths A = Σ (x : A) . Σ (y : A) . x ≡ y
+
+paths-diag ∷ (A : U) → A → paths A
+paths-diag A x = (x , x , refl)
