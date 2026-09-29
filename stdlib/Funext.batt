@@ -1,5 +1,11 @@
--- should follow from univalence
-postulate funext ∷ {X : U} (Y : X → U) (f g : (x : X) → Y x) → ((x : X) → f x ≡ g x) → f ≡ g
+open import Function
+open import Product
+open import Equality
+open import Contr
+open import Equivalence
+open import Univalence
+
+-- Function extensionality follows from univalence
 
 ---
 --- Non-dependent function extensionality from univalence (Voevodsky)
@@ -63,3 +69,64 @@ funext-nd {X} {Y} f g h =
   -- both homotopies have source f, so they are equal
   let p : Homotopy-cst f ≡ Homotopy-of h = retraction-inj (post X Path-src) (retraction-is-equiv (post X Path-src) e) {Homotopy-cst f} {Homotopy-of h} refl in
   cong (post X (Path-tgt {Y})) p
+
+---
+--- Dependent function extensionality from univalence
+---
+
+-- singletons are contractible
+is-contr-sing ∷ {A : U} (x : A) → is-contr (Σ (y : A) . x ≡ y)
+is-contr-sing {A} x = ((x , refl) , fun (y , p) → J x (fun y p → (x , refl) ≡{Σ (y : A) . x ≡ y} (y , p)) refl p)
+
+is-contr-sing' ∷ {A : U} (y : A) → is-contr (Σ (x : A) . x ≡ y)
+is-contr-sing' {A} y = ((y , refl) , fun (x , p) → J' (fun x y p → (y , refl) ≡{Σ (x : A) . x ≡ y} (x , p)) (fun x → refl) p)
+
+-- equality in contractible types
+is-contr-eq ∷ {A : U} → is-contr A → (x y : A) → x ≡ y
+is-contr-eq (a , p) x y = trans (sym (p x)) (p y)
+
+-- a retract of a contractible type is contractible
+is-contr-retract ∷ {A B : U} (s : A → B) (r : B → A) → ((x : A) → r (s x) ≡ x) → is-contr B → is-contr A
+is-contr-retract s r rs (b , p) = (r b , fun x → trans (cong r (p (s x))) (rs x))
+
+-- fibers
+fib ∷ {A B : U} → (A → B) → B → U
+fib {A} f y = Σ (x : A) . f x ≡ y
+
+is-contr-map ∷ {A B : U} → (A → B) → U
+is-contr-map {A} {B} f = (y : B) → is-contr (fib f y)
+
+post-contr-eq ∷ {A B : U} (P : A ≡ B) (X : U) → is-contr-map (post X (map-equiv (equiv-eq P)))
+post-contr-eq {A} refl X = fun y → is-contr-sing' y
+
+-- by univalence, postcomposition with an equivalence has contractible fibers
+post-contr ∷ {A B : U} (f : A → B) → is-equiv f → (X : U) → is-contr-map (post X f)
+post-contr {A} {B} f e X =
+  let k : section (equiv-eq {A} {B}) → is-contr-map (post X f) = fun (ua , uae) →
+    subst {A → B} (fun g → is-contr-map (post X g)) (cong map-equiv (uae (f , e))) (post-contr-eq (ua (f , e)) X)
+  in
+  k (section-is-equiv equiv-eq (univalence A B))
+
+-- the first projection of a family of contractible types is an equivalence
+fst-contr-ret ∷ {X : U} (P : X → U) (c : (x : X) → is-contr (P x)) (x : X) (y : P x) → (x , center (P x) (c x)) ≡{Σ (x : X) . P x} (x , y)
+fst-contr-ret {X} P c x y = cong {P x} {Σ (w : X) . P w} (fun z → (x , z)) (is-contr-eq (c x) (center (P x) (c x)) y)
+
+is-equiv-fst-contr ∷ {X : U} (P : X → U) → ((x : X) → is-contr (P x)) → is-equiv (fst P)
+is-equiv-fst-contr {X} P c =
+  let s : X → Σ (x : X) . P x = fun x → (x , center (P x) (c x)) in
+  ((s , fun x → refl) , (s , fun (x , y) → fst-contr-ret P c x y))
+
+-- weak function extensionality: a product of contractible types is contractible
+is-contr-Π ∷ {X : U} (P : X → U) → ((x : X) → is-contr (P x)) → is-contr ((x : X) → P x)
+is-contr-Π {X} P c =
+  let F : U = fib (post X (fst P)) (fun x → x) in
+  let s : ((x : X) → P x) → F = fun f → ((fun x → (x , f x)) , refl) in
+  let r : F → (x : X) → P x = fun (g , p) → fun x → subst P (happly p x) (snd P (g x)) in
+  is-contr-retract s r (fun f → refl) (post-contr (fst P) (is-equiv-fst-contr P c) X (fun x → x))
+
+funext ∷ {X : U} (Y : X → U) (f g : (x : X) → Y x) → ((x : X) → f x ≡ g x) → f ≡ g
+funext {X} Y f g h =
+  let T : U = (x : X) → Σ (y : Y x) . f x ≡ y in
+  let c : is-contr T = is-contr-Π (fun x → Σ (y : Y x) . f x ≡ y) (fun x → is-contr-sing (f x)) in
+  let p : (fun x → (f x , refl)) ≡{T} (fun x → (g x , h x)) = is-contr-eq c _ _ in
+  cong {T} {(x : X) → Y x} (fun u x → fst _ (u x)) p
