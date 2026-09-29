@@ -1,5 +1,70 @@
+open import Function
+open import Product
+open import Equality
+open import Equivalence
+open import Univalence
+
 postulate funext ∷ {X : U} (Y : X → U) (f g : (x : X) → Y x) → ((x : X) → f x ≡ g x) → f ≡ g
 
--- non-dependent version
+---
+--- Non-dependent function extensionality from univalence (Voevodsky)
+---
+
+-- free paths
+Path ∷ U → U
+Path A = Σ (x : A) . Σ (y : A) . x ≡ y
+
+Path-src ∷ {A : U} → Path A → A
+Path-src (x , _) = x
+
+Path-tgt ∷ {A : U} → Path A → A
+Path-tgt {A} (x , q) = fst _ q
+
+Path-of ∷ {A : U} {x y : A} → x ≡ y → Path A
+Path-of {A} {x} {y} p = (x , y , p)
+
+Path-cst ∷ {A : U} → A → Path A
+Path-cst x = (x , x , refl)
+
+Path-cst-src' ∷ {A : U} (x : A) (q : Σ (y : A) . x ≡ y) → Path-cst x ≡ (x , q)
+Path-cst-src' x (y , p) = J x (fun y p → Path-cst x ≡ (x , y , p)) refl p
+
+Path-cst-src ∷ {A : U} (p : Path A) → Path-cst (Path-src p) ≡ p
+Path-cst-src (x , q) = Path-cst-src' x q
+
+-- the space of free paths is equivalent to the base
+is-equiv-Path-src ∷ (A : U) → is-equiv (Path-src {A})
+is-equiv-Path-src A = ((Path-cst , fun x → refl) , (Path-cst , Path-cst-src))
+
+-- postcomposition
+post ∷ {A B : U} (X : U) → (A → B) → (X → A) → (X → B)
+post X f h = fun x → f (h x)
+
+post-equiv-eq ∷ {A B : U} (P : A ≡ B) (X : U) → is-equiv (post X (map-equiv (equiv-eq P)))
+post-equiv-eq {A} refl X = is-equiv-id (X → A)
+
+-- by univalence, postcomposition with an equivalence is an equivalence
+post-equiv ∷ {A B : U} (f : A → B) → is-equiv f → (X : U) → is-equiv (post X f)
+post-equiv {A} {B} f e X =
+  let k : section (equiv-eq {A} {B}) → is-equiv (post X f) = fun (ua , uae) →
+    subst {A → B} (fun g → is-equiv (post X g)) (cong map-equiv (uae (f , e))) (post-equiv-eq (ua (f , e)) X)
+  in
+  k (section-is-equiv equiv-eq (univalence A B))
+
+-- maps with a retraction are injective
+retraction-inj ∷ {A B : U} (f : A → B) → retraction f → {x y : A} → f x ≡ f y → x ≡ y
+retraction-inj f (r , rr) {x} {y} p = trans (sym (rr x)) (trans (cong r p) (rr y))
+
+-- homotopies as maps to free paths
+Homotopy-of ∷ {A B : U} {f g : A → B} → ((x : A) → f x ≡ g x) → A → Path B
+Homotopy-of {A} {B} {f} {g} h x = Path-of (h x)
+
+Homotopy-cst ∷ {A B : U} → (A → B) → A → Path B
+Homotopy-cst f x = Path-cst (f x)
+
 funext-nd ∷ {X : U} {Y : U} (f g : X → Y) → ((x : X) → f x ≡ g x) → f ≡ g
-funext-nd {X} {Y} f g p = funext (λ_.Y) f g p
+funext-nd {X} {Y} f g h =
+  let e : is-equiv (post X (Path-src {Y})) = post-equiv Path-src (is-equiv-Path-src Y) X in
+  -- both homotopies have source f, so they are equal
+  let p : Homotopy-cst f ≡ Homotopy-of h = retraction-inj (post X Path-src) (retraction-is-equiv (post X Path-src) e) {Homotopy-cst f} {Homotopy-of h} refl in
+  cong (post X (Path-tgt {Y})) p
