@@ -1,9 +1,4 @@
-open import Function
-open import Product
-open import Equality
-open import Equivalence
-open import Univalence
-
+-- should follow from univalence
 postulate funext ∷ {X : U} (Y : X → U) (f g : (x : X) → Y x) → ((x : X) → f x ≡ g x) → f ≡ g
 
 ---
