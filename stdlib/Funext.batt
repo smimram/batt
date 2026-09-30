@@ -55,9 +55,179 @@ funext {X} Y f g h =
 
 -- By path induction on the path between f and g (a direct cong (λ h . h a) p does not
 -- typecheck: h and a would have to be separated by ⊗ while they are only related by ",").
+
 happly-r ∷ (A B ∷ U) → Path (A →ᵣ B) → A →ᵣ Path B
 happly-r A B (f , u) =
   let h : (Σ (g : A →ᵣ B) . f ≡ g) → A →ᵣ Path B =
     λ (g , p) . J f (λ _ _ . A →ᵣ Path B) (λ a . (f a , f a , refl)) p
   in
   h u
+
+happly-l ∷ (A B ∷ U) → Path (A →ₗ B) → A →ₗ Path B
+happly-l A B (f , u) =
+  let h : (Σ (g : A →ₗ B) . f ≡ g) → A →ₗ Path B =
+    λ (g , p) . J f (λ _ _ . A →ₗ Path B) (λ a . (f a , f a , refl)) p
+  in
+  h u
+
+-- r-function extensionality in a total version, following funext-nd (Voevodsky)
+funext-r ∷ (A B ∷ U) → (A →ᵣ Path B) → Path (A →ᵣ B)
+funext-r A B H =
+  let e ∷ is-equiv (post-r A (Path-src {B})) = post-r-equiv A (Path-src {B}) (is-equiv-Path-src B) in
+  let f : A →ᵣ B = post-r A (Path-src {B}) H in
+  let g : A →ᵣ B = post-r A (Path-tgt {B}) H in
+  -- the constant homotopy on f has the same source as H, so it is equal to H
+  let Hc : A →ᵣ Path B = post-r A (Path-cst {B}) f in
+  let p : Hc ≡ H = retraction-inj (post-r A (Path-src {B})) (retraction-is-equiv (post-r A (Path-src {B})) e) {Hc} {H} refl in
+  (f , g , cong (post-r A (Path-tgt {B})) p)
+
+-- l-function extensionality n a total version, following funext-nd (Voevodsky)
+funext-l ∷ (A B ∷ U) → (A →ₗ Path B) → Path (A →ₗ B)
+funext-l A B H =
+  let e ∷ is-equiv (post-l A (Path-src {B})) = post-l-equiv A (Path-src {B}) (is-equiv-Path-src B) in
+  let f : A →ₗ B = post-l A (Path-src {B}) H in
+  let g : A →ₗ B = post-l A (Path-tgt {B}) H in
+  -- the constant homotopy on f has the same source as H, so it is equal to H
+  let Hc : A →ₗ Path B = post-l A (Path-cst {B}) f in
+  let p : Hc ≡ H = retraction-inj (post-l A (Path-src {B})) (retraction-is-equiv (post-l A (Path-src {B})) e) {Hc} {H} refl in
+  (f , g , cong (post-l A (Path-tgt {B})) p)
+
+---
+--- happly-r/l and funext-r/l are mutually inverse
+---
+
+-- happly preserves sources (by path induction)
+happly-r-src ∷ (A B ∷ U) (x : Path (A →ᵣ B)) → post-r A (Path-src {B}) (happly-r A B x) ≡ Path-src x
+happly-r-src A B (f , u) =
+  let h : (v : Σ (g : A →ᵣ B) . f ≡ g) → post-r A (Path-src {B}) (happly-r A B (f , v)) ≡ f =
+    fun (g , p) → J f (fun g p → post-r A (Path-src {B}) (happly-r A B (f , g , p)) ≡ f) refl p
+  in
+  h u
+
+happly-l-src ∷ (A B ∷ U) (x : Path (A →ₗ B)) → post-l A (Path-src {B}) (happly-l A B x) ≡ Path-src x
+happly-l-src A B (f , u) =
+  let h : (v : Σ (g : A →ₗ B) . f ≡ g) → post-l A (Path-src {B}) (happly-l A B (f , v)) ≡ f =
+    fun (g , p) → J f (fun g p → post-l A (Path-src {B}) (happly-l A B (f , g , p)) ≡ f) refl p
+  in
+  h u
+
+-- funext preserves sources judgmentally, and taking sources is an equivalence on both sides:
+-- the round trips follow by injectivity of the sources
+
+happly-funext-r ∷ (A B ∷ U) (H : A →ᵣ Path B) → happly-r A B (funext-r A B H) ≡ H
+happly-funext-r A B H =
+  let e ∷ is-equiv (post-r A (Path-src {B})) = post-r-equiv A (Path-src {B}) (is-equiv-Path-src B) in
+  retraction-inj (post-r A (Path-src {B})) (retraction-is-equiv (post-r A (Path-src {B})) e) (happly-r-src A B (funext-r A B H))
+
+happly-funext-l ∷ (A B ∷ U) (H : A →ₗ Path B) → happly-l A B (funext-l A B H) ≡ H
+happly-funext-l A B H =
+  let e ∷ is-equiv (post-l A (Path-src {B})) = post-l-equiv A (Path-src {B}) (is-equiv-Path-src B) in
+  retraction-inj (post-l A (Path-src {B})) (retraction-is-equiv (post-l A (Path-src {B})) e) (happly-l-src A B (funext-l A B H))
+
+funext-happly-r ∷ (A B ∷ U) (x : Path (A →ᵣ B)) → funext-r A B (happly-r A B x) ≡ x
+funext-happly-r A B x =
+  retraction-inj (Path-src {A →ᵣ B}) (retraction-is-equiv (Path-src {A →ᵣ B}) (is-equiv-Path-src (A →ᵣ B)))
+    {funext-r A B (happly-r A B x)} {x} (happly-r-src A B x)
+
+funext-happly-l ∷ (A B ∷ U) (x : Path (A →ₗ B)) → funext-l A B (happly-l A B x) ≡ x
+funext-happly-l A B x =
+  retraction-inj (Path-src {A →ₗ B}) (retraction-is-equiv (Path-src {A →ₗ B}) (is-equiv-Path-src (A →ₗ B)))
+    {funext-l A B (happly-l A B x)} {x} (happly-l-src A B x)
+
+is-equiv-happly-r ∷ (A B ∷ U) → is-equiv (happly-r A B)
+is-equiv-happly-r A B = ((funext-r A B , happly-funext-r A B) , (funext-r A B , funext-happly-r A B))
+
+is-equiv-happly-l ∷ (A B ∷ U) → is-equiv (happly-l A B)
+is-equiv-happly-l A B = ((funext-l A B , happly-funext-l A B) , (funext-l A B , funext-happly-l A B))
+
+happly-r-equiv ∷ (A B ∷ U) → Path (A →ᵣ B) ≃ (A →ᵣ Path B)
+happly-r-equiv A B = (happly-r A B , is-equiv-happly-r A B)
+
+happly-l-equiv ∷ (A B ∷ U) → Path (A →ₗ B) ≃ (A →ₗ Path B)
+happly-l-equiv A B = (happly-l A B , is-equiv-happly-l A B)
+
+---
+--- the associated fiberwise equivalences: paths between r-maps (resp. l-maps) are r-homotopies (resp. l-homotopies)
+---
+
+-- r-homotopies (oplax) from f to g: r-maps into paths, with source f and target g
+Htpy-r ∷ (A B ∷ U) → (A →ᵣ B) → (A →ᵣ B) → U
+Htpy-r A B f g = Σ (H : A →ᵣ Path B) . (post-r A (Path-src {B}) H ≡ f) × (post-r A (Path-tgt {B}) H ≡ g)
+
+-- the constant homotopy
+refl-htpy-r ∷ (A B ∷ U) (f : A →ᵣ B) → Htpy-r A B f f
+refl-htpy-r A B f = (post-r A (Path-cst {B}) f , refl , refl)
+
+-- r-homotopies out of f form a contractible type: it is a retract of a fiber of the
+-- source map, which is contractible since the source map is an equivalence
+is-contr-total-htpy-r ∷ (A B ∷ U) (f : A →ᵣ B) → is-contr (Σ (g : A →ᵣ B) . Htpy-r A B f g)
+is-contr-total-htpy-r A B f =
+  let T : U = Σ (g : A →ᵣ B) . Htpy-r A B f g in
+  let Q : (g : A →ᵣ B) → (A →ᵣ Path B) → U = fun g H → (post-r A (Path-src {B}) H ≡ f) × (post-r A (Path-tgt {B}) H ≡ g) in
+  let F : U = fib (post-r A (Path-src {B})) f in
+  let s : T → F = fun (g , v) → (fst (Q g) v , prod-fst (snd (Q g) v)) in
+  let r : F → T = fun (H , s1) → (post-r A (Path-tgt {B}) H , H , s1 , refl) in
+  -- contracting the free endpoint g together with t
+  let k : (g : A →ᵣ B) (H : A →ᵣ Path B) (w : Q g H) → r (H , prod-fst w) ≡{T} (g , H , w) =
+    fun g → fun H → fun (s1 , t) → J (post-r A (Path-tgt {B}) H) (fun g t → r (H , s1) ≡{T} (g , H , s1 , t)) refl t in
+  let k2 : (g : A →ᵣ B) (v : Htpy-r A B f g) → r (s (g , v)) ≡{T} (g , v) = fun g → fun (H , w) → k g H w in
+  let rs : (w : T) → r (s w) ≡ w = fun (g , v) → k2 g v in
+  is-contr-retract s (r , rs) (post-r-contr A (Path-src {B}) (is-equiv-Path-src B) f)
+
+-- the fiberwise map: transport of the constant homotopy
+happly-r-fib ∷ (A B ∷ U) (f g : A →ᵣ B) → f ≡ g → Htpy-r A B f g
+happly-r-fib A B f g = fund-id-map (Htpy-r A B f) f (refl-htpy-r A B f) g
+
+-- it is an equivalence (fundamental theorem of identity types)
+is-equiv-happly-r-fib ∷ (A B ∷ U) (f g : A →ᵣ B) → is-equiv (happly-r-fib A B f g)
+is-equiv-happly-r-fib A B f g = fund-id (Htpy-r A B f) f (refl-htpy-r A B f) (is-contr-total-htpy-r A B f) g
+
+htpy-r-equiv ∷ (A B ∷ U) (f g : A →ᵣ B) → (f ≡ g) ≃ Htpy-r A B f g
+htpy-r-equiv A B f g = (happly-r-fib A B f g , is-equiv-happly-r-fib A B f g)
+
+-- the homotopy underlying the fiberwise equivalence is happly-r
+happly-r-fib-happly-r ∷ (A B ∷ U) (f g : A →ᵣ B) (p : f ≡ g) →
+  fst (fun H → (post-r A (Path-src {B}) H ≡ f) × (post-r A (Path-tgt {B}) H ≡ g)) (happly-r-fib A B f g p) ≡ happly-r A B (f , g , p)
+happly-r-fib-happly-r A B f g p =
+  J f (fun g p → fst (fun H → (post-r A (Path-src {B}) H ≡ f) × (post-r A (Path-tgt {B}) H ≡ g)) (happly-r-fib A B f g p) ≡ happly-r A B (f , g , p)) refl p
+  
+-- l-homotopies (lax) from f to g: l-maps into paths, with source f and target g
+Htpy-l ∷ (A B ∷ U) → (A →ₗ B) → (A →ₗ B) → U
+Htpy-l A B f g = Σ (H : A →ₗ Path B) . (post-l A (Path-src {B}) H ≡ f) × (post-l A (Path-tgt {B}) H ≡ g)
+
+-- the constant homotopy
+refl-htpy-l ∷ (A B ∷ U) (f : A →ₗ B) → Htpy-l A B f f
+refl-htpy-l A B f = (post-l A (Path-cst {B}) f , refl , refl)
+
+-- l-homotopies out of f form a contractible type: it is a retract of a fiber of the
+-- source map, which is contractible since the source map is an equivalence
+is-contr-total-htpy-l ∷ (A B ∷ U) (f : A →ₗ B) → is-contr (Σ (g : A →ₗ B) . Htpy-l A B f g)
+is-contr-total-htpy-l A B f =
+  let T : U = Σ (g : A →ₗ B) . Htpy-l A B f g in
+  let Q : (g : A →ₗ B) → (A →ₗ Path B) → U = fun g H → (post-l A (Path-src {B}) H ≡ f) × (post-l A (Path-tgt {B}) H ≡ g) in
+  let F : U = fib (post-l A (Path-src {B})) f in
+  let s : T → F = fun (g , v) → (fst (Q g) v , prod-fst (snd (Q g) v)) in
+  let r : F → T = fun (H , s1) → (post-l A (Path-tgt {B}) H , H , s1 , refl) in
+  -- contracting the free endpoint g together with t
+  let k : (g : A →ₗ B) (H : A →ₗ Path B) (w : Q g H) → r (H , prod-fst w) ≡{T} (g , H , w) =
+    fun g → fun H → fun (s1 , t) → J (post-l A (Path-tgt {B}) H) (fun g t → r (H , s1) ≡{T} (g , H , s1 , t)) refl t in
+  let k2 : (g : A →ₗ B) (v : Htpy-l A B f g) → r (s (g , v)) ≡{T} (g , v) = fun g → fun (H , w) → k g H w in
+  let rs : (w : T) → r (s w) ≡ w = fun (g , v) → k2 g v in
+  is-contr-retract s (r , rs) (post-l-contr A (Path-src {B}) (is-equiv-Path-src B) f)
+
+-- the fiberwise map: transport of the constant homotopy
+happly-l-fib ∷ (A B ∷ U) (f g : A →ₗ B) → f ≡ g → Htpy-l A B f g
+happly-l-fib A B f g = fund-id-map (Htpy-l A B f) f (refl-htpy-l A B f) g
+
+-- it is an equivalence (fundamental theorem of identity types)
+is-equiv-happly-l-fib ∷ (A B ∷ U) (f g : A →ₗ B) → is-equiv (happly-l-fib A B f g)
+is-equiv-happly-l-fib A B f g = fund-id (Htpy-l A B f) f (refl-htpy-l A B f) (is-contr-total-htpy-l A B f) g
+
+htpy-l-equiv ∷ (A B ∷ U) (f g : A →ₗ B) → (f ≡ g) ≃ Htpy-l A B f g
+htpy-l-equiv A B f g = (happly-l-fib A B f g , is-equiv-happly-l-fib A B f g)
+
+-- the homotopy underlying the fiberwise equivalence is happly-l
+happly-l-fib-happly-l ∷ (A B ∷ U) (f g : A →ₗ B) (p : f ≡ g) →
+  fst (fun H → (post-l A (Path-src {B}) H ≡ f) × (post-l A (Path-tgt {B}) H ≡ g)) (happly-l-fib A B f g p) ≡ happly-l A B (f , g , p)
+happly-l-fib-happly-l A B f g p =
+  J f (fun g p → fst (fun H → (post-l A (Path-src {B}) H ≡ f) × (post-l A (Path-tgt {B}) H ≡ g)) (happly-l-fib A B f g p) ≡ happly-l A B (f , g , p)) refl p

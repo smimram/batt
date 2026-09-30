@@ -39,3 +39,11 @@ right-left-swap {A} {B} {C} f b a = f a b
 
 left-right-swap ∷ {A B C ∷ U} → (A →ₗ B →ᵣ C) → (B →ᵣ A →ₗ C)
 left-right-swap {A} {B} {C} f b a = f a b
+
+-- r-postcomposition
+post-r ∷ (A ∷ U) {X Y ∷ U} → (X → Y) → (A →ᵣ X) → (A →ᵣ Y)
+post-r A {X} {Y} f h = λ a . f (h a)
+
+-- l-postcomposition
+post-l ∷ (A ∷ U) {X Y ∷ U} → (X → Y) → (A →ₗ X) → (A →ₗ Y)
+post-l A {X} {Y} f h = λ a . f (h a)
