@@ -1,6 +1,8 @@
 open Parser
 
-let letter = [%sedlex.regexp? 'A'..'Z' | 'a'..'z']
+(* Greek letters, except λ which is used for abstractions *)
+let greek = [%sedlex.regexp? 0x391 .. 0x3A1 | 0x3A3 .. 0x3A9 | 0x3B1 .. 0x3BA | 0x3BC .. 0x3C9]
+let letter = [%sedlex.regexp? 'A'..'Z' | 'a'..'z' | greek]
 let space = [%sedlex.regexp? ' ' | '\t' | '\r']
 
 let rec token lexbuf =

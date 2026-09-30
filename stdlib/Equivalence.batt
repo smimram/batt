@@ -24,6 +24,10 @@ retraction {A} {B} f = Σ (r : B → A) . is-retraction f r
 map-retraction ∷ {A B : U} (f : A → B) → retraction f → B → A
 map-retraction f r' = fst _ r'
 
+-- maps with a retraction are injective
+retraction-inj ∷ {A B : U} (f : A → B) → retraction f → {x y : A} → f x ≡ f y → x ≡ y
+retraction-inj f (r , rr) {x} {y} p = trans (sym (rr x)) (trans (cong r p) (rr y))
+
 ---
 --- equivalences
 ---
@@ -103,3 +107,14 @@ is-equiv-circ {A} {B} {C} g f eg ef =
   let k : is-equiv g → is-equiv f → is-equiv (g ∘ f) =
     fun (sg , rg) → fun (sf , rf) → (sec sg sf , ret rg rf) in
   k eg ef
+
+-- a retract of a contractible type is contractible
+is-contr-retract ∷ {A B : U} (s : A → B) → retraction s → is-contr B → is-contr A
+is-contr-retract s (r , rs) (b , p) = (r b , fun x → trans (cong r (p (s x))) (rs x))
+
+---
+--- Contractible maps
+---
+
+is-contr-map ∷ {A B : U} → (A → B) → U
+is-contr-map {A} {B} f = (y : B) → is-contr (fib f y)

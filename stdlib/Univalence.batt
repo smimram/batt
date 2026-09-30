@@ -17,3 +17,27 @@ ap-equiv {A} {B} f e x y =
     subst {A → B} (fun g → is-equiv (cong g {x} {y})) (cong map-equiv (uae (f , e))) (cong-equiv-eq (ua (f , e)) x y)
   in
   k (section-is-equiv equiv-eq (univalence A B))
+
+post-equiv-eq ∷ {A B : U} (P : A ≡ B) (X : U) → is-equiv (post X (map-equiv (equiv-eq P)))
+post-equiv-eq {A} refl X = is-equiv-id (X → A)
+
+-- by univalence, postcomposition with an equivalence is an equivalence (without funext !)
+post-equiv ∷ {A B : U} (f : A → B) → is-equiv f → (X : U) → is-equiv (post X f)
+post-equiv {A} {B} f e X =
+  let k : section (equiv-eq {A} {B}) → is-equiv (post X f) = fun (ua , uae) →
+    subst {A → B} (fun g → is-equiv (post X g)) (cong map-equiv (uae (f , e))) (post-equiv-eq (ua (f , e)) X)
+  in
+  k (section-is-equiv equiv-eq (univalence A B))
+
+-- contractibility of postcomposition with the map coming from an equality
+post-contr-eq ∷ {A B : U} (P : A ≡ B) (X : U) → is-contr-map (post X (map-equiv (equiv-eq P)))
+post-contr-eq {A} refl X = fun y → is-contr-sing' y
+
+-- by univalence, postcomposition with an equivalence has contractible fibers
+post-contr ∷ {A B : U} (f : A → B) → is-equiv f → (X : U) → is-contr-map (post X f)
+post-contr {A} {B} f e X =
+  let k : section (equiv-eq {A} {B}) → is-contr-map (post X f) = fun (ua , uae) →
+    subst {A → B} (fun g → is-contr-map (post X g)) (cong map-equiv (uae (f , e))) (post-contr-eq (ua (f , e)) X)
+  in
+  k (section-is-equiv equiv-eq (univalence A B))
+  

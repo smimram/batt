@@ -1,22 +1,63 @@
--- should follows from univalence
-postulate funext ∷ {X : U} (Y : X → U) (f g : (x : X) → Y x) → ((x : X) → f x ≡ g x) → f ≡ g
+open import Function
+open import Product
+open import Equality
+open import Contr
+open import Equivalence
+open import Univalence
+open import Paths
 
--- non-dependent version
+-- Function extensionality follows from univalence
+
+---
+--- Non-dependent function extensionality from univalence (Voevodsky)
+---
+
 funext-nd ∷ {X : U} {Y : U} (f g : X → Y) → ((x : X) → f x ≡ g x) → f ≡ g
-funext-nd {X} {Y} f g p = funext (λ_.Y) f g p
+funext-nd {X} {Y} f g h =
+  let e : is-equiv (post X (Path-src {Y})) = post-equiv Path-src (is-equiv-Path-src Y) X in
+  -- both homotopies have source f, so they are equal
+  let p : Homotopy-cst f ≡ Homotopy-of h = retraction-inj (post X Path-src) (retraction-is-equiv (post X Path-src) e) {Homotopy-cst f} {Homotopy-of h} refl in
+  cong (post X (Path-tgt {Y})) p
+
+---
+--- Dependent function extensionality from univalence
+---
+
+-- the first projection of a family of contractible types is an equivalence
+fst-contr-ret ∷ {X : U} (P : X → U) (c : (x : X) → is-contr (P x)) (x : X) (y : P x) → (x , center (P x) (c x)) ≡{Σ (x : X) . P x} (x , y)
+fst-contr-ret {X} P c x y = cong {P x} {Σ (w : X) . P w} (fun z → (x , z)) (is-contr-eq (c x) (center (P x) (c x)) y)
+
+is-equiv-fst-contr ∷ {X : U} (P : X → U) → ((x : X) → is-contr (P x)) → is-equiv (fst P)
+is-equiv-fst-contr {X} P c =
+  let s : X → Σ (x : X) . P x = fun x → (x , center (P x) (c x)) in
+  ((s , fun _ → refl) , (s , fun (x , y) → fst-contr-ret P c x y))
+
+-- weak function extensionality: a product of contractible types is contractible
+is-contr-Π ∷ {X : U} (P : X → U) → ((x : X) → is-contr (P x)) → is-contr ((x : X) → P x)
+is-contr-Π {X} P c =
+  let F : U = fib (post X (fst P)) (fun x → x) in
+  let s : ((x : X) → P x) → F = fun f → ((fun x → (x , f x)) , refl) in
+  let r : F → (x : X) → P x = fun (g , p) → fun x → subst P (happly p x) (snd P (g x)) in
+  is-contr-retract s (r , fun _ → refl) (post-contr (fst P) (is-equiv-fst-contr P c) X id)
+
+funext ∷ {X : U} (Y : X → U) (f g : (x : X) → Y x) → ((x : X) → f x ≡ g x) → f ≡ g
+funext {X} Y f g h =
+  let T : U = (x : X) → Σ (y : Y x) . f x ≡ y in
+  let c : is-contr T = is-contr-Π (fun x → Σ (y : Y x) . f x ≡ y) (fun x → is-contr-sing (f x)) in
+  let p : (fun x → (f x , refl)) ≡{T} (fun x → (g x , h x)) = is-contr-eq c _ _ in
+  cong {T} {(x : X) → Y x} (fun u x → fst _ (u x)) p
+
+-- funext-nd {X} {Y} f g p = funext (λ_.Y) f g p
 
 ---
 --- l/r versions are admissible from univalence
 ---
 
-open import Paths
-open import Univalence
-
 -- By path induction on the path between f and g (a direct cong (λ h . h a) p does not
 -- typecheck: h and a would have to be separated by ⊗ while they are only related by ",").
-happly-r ∷ (A B ∷ U) → paths (A →ᵣ B) → A →ᵣ paths B
+happly-r ∷ (A B ∷ U) → Path (A →ᵣ B) → A →ᵣ Path B
 happly-r A B (f , u) =
-  let h : (Σ (g : A →ᵣ B) . f ≡ g) → A →ᵣ paths B =
-    λ (g , p) . J f (λ _ _ . A →ᵣ paths B) (λ a . (f a , f a , refl)) p
+  let h : (Σ (g : A →ᵣ B) . f ≡ g) → A →ᵣ Path B =
+    λ (g , p) . J f (λ _ _ . A →ᵣ Path B) (λ a . (f a , f a , refl)) p
   in
   h u

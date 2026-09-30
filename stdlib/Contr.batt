@@ -9,3 +9,16 @@ HContr = Σ (A : U) . is-contr A
 
 type-HContr ∷ HContr → U
 type-HContr (A, _) = A
+
+open import Equality
+
+-- singletons are contractible
+is-contr-sing ∷ {A : U} (x : A) → is-contr (Σ (y : A) . x ≡ y)
+is-contr-sing {A} x = ((x , refl) , fun (y , p) → J x (fun y p → (x , refl) ≡{Σ (y : A) . x ≡ y} (y , p)) refl p)
+
+is-contr-sing' ∷ {A : U} (y : A) → is-contr (Σ (x : A) . x ≡ y)
+is-contr-sing' {A} y = ((y , refl) , fun (x , p) → J' (fun x y p → (y , refl) ≡{Σ (x : A) . x ≡ y} (x , p)) (fun x → refl) p)
+
+-- equality in contractible types
+is-contr-eq ∷ {A : U} → is-contr A → (x y : A) → x ≡ y
+is-contr-eq (a , p) x y = trans (sym (p x)) (p y)
