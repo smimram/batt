@@ -906,13 +906,26 @@ and check_decls k env ctx (decls:T.decls) =
       ty := (x,c,a) :: !ty
     | Open t ->
       let t0 = t in
-      let _, a = infer k !env !ctx t in
+      let t, a = infer k !env !ctx t in
       let l =
         match V.force a with
         | RecordType l -> l
         | _ -> error ~t:t0 "record type exepected but got %s" (V.to_string k a)
       in
-      let pos = T.Position.find_opt t in
+      (* Fields which are already bound to the very same value (typically because the module was already opened) are not declared again: otherwise, modules re-exporting opened modules make the number of declarations blow up. *)
+      let already_bound =
+        match V.force (V.eval !env t) with
+        | Record r ->
+          fun x ->
+            (
+              match List.assoc_opt x !env, List.assoc_opt x r with
+              | Some v, Some v' -> v == v'
+              | _ -> false
+            )
+        | _ -> fun _ -> false
+      in
+      let l = List.filter (fun (x,_,_) -> not (already_bound x)) l in
+      let pos = T.Position.find_opt t0 in
       List.iter (fun (x,c,_) -> decls := (Def (x,c,None,T.mk ?pos @@ RecordField(t0, x)) :: !decls)) (List.rev l)
   done;
   let tm = List.rev !tm in
