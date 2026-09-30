@@ -96,3 +96,35 @@ is-in-spine→is-sorted (succ n) x p =
 spine→simplex ∷ (n ∷ ℕ) → spine n → simplex n
 spine→simplex zero x = tt
 spine→simplex (succ n) (x , p) = (x , is-in-spine→is-sorted n x p)
+
+--
+-- Edges of the 2-spine and of the 2-simplex (coordinates x₁ ≥ x₂; vertices (0,0), (1,0), (1,1))
+--
+
+-- first edge of the spine, t ↦ (t, 0)
+spine-edge-1 ∷ 𝕀 → spine 2
+spine-edge-1 t =
+  ((t , 𝕀0 , tt) ,
+   unit-prop-trunc (sum ((𝕀0 , tt) ≡{cart-cube 1} zero-cube 1) ((t ≡ 𝕀1) × is-in-spine 1 (𝕀0 , tt)))
+     (inl {(𝕀0 , tt) ≡{cart-cube 1} zero-cube 1} {(t ≡ 𝕀1) × is-in-spine 1 (𝕀0 , tt)} refl))
+
+-- second edge of the spine, t ↦ (1, t)
+spine-edge-2 ∷ 𝕀 → spine 2
+spine-edge-2 t =
+  let p : is-in-spine 1 (t , tt) =
+    unit-prop-trunc (sum (tt ≡ zero-cube 0) ((t ≡ 𝕀1) × is-in-spine 0 tt))
+      (inl {tt ≡ zero-cube 0} {(t ≡ 𝕀1) × is-in-spine 0 tt} refl)
+  in
+  ((𝕀1 , t , tt) ,
+   unit-prop-trunc (sum ((t , tt) ≡{cart-cube 1} zero-cube 1) ((𝕀1 ≡ 𝕀1) × is-in-spine 1 (t , tt)))
+     (inr {(t , tt) ≡{cart-cube 1} zero-cube 1} {(𝕀1 ≡ 𝕀1) × is-in-spine 1 (t , tt)} (refl , p)))
+
+-- long edge of the 2-simplex, t ↦ (t, t)
+long-edge ∷ 𝕀 → simplex 2
+long-edge t = ((t , t , tt) , (refl , tt))
+
+-- two points of a simplex with the same coordinates are equal (sortedness is a proposition)
+sorted-path ∷ (n ∷ ℕ) (x ∷ cart-cube (succ n)) (p q ∷ is-sorted n x) → (x , p) ≡{simplex (succ n)} (x , q)
+sorted-path n x p q =
+  let e ∷ p ≡ q = center (p ≡ q) (is-prop-is-sorted n x p q) in
+  cong {is-sorted n x} {simplex (succ n)} (λ z . (x , z)) e

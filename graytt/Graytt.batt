@@ -6,3 +6,4 @@ open import Segal
 open import FreeEquiv
 open import Complete
 open import Rezk
+open import Composition

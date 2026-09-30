@@ -11,3 +11,8 @@ open import Stdlib
 grid ∷ (a ∷ ℕ → ℕ) (d ∷ ℕ) → U
 grid a zero = ⊤
 grid a (succ d) = rec ⨂ simplex (a d)
+
+-- the sequence of the empty grid (any sequence works with length 0): grid no-grid 0 = ⊤,
+-- used for unthickened shapes
+no-grid ∷ ℕ → ℕ
+no-grid _ = 0

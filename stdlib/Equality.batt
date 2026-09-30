@@ -76,3 +76,23 @@ trans-sym-l {A} {x} refl = refl
 -- a path right composed with its inverse is refl
 trans-sym-r ∷ {A : Type} {x y : A} (p : x ≡ y) → trans p (sym p) ≡ refl
 trans-sym-r {A} {x} refl = refl
+
+---
+--- Paths and directed functions
+---
+
+-- an oplax map sends a crisp path between crisp points to a path (crisp path induction)
+ap-r ∷ {S X ∷ U} {y0 y1 ∷ S} (q ∷ y0 ≡ y1) (φ : S →ᵣ X) → φ y0 ≡ φ y1
+ap-r {S} {X} {y0} refl φ = refl
+
+-- evaluation of a path between oplax maps at a crisp point
+ev-r ∷ {S X ∷ U} (y ∷ S) {φ ψ : S →ᵣ X} → φ ≡ ψ → φ y ≡ ψ y
+ev-r {S} {X} y {φ} {ψ} p = cong {S →ᵣ X} {X} (λ h . h y) p
+
+-- a lax map sends a crisp path between crisp points to a path (crisp path induction)
+ap-l ∷ {S X ∷ U} {y0 y1 ∷ S} (q ∷ y0 ≡ y1) (φ : S →ₗ X) → φ y0 ≡ φ y1
+ap-l {S} {X} {y0} refl φ = refl
+
+-- evaluation of a path between lax maps at a crisp point
+ev-l ∷ {S X ∷ U} (y ∷ S) {φ ψ : S →ₗ X} → φ ≡ ψ → φ y ≡ ψ y
+ev-l {S} {X} y {φ} {ψ} p = cong {S →ₗ X} {X} (λ h . h y) p
