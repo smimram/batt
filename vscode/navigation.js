@@ -302,9 +302,9 @@ class Resolver {
     return mod;
   }
 
-  // same search path as the checker run from the workspace root: ., celltt, stdlib
+  // same search path as the checker run from the workspace root: ., graytt, stdlib
   findModule(name) {
-    for (const dir of [this.root, path.join(this.root, 'celltt'), path.join(this.root, 'stdlib')]) {
+    for (const dir of [this.root, path.join(this.root, 'graytt'), path.join(this.root, 'stdlib')]) {
       const file = path.join(dir, name + '.batt');
       if (fs.existsSync(file)) {
         return file;
