@@ -1,11 +1,11 @@
+--
+-- The adjunction susp ⊣ hom 
+--
+
 open import Stdlib
 open import Bipointed
 open import Suspension
 open import Hom
-
---
--- The adjunction susp ⊣ hom 
---
 
 -- unit
 susphom-unit ∷ (X ∷ U) → X → hom' (susp' X)

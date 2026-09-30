@@ -1,0 +1,12 @@
+-- Should type-check, but the checker aborts with
+--   Fatal error: exception File "src/lang.ml", line 67, characters 4-10: Assertion failed
+--
+-- The tensor pair a ⊗ a splits the bunch with FV(a) on both sides. Since a is crisp, this is
+-- allowed (crisp variables are shared, as in ♭(A ⨂ A) ≃ ♭(A × A)), but split asserts that the two
+-- sides have disjoint free variables before crisp variables are discounted.
+--
+-- Compare test/fail/diag-tens.batt, the same term with a non-crisp a, which must fail; it
+-- currently fails through this same assertion rather than through a split error.
+
+crisp-diag ∷ (A ∷ U) (a ∷ A) → A ⨂ A
+crisp-diag A a = a ⊗ a
