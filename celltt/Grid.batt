@@ -1,0 +1,13 @@
+--
+-- Grids: □[a₀, …, a_{d-1}] := Δ^{a₀} ⊗ … ⊗ Δ^{a_{d-1}}
+--
+-- There are no lists or vectors yet, so a grid is given by its length d and a sequence
+-- a : ℕ → ℕ of which only a 0, …, a (d-1) are used. It is nested to the left, with a leading
+-- unit: grid a 3 = ((⊤ ⊗ Δ^{a 0}) ⊗ Δ^{a 1}) ⊗ Δ^{a 2}. grid a 0 = ⊤ is the unit of ⊗.
+--
+
+open import Stdlib
+
+grid ∷ (a ∷ ℕ → ℕ) (d ∷ ℕ) → U
+grid a zero = ⊤
+grid a (succ d) = rec ⨂ simplex (a d)

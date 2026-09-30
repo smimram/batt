@@ -10,9 +10,18 @@ id x = x
 circ ∷ {A B C : U} → (B → C) → (A → B) → (A → C)
 circ g f a = g (f a)
 
+-- Pre- and postcomposition all follow one pattern: for f : A → B and g : B → C,
+--   post A g f = g ∘ f   (g fixed, f varies)      pre A g f = g ∘ f   (f fixed, g varies)
+-- with the domain A explicit and first, B and C implicit, arguments in composition order.
+-- For ordinary functions the two coincide; they differ for →ᵣ and →ₗ below.
+
 -- postcomposition
-post ∷ {A B : U} (X : U) → (A → B) → (X → A) → (X → B)
-post X f h x = f (h x)
+post ∷ (A : U) {B C : U} → (B → C) → (A → B) → (A → C)
+post A g f a = g (f a)
+
+-- precomposition
+pre ∷ (A : U) {B C : U} → (B → C) → (A → B) → (A → C)
+pre A g f a = g (f a)
 
 -- constant
 const ∷ (A : U) → {B : U} → (b : B) → A → B
@@ -40,10 +49,18 @@ right-left-swap {A} {B} {C} f b a = f a b
 left-right-swap ∷ {A B C ∷ U} → (A →ₗ B →ᵣ C) → (B →ᵣ A →ₗ C)
 left-right-swap {A} {B} {C} f b a = f a b
 
--- r-postcomposition
-post-r ∷ (A ∷ U) {X Y ∷ U} → (X → Y) → (A →ᵣ X) → (A →ᵣ Y)
-post-r A {X} {Y} f h = λ a . f (h a)
+-- r-postcomposition: post-r A g f = g ∘ f
+post-r ∷ (A ∷ U) {B C ∷ U} → (B → C) → (A →ᵣ B) → (A →ᵣ C)
+post-r A {B} {C} g f = λ a . g (f a)
 
--- l-postcomposition
-post-l ∷ (A ∷ U) {X Y ∷ U} → (X → Y) → (A →ₗ X) → (A →ₗ Y)
-post-l A {X} {Y} f h = λ a . f (h a)
+-- l-postcomposition: post-l A g f = g ∘ f
+post-l ∷ (A ∷ U) {B C ∷ U} → (B → C) → (A →ₗ B) → (A →ₗ C)
+post-l A {B} {C} g f = λ a . g (f a)
+
+-- r-precomposition: pre-r A g f = g ∘ f.
+pre-r ∷ (A ∷ U) {B C ∷ U} → (B →ᵣ C) → (A → B) →ᵣ (A →ᵣ C)
+pre-r A {B} {C} g f = λ a . g (f a)
+
+-- l-precomposition: pre-l A g f = g ∘ f
+pre-l ∷ (A ∷ U) {B C ∷ U} → (B →ₗ C) → (A → B) →ₗ (A →ₗ C)
+pre-l A {B} {C} g f = λ a . g (f a)
