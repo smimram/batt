@@ -11,12 +11,8 @@
 --   oplax    : (Δⁿ_{𝐚,𝐛} →ᵣ X) → (Sp_{n,𝐚,𝐛} →ᵣ X)     crisp X
 --   lax      : (Δⁿ_{𝐚,𝐛} →ₗ X) → (Sp_{n,𝐚,𝐛} →ₗ X)     crisp X
 --
--- The thickenings 𝐚, 𝐛 are grids, encoded as in Grid.batt by a length and a sequence ℕ → ℕ.
--- They are crisp, since the shapes must be closed types for ⨂, →ᵣ and →ₗ.
---
--- Expected relations (not proved here): internal ⇒ flat (apply ♭), flat ⇔ lax and oplax
--- (the lax and oplax conditions are checked on grid points, which are flat conditions); flat ⇒
--- internal should follow from an axiom characterizing → maps as a subtype of →ᵣ/→ₗ maps.
+-- Expected relations: internal ⇒ flat, flat ⇔ lax and oplax;
+-- flat ⇒ internal should follow from an axiom characterizing → maps as a subtype of →ᵣ/→ₗ maps.
 --
 
 open import Stdlib

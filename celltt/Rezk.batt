@@ -1,0 +1,36 @@
+--
+-- The four notions of Rezk types
+--
+-- A type is Rezk when it is both Segal and complete. There is one notion per way of mapping
+-- out of the test shapes (see Segal.batt and Complete.batt):
+--
+--   internal : is-segal X      × is-complete X        any X
+--   flat     : is-segal-flat X × is-complete-flat X   crisp X
+--   oplax    : is-segal-r X    × is-complete-r X      crisp X
+--   lax      : is-segal-l X    × is-complete-l X      crisp X
+--
+-- Rezk types are the intended (∞,ω)-categories.
+--
+-- Expected relations: internal ⇒ flat, flat ⇔ lax and oplax; for Rezk types,
+-- flat ⇒ internal should follow from an axiom characterising → maps as a subtype of →ᵣ/→ₗ maps.
+--
+
+open import Stdlib
+open import Segal
+open import Complete
+
+-- internal Rezk types
+is-rezk ∷ (X : U) → U
+is-rezk X = is-segal X × is-complete X
+
+-- ♭-Rezk types
+is-rezk-flat ∷ (X ∷ U) → U
+is-rezk-flat X = is-segal-flat X × is-complete-flat X
+
+-- oplax Rezk types
+is-rezk-r ∷ (X ∷ U) → U
+is-rezk-r X = is-segal-r X × is-complete-r X
+
+-- lax Rezk types
+is-rezk-l ∷ (X ∷ U) → U
+is-rezk-l X = is-segal-l X × is-complete-l X
