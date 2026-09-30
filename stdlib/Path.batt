@@ -1,0 +1,47 @@
+---
+--- Path type and some properties
+---
+
+-- free paths
+path ∷ U → U
+path A = Σ (x : A) . Σ (y : A) . x ≡ y
+
+-- first projection
+path-src ∷ {A : U} → path A → A
+path-src (x , _) = x
+
+-- second projection
+path-tgt ∷ {A : U} → path A → A
+path-tgt {A} (x , q) = fst _ q
+
+-- constructor
+path-of ∷ {A : U} {x y : A} → x ≡ y → path A
+path-of {A} {x} {y} p = (x , y , p)
+
+-- constant path
+path-cst ∷ {A : U} → A → path A
+path-cst x = (x , x , refl)
+
+-- homotopies as maps to free paths
+homotopy-of ∷ {A B : U} {f g : A → B} → ((x : A) → f x ≡ g x) → A → path B
+homotopy-of {A} {B} {f} {g} h x = path-of (h x)
+
+-- constant homotopy as a map to free paths
+homotopy-cst ∷ {A B : U} → (A → B) → A → path B
+homotopy-cst f x = path-cst (f x)
+
+-- 
+-- Any path is equal to a constant path
+--
+
+path-cst-src' ∷ {A : U} (x : A) (q : Σ (y : A) . x ≡ y) → path-cst x ≡ (x , q)
+path-cst-src' x (y , p) = J x (fun y p → path-cst x ≡ (x , y , p)) refl p
+
+path-cst-src ∷ {A : U} (p : path A) → path-cst (path-src p) ≡ p
+path-cst-src (x , q) = path-cst-src' x q
+
+-- the space of free paths is equivalent to the base
+is-equiv-path-src ∷ (A : U) → is-equiv (path-src {A})
+is-equiv-path-src A = ((path-cst , fun x → refl) , (path-cst , path-cst-src))
+
+

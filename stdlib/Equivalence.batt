@@ -24,6 +24,10 @@ retraction {A} {B} f = Σ (r : B → A) . is-retraction f r
 map-retraction ∷ {A B : U} (f : A → B) → retraction f → B → A
 map-retraction f r' = fst _ r'
 
+-- maps with a retraction are injective
+retraction-inj ∷ {A B : U} (f : A → B) → retraction f → {x y : A} → f x ≡ f y → x ≡ y
+retraction-inj f (r , rr) {x} {y} p = trans (sym (rr x)) (trans (cong r p) (rr y))
+
 ---
 --- equivalences
 ---
@@ -103,3 +107,35 @@ is-equiv-circ {A} {B} {C} g f eg ef =
   let k : is-equiv g → is-equiv f → is-equiv (g ∘ f) =
     fun (sg , rg) → fun (sf , rf) → (sec sg sf , ret rg rf) in
   k eg ef
+
+-- a retract of a contractible type is contractible
+is-contr-retract ∷ {A B : U} (s : A → B) → retraction s → is-contr B → is-contr A
+is-contr-retract s (r , rs) (b , p) = (r b , fun x → trans (cong r (p (s x))) (rs x))
+
+---
+--- Contractible maps
+---
+
+is-contr-map ∷ {A B : U} → (A → B) → U
+is-contr-map {A} {B} f = (y : B) → is-contr (fib f y)
+
+---
+--- Fundamental theorem of identity types
+---
+
+-- the fiberwise map obtained by transporting a point p0 : P x0
+fund-id-map ∷ {X : U} (P : X → U) (x0 : X) (p0 : P x0) (x : X) → x0 ≡ x → P x
+fund-id-map P x0 p0 x p = subst P p p0
+
+-- if the total space of P is contractible, transporting p0 is a fiberwise equivalence
+fund-id ∷ {X : U} (P : X → U) (x0 : X) (p0 : P x0) → is-contr (Σ (x : X) . P x) → (x : X) → is-equiv (fund-id-map P x0 p0 x)
+fund-id {X} P x0 p0 c x =
+  let inv : (x : X) → P x → x0 ≡ x = fun x y → cong (fst P) (is-contr-eq c (x0 , p0) (x , y)) in
+  -- section: by induction on the path in the total space
+  let sec : (w : Σ (x : X) . P x) (q : (x0 , p0) ≡{Σ (x : X) . P x} w) → subst P (cong (fst P) q) p0 ≡ snd P w =
+    fun w q → J {Σ (x : X) . P x} (x0 , p0) (fun w q → subst P (cong (fst P) q) p0 ≡ snd P w) refl q in
+  -- retraction: by induction on the path in the base
+  let ret : (x : X) (p : x0 ≡ x) → inv x (subst P p p0) ≡ p =
+    fun x p → J x0 (fun x p → inv x (subst P p p0) ≡ p)
+      (cong {(x0 , p0) ≡{Σ (x : X) . P x} (x0 , p0)} {x0 ≡ x0} (fun q → cong (fst P) q) (is-contr-eq-refl c (x0 , p0))) p in
+  ((inv x , fun y → sec (x , y) (is-contr-eq c (x0 , p0) (x , y))) , (inv x , ret x))

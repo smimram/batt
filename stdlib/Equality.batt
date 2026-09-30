@@ -68,3 +68,11 @@ ho {A} f g = (x : A) → f x ≡ g x
 
 depho ∷ {A : U} {B : A → U} (f g : (x : A) → B x) → U
 depho {A} f g = (x : A) → f x ≡ g x
+
+-- a path left composed with its inverse is refl
+trans-sym-l ∷ {A : Type} {x y : A} (p : x ≡ y) → trans (sym p) p ≡ refl
+trans-sym-l {A} {x} refl = refl
+
+-- a path right composed with its inverse is refl
+trans-sym-r ∷ {A : Type} {x y : A} (p : x ≡ y) → trans p (sym p) ≡ refl
+trans-sym-r {A} {x} refl = refl

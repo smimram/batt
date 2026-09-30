@@ -18,3 +18,4 @@ open import Equivalence
 open import Nat
 open import Interval
 open import Cube
+open import Path

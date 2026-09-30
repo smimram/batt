@@ -6,8 +6,21 @@
 id ∷ {A : U} → A → A
 id x = x
 
+-- composition
 circ ∷ {A B C : U} → (B → C) → (A → B) → (A → C)
 circ g f a = g (f a)
+
+-- postcomposition
+post ∷ {A B : U} (X : U) → (A → B) → (X → A) → (X → B)
+post X f h x = f (h x)
+
+-- constant
+const ∷ (A : U) → {B : U} → (b : B) → A → B
+const A b x = b
+
+-- fibers
+fib ∷ {A B : U} → (A → B) → B → U
+fib {A} f y = Σ (x : A) . f x ≡ y
 
 ---
 --- Directed functions
@@ -26,3 +39,11 @@ right-left-swap {A} {B} {C} f b a = f a b
 
 left-right-swap ∷ {A B C ∷ U} → (A →ₗ B →ᵣ C) → (B →ᵣ A →ₗ C)
 left-right-swap {A} {B} {C} f b a = f a b
+
+-- r-postcomposition
+post-r ∷ (A ∷ U) {X Y ∷ U} → (X → Y) → (A →ᵣ X) → (A →ᵣ Y)
+post-r A {X} {Y} f h = λ a . f (h a)
+
+-- l-postcomposition
+post-l ∷ (A ∷ U) {X Y ∷ U} → (X → Y) → (A →ₗ X) → (A →ₗ Y)
+post-l A {X} {Y} f h = λ a . f (h a)

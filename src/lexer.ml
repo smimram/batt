@@ -1,6 +1,8 @@
 open Parser
 
-let letter = [%sedlex.regexp? 'A'..'Z' | 'a'..'z']
+(* Greek letters, except λ which is used for abstractions *)
+let greek = [%sedlex.regexp? 0x391 .. 0x3A1 | 0x3A3 .. 0x3A9 | 0x3B1 .. 0x3BA | 0x3BC .. 0x3C9]
+let letter = [%sedlex.regexp? 'A'..'Z' | 'a'..'z' | greek]
 let space = [%sedlex.regexp? ' ' | '\t' | '\r']
 
 let rec token lexbuf =
@@ -60,7 +62,7 @@ let rec token lexbuf =
     let s = Sedlexing.Utf8.lexeme lexbuf in
     IMPORT (String.sub s 7 (String.length s - 7))
   | Plus ('0'..'9') -> INT (int_of_string @@ Sedlexing.Utf8.lexeme lexbuf)
-  | ((letter | Utf8 "𝕀"), Star (letter | '0'..'9' | '\'' | '-' | '_' | Utf8 "→" | Utf8 "⁻" | Utf8 "ₗ" | Utf8 "ᵣ" | Utf8 "𝕀")) | Utf8 "_≃_" -> IDENT (Sedlexing.Utf8.lexeme lexbuf)
+  | ((letter | Utf8 "𝕀"), Star (letter | '0'..'9' | '\'' | '-' | '_' | Utf8 "→" | Utf8 "⁻" | Utf8 "ₗ" | Utf8 "ᵣ" | Utf8 "𝕀" | Utf8 "≡")) | Utf8 "_≃_" -> IDENT (Sedlexing.Utf8.lexeme lexbuf)
   | "--", Star (Compl '\n') -> token lexbuf
   | Plus space -> token lexbuf
   | "\n " -> token lexbuf (* quick hack, we should properly handle indentation *)
