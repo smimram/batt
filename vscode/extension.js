@@ -2,6 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const cp = require('child_process');
 const vscode = require('vscode');
+const { registerNavigation } = require('./navigation');
 
 const NO_FILE_MESSAGE = 'Open a .batt file to see its output.';
 
@@ -466,6 +467,7 @@ class BattOutputViewProvider {
 }
 
 function activate(context) {
+  registerNavigation(vscode, context);
   const provider = new BattOutputViewProvider(context);
   context.subscriptions.push(
     vscode.window.registerWebviewViewProvider('batt.output', provider),
