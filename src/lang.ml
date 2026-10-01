@@ -924,7 +924,7 @@ and check_decls k env ctx (decls:T.decls) =
       let l =
         match V.force a with
         | RecordType l -> l
-        | _ -> error ~t:t0 "record type exepected but got %s" (string_of_value k !env a)
+        | _ -> error ~t:t0 "record type expected but got %s" (string_of_value k !env a)
       in
       (* Fields which are already bound to the very same value (typically because the module was already opened) are not declared again: otherwise, modules re-exporting opened modules make the number of declarations blow up. *)
       let already_bound =
