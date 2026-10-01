@@ -64,8 +64,8 @@ module Bunch = struct
   (** Split a buch so that we have the given free variables. *)
   let split fvl fvr crisp b =
     debug "SPLIT %s as %s / %s\n" (to_string 0 b) (FV.to_string fvl) (FV.to_string fvr);
-    assert (FV.is_empty @@ FV.inter fvl fvr);
     let fvc = FV.of_list @@ List.map fst crisp in
+    assert (FV.subset (FV.inter fvl fvr) fvc);
     let is_crisp fv = FV.subset fv fvc in
     (* Printf.printf "crisp: %s\n%!" @@ FV.to_string fvc; *)
     let rec aux fvl fvr b =

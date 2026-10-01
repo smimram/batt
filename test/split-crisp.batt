@@ -1,0 +1,3 @@
+--- We should be able to split with shared crisp variables, see #22.
+crisp-diag ∷ (A ∷ U) (a ∷ A) → A ⨂ A
+crisp-diag A a = a ⊗ a
