@@ -1,12 +1,3 @@
-open import Equality
-open import Product
-open import Prop
-open import Contr
-open import Equivalence
-open import Trunc
-open import Sum
-open import Logic
-open import Funext
 
 ---
 --- A union of two subtypes is the pushout of the two subtypes over their intersection
@@ -51,6 +42,16 @@ open import Funext
 --- Unlike the references, no pushout or join is assumed: the union is defined by the truncated
 --- disjunction, and its universal property is proved directly. X need not be a set.
 ---
+
+open import Equality
+open import Product
+open import Prop
+open import Contr
+open import Equivalence
+open import Trunc
+open import Sum
+open import Logic
+open import Funext
 
 -- the union and its two pieces
 union ∷ {X : U} (A B : X → U) → U
