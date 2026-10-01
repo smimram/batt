@@ -98,7 +98,7 @@ module Bunch = struct
           let b2', b2'' = aux (FV.diff fvl fv1) fvr b2 in
           Tens (b1, b2'), b2''
         else if not @@ FV.subset (FV.union fvl fvr) (FV.union fv1 fv2) then failwith @@ Printf.sprintf "split: undefined variables: %s" @@ FV.to_string (FV.diff (FV.union fvl fvr) (FV.union fv1 fv2))
-        else failwith "split"
+        else failwith @@ Printf.sprintf "cannot split %s as %s / %s" (to_string 0 b) (FV.to_string fvl) (FV.to_string fvr)
       | Prod (Empty, b)
       | Prod (b, Empty) -> aux fvl fvr b
       | Decl _ -> failwith @@ Printf.sprintf "trying to split %s as %s / %s" (to_string 0 b) (FV.to_string fvl) (FV.to_string fvr)
