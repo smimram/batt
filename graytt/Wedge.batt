@@ -97,14 +97,14 @@ wedge-E-r ∷ (S A B ∷ U) (i ∷ A → S) (j ∷ B → S) (a1 ∷ A) (b0 ∷ B
   S → (wedge-cocone-r A B a1 b0 X →ₗ X)
 wedge-E-r S A B i j a1 b0 γ up X =
   map-section (wedge-restr S A B i j a1 b0 γ (wedge-cocone-r A B a1 b0 X →ₗ X))
-    (section-is-equiv (wedge-restr S A B i j a1 b0 γ (wedge-cocone-r A B a1 b0 X →ₗ X)) (up (wedge-cocone-r A B a1 b0 X →ₗ X)))
+    (is-equiv-sec (wedge-restr S A B i j a1 b0 γ (wedge-cocone-r A B a1 b0 X →ₗ X)) (up (wedge-cocone-r A B a1 b0 X →ₗ X)))
     (wedge-u-r A B a1 b0 X)
 
 wedge-E-sec-r ∷ (S A B ∷ U) (i ∷ A → S) (j ∷ B → S) (a1 ∷ A) (b0 ∷ B) (γ ∷ i a1 ≡ j b0) (up ∷ wedge-cart-up S A B i j a1 b0 γ) (X ∷ U) →
   wedge-restr S A B i j a1 b0 γ (wedge-cocone-r A B a1 b0 X →ₗ X) (wedge-E-r S A B i j a1 b0 γ up X) ≡ wedge-u-r A B a1 b0 X
 wedge-E-sec-r S A B i j a1 b0 γ up X =
   snd (is-section (wedge-restr S A B i j a1 b0 γ (wedge-cocone-r A B a1 b0 X →ₗ X)))
-    (section-is-equiv (wedge-restr S A B i j a1 b0 γ (wedge-cocone-r A B a1 b0 X →ₗ X)) (up (wedge-cocone-r A B a1 b0 X →ₗ X)))
+    (is-equiv-sec (wedge-restr S A B i j a1 b0 γ (wedge-cocone-r A B a1 b0 X →ₗ X)) (up (wedge-cocone-r A B a1 b0 X →ₗ X)))
     (wedge-u-r A B a1 b0 X)
 
 wedge-σ-r ∷ (S A B ∷ U) (i ∷ A → S) (j ∷ B → S) (a1 ∷ A) (b0 ∷ B) (γ ∷ i a1 ≡ j b0) (up ∷ wedge-cart-up S A B i j a1 b0 γ) (X ∷ U) →
@@ -191,7 +191,7 @@ wedge-glue-pre-r ∷ (S A B ∷ U) (i ∷ A → S) (j ∷ B → S) (a1 ∷ A) (b
     ≡ ev-r-path {S} {X} γ
 wedge-glue-pre-r S A B i j a1 b0 γ X =
   retraction-inj (happly {S →ᵣ X} {λ _ . X} {λ φ . φ (i a1)} {λ φ . φ (j b0)})
-    (retraction-is-equiv (happly {S →ᵣ X} {λ _ . X} {λ φ . φ (i a1)} {λ φ . φ (j b0)})
+    (is-equiv-ret (happly {S →ᵣ X} {λ _ . X} {λ φ . φ (i a1)} {λ φ . φ (j b0)})
       (is-equiv-happly {S →ᵣ X} {λ _ . X} (λ φ . φ (i a1)) (λ φ . φ (j b0))))
     {cong {wedge-cocone-r A B a1 b0 X → X} {(S →ᵣ X) → X} (λ m . λ φ . m (wedge-restr-r S A B i j a1 b0 γ X φ)) (wedge-u-glue-fun-r A B a1 b0 X)}
     {ev-r-path {S} {X} γ}
@@ -226,7 +226,7 @@ wedge-E-ev-r ∷ (S A B ∷ U) (i ∷ A → S) (j ∷ B → S) (a1 ∷ A) (b0 �
 wedge-E-ev-r S A B i j a1 b0 γ up X =
   retraction-inj {S → ((S →ᵣ X) →ₗ X)} {wedge-cocone A B a1 b0 ((S →ᵣ X) →ₗ X)}
     (wedge-restr S A B i j a1 b0 γ ((S →ᵣ X) →ₗ X))
-    (retraction-is-equiv (wedge-restr S A B i j a1 b0 γ ((S →ᵣ X) →ₗ X)) (up ((S →ᵣ X) →ₗ X)))
+    (is-equiv-ret (wedge-restr S A B i j a1 b0 γ ((S →ᵣ X) →ₗ X)) (up ((S →ᵣ X) →ₗ X)))
     {λ s . wedge-ψ-r S A B i j a1 b0 γ X (wedge-E-r S A B i j a1 b0 γ up X s)} {wedge-ev-r S X}
     (trans (wedge-restr-post S A B i j a1 b0 γ {wedge-cocone-r A B a1 b0 X →ₗ X} {(S →ᵣ X) →ₗ X}
               (wedge-ψ-r S A B i j a1 b0 γ X) (wedge-E-r S A B i j a1 b0 γ up X))
@@ -295,14 +295,14 @@ wedge-E-l ∷ (S A B ∷ U) (i ∷ A → S) (j ∷ B → S) (a1 ∷ A) (b0 ∷ B
   S → (wedge-cocone-l A B a1 b0 X →ᵣ X)
 wedge-E-l S A B i j a1 b0 γ up X =
   map-section (wedge-restr S A B i j a1 b0 γ (wedge-cocone-l A B a1 b0 X →ᵣ X))
-    (section-is-equiv (wedge-restr S A B i j a1 b0 γ (wedge-cocone-l A B a1 b0 X →ᵣ X)) (up (wedge-cocone-l A B a1 b0 X →ᵣ X)))
+    (is-equiv-sec (wedge-restr S A B i j a1 b0 γ (wedge-cocone-l A B a1 b0 X →ᵣ X)) (up (wedge-cocone-l A B a1 b0 X →ᵣ X)))
     (wedge-u-l A B a1 b0 X)
 
 wedge-E-sec-l ∷ (S A B ∷ U) (i ∷ A → S) (j ∷ B → S) (a1 ∷ A) (b0 ∷ B) (γ ∷ i a1 ≡ j b0) (up ∷ wedge-cart-up S A B i j a1 b0 γ) (X ∷ U) →
   wedge-restr S A B i j a1 b0 γ (wedge-cocone-l A B a1 b0 X →ᵣ X) (wedge-E-l S A B i j a1 b0 γ up X) ≡ wedge-u-l A B a1 b0 X
 wedge-E-sec-l S A B i j a1 b0 γ up X =
   snd (is-section (wedge-restr S A B i j a1 b0 γ (wedge-cocone-l A B a1 b0 X →ᵣ X)))
-    (section-is-equiv (wedge-restr S A B i j a1 b0 γ (wedge-cocone-l A B a1 b0 X →ᵣ X)) (up (wedge-cocone-l A B a1 b0 X →ᵣ X)))
+    (is-equiv-sec (wedge-restr S A B i j a1 b0 γ (wedge-cocone-l A B a1 b0 X →ᵣ X)) (up (wedge-cocone-l A B a1 b0 X →ᵣ X)))
     (wedge-u-l A B a1 b0 X)
 
 wedge-σ-l ∷ (S A B ∷ U) (i ∷ A → S) (j ∷ B → S) (a1 ∷ A) (b0 ∷ B) (γ ∷ i a1 ≡ j b0) (up ∷ wedge-cart-up S A B i j a1 b0 γ) (X ∷ U) →
@@ -389,7 +389,7 @@ wedge-glue-pre-l ∷ (S A B ∷ U) (i ∷ A → S) (j ∷ B → S) (a1 ∷ A) (b
     ≡ ev-l-path {S} {X} γ
 wedge-glue-pre-l S A B i j a1 b0 γ X =
   retraction-inj (happly {S →ₗ X} {λ _ . X} {λ φ . φ (i a1)} {λ φ . φ (j b0)})
-    (retraction-is-equiv (happly {S →ₗ X} {λ _ . X} {λ φ . φ (i a1)} {λ φ . φ (j b0)})
+    (is-equiv-ret (happly {S →ₗ X} {λ _ . X} {λ φ . φ (i a1)} {λ φ . φ (j b0)})
       (is-equiv-happly {S →ₗ X} {λ _ . X} (λ φ . φ (i a1)) (λ φ . φ (j b0))))
     {cong {wedge-cocone-l A B a1 b0 X → X} {(S →ₗ X) → X} (λ m . λ φ . m (wedge-restr-l S A B i j a1 b0 γ X φ)) (wedge-u-glue-fun-l A B a1 b0 X)}
     {ev-l-path {S} {X} γ}
@@ -424,7 +424,7 @@ wedge-E-ev-l ∷ (S A B ∷ U) (i ∷ A → S) (j ∷ B → S) (a1 ∷ A) (b0 �
 wedge-E-ev-l S A B i j a1 b0 γ up X =
   retraction-inj {S → ((S →ₗ X) →ᵣ X)} {wedge-cocone A B a1 b0 ((S →ₗ X) →ᵣ X)}
     (wedge-restr S A B i j a1 b0 γ ((S →ₗ X) →ᵣ X))
-    (retraction-is-equiv (wedge-restr S A B i j a1 b0 γ ((S →ₗ X) →ᵣ X)) (up ((S →ₗ X) →ᵣ X)))
+    (is-equiv-ret (wedge-restr S A B i j a1 b0 γ ((S →ₗ X) →ᵣ X)) (up ((S →ₗ X) →ᵣ X)))
     {λ s . wedge-ψ-l S A B i j a1 b0 γ X (wedge-E-l S A B i j a1 b0 γ up X s)} {wedge-ev-l S X}
     (trans (wedge-restr-post S A B i j a1 b0 γ {wedge-cocone-l A B a1 b0 X →ᵣ X} {(S →ₗ X) →ᵣ X}
               (wedge-ψ-l S A B i j a1 b0 γ X) (wedge-E-l S A B i j a1 b0 γ up X))

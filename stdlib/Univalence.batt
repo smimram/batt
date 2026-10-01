@@ -16,7 +16,7 @@ ap-equiv {A} {B} f e x y =
   let k : section (equiv-eq {A} {B}) → is-equiv (cong f {x} {y}) = fun (ua , uae) →
     subst {A → B} (fun g → is-equiv (cong g {x} {y})) (cong map-equiv (uae (f , e))) (cong-equiv-eq (ua (f , e)) x y)
   in
-  k (section-is-equiv equiv-eq (univalence A B))
+  k (is-equiv-sec equiv-eq (univalence A B))
 
 post-equiv-eq ∷ {A B : U} (P : A ≡ B) (X : U) → is-equiv (post X (map-equiv (equiv-eq P)))
 post-equiv-eq {A} refl X = is-equiv-id (X → A)
@@ -27,7 +27,7 @@ post-equiv {A} {B} f e X =
   let k : section (equiv-eq {A} {B}) → is-equiv (post X f) = fun (ua , uae) →
     subst {A → B} (fun g → is-equiv (post X g)) (cong map-equiv (uae (f , e))) (post-equiv-eq (ua (f , e)) X)
   in
-  k (section-is-equiv equiv-eq (univalence A B))
+  k (is-equiv-sec equiv-eq (univalence A B))
 
 -- contractibility of postcomposition with the map coming from an equality
 post-contr-eq ∷ {A B : U} (P : A ≡ B) (X : U) → is-contr-map (post X (map-equiv (equiv-eq P)))
@@ -39,7 +39,7 @@ post-contr {A} {B} f e X =
   let k : section (equiv-eq {A} {B}) → is-contr-map (post X f) = fun (ua , uae) →
     subst {A → B} (fun g → is-contr-map (post X g)) (cong map-equiv (uae (f , e))) (post-contr-eq (ua (f , e)) X)
   in
-  k (section-is-equiv equiv-eq (univalence A B))
+  k (is-equiv-sec equiv-eq (univalence A B))
 
 -- r-postcomposition with the map of a crisp path is an equivalence (uses crisp path induction)
 post-r-equiv-eq ∷ (A ∷ U) {X Y ∷ U} (P ∷ X ≡ Y) → is-equiv (post-r A (map-equiv (equiv-eq P)))
@@ -55,7 +55,7 @@ post-r-equiv A {X} {Y} f e =
   let k : (s ∷ section (equiv-eq {X} {Y})) → is-equiv (post-r A f) = fun (ua , uae) →
     subst {X → Y} (fun g → is-equiv (post-r A g)) (cong map-equiv (uae (f , e))) (post-r-equiv-eq A (ua (f , e)))
   in
-  k (section-is-equiv equiv-eq (univalence X Y))
+  k (is-equiv-sec equiv-eq (univalence X Y))
 
 -- r-postcomposition with the map of a crisp path has contractible fibers (crisp path induction)
 post-r-contr-eq ∷ (A ∷ U) {X Y ∷ U} (P ∷ X ≡ Y) → is-contr-map (post-r A (map-equiv (equiv-eq P)))
@@ -67,7 +67,7 @@ post-r-contr A {X} {Y} f e =
   let k : (s ∷ section (equiv-eq {X} {Y})) → is-contr-map (post-r A f) = fun (ua , uae) →
     subst {X → Y} (fun g → is-contr-map (post-r A g)) (cong map-equiv (uae (f , e))) (post-r-contr-eq A (ua (f , e)))
   in
-  k (section-is-equiv equiv-eq (univalence X Y))
+  k (is-equiv-sec equiv-eq (univalence X Y))
 
 -- by univalence, l-postcomposition with a crisp equivalence is an equivalence
 post-l-equiv ∷ (A ∷ U) {X Y ∷ U} (f ∷ X → Y) (e ∷ is-equiv f) → is-equiv (post-l A f)
@@ -75,7 +75,7 @@ post-l-equiv A {X} {Y} f e =
   let k : (s ∷ section (equiv-eq {X} {Y})) → is-equiv (post-l A f) = fun (ua , uae) →
     subst {X → Y} (fun g → is-equiv (post-l A g)) (cong map-equiv (uae (f , e))) (post-l-equiv-eq A (ua (f , e)))
   in
-  k (section-is-equiv equiv-eq (univalence X Y))
+  k (is-equiv-sec equiv-eq (univalence X Y))
 
 -- l-postcomposition with the map of a crisp path has contractible fibers (crisp path induction)
 post-l-contr-eq ∷ (A ∷ U) {X Y ∷ U} (P ∷ X ≡ Y) → is-contr-map (post-l A (map-equiv (equiv-eq P)))
@@ -87,4 +87,4 @@ post-l-contr A {X} {Y} f e =
   let k : (s ∷ section (equiv-eq {X} {Y})) → is-contr-map (post-l A f) = fun (ua , uae) →
     subst {X → Y} (fun g → is-contr-map (post-l A g)) (cong map-equiv (uae (f , e))) (post-l-contr-eq A (ua (f , e)))
   in
-  k (section-is-equiv equiv-eq (univalence X Y))
+  k (is-equiv-sec equiv-eq (univalence X Y))

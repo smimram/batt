@@ -41,7 +41,7 @@ is-segal-r-2 X s = s no-grid 0 2 no-grid 0
 
 -- the section of restriction along Λ² ↪ Δ² given by the oplax Segal condition
 segal-section-r ∷ (X ∷ U) → is-segal-r X → section (segal-restr-r no-grid 0 2 no-grid 0 X)
-segal-section-r X s = section-is-equiv (segal-restr-r no-grid 0 2 no-grid 0 X) (is-segal-r-2 X s)
+segal-section-r X s = is-equiv-sec (segal-restr-r no-grid 0 2 no-grid 0 X) (is-segal-r-2 X s)
 
 -- the extension of a (trivially thickened) composable pair to a (trivially thickened) 2-simplex
 thick-filler-r ∷ (X ∷ U) → is-segal-r X → (thick-spine no-grid 0 2 no-grid 0 →ᵣ X) → (thick-simplex no-grid 0 2 no-grid 0 →ᵣ X)

@@ -39,17 +39,17 @@ is-equiv {A} {B} f = section f × retraction f
 
 -- sections and retraction obtained from a proof of equivalence
 
-section-is-equiv ∷ {A B : U} (f : A → B) → is-equiv f → section f
-section-is-equiv f (s, _) = s
+is-equiv-sec ∷ {A B : U} (f : A → B) → is-equiv f → section f
+is-equiv-sec f (s, _) = s
 
-map-section-is-equiv ∷ {A B : U} (f : A → B) → is-equiv f → B → A
-map-section-is-equiv {A} {B} f (s', _) = map-section f s'
+is-equiv-inv-r ∷ {A B : U} (f : A → B) → is-equiv f → B → A
+is-equiv-inv-r {A} {B} f (s', _) = map-section f s'
 
-retraction-is-equiv ∷ {A B : U} (f : A → B) → is-equiv f → retraction f
-retraction-is-equiv f (_, r) = r
+is-equiv-ret ∷ {A B : U} (f : A → B) → is-equiv f → retraction f
+is-equiv-ret f (_, r) = r
 
-map-retraction-is-equiv ∷ {A B : U} (f : A → B) → is-equiv f → B → A
-map-retraction-is-equiv {A} {B} f (_, r') = map-retraction f r'
+is-equiv-inv-l ∷ {A B : U} (f : A → B) → is-equiv f → B → A
+is-equiv-inv-l {A} {B} f (_, r') = map-retraction f r'
 
 -- type of equivalences
 
@@ -67,19 +67,19 @@ equiv-fun (f , _) = f
 
 -- left inverse (retraction)
 equiv-inv-l ∷ {A B : U} → equiv A B → B → A
-equiv-inv-l (f , e) = map-retraction f (retraction-is-equiv f e)
+equiv-inv-l (f , e) = map-retraction f (is-equiv-ret f e)
 
 -- right inverse (section)
 equiv-inv-r ∷ {A B : U} → equiv A B → B → A
-equiv-inv-r (f , e) = map-section f (section-is-equiv f e)
+equiv-inv-r (f , e) = map-section f (is-equiv-sec f e)
 
 -- the left inverse is a retraction
 equiv-ret ∷ {A B : U} (e : equiv A B) (x : A) → equiv-inv-l e (equiv-fun e x) ≡ x
-equiv-ret (f , e) = snd _ (retraction-is-equiv f e)
+equiv-ret (f , e) = snd _ (is-equiv-ret f e)
 
 -- the right inverse is a section
 equiv-sec ∷ {A B : U} (e : equiv A B) (y : B) → equiv-fun e (equiv-inv-r e y) ≡ y
-equiv-sec (f , e) = snd _ (section-is-equiv f e)
+equiv-sec (f , e) = snd _ (is-equiv-sec f e)
 
 -- identity equivalence
 
