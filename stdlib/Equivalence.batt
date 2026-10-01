@@ -59,6 +59,28 @@ equiv A B = Σ (f : A → B) . is-equiv f
 _≃_ ∷ U → U → U
 _≃_ = equiv
 
+-- helper functions
+
+-- underlying function
+equiv-fun ∷ {A B : U} → equiv A B → A → B
+equiv-fun (f , _) = f
+
+-- left inverse (retraction)
+equiv-inv-l ∷ {A B : U} → equiv A B → B → A
+equiv-inv-l (f , e) = map-retraction f (retraction-is-equiv f e)
+
+-- right inverse (section)
+equiv-inv-r ∷ {A B : U} → equiv A B → B → A
+equiv-inv-r (f , e) = map-section f (section-is-equiv f e)
+
+-- the left inverse is a retraction
+equiv-ret ∷ {A B : U} (e : equiv A B) (x : A) → equiv-inv-l e (equiv-fun e x) ≡ x
+equiv-ret (f , e) = snd _ (retraction-is-equiv f e)
+
+-- the right inverse is a section
+equiv-sec ∷ {A B : U} (e : equiv A B) (y : B) → equiv-fun e (equiv-inv-r e y) ≡ y
+equiv-sec (f , e) = snd _ (section-is-equiv f e)
+
 -- identity equivalence
 
 is-equiv-id ∷ (A : U) → is-equiv id
