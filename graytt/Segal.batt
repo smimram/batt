@@ -1,0 +1,69 @@
+--
+-- The four notions of Segalness
+--
+-- A type X is Segal when it is local with respect to every thickened spine inclusion
+--   ι : Sp_{n,𝐚,𝐛} → Δⁿ_{𝐚,𝐛}      (Sp_{n,𝐚,𝐛} = □[𝐚] ⊗ Spₙ ⊗ □[𝐛], see Spine.batt)
+-- i.e. when restriction along ι is an equivalence. There is one notion per way of mapping
+-- out of the shapes:
+--
+--   internal : (Δⁿ_{𝐚,𝐛} → X)  → (Sp_{n,𝐚,𝐛} → X)       any X
+--   flat     : ♭(Δⁿ_{𝐚,𝐛} → X) → ♭(Sp_{n,𝐚,𝐛} → X)     crisp X (global locality)
+--   oplax    : (Δⁿ_{𝐚,𝐛} →ᵣ X) → (Sp_{n,𝐚,𝐛} →ᵣ X)     crisp X
+--   lax      : (Δⁿ_{𝐚,𝐛} →ₗ X) → (Sp_{n,𝐚,𝐛} →ₗ X)     crisp X
+--
+-- Expected relations: internal ⇒ flat, flat ⇔ lax and oplax;
+-- flat ⇒ internal should follow from an axiom characterizing → maps as a subtype of →ᵣ/→ₗ maps.
+--
+
+open import Stdlib
+open import Spine
+
+-- the thickened spine inclusion ι_{𝐚,𝐛} : Sp_{n,𝐚,𝐛} → Δⁿ_{𝐚,𝐛}
+thick-incl ∷ (a ∷ ℕ → ℕ) (d ∷ ℕ) (n ∷ ℕ) (b ∷ ℕ → ℕ) (e ∷ ℕ) → thick-spine a d n b e → thick-simplex a d n b e
+thick-incl = thick-spine→thick-simplex
+
+--
+-- Restriction along ι, for each kind of arrow
+--
+
+segal-restr ∷ (a ∷ ℕ → ℕ) (d ∷ ℕ) (n ∷ ℕ) (b ∷ ℕ → ℕ) (e ∷ ℕ) (X : U) → (thick-simplex a d n b e → X) → (thick-spine a d n b e → X)
+segal-restr a d n b e X g = pre (thick-spine a d n b e) g (thick-incl a d n b e)
+
+segal-restr-flat ∷ (a ∷ ℕ → ℕ) (d ∷ ℕ) (n ∷ ℕ) (b ∷ ℕ → ℕ) (e ∷ ℕ) (X ∷ U) → ♭(thick-simplex a d n b e → X) → ♭(thick-spine a d n b e → X)
+segal-restr-flat a d n b e X = flat-map (segal-restr a d n b e X)
+
+segal-restr-r ∷ (a ∷ ℕ → ℕ) (d ∷ ℕ) (n ∷ ℕ) (b ∷ ℕ → ℕ) (e ∷ ℕ) (X ∷ U) → (thick-simplex a d n b e →ᵣ X) → (thick-spine a d n b e →ᵣ X)
+segal-restr-r a d n b e X g =
+  -- a crisp name for ι, so that the oplax application shares no free variable with its function
+  let ι ∷ thick-spine a d n b e → thick-simplex a d n b e = thick-incl a d n b e in
+  pre-r (thick-spine a d n b e) g ι
+
+segal-restr-l ∷ (a ∷ ℕ → ℕ) (d ∷ ℕ) (n ∷ ℕ) (b ∷ ℕ → ℕ) (e ∷ ℕ) (X ∷ U) → (thick-simplex a d n b e →ₗ X) → (thick-spine a d n b e →ₗ X)
+segal-restr-l a d n b e X g =
+  -- a crisp name for ι, so that the lax application shares no free variable with its function
+  let ι ∷ thick-spine a d n b e → thick-simplex a d n b e = thick-incl a d n b e in
+  pre-l (thick-spine a d n b e) g ι
+
+--
+-- The four Segal conditions
+--
+
+-- internal Segalness: X is local, as a type, against every thickened spine inclusion
+is-segal ∷ (X : U) → U
+is-segal X = (a ∷ ℕ → ℕ) (d ∷ ℕ) (n ∷ ℕ) (b ∷ ℕ → ℕ) (e ∷ ℕ) →
+  is-equiv {thick-simplex a d n b e → X} {thick-spine a d n b e → X} (segal-restr a d n b e X)
+
+-- ♭-Segalness (global locality): only the global maps out of the shapes are tested
+is-segal-flat ∷ (X ∷ U) → U
+is-segal-flat X = (a ∷ ℕ → ℕ) (d ∷ ℕ) (n ∷ ℕ) (b ∷ ℕ → ℕ) (e ∷ ℕ) →
+  is-equiv {♭(thick-simplex a d n b e → X)} {♭(thick-spine a d n b e → X)} (segal-restr-flat a d n b e X)
+
+-- oplax Segalness: restriction of oplax maps out of the shapes is an equivalence
+is-segal-r ∷ (X ∷ U) → U
+is-segal-r X = (a ∷ ℕ → ℕ) (d ∷ ℕ) (n ∷ ℕ) (b ∷ ℕ → ℕ) (e ∷ ℕ) →
+  is-equiv {thick-simplex a d n b e →ᵣ X} {thick-spine a d n b e →ᵣ X} (segal-restr-r a d n b e X)
+
+-- lax Segalness: restriction of lax maps out of the shapes is an equivalence
+is-segal-l ∷ (X ∷ U) → U
+is-segal-l X = (a ∷ ℕ → ℕ) (d ∷ ℕ) (n ∷ ℕ) (b ∷ ℕ → ℕ) (e ∷ ℕ) →
+  is-equiv {thick-simplex a d n b e →ₗ X} {thick-spine a d n b e →ₗ X} (segal-restr-l a d n b e X)

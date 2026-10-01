@@ -4,5 +4,6 @@ _build
 batt
 *.exe
 
+rendering.md
 .vscode/agda.code-snippets
 CLAUDE.md

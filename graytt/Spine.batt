@@ -1,0 +1,78 @@
+--
+-- Thickened Gray spines, the test shapes of Segalness
+-- Built on the ℕ-indexed shapes of stdlib/Cube.batt.
+--
+
+open import Stdlib
+open import Grid
+
+--
+-- Thickening by arbitrary crisp types
+-- Q ⊗ X ⊗ Q', bracketed to the right; tens-assoc-equiv gives the other bracketing.
+--
+
+thicken ∷ (Q X Q' ∷ U) → U
+thicken Q X Q' = Q ⨂ (X ⨂ Q')
+
+thicken-map ∷ (Q ∷ U) {X Y ∷ U} (f ∷ X → Y) (Q' ∷ U) → thicken Q X Q' → thicken Q Y Q'
+thicken-map Q {X} {Y} f Q' = tens-map {Q} {Q} {X ⨂ Q'} {Y ⨂ Q'} id (tens-map {X} {Y} {Q'} {Q'} f id)
+
+--
+-- Thickened simplices and spines
+--
+--   Δⁿ_{𝐚,𝐛}   := □[𝐚] ⊗ Δⁿ ⊗ □[𝐛]
+--   Sp_{n,𝐚,𝐛} := □[𝐚] ⊗ Spₙ ⊗ □[𝐛]
+--   ι_{𝐚,𝐛}    := □[𝐚] ⊗ ιₙ ⊗ □[𝐛]
+--
+-- with 𝐚 = (a 0, …, a (d-1)) and 𝐛 = (b 0, …, b (e-1)).
+--
+
+thick-simplex ∷ (a ∷ ℕ → ℕ) (d ∷ ℕ) (n ∷ ℕ) (b ∷ ℕ → ℕ) (e ∷ ℕ) → U
+thick-simplex a d n b e = thicken (grid a d) (simplex n) (grid b e)
+
+thick-spine ∷ (a ∷ ℕ → ℕ) (d ∷ ℕ) (n ∷ ℕ) (b ∷ ℕ → ℕ) (e ∷ ℕ) → U
+thick-spine a d n b e = thicken (grid a d) (spine n) (grid b e)
+
+thick-spine→thick-simplex ∷ (a ∷ ℕ → ℕ) (d ∷ ℕ) (n ∷ ℕ) (b ∷ ℕ → ℕ) (e ∷ ℕ) → thick-spine a d n b e → thick-simplex a d n b e
+thick-spine→thick-simplex a d n b e = thicken-map (grid a d) {spine n} {simplex n} (spine→simplex n) (grid b e)
+
+--
+-- Thickening by Gray cubes 𝕀^{⊗p} (grids are retracts of cubes, so these
+-- suffice for Segalness in the model; note that grid (λ _ . 1) p is not judgmentally
+-- gray-cube p, since simplex 1 = Σ (x : 𝕀 × ⊤) . ⊤)
+--
+
+cube-thick-simplex ∷ (p n q ∷ ℕ) → U
+cube-thick-simplex p n q = thicken (gray-cube p) (simplex n) (gray-cube q)
+
+cube-thick-spine ∷ (p n q ∷ ℕ) → U
+cube-thick-spine p n q = thicken (gray-cube p) (spine n) (gray-cube q)
+
+cube-thick-spine→cube-thick-simplex ∷ (p n q ∷ ℕ) → cube-thick-spine p n q → cube-thick-simplex p n q
+cube-thick-spine→cube-thick-simplex p n q = thicken-map (gray-cube p) {spine n} {simplex n} (spine→simplex n) (gray-cube q)
+
+-- the unthickened case: □[] ⊗ Spₙ ⊗ □[] is Spₙ up to the unit laws of ⊗
+thicken-unit ∷ {X ∷ U} → thicken ⊤ X ⊤ → X
+thicken-unit {X} u = tens-unit-right {X} (tens-unit-left {X ⨂ ⊤} u)
+
+thicken-counit ∷ {X ∷ U} → X → thicken ⊤ X ⊤
+thicken-counit x = tt ⊗ (x ⊗ tt)
+
+thicken-unit-counit ∷ {X ∷ U} (x : X) → thicken-unit {X} (thicken-counit {X} x) ≡ x
+thicken-unit-counit x = refl
+
+thicken-counit-unit ∷ {X ∷ U} (u : thicken ⊤ X ⊤) → thicken-counit {X} (thicken-unit {X} u) ≡ u
+thicken-counit-unit {X} u =
+  trans (cong (tens-counit-left {X ⨂ ⊤}) (tens-counit-unit-right {X} (tens-unit-left {X ⨂ ⊤} u)))
+    (tens-counit-unit-left {X ⨂ ⊤} u)
+
+thicken-unit-equiv ∷ {X ∷ U} → thicken ⊤ X ⊤ ≃ X
+thicken-unit-equiv {X} =
+  (thicken-unit {X} ,
+    (thicken-counit {X} , thicken-unit-counit {X}) ,
+    (thicken-counit {X} , thicken-counit-unit {X}))
+
+-- the unthickened inclusion is ιₙ, judgmentally, under these unit laws
+thick-spine-incl-unthickened ∷ (n ∷ ℕ) (a b ∷ ℕ → ℕ) (x : spine n) →
+  thicken-unit {simplex n} (thick-spine→thick-simplex a 0 n b 0 (thicken-counit {spine n} x)) ≡ spine→simplex n x
+thick-spine-incl-unthickened n a b x = refl

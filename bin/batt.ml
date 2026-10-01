@@ -5,7 +5,7 @@ let () =
     let incdirs =
       let prefix = Filename.dirname @@ Filename.dirname Sys.executable_name in
       let share = Filename.concat (Filename.concat prefix "share") "batt" in
-      List.filter Sys.file_exists ["celltt"; "stdlib"; Filename.concat share "stdlib"]
+      List.filter Sys.file_exists ["graytt"; "stdlib"; Filename.concat share "stdlib"]
     in
     Common.include_directories_list := incdirs
   in

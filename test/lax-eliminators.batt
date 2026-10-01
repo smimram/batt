@@ -1,0 +1,27 @@
+open import Stdlib
+
+-- Use sites of the derived oplax/lax eliminators of sum and ℕ (Sum.batt, Nat.batt).
+
+-- a branch capturing a non-crisp oplax map k and a non-crisp point c
+case-r ∷ (A C ∷ U) → (k : A →ᵣ C) → (c : C) → (sum A ⊤ →ᵣ C)
+case-r A C k c = rec-sum-r A ⊤ C k (λ _ . c)
+
+-- the scrutinee on the other side of the split from the branches
+case-r-app ∷ (A C ∷ U) → (k : A →ᵣ C) → (c : C) → (sum A ⊤ →ᵣ C)
+case-r-app A C k c = λ u . rec-sum-r A ⊤ C k (λ _ . c) u
+
+case-l ∷ (A C ∷ U) → (k : A →ₗ C) → (c : C) → (sum A ⊤ →ₗ C)
+case-l A C k c = λ u . rec-sum-l A ⊤ C k (λ _ . c) u
+
+-- iterating a non-crisp endofunction, oplax and lax in the index
+iter-r ∷ (C ∷ U) → (C → C) → C → (ℕ →ᵣ C)
+iter-r C f x = rec-nat-r C x (λ _ c . f c)
+
+iter-l ∷ (C ∷ U) → (C → C) → C → (ℕ →ₗ C)
+iter-l C f x = rec-nat-l C x (λ _ c . f c)
+
+iter-r-2 ∷ (C ∷ U) (f : C → C) (x : C) → iter-r C f x 2 ≡ f (f x)
+iter-r-2 C f x = refl
+
+iter-l-2 ∷ (C ∷ U) (f : C → C) (x : C) → iter-l C f x 2 ≡ f (f x)
+iter-l-2 C f x = refl

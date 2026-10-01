@@ -1,0 +1,118 @@
+--
+-- The universal property of the 2-spine, cartesian, oplax and lax
+--
+-- The spine Sp₂ = {x : 𝕀² | x₂ = 0 ∨ x₁ = 1} (spine 2 in Cube.batt) is, judgmentally, the union of
+-- the two subtypes {x₂ = 0} and {x₁ = 1} of 𝕀² (Union.batt). Their intersection is the single
+-- vertex (1, 0), so the spine is the wedge of its two edges glued at the vertex:
+--
+--   spine-cart-up  : maps spine 2 → Y are wedge cocones, for every Y,
+--   spine-oplax-up : maps spine 2 →ᵣ X are oplax wedge cocones, for every crisp X,
+--   spine-lax-up   : maps spine 2 →ₗ X are lax wedge cocones, for every crisp X.
+--
+-- The proof is three lines on top of three general facts:
+--   - a union of two subtypes is a pushout over their intersection (union-up, Union.batt);
+--   - with a contractible intersection, it is a pushout over a point (union-pt-up, Union.batt);
+--   - the universal property of a wedge transfers from cartesian to lax and oplax maps
+--     (wedge-oplax-up, wedge-lax-up, Wedge.batt).
+-- What is specific to the spine is only the contractibility of the intersection.
+--
+-- The edges are the subtypes sp-EA = {x₂ = 0} and sp-EB = {x₁ = 1} of 𝕀², glued at the vertex.
+--
+
+open import Stdlib
+open import Wedge
+
+--
+-- the spine as a union of two subtypes of 𝕀²
+--
+
+-- coordinates, with explicit implicit arguments (metavariables created under a let are
+-- applied to let-bound values, see test/todo/Let_meta.batt)
+cc1 ∷ cart-cube 2 → 𝕀
+cc1 c = prod-fst {𝕀} {cart-cube 1} c
+
+ccxs ∷ cart-cube 2 → cart-cube 1
+ccxs c = prod-snd {𝕀} {cart-cube 1} c
+
+cc2 ∷ cart-cube 2 → 𝕀
+cc2 c = prod-fst {𝕀} {⊤} (ccxs c)
+
+-- the two propositions whose disjunction defines the spine
+sp-A ∷ cart-cube 2 → U
+sp-A c = ccxs c ≡{cart-cube 1} zero-cube 1
+
+sp-B ∷ cart-cube 2 → U
+sp-B c = (cc1 c ≡ 𝕀1) × is-in-spine 1 (ccxs c)
+
+is-prop-sp-A ∷ (c : cart-cube 2) → is-prop (sp-A c)
+is-prop-sp-A c = is-set-cart-cube 1 (ccxs c) (zero-cube 1)
+
+is-prop-sp-B ∷ (c : cart-cube 2) → is-prop (sp-B c)
+is-prop-sp-B c = is-prop-prod (is-set-𝕀 (cc1 c) 𝕀1) (is-prop-is-in-spine 1 (ccxs c))
+
+spine-is-union ∷ spine 2 ≡ union sp-A sp-B
+spine-is-union = refl
+
+--
+-- the spine as a wedge of its two edges
+--
+
+-- the two edges, as subtypes of 𝕀²
+sp-EA ∷ U
+sp-EA = Σ (c : cart-cube 2) . sp-A c
+
+sp-EB ∷ U
+sp-EB = Σ (c : cart-cube 2) . sp-B c
+
+sp-i ∷ sp-EA → spine 2
+sp-i = union-inl sp-A sp-B
+
+sp-j ∷ sp-EB → spine 2
+sp-j = union-inr sp-A sp-B
+
+-- the vertex (1 , 0), on each edge
+sp-a1 ∷ sp-EA
+sp-a1 = ((𝕀1 , 𝕀0 , tt) , refl)
+
+sp-b0 ∷ sp-EB
+sp-b0 = ((𝕀1 , 𝕀0 , tt) , (refl , spine-1-pt 𝕀0))
+
+-- the glue is the vertex path of Cube.batt
+sp-γ ∷ sp-i sp-a1 ≡{spine 2} sp-j sp-b0
+sp-γ = spine-glue
+
+-- the intersection of the two edges is contractible, with centre the vertex
+sp-κ2 ∷ (c1 : 𝕀) (xs : cart-cube 1) (w : sp-A (c1 , xs) × sp-B (c1 , xs)) →
+  ((𝕀1 , 𝕀0 , tt) , refl , (refl , spine-1-pt 𝕀0)) ≡{union-I sp-A sp-B} ((c1 , xs) , w)
+sp-κ2 c1 xs w =
+  subtype-path (λ c . sp-A c × sp-B c) (λ c . is-prop-prod (is-prop-sp-A c) (is-prop-sp-B c)) {(𝕀1 , 𝕀0 , tt)} {(c1 , xs)}
+    (cong2 {𝕀} {cart-cube 1} {cart-cube 2} pair
+      (sym (prod-fst {c1 ≡ 𝕀1} {is-in-spine 1 xs} (prod-snd {sp-A (c1 , xs)} {sp-B (c1 , xs)} w)))
+      (sym (prod-fst {sp-A (c1 , xs)} {sp-B (c1 , xs)} w)))
+    (refl , (refl , spine-1-pt 𝕀0)) w
+
+sp-κ1 ∷ (c : cart-cube 2) (w : sp-A c × sp-B c) → ((𝕀1 , 𝕀0 , tt) , refl , (refl , spine-1-pt 𝕀0)) ≡{union-I sp-A sp-B} (c , w)
+sp-κ1 (c1 , xs) w = sp-κ2 c1 xs w
+
+sp-κ ∷ (t : union-I sp-A sp-B) → ((𝕀1 , 𝕀0 , tt) , refl , (refl , spine-1-pt 𝕀0)) ≡{union-I sp-A sp-B} t
+sp-κ (c , w) = sp-κ1 c w
+
+--
+-- the universal properties of the spine
+--
+
+spine-cart-up ∷ wedge-cart-up (spine 2) sp-EA sp-EB sp-i sp-j sp-a1 sp-b0 sp-γ
+spine-cart-up Y = union-pt-up sp-A sp-B is-prop-sp-A is-prop-sp-B Y (𝕀1 , 𝕀0 , tt) refl (refl , spine-1-pt 𝕀0) sp-κ
+
+spine-oplax-up ∷ (X ∷ U) → is-equiv (wedge-restr-r (spine 2) sp-EA sp-EB sp-i sp-j sp-a1 sp-b0 sp-γ X)
+spine-oplax-up X = wedge-oplax-up (spine 2) sp-EA sp-EB sp-i sp-j sp-a1 sp-b0 sp-γ spine-cart-up X
+
+spine-lax-up ∷ (X ∷ U) → is-equiv (wedge-restr-l (spine 2) sp-EA sp-EB sp-i sp-j sp-a1 sp-b0 sp-γ X)
+spine-lax-up X = wedge-lax-up (spine 2) sp-EA sp-EB sp-i sp-j sp-a1 sp-b0 sp-γ spine-cart-up X
+
+--
+-- oplax cocones on the two edges (the domain of the inverse used in Composition.batt)
+--
+
+spine-cocone-r ∷ (X ∷ U) → U
+spine-cocone-r X = wedge-cocone-r sp-EA sp-EB sp-a1 sp-b0 X

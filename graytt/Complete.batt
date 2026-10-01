@@ -1,0 +1,66 @@
+--
+-- The four notions of completeness
+--
+-- A type X is complete when it is local with respect to every thickened collapse of the
+-- free-standing equivalence
+--   τ : E_{𝐚,𝐛} → □[𝐚] ⊗ □[𝐛]      (E_{𝐚,𝐛} = □[𝐚] ⊗ E ⊗ □[𝐛], see FreeEquiv.batt)
+-- i.e. when restriction along τ is an equivalence: every equivalence in X, thickened by grids,
+-- is uniquely an identity. There is one notion per way of mapping out of the shapes:
+--
+--   internal : (□[𝐚] ⊗ □[𝐛] → X)  → (E_{𝐚,𝐛} → X)       any X
+--   flat     : ♭(□[𝐚] ⊗ □[𝐛] → X) → ♭(E_{𝐚,𝐛} → X)     crisp X (global locality)
+--   oplax    : (□[𝐚] ⊗ □[𝐛] →ᵣ X) → (E_{𝐚,𝐛} →ᵣ X)     crisp X
+--   lax      : (□[𝐚] ⊗ □[𝐛] →ₗ X) → (E_{𝐚,𝐛} →ₗ X)     crisp X
+--
+-- Expected relations, as for Segalness: internal ⇒ flat, flat ⇔
+-- lax and oplax; flat ⇒ internal should follow from an axiom characterizing → maps as a subtype of →ᵣ/→ₗ maps.
+--
+
+open import Stdlib
+open import FreeEquiv
+
+--
+-- Restriction along τ, for each kind of arrow
+--
+
+complete-restr ∷ (a ∷ ℕ → ℕ) (d ∷ ℕ) (b ∷ ℕ → ℕ) (e ∷ ℕ) (X : U) → (grid a d ⨂ grid b e → X) → (thick-free-equiv a d b e → X)
+complete-restr a d b e X g = pre (thick-free-equiv a d b e) g (thick-τ a d b e)
+
+complete-restr-flat ∷ (a ∷ ℕ → ℕ) (d ∷ ℕ) (b ∷ ℕ → ℕ) (e ∷ ℕ) (X ∷ U) → ♭(grid a d ⨂ grid b e → X) → ♭(thick-free-equiv a d b e → X)
+complete-restr-flat a d b e X = flat-map (complete-restr a d b e X)
+
+complete-restr-r ∷ (a ∷ ℕ → ℕ) (d ∷ ℕ) (b ∷ ℕ → ℕ) (e ∷ ℕ) (X ∷ U) → (grid a d ⨂ grid b e →ᵣ X) → (thick-free-equiv a d b e →ᵣ X)
+complete-restr-r a d b e X g =
+  -- a crisp name for τ, so that the oplax application shares no free variable with its function
+  let t ∷ thick-free-equiv a d b e → grid a d ⨂ grid b e = thick-τ a d b e in
+  pre-r (thick-free-equiv a d b e) g t
+
+complete-restr-l ∷ (a ∷ ℕ → ℕ) (d ∷ ℕ) (b ∷ ℕ → ℕ) (e ∷ ℕ) (X ∷ U) → (grid a d ⨂ grid b e →ₗ X) → (thick-free-equiv a d b e →ₗ X)
+complete-restr-l a d b e X g =
+  -- a crisp name for τ, so that the lax application shares no free variable with its function
+  let t ∷ thick-free-equiv a d b e → grid a d ⨂ grid b e = thick-τ a d b e in
+  pre-l (thick-free-equiv a d b e) g t
+
+--
+-- The four completeness conditions
+--
+
+-- internal completeness: X is local, as a type, against every thickened τ
+is-complete ∷ (X : U) → U
+is-complete X = (a ∷ ℕ → ℕ) (d ∷ ℕ) (b ∷ ℕ → ℕ) (e ∷ ℕ) →
+  is-equiv {grid a d ⨂ grid b e → X} {thick-free-equiv a d b e → X} (complete-restr a d b e X)
+
+-- ♭-completeness (global locality): only the global maps out of the shapes are tested
+is-complete-flat ∷ (X ∷ U) → U
+is-complete-flat X = (a ∷ ℕ → ℕ) (d ∷ ℕ) (b ∷ ℕ → ℕ) (e ∷ ℕ) →
+  is-equiv {♭(grid a d ⨂ grid b e → X)} {♭(thick-free-equiv a d b e → X)} (complete-restr-flat a d b e X)
+
+-- oplax completeness: restriction of oplax maps out of the shapes is an equivalence
+is-complete-r ∷ (X ∷ U) → U
+is-complete-r X = (a ∷ ℕ → ℕ) (d ∷ ℕ) (b ∷ ℕ → ℕ) (e ∷ ℕ) →
+  is-equiv {grid a d ⨂ grid b e →ᵣ X} {thick-free-equiv a d b e →ᵣ X} (complete-restr-r a d b e X)
+
+-- lax completeness: restriction of lax maps out of the shapes is an equivalence
+is-complete-l ∷ (X ∷ U) → U
+is-complete-l X = (a ∷ ℕ → ℕ) (d ∷ ℕ) (b ∷ ℕ → ℕ) (e ∷ ℕ) →
+  is-equiv {grid a d ⨂ grid b e →ₗ X} {thick-free-equiv a d b e →ₗ X} (complete-restr-l a d b e X)

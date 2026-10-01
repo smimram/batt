@@ -1,3 +1,0 @@
--- Entry point for cellular type theory
-
-open import Susp-hom-adj

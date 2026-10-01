@@ -1,4 +1,5 @@
 open import Interval
+open import Unit
 
 two-simplex ∷ Type
 two-simplex = Σ (i : 𝕀) . Σ (j : 𝕀) . i ≥ j
@@ -59,5 +60,96 @@ is-in-spine (succ n) x =
 spine ∷ (n ∷ ℕ) → Type
 spine n = Σ (x : cart-cube n) . is-in-spine n x
 
--- spine→simplex ∷ (n ∷ ℕ) → (spine n) → (simplex n)
--- spine→simplex n = ?
+-- being sorted is a proposition
+is-prop-is-sorted ∷ (n ∷ ℕ) → (x : cart-cube (succ n)) → is-prop (is-sorted n x)
+is-prop-is-sorted zero x = is-prop-unit
+is-prop-is-sorted (succ n) x =
+  let x1 : 𝕀 = prod-fst x in
+  let xs : cart-cube (succ n) = prod-snd x in
+  is-prop-prod {x1 ≥ prod-fst xs} {is-sorted n xs} (is-prop-geq x1 (prod-fst xs)) (rec xs)
+
+-- the origin (0, …, 0) is sorted
+is-sorted-zero ∷ (n ∷ ℕ) → is-sorted n (zero-cube (succ n))
+is-sorted-zero zero = tt
+is-sorted-zero (succ n) = (refl , rec)
+
+-- a point of the spine is sorted: either x = (x₁, 0, …, 0), or x₁ = 1 and the tail is in the
+-- spine (hence sorted by induction)
+is-in-spine→is-sorted ∷ (n ∷ ℕ) → (x : cart-cube (succ n)) → is-in-spine (succ n) x → is-sorted n x
+is-in-spine→is-sorted zero x p = tt
+is-in-spine→is-sorted (succ n) x p =
+  let x1 : 𝕀 = prod-fst x in
+  let xs : cart-cube (succ n) = prod-snd x in
+  let T : U = (x1 ≥ prod-fst xs) × is-sorted n xs in
+  rec-prop-trunc' (sum (xs ≡ zero-cube (succ n)) ((x1 ≡ 𝕀1) × is-in-spine (succ n) xs)) T
+    (is-prop-prod {x1 ≥ prod-fst xs} {is-sorted n xs} (is-prop-geq x1 (prod-fst xs)) (is-prop-is-sorted n xs))
+    (rec-sum {xs ≡ zero-cube (succ n)} {(x1 ≡ 𝕀1) × is-in-spine (succ n) xs} {T}
+      -- xs ≡ (0, …, 0) : x₁ ∨ 0 = x₁ judgmentally, and the origin is sorted
+      (λ q . subst {cart-cube (succ n)} (λ y . (x1 ≥ prod-fst y) × is-sorted n y) (sym q) (refl , is-sorted-zero n))
+      -- x₁ ≡ 1 : x₁ ∨ x₂ = 1 ∨ x₂ = 1 = x₁
+      (λ w .
+        let q : x1 ≡ 𝕀1 = prod-fst w in
+        (trans (cong (λ k . k 𝕀∨ prod-fst xs) q) (sym q) , rec xs (prod-snd w))))
+    p
+
+-- the inclusion ιₙ of the spine into the simplex
+spine→simplex ∷ (n ∷ ℕ) → spine n → simplex n
+spine→simplex zero x = tt
+spine→simplex (succ n) (x , p) = (x , is-in-spine→is-sorted n x p)
+
+--
+-- Edges of the 2-spine and of the 2-simplex (coordinates x₁ ≥ x₂; vertices (0,0), (1,0), (1,1))
+--
+
+-- first edge of the spine, t ↦ (t, 0)
+spine-edge-1 ∷ 𝕀 → spine 2
+spine-edge-1 t =
+  ((t , 𝕀0 , tt) ,
+   unit-prop-trunc (sum ((𝕀0 , tt) ≡{cart-cube 1} zero-cube 1) ((t ≡ 𝕀1) × is-in-spine 1 (𝕀0 , tt)))
+     (inl {(𝕀0 , tt) ≡{cart-cube 1} zero-cube 1} {(t ≡ 𝕀1) × is-in-spine 1 (𝕀0 , tt)} refl))
+
+-- second edge of the spine, t ↦ (1, t)
+spine-edge-2 ∷ 𝕀 → spine 2
+spine-edge-2 t =
+  let p : is-in-spine 1 (t , tt) =
+    unit-prop-trunc (sum (tt ≡ zero-cube 0) ((t ≡ 𝕀1) × is-in-spine 0 tt))
+      (inl {tt ≡ zero-cube 0} {(t ≡ 𝕀1) × is-in-spine 0 tt} refl)
+  in
+  ((𝕀1 , t , tt) ,
+   unit-prop-trunc (sum ((t , tt) ≡{cart-cube 1} zero-cube 1) ((𝕀1 ≡ 𝕀1) × is-in-spine 1 (t , tt)))
+     (inr {(t , tt) ≡{cart-cube 1} zero-cube 1} {(𝕀1 ≡ 𝕀1) × is-in-spine 1 (t , tt)} (refl , p)))
+
+-- long edge of the 2-simplex, t ↦ (t, t)
+long-edge ∷ 𝕀 → simplex 2
+long-edge t = ((t , t , tt) , (refl , tt))
+
+-- two points of a simplex with the same coordinates are equal (sortedness is a proposition)
+sorted-path ∷ (n ∷ ℕ) (x ∷ cart-cube (succ n)) (p q ∷ is-sorted n x) → (x , p) ≡{simplex (succ n)} (x , q)
+sorted-path n x p q =
+  let e ∷ p ≡ q = center (p ≡ q) (is-prop-is-sorted n x p q) in
+  cong {is-sorted n x} {simplex (succ n)} (λ z . (x , z)) e
+
+--
+-- The spine as a set, and its vertex seen from both edges
+--
+
+is-set-cart-cube ∷ (n ∷ ℕ) → is-set (cart-cube n)
+is-set-cart-cube zero = is-set-unit
+is-set-cart-cube (succ n) = is-set-prod {𝕀} {cart-cube n} is-set-𝕀 rec
+
+is-prop-is-in-spine ∷ (n ∷ ℕ) (x : cart-cube n) → is-prop (is-in-spine n x)
+is-prop-is-in-spine zero x = is-prop-unit
+is-prop-is-in-spine (succ n) x = is-prop-type-prop-trunc _
+
+is-set-spine ∷ (n ∷ ℕ) → is-set (spine n)
+is-set-spine n = is-set-Σ-prop (is-in-spine n) (is-set-cart-cube n) (is-prop-is-in-spine n)
+
+spine-1-pt ∷ (t : 𝕀) → is-in-spine 1 (t , tt)
+spine-1-pt t = unit-prop-trunc (sum (tt ≡ zero-cube 0) ((t ≡ 𝕀1) × is-in-spine 0 tt)) (inl {tt ≡ zero-cube 0} {(t ≡ 𝕀1) × is-in-spine 0 tt} refl)
+
+spine-glue ∷ spine-edge-1 𝕀1 ≡{spine 2} spine-edge-2 𝕀0
+spine-glue =
+  let c0 ∷ cart-cube 2 = (𝕀1 , 𝕀0 , tt) in
+  let τ ∷ snd (is-in-spine 2) (spine-edge-1 𝕀1) ≡ snd (is-in-spine 2) (spine-edge-2 𝕀0) =
+    prop-path (is-prop-is-in-spine 2 c0) (snd (is-in-spine 2) (spine-edge-1 𝕀1)) (snd (is-in-spine 2) (spine-edge-2 𝕀0)) in
+  cong {is-in-spine 2 c0} {spine 2} (λ w . (c0 , w)) τ

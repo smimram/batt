@@ -1,0 +1,13 @@
+<!-- mime-type xml -->
+<!-- to include for instance in ~/.local/share/mime/packages/ -->
+
+<?xml version="1.0" encoding="UTF-8"?>
+<mime-info xmlns="http://www.freedesktop.org/standards/shared-mime-info">
+  <mime-type type="text/x-batt">
+    <comment>Fichier BATT</comment>
+    <comment xml:lang="en">BATT file</comment>
+    <sub-class-of type="text/plain"/>
+    <generic-icon name="text-x-batt"/>
+    <glob pattern="*.batt"/>
+  </mime-type>
+</mime-info>

@@ -1,0 +1,91 @@
+---
+--- The definition of the free equivalence and the thickened versions
+--- Used to define completeness
+---
+--- The free-standing equivalence is Rezk's
+---   E := 1 +_{Δ¹} Δ³ +_{Δ¹} 1
+--- obtained from the 3-simplex by collapsing the edges [0,2] and [1,3]. In E the middle edge
+--- [1,2] has [0,1] as a right inverse (the triangle 012) and [2,3] as a left inverse (the
+--- triangle 123), so it is an equivalence.
+--- Completeness is locality with respect to τ : E → 1 and its thickenings
+---   τ_{𝐚,𝐛} : □[𝐚] ⊗ E ⊗ □[𝐛] → □[𝐚] ⊗ □[𝐛].
+---
+
+open import Stdlib
+open import Spine
+
+--
+-- Vertices and edges of Δ³ (vertex k has its first k coordinates equal to 1, as x₁ ≥ x₂ ≥ x₃)
+--
+
+-- the coordinate of a point of Δ¹
+simplex-1-coord ∷ simplex 1 → 𝕀
+simplex-1-coord x = prod-fst {𝕀} {⊤} (fst (is-sorted 0) x)
+
+-- the edge [0,2] of Δ³, t ↦ (t, t, 0)
+edge-02 ∷ simplex 1 → simplex 3
+edge-02 x =
+  let t : 𝕀 = simplex-1-coord x in
+  ((t , t , 𝕀0 , tt) , (refl , refl , tt))
+
+-- the edge [1,3] of Δ³, t ↦ (1, t, t)
+edge-13 ∷ simplex 1 → simplex 3
+edge-13 x =
+  let t : 𝕀 = simplex-1-coord x in
+  ((𝕀1 , t , t , tt) , (refl , refl , tt))
+
+--
+-- The free-standing equivalence
+--
+
+-- Δ³ with the edge [0,2] collapsed: 1 +_{Δ¹} Δ³
+free-equiv-02 ∷ U
+free-equiv-02 = pushout-obj {simplex 1} {⊤} {simplex 3} (λ _ . tt) edge-02
+
+simplex-3→free-equiv-02 ∷ simplex 3 → free-equiv-02
+simplex-3→free-equiv-02 = pushout-inr {simplex 1} {⊤} {simplex 3} (λ _ . tt) edge-02
+
+-- then the edge [1,3] collapsed: E = 1 +_{Δ¹} Δ³ +_{Δ¹} 1
+edge-13' ∷ simplex 1 → free-equiv-02
+edge-13' x = simplex-3→free-equiv-02 (edge-13 x)
+
+free-equiv ∷ U
+free-equiv = pushout-obj {simplex 1} {⊤} {free-equiv-02} (λ _ . tt) edge-13'
+
+-- the quotient map Δ³ → E
+simplex-3→free-equiv ∷ simplex 3 → free-equiv
+simplex-3→free-equiv x = pushout-inr {simplex 1} {⊤} {free-equiv-02} (λ _ . tt) edge-13' (simplex-3→free-equiv-02 x)
+
+-- the two collapsed edges are constant in E
+free-equiv-02-cst ∷ (x : simplex 1) → pushout-inl {simplex 1} {⊤} {simplex 3} (λ _ . tt) edge-02 tt ≡ simplex-3→free-equiv-02 (edge-02 x)
+free-equiv-02-cst = pushout-eq {simplex 1} {⊤} {simplex 3} (λ _ . tt) edge-02
+
+free-equiv-13-cst ∷ (x : simplex 1) → pushout-inl {simplex 1} {⊤} {free-equiv-02} (λ _ . tt) edge-13' tt ≡ simplex-3→free-equiv (edge-13 x)
+free-equiv-13-cst = pushout-eq {simplex 1} {⊤} {free-equiv-02} (λ _ . tt) edge-13'
+
+-- τ : E → 1
+τ ∷ free-equiv → ⊤
+τ _ = tt
+
+--
+-- Thickened versions: E_{𝐚,𝐛} := □[𝐚] ⊗ E ⊗ □[𝐛] and
+--   τ_{𝐚,𝐛} : □[𝐚] ⊗ E ⊗ □[𝐛] → □[𝐚] ⊗ □[𝐛],
+-- which is □[𝐚] ⊗ τ ⊗ □[𝐛] followed by the unit law 1 ⊗ □[𝐛] ≃ □[𝐛], i.e. id ⊗ tens-snd.
+--
+
+thick-free-equiv ∷ (a ∷ ℕ → ℕ) (d ∷ ℕ) (b ∷ ℕ → ℕ) (e ∷ ℕ) → U
+thick-free-equiv a d b e = thicken (grid a d) free-equiv (grid b e)
+
+thick-τ ∷ (a ∷ ℕ → ℕ) (d ∷ ℕ) (b ∷ ℕ → ℕ) (e ∷ ℕ) → thick-free-equiv a d b e → grid a d ⨂ grid b e
+thick-τ a d b e = tens-map {grid a d} {grid a d} {free-equiv ⨂ grid b e} {grid b e} id (tens-snd {free-equiv} {grid b e})
+
+-- Gray-cube thickenings 𝕀^{⊗p} ⊗ E ⊗ 𝕀^{⊗q}, as for spines
+cube-thick-free-equiv ∷ (p q ∷ ℕ) → U
+cube-thick-free-equiv p q = thicken (gray-cube p) free-equiv (gray-cube q)
+
+cube-thick-τ ∷ (p q ∷ ℕ) → cube-thick-free-equiv p q → gray-cube p ⨂ gray-cube q
+cube-thick-τ p q = tens-map {gray-cube p} {gray-cube p} {free-equiv ⨂ gray-cube q} {gray-cube q} id (tens-snd {free-equiv} {gray-cube q})
+
+-- the unthickened case: τ_{(),()} is τ, up to the unit laws of ⊗
+thick-τ-unthickened ∷ (a b ∷ ℕ → ℕ) (x : free-equiv) → thick-τ a 0 b 0 (thicken-counit {free-equiv} x) ≡ (tt ⊗ τ x)
+thick-τ-unthickened a b x = refl

@@ -1,4 +1,5 @@
 open import Equality
+open import Product
 
 -- Predecessor
 pred ∷ ℕ → ℕ
@@ -34,3 +35,47 @@ mul-add l m (succ n) = trans (cong (λ x . add x l) rec) (add-assoc (mul l m) (m
 mul-assoc ∷ (l m n : ℕ) → mul (mul l m) n ≡ mul l (mul m n)
 mul-assoc l m zero = refl
 mul-assoc l m (succ n) = trans (cong (λ x . add x (mul l m)) rec) (sym (mul-add l (mul m n) m))
+
+---
+--- r/l nat recursion, derived from ordinary recursion
+---
+
+rec-nat-r-family ∷ (C ∷ U) → ℕ → (C × (ℕ → C → C)) →ₗ C
+rec-nat-r-family C zero = λ w . prod-fst {C} {ℕ → C → C} w
+rec-nat-r-family C (succ n) = λ w . prod-snd {C} {ℕ → C → C} w n (rec w)
+
+-- oplax recursion
+rec-nat-r ∷ (C ∷ U) → C → (ℕ → C → C) → (ℕ →ᵣ C)
+rec-nat-r C z s =
+  let E ∷ ℕ → (C × (ℕ → C → C)) →ₗ C = rec-nat-r-family C in
+  λ n . E n (z , s)
+
+rec-nat-r-zero ∷ (C ∷ U) (z : C) (s : ℕ → C → C) → rec-nat-r C z s 0 ≡ z
+rec-nat-r-zero C z s = refl
+
+rec-nat-r-succ ∷ (C ∷ U) (z : C) (s : ℕ → C → C) (n ∷ ℕ) → rec-nat-r C z s (succ n) ≡ s n (rec-nat-r C z s n)
+rec-nat-r-succ C z s n = refl
+
+rec-nat-r-succ' ∷ (C ∷ U) (z : C) (s : ℕ → C → C) →
+  (λ n . rec-nat-r C z s (succ n)) ≡{ℕ →ᵣ C} (λ n . s n (rec-nat-r C z s n))
+rec-nat-r-succ' C z s = refl
+
+rec-nat-l-family ∷ (C ∷ U) → ℕ → (C × (ℕ → C → C)) →ᵣ C
+rec-nat-l-family C zero = λ w . prod-fst {C} {ℕ → C → C} w
+rec-nat-l-family C (succ n) = λ w . prod-snd {C} {ℕ → C → C} w n (rec w)
+
+-- lax recursion
+rec-nat-l ∷ (C ∷ U) → C → (ℕ → C → C) → (ℕ →ₗ C)
+rec-nat-l C z s =
+  let E ∷ ℕ → (C × (ℕ → C → C)) →ᵣ C = rec-nat-l-family C in
+  λ n . E n (z , s)
+
+rec-nat-l-zero ∷ (C ∷ U) (z : C) (s : ℕ → C → C) → rec-nat-l C z s 0 ≡ z
+rec-nat-l-zero C z s = refl
+
+rec-nat-l-succ ∷ (C ∷ U) (z : C) (s : ℕ → C → C) (n ∷ ℕ) → rec-nat-l C z s (succ n) ≡ s n (rec-nat-l C z s n)
+rec-nat-l-succ C z s n = refl
+
+rec-nat-l-succ' ∷ (C ∷ U) (z : C) (s : ℕ → C → C) →
+  (λ n . rec-nat-l C z s (succ n)) ≡{ℕ →ₗ C} (λ n . s n (rec-nat-l C z s n))
+rec-nat-l-succ' C z s = refl

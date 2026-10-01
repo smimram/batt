@@ -1,0 +1,11 @@
+-- Entry point for cellular type theory
+
+open import Susp-hom-adj
+open import Spine
+open import Segal
+open import FreeEquiv
+open import Complete
+open import Rezk
+open import Composition
+open import Spine-up
+open import Wedge

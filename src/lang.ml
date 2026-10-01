@@ -87,9 +87,9 @@ module Bunch = struct
 
   (** Split a buch so that we have the given free variables. *)
   let split fvl fvr crisp b =
-    if !Common.show_debug then debug "SPLIT %s as %s / %s\n" (to_string [] 0 b) (FV.to_string fvl) (FV.to_string fvr);
-    assert (FV.is_empty @@ FV.inter fvl fvr);
+    if !Common.show_debug then debug "SPLIT %s as %s / %s\n" (to_string 0 b) (FV.to_string fvl) (FV.to_string fvr);
     let fvc = FV.of_list @@ List.map fst crisp in
+    assert (FV.subset (FV.inter fvl fvr) fvc);
     let is_crisp fv = FV.subset fv fvc in
     (* Printf.printf "crisp: %s\n%!" @@ FV.to_string fvc; *)
     let rec aux fvl fvr b =
@@ -461,9 +461,8 @@ let unify ~pos k (t:value) (u:value) =
     | J (r, l), J (r', l') ->
       unify k r r';
       spine k l l'
-    | Postulate (_n, l), Postulate (_n', l') ->
-      (* NOTE: disabling for now because we regenerate numbers when we include multiple times *)
-      (* if n <> n' then raise Unification; *)
+    | Postulate (n, l), Postulate (n', l') ->
+      if n <> n' then raise Unification;
       spine k l l'
     | Var (x, l), Var (x', l') ->
       if x <> x' then raise Unification;

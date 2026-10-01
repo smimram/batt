@@ -1,3 +1,6 @@
+open import Equality
+open import Product
+open import Unit
 open import Prop
 
 is-set ∷ U → U
@@ -8,3 +11,45 @@ HSet = Σ (A : U) . is-set A
 
 type-HSet ∷ HSet → U
 type-HSet (A, p) = A
+
+---
+--- Subtypes and products of sets
+---
+
+is-prop→is-set ∷ {A : U} → is-prop A → is-set A
+is-prop→is-set {A} pA x y = is-contr→is-prop {x ≡ y} (pA x y)
+
+-- Set
+subtype-path ∷ {X : U} (P : X → U) → ((x : X) → is-prop (P x)) → {x x' : X} (e : x ≡ x') (p : P x) (p' : P x') → (x , p) ≡{Σ (x : X) . P x} (x' , p')
+subtype-path {X} P pP {x} {x'} e p p' =
+  J x (λ x' e . (p' : P x') → (x , p) ≡{Σ (x : X) . P x} (x' , p')) (λ p' . cong {P x} {Σ (x : X) . P x} (λ z . (x , z)) (prop-path (pP x) p p')) e p'
+
+subtype-path' ∷ {X : U} (P : X → U) → ((x : X) → is-prop (P x)) → (u u' : Σ (x : X) . P x) → fst P u ≡ fst P u' → u ≡ u'
+subtype-path' {X} P pP (x , p) (x' , p') e = subtype-path P pP e p p'
+
+subtype-path'-refl ∷ {X : U} (P : X → U) (pP : (x : X) → is-prop (P x)) (u : Σ (x : X) . P x) → subtype-path' P pP u u refl ≡ refl
+subtype-path'-refl {X} P pP (x , p) =
+  cong {p ≡ p} {(x , p) ≡{Σ (x : X) . P x} (x , p)} (cong {P x} {Σ (x : X) . P x} (λ z . (x , z)))
+    (snd (λ c . (q : p ≡ p) → c ≡ q) (pP x p p) refl)
+
+is-set-Σ-prop ∷ {X : U} (P : X → U) → is-set X → ((x : X) → is-prop (P x)) → is-set (Σ (x : X) . P x)
+is-set-Σ-prop {X} P sX pP u u' =
+  let rs : (π : u ≡ u') → subtype-path' P pP u u' (cong (fst P) π) ≡ π =
+    λ π . J u (λ u' π . subtype-path' P pP u u' (cong (fst P) π) ≡ π) (subtype-path'-refl P pP u) π in
+  is-prop-retract (cong (fst P)) (subtype-path' P pP u u') rs (sX (fst P u) (fst P u'))
+
+prod-path ∷ {A B : U} (u u' : A × B) → (prod-fst u ≡ prod-fst u') × (prod-snd u ≡ prod-snd u') → u ≡ u'
+prod-path {A} {B} (a , b) (a' , b') (e1 , e2) = cong2 {A} {B} {A × B} pair e1 e2
+
+prod-path-refl ∷ {A B : U} (u : A × B) → prod-path u u (refl , refl) ≡ refl
+prod-path-refl (a , b) = refl
+
+is-set-prod ∷ {A B : U} → is-set A → is-set B → is-set (A × B)
+is-set-prod {A} {B} sA sB u u' =
+  let s : u ≡ u' → (prod-fst u ≡ prod-fst u') × (prod-snd u ≡ prod-snd u') = λ π . (cong prod-fst π , cong prod-snd π) in
+  let rs : (π : u ≡ u') → prod-path u u' (s π) ≡ π =
+    λ π . J u (λ u' π . prod-path u u' (cong prod-fst π , cong prod-snd π) ≡ π) (prod-path-refl u) π in
+  is-prop-retract s (prod-path u u') rs (is-prop-prod (sA (prod-fst u) (prod-fst u')) (sB (prod-snd u) (prod-snd u')))
+
+is-set-unit ∷ is-set ⊤
+is-set-unit = is-prop→is-set is-prop-unit

@@ -1,3 +1,5 @@
+open import Prop
+open import Set
 open import Function
 open import Product
 open import Equality
@@ -16,7 +18,7 @@ funext-nd ∷ {X : U} {Y : U} (f g : X → Y) → ((x : X) → f x ≡ g x) → 
 funext-nd {X} {Y} f g h =
   let e : is-equiv (post X (path-src {Y})) = post-equiv path-src (is-equiv-path-src Y) X in
   -- both homotopies have source f, so they are equal
-  let p : homotopy-cst f ≡ homotopy-of h = retraction-inj (post X path-src) (retraction-is-equiv (post X path-src) e) {homotopy-cst f} {homotopy-of h} refl in
+  let p : homotopy-cst f ≡ homotopy-of h = retraction-inj (post X path-src) (is-equiv-ret (post X path-src) e) {homotopy-cst f} {homotopy-of h} refl in
   cong (post X (path-tgt {Y})) p
 
 ---
@@ -78,7 +80,7 @@ funext-r A B H =
   let g : A →ᵣ B = post-r A (path-tgt {B}) H in
   -- the constant homotopy on f has the same source as H, so it is equal to H
   let Hc : A →ᵣ path B = post-r A (path-cst {B}) f in
-  let p : Hc ≡ H = retraction-inj (post-r A (path-src {B})) (retraction-is-equiv (post-r A (path-src {B})) e) {Hc} {H} refl in
+  let p : Hc ≡ H = retraction-inj (post-r A (path-src {B})) (is-equiv-ret (post-r A (path-src {B})) e) {Hc} {H} refl in
   (f , g , cong (post-r A (path-tgt {B})) p)
 
 -- l-function extensionality n a total version, following funext-nd (Voevodsky)
@@ -89,7 +91,7 @@ funext-l A B H =
   let g : A →ₗ B = post-l A (path-tgt {B}) H in
   -- the constant homotopy on f has the same source as H, so it is equal to H
   let Hc : A →ₗ path B = post-l A (path-cst {B}) f in
-  let p : Hc ≡ H = retraction-inj (post-l A (path-src {B})) (retraction-is-equiv (post-l A (path-src {B})) e) {Hc} {H} refl in
+  let p : Hc ≡ H = retraction-inj (post-l A (path-src {B})) (is-equiv-ret (post-l A (path-src {B})) e) {Hc} {H} refl in
   (f , g , cong (post-l A (path-tgt {B})) p)
 
 ---
@@ -117,21 +119,21 @@ happly-l-src A B (f , u) =
 happly-funext-r ∷ (A B ∷ U) (H : A →ᵣ path B) → happly-r A B (funext-r A B H) ≡ H
 happly-funext-r A B H =
   let e ∷ is-equiv (post-r A (path-src {B})) = post-r-equiv A (path-src {B}) (is-equiv-path-src B) in
-  retraction-inj (post-r A (path-src {B})) (retraction-is-equiv (post-r A (path-src {B})) e) (happly-r-src A B (funext-r A B H))
+  retraction-inj (post-r A (path-src {B})) (is-equiv-ret (post-r A (path-src {B})) e) (happly-r-src A B (funext-r A B H))
 
 happly-funext-l ∷ (A B ∷ U) (H : A →ₗ path B) → happly-l A B (funext-l A B H) ≡ H
 happly-funext-l A B H =
   let e ∷ is-equiv (post-l A (path-src {B})) = post-l-equiv A (path-src {B}) (is-equiv-path-src B) in
-  retraction-inj (post-l A (path-src {B})) (retraction-is-equiv (post-l A (path-src {B})) e) (happly-l-src A B (funext-l A B H))
+  retraction-inj (post-l A (path-src {B})) (is-equiv-ret (post-l A (path-src {B})) e) (happly-l-src A B (funext-l A B H))
 
 funext-happly-r ∷ (A B ∷ U) (x : path (A →ᵣ B)) → funext-r A B (happly-r A B x) ≡ x
 funext-happly-r A B x =
-  retraction-inj (path-src {A →ᵣ B}) (retraction-is-equiv (path-src {A →ᵣ B}) (is-equiv-path-src (A →ᵣ B)))
+  retraction-inj (path-src {A →ᵣ B}) (is-equiv-ret (path-src {A →ᵣ B}) (is-equiv-path-src (A →ᵣ B)))
     {funext-r A B (happly-r A B x)} {x} (happly-r-src A B x)
 
 funext-happly-l ∷ (A B ∷ U) (x : path (A →ₗ B)) → funext-l A B (happly-l A B x) ≡ x
 funext-happly-l A B x =
-  retraction-inj (path-src {A →ₗ B}) (retraction-is-equiv (path-src {A →ₗ B}) (is-equiv-path-src (A →ₗ B)))
+  retraction-inj (path-src {A →ₗ B}) (is-equiv-ret (path-src {A →ₗ B}) (is-equiv-path-src (A →ₗ B)))
     {funext-l A B (happly-l A B x)} {x} (happly-l-src A B x)
 
 is-equiv-happly-r ∷ (A B ∷ U) → is-equiv (happly-r A B)
@@ -231,3 +233,60 @@ happly-l-fib-happly-l ∷ (A B ∷ U) (f g : A →ₗ B) (p : f ≡ g) →
   fst (fun H → (post-l A (path-src {B}) H ≡ f) × (post-l A (path-tgt {B}) H ≡ g)) (happly-l-fib A B f g p) ≡ happly-l A B (f , g , p)
 happly-l-fib-happly-l A B f g p =
   J f (fun g p → fst (fun H → (post-l A (path-src {B}) H ≡ f) × (post-l A (path-tgt {B}) H ≡ g)) (happly-l-fib A B f g p) ≡ happly-l A B (f , g , p)) refl p
+
+---
+--- Π-types of propositions; fibrewise (dependent) function extensionality
+---
+
+-- Funext
+is-prop-Π ∷ {A : U} (P : A → U) → ((x : A) → is-prop (P x)) → is-prop ((x : A) → P x)
+is-prop-Π {A} P pP = prop-from-paths (λ f g . funext P f g (λ x . prop-path (pP x) (f x) (g x)))
+
+is-prop-is-contr ∷ (A : U) → is-prop (is-contr A)
+is-prop-is-contr A =
+  let P : A → U = λ a . (x : A) → a ≡ x in
+  prop-from-paths (λ c c' .
+    let h : (c c' : is-contr A) → c ≡ c' = fun (a , κ) (a' , κ') →
+      let pA : is-prop A = is-contr→is-prop {A} (a , κ) in
+      subtype-path P (λ b . is-prop-Π (λ x . b ≡ x) (λ x . is-prop→is-set pA b x)) (κ a') κ κ'
+    in h c c')
+
+-- a Π over a contractible type T inside a Σ can be evaluated at the center
+contr-Π-in-Σ ∷ {S T : U} (P : S → T → U) (t0 : T) → ((t : T) → t0 ≡ t) → is-contr (Σ (x : S) . P x t0) → is-contr (Σ (x : S) . (t : T) → P x t)
+contr-Π-in-Σ {S} {T} P t0 κ c =
+  let apd : (x : S) (h : (t : T) → P x t) (t : T) (e : t0 ≡ t) → subst (P x) e (h t0) ≡ h t =
+    λ x h t e . J t0 (λ t e . subst (P x) e (h t0) ≡ h t) refl e in
+  let s : (Σ (x : S) . (t : T) → P x t) → Σ (x : S) . P x t0 = λ (x , h) . (x , h t0) in
+  let r : (Σ (x : S) . P x t0) → Σ (x : S) . (t : T) → P x t = λ (x , p) . (x , λ t . subst (P x) (κ t) p) in
+  let rs : (w : Σ (x : S) . (t : T) → P x t) → r (s w) ≡ w = λ (x , h) .
+    cong {(t : T) → P x t} {Σ (x : S) . (t : T) → P x t} (λ z . (x , z))
+      (funext (P x) (λ t . subst (P x) (κ t) (h t0)) h (λ t . apd x h t (κ t))) in
+  is-contr-retract s (r , rs) c
+
+is-contr-total-htpy ∷ {A : U} {B : A → U} (f : (x : A) → B x) → is-contr (Σ (g : (x : A) → B x) . (x : A) → f x ≡ g x)
+is-contr-total-htpy {A} {B} f =
+  let T : U = Σ (g : (x : A) → B x) . (x : A) → f x ≡ g x in
+  let S : U = (x : A) → Σ (y : B x) . f x ≡ y in
+  let s : T → S = λ (g , h) . λ x . (g x , h x) in
+  let r : S → T = λ u . ((λ x . fst (λ y . f x ≡ y) (u x)) , (λ x . snd (λ y . f x ≡ y) (u x))) in
+  let rs : (w : T) → r (s w) ≡ w = λ (g , h) . refl in
+  is-contr-retract s (r , rs) (is-contr-Π (λ x . Σ (y : B x) . f x ≡ y) (λ x . is-contr-sing (f x)))
+
+happly-fib ∷ {A : U} {B : A → U} (f g : (x : A) → B x) → f ≡ g → (x : A) → f x ≡ g x
+happly-fib {A} {B} f g = fund-id-map {(x : A) → B x} (λ g . (x : A) → f x ≡ g x) f (λ x . refl) g
+
+happly-fib-happly ∷ {A : U} {B : A → U} (f g : (x : A) → B x) (p : f ≡ g) → happly-fib {A} {B} f g p ≡ happly p
+happly-fib-happly {A} {B} f g p = J f (λ g p . happly-fib {A} {B} f g p ≡ happly p) refl p
+
+is-equiv-happly ∷ {A : U} {B : A → U} (f g : (x : A) → B x) → is-equiv (happly {A} {B} {f} {g})
+is-equiv-happly {A} {B} f g =
+  is-equiv-htpy {f ≡ g} {(x : A) → f x ≡ g x} {happly-fib {A} {B} f g} {happly {A} {B} {f} {g}} (happly-fib-happly {A} {B} f g)
+    (fund-id {(x : A) → B x} (λ g . (x : A) → f x ≡ g x) f (λ x . refl) (is-contr-total-htpy {A} {B} f) g)
+
+-- fibrewise function extensionality, with its computation rule
+funext-htpy ∷ {A : U} {B : A → U} (f g : (x : A) → B x) → ((x : A) → f x ≡ g x) → f ≡ g
+funext-htpy {A} {B} f g = map-section (happly {A} {B} {f} {g}) (is-equiv-sec (happly {A} {B} {f} {g}) (is-equiv-happly {A} {B} f g))
+
+happly-funext-htpy ∷ {A : U} {B : A → U} (f g : (x : A) → B x) (h : (x : A) → f x ≡ g x) → happly (funext-htpy {A} {B} f g h) ≡ h
+happly-funext-htpy {A} {B} f g =
+  snd (is-section (happly {A} {B} {f} {g})) (is-equiv-sec (happly {A} {B} {f} {g}) (is-equiv-happly {A} {B} f g))

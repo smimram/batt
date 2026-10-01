@@ -1,0 +1,162 @@
+--
+-- Functorial binary composition of 1-cells in oplax-Segal types
+--
+-- The 1-cells of X are the oplax maps 𝕀 →ᵣ X. A composable pair of 1-cells is an oplax map out
+-- of the 2-spine Λ² = Sp₂ (two edges glued at their common vertex). When X is oplax-Segal,
+-- restriction (Δ² →ᵣ X) → (Sp₂ →ᵣ X) along the spine inclusion is an equivalence; the composite
+-- of a composable pair φ is obtained by extending φ to a 2-simplex (the filler) and restricting
+-- it to the long edge δ of Δ²:
+--
+--   comp-r : (Sp₂ →ᵣ X) → (𝕀 →ᵣ X),    comp-r φ = (filler of φ) ∘ δ
+--
+-- Composition is thus a function on the whole type of composable pairs.
+--
+
+open import Stdlib
+open import Segal
+open import Hom
+open import Spine-up
+
+--
+-- The two 1-cells of a composable pair
+--
+
+fst-cell ∷ {X ∷ U} → (spine 2 →ᵣ X) → (𝕀 →ᵣ X)
+fst-cell {X} φ =
+  let e ∷ 𝕀 → spine 2 = spine-edge-1 in
+  pre-r 𝕀 φ e
+
+snd-cell ∷ {X ∷ U} → (spine 2 →ᵣ X) → (𝕀 →ᵣ X)
+snd-cell {X} φ =
+  let e ∷ 𝕀 → spine 2 = spine-edge-2 in
+  pre-r 𝕀 φ e
+
+--
+-- Filler and composite
+--
+
+-- the unthickened oplax Segal condition for Λ² ↪ Δ²
+is-segal-r-2 ∷ (X ∷ U) → is-segal-r X → is-equiv (segal-restr-r no-grid 0 2 no-grid 0 X)
+is-segal-r-2 X s = s no-grid 0 2 no-grid 0
+
+-- the section of restriction along Λ² ↪ Δ² given by the oplax Segal condition
+segal-section-r ∷ (X ∷ U) → is-segal-r X → section (segal-restr-r no-grid 0 2 no-grid 0 X)
+segal-section-r X s = is-equiv-sec (segal-restr-r no-grid 0 2 no-grid 0 X) (is-segal-r-2 X s)
+
+-- the extension of a (trivially thickened) composable pair to a (trivially thickened) 2-simplex
+thick-filler-r ∷ (X ∷ U) → is-segal-r X → (thick-spine no-grid 0 2 no-grid 0 →ᵣ X) → (thick-simplex no-grid 0 2 no-grid 0 →ᵣ X)
+thick-filler-r X s = map-section (segal-restr-r no-grid 0 2 no-grid 0 X) (segal-section-r X s)
+
+-- it restricts back to the given pair
+thick-filler-r-restr ∷ (X ∷ U) (s : is-segal-r X) (ψ : thick-spine no-grid 0 2 no-grid 0 →ᵣ X) →
+  segal-restr-r no-grid 0 2 no-grid 0 X (thick-filler-r X s ψ) ≡ ψ
+thick-filler-r-restr X s ψ =
+  snd {(thick-spine no-grid 0 2 no-grid 0 →ᵣ X) → (thick-simplex no-grid 0 2 no-grid 0 →ᵣ X)}
+    (is-section (segal-restr-r no-grid 0 2 no-grid 0 X)) (segal-section-r X s) ψ
+
+-- the composable pair φ, trivially thickened
+thick-pair-r ∷ {X ∷ U} → (spine 2 →ᵣ X) → (thick-spine no-grid 0 2 no-grid 0 →ᵣ X)
+thick-pair-r {X} φ =
+  let u ∷ thick-spine no-grid 0 2 no-grid 0 → spine 2 = thicken-unit {spine 2} in
+  pre-r (thick-spine no-grid 0 2 no-grid 0) φ u
+
+-- the 2-simplex filling a composable pair: the Segal extension along Λ² ↪ Δ², transported
+-- through the unit laws ⊤ ⊗ (− ⊗ ⊤) of the (trivial) thickening
+comp-filler-r ∷ (X ∷ U) → is-segal-r X → (spine 2 →ᵣ X) → (simplex 2 →ᵣ X)
+comp-filler-r X s φ =
+  let c ∷ simplex 2 → thick-simplex no-grid 0 2 no-grid 0 = thicken-counit {simplex 2} in
+  pre-r (simplex 2) (thick-filler-r X s (thick-pair-r {X} φ)) c
+
+-- the composite of a composable pair: the long edge of its filler
+comp-r ∷ (X ∷ U) → is-segal-r X → (spine 2 →ᵣ X) → (𝕀 →ᵣ X)
+comp-r X s φ =
+  let δ ∷ 𝕀 → simplex 2 = long-edge in
+  pre-r 𝕀 (comp-filler-r X s φ) δ
+
+--
+-- Boundary of the composite: it goes from the source of the first cell to the target of the
+-- second one
+--
+
+-- on the image of the spine, the filler of φ agrees with φ
+comp-filler-r-spine ∷ (X ∷ U) (s : is-segal-r X) (φ : spine 2 →ᵣ X) (v ∷ spine 2) {y ∷ simplex 2}
+  (r ∷ y ≡ spine→simplex 2 v) → comp-filler-r X s φ y ≡ φ v
+comp-filler-r-spine X s φ v {y} r =
+  let c ∷ simplex 2 → thick-simplex no-grid 0 2 no-grid 0 = thicken-counit {simplex 2} in
+  let r' ∷ c y ≡ c (spine→simplex 2 v) = cong c r in
+  let w ∷ thick-spine no-grid 0 2 no-grid 0 = thicken-counit {spine 2} v in
+  let Φ : thick-simplex no-grid 0 2 no-grid 0 →ᵣ X = thick-filler-r X s (thick-pair-r {X} φ) in
+  trans (ap-r r' Φ) (ev-r w (thick-filler-r-restr X s (thick-pair-r {X} φ)))
+
+comp-r-src ∷ (X ∷ U) (s : is-segal-r X) (φ : spine 2 →ᵣ X) → comp-r X s φ 𝕀0 ≡ fst-cell {X} φ 𝕀0
+comp-r-src X s φ =
+  comp-filler-r-spine X s φ (spine-edge-1 𝕀0)
+    (sorted-path 1 (𝕀0 , 𝕀0 , tt) (refl , tt)
+      (is-in-spine→is-sorted 1 (𝕀0 , 𝕀0 , tt) (snd (is-in-spine 2) (spine-edge-1 𝕀0))))
+
+comp-r-tgt ∷ (X ∷ U) (s : is-segal-r X) (φ : spine 2 →ᵣ X) → comp-r X s φ 𝕀1 ≡ snd-cell {X} φ 𝕀1
+comp-r-tgt X s φ =
+  comp-filler-r-spine X s φ (spine-edge-2 𝕀1)
+    (sorted-path 1 (𝕀1 , 𝕀1 , tt) (refl , tt)
+      (is-in-spine→is-sorted 1 (𝕀1 , 𝕀1 , tt) (snd (is-in-spine 2) (spine-edge-2 𝕀1))))
+
+--
+-- Composition on hom types
+--
+-- Two 1-cells u : hom X x y and v : hom X y z form an oplax cocone on the two edges of the
+-- spine (hom-pair), hence a composable pair hom-spine : spine 2 →ᵣ X by the oplax universal
+-- property of the spine (Spine-up.batt, Wedge.batt). Its composite goes from x to z: its source
+-- is the source of the first edge of the pair (comp-r-src), which is u 0 because restricting
+-- the inverse gives back the cocone (wedge-σ-sec-r), and dually for the target.
+--
+-- The cartesian universal property of the spine is kept abstract (up) and instantiated at the
+-- end (spine-cart-up): the checker unfolds every definition, so statements mentioning the
+-- instantiated proof are expensive to check.
+--
+
+-- the first coordinate on the first edge, the second one on the second edge
+sp-EA-coord ∷ sp-EA → 𝕀
+sp-EA-coord (c , a) = cc1 c
+
+sp-EB-coord ∷ sp-EB → 𝕀
+sp-EB-coord (c , b) = cc2 c
+
+-- the oplax cocone formed by two consecutive homs
+hom-pair ∷ {X ∷ U} {x y z : X} → hom X x y → hom X y z → spine-cocone-r X
+hom-pair {X} {x} {y} {z} u v =
+  let ca ∷ sp-EA → 𝕀 = sp-EA-coord in
+  let cb ∷ sp-EB → 𝕀 = sp-EB-coord in
+  (pre-r sp-EA {𝕀} {X} (hom-cell {X} {x} {y} u) ca ,
+   pre-r sp-EB {𝕀} {X} (hom-cell {X} {y} {z} v) cb ,
+   trans (hom-tgt {X} {x} {y} u) (sym (hom-src {X} {y} {z} v)))
+
+-- the composable pair they define
+hom-spine ∷ (X ∷ U) (up ∷ wedge-cart-up (spine 2) sp-EA sp-EB sp-i sp-j sp-a1 sp-b0 sp-γ) {x y z : X} → hom X x y → hom X y z → (spine 2 →ᵣ X)
+hom-spine X up {x} {y} {z} u v = wedge-σ-r (spine 2) sp-EA sp-EB sp-i sp-j sp-a1 sp-b0 sp-γ up X (hom-pair {X} {x} {y} {z} u v)
+
+-- its first edge starts where u does, its second edge ends where v does
+hom-spine-src ∷ (X ∷ U) (up ∷ wedge-cart-up (spine 2) sp-EA sp-EB sp-i sp-j sp-a1 sp-b0 sp-γ) {x y z : X} (u : hom X x y) (v : hom X y z) →
+  fst-cell {X} (hom-spine X up {x} {y} {z} u v) 𝕀0 ≡ hom-cell {X} {x} {y} u 𝕀0
+hom-spine-src X up {x} {y} {z} u v =
+  ev-r {sp-EA} {X} ((𝕀0 , 𝕀0 , tt) , refl)
+    (cong {spine-cocone-r X} {sp-EA →ᵣ X} (wr-f {sp-EA} {sp-EB} {sp-a1} {sp-b0} {X})
+      (wedge-σ-sec-r (spine 2) sp-EA sp-EB sp-i sp-j sp-a1 sp-b0 sp-γ up X (hom-pair {X} {x} {y} {z} u v)))
+
+hom-spine-tgt ∷ (X ∷ U) (up ∷ wedge-cart-up (spine 2) sp-EA sp-EB sp-i sp-j sp-a1 sp-b0 sp-γ) {x y z : X} (u : hom X x y) (v : hom X y z) →
+  snd-cell {X} (hom-spine X up {x} {y} {z} u v) 𝕀1 ≡ hom-cell {X} {y} {z} v 𝕀1
+hom-spine-tgt X up {x} {y} {z} u v =
+  ev-r {sp-EB} {X} ((𝕀1 , 𝕀1 , tt) , (refl , spine-1-pt 𝕀1))
+    (cong {spine-cocone-r X} {sp-EB →ᵣ X} (wr-g {sp-EA} {sp-EB} {sp-a1} {sp-b0} {X})
+      (wedge-σ-sec-r (spine 2) sp-EA sp-EB sp-i sp-j sp-a1 sp-b0 sp-γ up X (hom-pair {X} {x} {y} {z} u v)))
+
+comp-hom-r-param ∷ (X ∷ U) (up ∷ wedge-cart-up (spine 2) sp-EA sp-EB sp-i sp-j sp-a1 sp-b0 sp-γ) → is-segal-r X → {x y z : X} → hom X x y → hom X y z → hom X x z
+comp-hom-r-param X up s {x} {y} {z} u v =
+  (comp-r X s (hom-spine X up {x} {y} {z} u v) ,
+   trans (comp-r-src X s (hom-spine X up {x} {y} {z} u v))
+     (trans (hom-spine-src X up {x} {y} {z} u v) (hom-src {X} {x} {y} u)) ,
+   trans (comp-r-tgt X s (hom-spine X up {x} {y} {z} u v))
+     (trans (hom-spine-tgt X up {x} {y} {z} u v) (hom-tgt {X} {y} {z} v)))
+
+-- composition of 1-cells of an oplax-Segal type
+comp-hom-r ∷ (X ∷ U) → is-segal-r X → {x y z : X} → hom X x y → hom X y z → hom X x z
+comp-hom-r X s {x} {y} {z} = comp-hom-r-param X spine-cart-up s {x} {y} {z}

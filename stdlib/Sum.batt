@@ -1,12 +1,14 @@
-open import Bool
-
+--
 -- Binary sums, encoded as Σ (b : bool) . (A if b = false, B if b = true).
 -- The family needs a large elimination of bool: rec-bool only eliminates into
 -- C : U (and U is not in U), so it is defined by clauses instead.
--- Only the cartesian eliminators are available. The paper's eliminators into
--- ⇁ / ⇀ with non-crisp branches, (A ⇁ C) × (B ⇁ C) → (sum A B ⇁ C), are NOT
--- derivable: they need the checker's missing "pair_ind vs arr" case (or native
--- sums). With crisp branches one only gets κ ∘ rec-sum (pi-to-arr-right).
+-- The cartesian eliminators are primitive. The non-dependent oplax and lax eliminators,
+-- with non-crisp branches, (A →ᵣ C) → (B →ᵣ C) → (sum A B →ᵣ C) and its lax counterpart, are derived
+-- at the end of the file from the cartesian one. 
+--
+
+open import Bool
+open import Product
 
 sum-fam ∷ Type → Type → bool → Type
 sum-fam A B false = A
@@ -27,3 +29,56 @@ ind-sum {A} {B} C l r (b , x) = ind-bool (λ b . (x : sum-fam A B b) → C (b , 
 
 rec-sum ∷ {A B C : Type} → (A → C) → (B → C) → sum A B → C
 rec-sum {A} {B} {C} l r = ind-sum {A} {B} (λ _ . C) l r
+
+---
+--- r/l sum eliminators, derived from ordinary recursion
+---
+
+-- the family sum A B → (G →ₗ C), with G = (A →ᵣ C) × (B →ᵣ C)
+rec-sum-r-family ∷ (A B C ∷ U) → sum A B → ((A →ᵣ C) × (B →ᵣ C)) →ₗ C
+rec-sum-r-family A B C = rec-sum {A} {B} {((A →ᵣ C) × (B →ᵣ C)) →ₗ C}
+  (λ a . λ w . prod-fst {A →ᵣ C} {B →ᵣ C} w a)
+  (λ b . λ w . prod-snd {A →ᵣ C} {B →ᵣ C} w b)
+
+-- oplax eliminator
+rec-sum-r ∷ (A B C ∷ U) → (A →ᵣ C) → (B →ᵣ C) → (sum A B →ᵣ C)
+rec-sum-r A B C l r =
+  let E ∷ sum A B → ((A →ᵣ C) × (B →ᵣ C)) →ₗ C = rec-sum-r-family A B C in
+  λ u . E u (l , r)
+
+-- β, at a crisp point and as an equation of oplax maps (for any point)
+rec-sum-r-inl ∷ (A B C ∷ U) (l : A →ᵣ C) (r : B →ᵣ C) (a ∷ A) → rec-sum-r A B C l r (inl a) ≡ l a
+rec-sum-r-inl A B C l r a = refl
+
+rec-sum-r-inr ∷ (A B C ∷ U) (l : A →ᵣ C) (r : B →ᵣ C) (b ∷ B) → rec-sum-r A B C l r (inr b) ≡ r b
+rec-sum-r-inr A B C l r b = refl
+
+rec-sum-r-inl' ∷ (A B C ∷ U) (l : A →ᵣ C) (r : B →ᵣ C) → (λ a . rec-sum-r A B C l r (inl a)) ≡{A →ᵣ C} l
+rec-sum-r-inl' A B C l r = refl
+
+rec-sum-r-inr' ∷ (A B C ∷ U) (l : A →ᵣ C) (r : B →ᵣ C) → (λ b . rec-sum-r A B C l r (inr b)) ≡{B →ᵣ C} r
+rec-sum-r-inr' A B C l r = refl
+
+-- the family sum A B → (G →ᵣ C), with G = (A →ₗ C) × (B →ₗ C)
+rec-sum-l-family ∷ (A B C ∷ U) → sum A B → ((A →ₗ C) × (B →ₗ C)) →ᵣ C
+rec-sum-l-family A B C = rec-sum {A} {B} {((A →ₗ C) × (B →ₗ C)) →ᵣ C}
+  (λ a . λ w . prod-fst {A →ₗ C} {B →ₗ C} w a)
+  (λ b . λ w . prod-snd {A →ₗ C} {B →ₗ C} w b)
+
+-- lax eliminator
+rec-sum-l ∷ (A B C ∷ U) → (A →ₗ C) → (B →ₗ C) → (sum A B →ₗ C)
+rec-sum-l A B C l r =
+  let E ∷ sum A B → ((A →ₗ C) × (B →ₗ C)) →ᵣ C = rec-sum-l-family A B C in
+  λ u . E u (l , r)
+
+rec-sum-l-inl ∷ (A B C ∷ U) (l : A →ₗ C) (r : B →ₗ C) (a ∷ A) → rec-sum-l A B C l r (inl a) ≡ l a
+rec-sum-l-inl A B C l r a = refl
+
+rec-sum-l-inr ∷ (A B C ∷ U) (l : A →ₗ C) (r : B →ₗ C) (b ∷ B) → rec-sum-l A B C l r (inr b) ≡ r b
+rec-sum-l-inr A B C l r b = refl
+
+rec-sum-l-inl' ∷ (A B C ∷ U) (l : A →ₗ C) (r : B →ₗ C) → (λ a . rec-sum-l A B C l r (inl a)) ≡{A →ₗ C} l
+rec-sum-l-inl' A B C l r = refl
+
+rec-sum-l-inr' ∷ (A B C ∷ U) (l : A →ₗ C) (r : B →ₗ C) → (λ b . rec-sum-l A B C l r (inr b)) ≡{B →ₗ C} r
+rec-sum-l-inr' A B C l r = refl

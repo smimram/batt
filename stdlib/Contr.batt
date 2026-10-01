@@ -26,3 +26,18 @@ is-contr-eq (a , p) x y = trans (sym (p x)) (p y)
 -- the canonical path between a point of a contractible type and itself is refl
 is-contr-eq-refl ∷ {A : U} (c : is-contr A) (x : A) → is-contr-eq c x x ≡ refl
 is-contr-eq-refl (a , p) x = trans-sym-l (p x)
+
+---
+--- Σ-types over contractible bases; fibres of post-composition with a path
+---
+
+-- Contr
+is-contr-Σ ∷ {A : U} (P : A → U) → is-contr A → ((a : A) → is-contr (P a)) → is-contr (Σ (a : A) . P a)
+is-contr-Σ {A} P (a0 , κ) cP =
+  let c0 : P a0 = center (P a0) (cP a0) in
+  let base : (p : P a0) → (a0 , c0) ≡{Σ (a : A) . P a} (a0 , p) = λ p . cong {P a0} {Σ (a : A) . P a} (λ z . (a0 , z)) (is-contr-eq (cP a0) c0 p) in
+  ((a0 , c0) , λ (a , p) . J a0 (λ a e . (p : P a) → (a0 , c0) ≡{Σ (a : A) . P a} (a , p)) base (κ a) p)
+
+-- post-composition with a fixed path has contractible fibres
+trans-contr ∷ {Y : U} {y z z' : Y} (Q : z ≡ z') (w : y ≡ z') → is-contr (Σ (u : y ≡ z) . w ≡ trans u Q)
+trans-contr {Y} {y} {z} Q w = J z (λ z' Q . (w : y ≡ z') → is-contr (Σ (u : y ≡ z) . w ≡ trans u Q)) (λ w . is-contr-sing w) Q w
