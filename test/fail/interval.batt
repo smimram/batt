@@ -1,0 +1,3 @@
+-- 𝕀 is a distributive lattice, not a boolean algebra: this should not hold
+sup-inf-wrong :: (i j : 𝕀) → i 𝕀∨ j ≡ i 𝕀∧ j
+sup-inf-wrong i j = refl
