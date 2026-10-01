@@ -3,6 +3,7 @@ open import Empty
 open import Unit
 open import Bool
 open import Equality
+open import Equivalence
 
 flat ∷ ♭U → U
 flat 𝄫A = A
@@ -63,6 +64,12 @@ flat-tens-to-prod-to-tens {A} {B} 𝄫x =
   let f : (x : A ⨂ B) → flat-prod-to-tens (flat-tens-to-prod 𝄫x) ≡ 𝄫x = fun (a ⊗ b) → refl in
   f x
 
+flat-tens≃prod ∷ {A B ∷ U} → ♭(A ⨂ B) ≃ ♭(A × B)
+flat-tens≃prod {A} {B} =
+  ( flat-tens-to-prod {A} {B}
+  , ( (flat-prod-to-tens {A} {B} , flat-prod-to-tens-to-prod {A} {B})
+    , (flat-prod-to-tens {A} {B} , flat-tens-to-prod-to-tens {A} {B}) ) )
+
 crispify-empty ∷ ⊥ → ♭⊥
 crispify-empty ()
 
@@ -86,7 +93,6 @@ is-section-crispify-bool = ind-bool (λb. unflatten (crispify-bool b) ≡ b) ref
 --- Discreteness
 ---
 
-open import Equivalence
 open import Funext
 
 -- Theorem 6.1
