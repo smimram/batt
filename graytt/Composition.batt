@@ -14,6 +14,8 @@
 
 open import Stdlib
 open import Segal
+open import Hom
+open import Spine-up
 
 --
 -- The two 1-cells of a composable pair
@@ -97,3 +99,64 @@ comp-r-tgt X s φ =
   comp-filler-r-spine X s φ (spine-edge-2 𝕀1)
     (sorted-path 1 (𝕀1 , 𝕀1 , tt) (refl , tt)
       (is-in-spine→is-sorted 1 (𝕀1 , 𝕀1 , tt) (snd (is-in-spine 2) (spine-edge-2 𝕀1))))
+
+--
+-- Composition on hom types
+--
+-- Two 1-cells u : hom X x y and v : hom X y z form an oplax cocone on the two edges of the
+-- spine (hom-pair), hence a composable pair hom-spine : spine 2 →ᵣ X by the oplax universal
+-- property of the spine (Spine-up.batt, Wedge.batt). Its composite goes from x to z: its source
+-- is the source of the first edge of the pair (comp-r-src), which is u 0 because restricting
+-- the inverse gives back the cocone (wedge-σ-sec-r), and dually for the target.
+--
+-- The cartesian universal property of the spine is kept abstract (up) and instantiated at the
+-- end (spine-cart-up): the checker unfolds every definition, so statements mentioning the
+-- instantiated proof are expensive to check.
+--
+
+-- the first coordinate on the first edge, the second one on the second edge
+sp-EA-coord ∷ sp-EA → 𝕀
+sp-EA-coord (c , a) = cc1 c
+
+sp-EB-coord ∷ sp-EB → 𝕀
+sp-EB-coord (c , b) = cc2 c
+
+-- the oplax cocone formed by two consecutive homs
+hom-pair ∷ {X ∷ U} {x y z : X} → hom X x y → hom X y z → spine-cocone-r X
+hom-pair {X} {x} {y} {z} u v =
+  let ca ∷ sp-EA → 𝕀 = sp-EA-coord in
+  let cb ∷ sp-EB → 𝕀 = sp-EB-coord in
+  (pre-r sp-EA {𝕀} {X} (hom-cell {X} {x} {y} u) ca ,
+   pre-r sp-EB {𝕀} {X} (hom-cell {X} {y} {z} v) cb ,
+   trans (hom-tgt {X} {x} {y} u) (sym (hom-src {X} {y} {z} v)))
+
+-- the composable pair they define
+hom-spine ∷ (X ∷ U) (up ∷ wedge-cart-up (spine 2) sp-EA sp-EB sp-i sp-j sp-a1 sp-b0 sp-γ) {x y z : X} → hom X x y → hom X y z → (spine 2 →ᵣ X)
+hom-spine X up {x} {y} {z} u v = wedge-σ-r (spine 2) sp-EA sp-EB sp-i sp-j sp-a1 sp-b0 sp-γ up X (hom-pair {X} {x} {y} {z} u v)
+
+-- its first edge starts where u does, its second edge ends where v does
+hom-spine-src ∷ (X ∷ U) (up ∷ wedge-cart-up (spine 2) sp-EA sp-EB sp-i sp-j sp-a1 sp-b0 sp-γ) {x y z : X} (u : hom X x y) (v : hom X y z) →
+  fst-cell {X} (hom-spine X up {x} {y} {z} u v) 𝕀0 ≡ hom-cell {X} {x} {y} u 𝕀0
+hom-spine-src X up {x} {y} {z} u v =
+  ev-r {sp-EA} {X} ((𝕀0 , 𝕀0 , tt) , refl)
+    (cong {spine-cocone-r X} {sp-EA →ᵣ X} (wr-f {sp-EA} {sp-EB} {sp-a1} {sp-b0} {X})
+      (wedge-σ-sec-r (spine 2) sp-EA sp-EB sp-i sp-j sp-a1 sp-b0 sp-γ up X (hom-pair {X} {x} {y} {z} u v)))
+
+hom-spine-tgt ∷ (X ∷ U) (up ∷ wedge-cart-up (spine 2) sp-EA sp-EB sp-i sp-j sp-a1 sp-b0 sp-γ) {x y z : X} (u : hom X x y) (v : hom X y z) →
+  snd-cell {X} (hom-spine X up {x} {y} {z} u v) 𝕀1 ≡ hom-cell {X} {y} {z} v 𝕀1
+hom-spine-tgt X up {x} {y} {z} u v =
+  ev-r {sp-EB} {X} ((𝕀1 , 𝕀1 , tt) , (refl , spine-1-pt 𝕀1))
+    (cong {spine-cocone-r X} {sp-EB →ᵣ X} (wr-g {sp-EA} {sp-EB} {sp-a1} {sp-b0} {X})
+      (wedge-σ-sec-r (spine 2) sp-EA sp-EB sp-i sp-j sp-a1 sp-b0 sp-γ up X (hom-pair {X} {x} {y} {z} u v)))
+
+comp-hom-r-param ∷ (X ∷ U) (up ∷ wedge-cart-up (spine 2) sp-EA sp-EB sp-i sp-j sp-a1 sp-b0 sp-γ) → is-segal-r X → {x y z : X} → hom X x y → hom X y z → hom X x z
+comp-hom-r-param X up s {x} {y} {z} u v =
+  (comp-r X s (hom-spine X up {x} {y} {z} u v) ,
+   trans (comp-r-src X s (hom-spine X up {x} {y} {z} u v))
+     (trans (hom-spine-src X up {x} {y} {z} u v) (hom-src {X} {x} {y} u)) ,
+   trans (comp-r-tgt X s (hom-spine X up {x} {y} {z} u v))
+     (trans (hom-spine-tgt X up {x} {y} {z} u v) (hom-tgt {X} {y} {z} v)))
+
+-- composition of 1-cells of an oplax-Segal type
+comp-hom-r ∷ (X ∷ U) → is-segal-r X → {x y z : X} → hom X x y → hom X y z → hom X x z
+comp-hom-r X s {x} {y} {z} = comp-hom-r-param X spine-cart-up s {x} {y} {z}

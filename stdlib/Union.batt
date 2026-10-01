@@ -1,0 +1,486 @@
+open import Equality
+open import Product
+open import Prop
+open import Contr
+open import Equivalence
+open import Trunc
+open import Sum
+open import Logic
+open import Funext
+
+---
+--- A union of two subtypes is the pushout of the two subtypes over their intersection
+---
+--- For a type X and two families of propositions A, B over X, the union
+---   union A B := Σ (x : X) . A x ∨ B x
+--- has the universal property of the pushout of Σ A ← Σ (A ∧ B) → Σ B: maps out of it are
+--- cocones, pairs of maps out of Σ A and Σ B that agree on the intersection.
+---
+---   union-up : is-equiv (union-restr A B Y : (union A B → Y) → union-cocone A B Y)
+---
+--- No pushout type is used. Since the truncated ∨ only eliminates into propositions, a map out of
+--- the union is defined through a descent family: at x, the type union-D of values compatible
+--- with both pieces of the cocone, which is contractible as soon as A x ∨ B x holds.
+---
+--- References.
+---
+--- * For a single point (X = 1) this is the statement that the disjunction of two propositions is
+---   their join, i.e. the pushout of P ← P × Q → Q. With pushouts as a higher inductive type it
+---   is proved the other way round: the join P ∗ Q of propositions is a proposition and satisfies
+---   the universal property of the disjunction, hence P ∗ Q ≃ P ∨ Q.
+---     - E. Rijke, Introduction to Homotopy Type Theory, lecture notes, Carnegie Mellon University,
+---       2018: exercise on joins of propositions in the lecture on homotopy pushouts
+---     - The agda-unimath library, module synthetic-homotopy-theory.joins-of-types, section
+---       "Disjunction is the join of propositions": equiv-disjunction-join-Prop : (P ∗ Q) ≃ (P ∨ Q),
+---       with is-prop-join-is-prop.
+---
+--- * For a general X this is the statement that the join of two embeddings into X is their union
+---   as subtypes, the join of maps f ∗ g being the pushout of A ← A ×_X B → B.
+---     - E. Rijke, The join construction, arXiv:1701.07538 (2017): the fibres of the join of maps
+---       are the joins of the fibres, and the join of two embeddings is again an embedding, namely
+---       the union of the two subtypes.
+---     - The agda-unimath library, module foundation.unions-subtypes: union-subtype P Q x = P x ∨ Q x.
+---
+--- * Defining a map out of a proposition by eliminating into the proposition is-contr of a type of
+---   candidate values is a form of the principle of unique choice (The Univalent Foundations
+---   Program, HoTT book, chapter on sets and logic: a family of propositions that is merely
+---   inhabited everywhere has a section); the same device appears in the proofs above that P ∗ Q
+---   is a proposition. Here it is applied fibrewise, without the join: the descent family union-D plays
+---   the role of the type of candidate values.
+---
+--- Unlike the references, no pushout or join is assumed: the union is defined by the truncated
+--- disjunction, and its universal property is proved directly. X need not be a set.
+---
+
+-- the union and its two pieces
+union ∷ {X : U} (A B : X → U) → U
+union {X} A B = Σ (x : X) . or (A x) (B x)
+
+-- the witnesses of A x ∨ B x coming from each side, the canonical paths between witnesses,
+-- and the inclusion of a fibre into the union
+union-wl ∷ {X : U} (A B : X → U) (x : X) → A x → or (A x) (B x)
+union-wl {X} A B x p = unit-prop-trunc (sum (A x) (B x)) (inl {A x} {B x} p)
+
+union-wr ∷ {X : U} (A B : X → U) (x : X) → B x → or (A x) (B x)
+union-wr {X} A B x q = unit-prop-trunc (sum (A x) (B x)) (inr {A x} {B x} q)
+
+union-τ ∷ {X : U} (A B : X → U) (x : X) (w w' : or (A x) (B x)) → w ≡ w'
+union-τ {X} A B x w w' = prop-path (is-prop-type-prop-trunc (sum (A x) (B x))) w w'
+
+union-ι ∷ {X : U} (A B : X → U) (x : X) → or (A x) (B x) → union A B
+union-ι {X} A B x w = (x , w)
+
+union-inl ∷ {X : U} (A B : X → U) → (Σ (x : X) . A x) → union A B
+union-inl {X} A B (x , p) = (x , union-wl A B x p)
+
+union-inr ∷ {X : U} (A B : X → U) → (Σ (x : X) . B x) → union A B
+union-inr {X} A B (x , q) = (x , union-wr A B x q)
+
+-- the two pieces agree on the intersection
+union-glue ∷ {X : U} (A B : X → U) (x : X) (p : A x) (q : B x) → union-inl A B (x , p) ≡ union-inr A B (x , q)
+union-glue {X} A B x p q = cong (union-ι A B x) (union-τ A B x (union-wl A B x p) (union-wr A B x q))
+
+-- cocones: two maps that agree on the intersection
+union-cocone ∷ {X : U} (A B : X → U) (Y : U) → U
+union-cocone {X} A B Y =
+  Σ (a : (Σ (x : X) . A x) → Y) . Σ (b : (Σ (x : X) . B x) → Y) . (x : X) (p : A x) (q : B x) → a (x , p) ≡ b (x , q)
+
+-- restriction of a map out of the union to a cocone
+union-restr ∷ {X : U} (A B : X → U) (Y : U) → (union A B → Y) → union-cocone A B Y
+union-restr {X} A B Y k =
+  ((λ u . k (union-inl A B u)) , (λ v . k (union-inr A B v)) , λ x p q . cong k (union-glue A B x p q))
+
+--
+-- the descent family of a cocone (a, b, c) at x: the candidate values for a map extending the
+-- cocone, in the sense of the principle of unique choice (see the references above)
+--
+
+union-D-base ∷ {X : U} (A : X → U) (Y : U) (a : (Σ (x : X) . A x) → Y) (x : X) → U
+union-D-base {X} A Y a x = Σ (y : Y) . (p : A x) → y ≡ a (x , p)
+
+union-D-fib ∷ {X : U} (A B : X → U) (Y : U) (a : (Σ (x : X) . A x) → Y) (b : (Σ (x : X) . B x) → Y)
+  (c : (x : X) (p : A x) (q : B x) → a (x , p) ≡ b (x , q)) (x : X) → union-D-base A Y a x → U
+union-D-fib {X} A B Y a b c x (y , α) =
+  Σ (β : (q : B x) → y ≡ b (x , q)) . (p : A x) (q : B x) → β q ≡ trans (α p) (c x p q)
+
+union-D ∷ {X : U} (A B : X → U) (Y : U) (a : (Σ (x : X) . A x) → Y) (b : (Σ (x : X) . B x) → Y)
+  (c : (x : X) (p : A x) (q : B x) → a (x , p) ≡ b (x , q)) (x : X) → U
+union-D {X} A B Y a b c x = Σ (u : union-D-base A Y a x) . union-D-fib A B Y a b c x u
+
+--
+-- the descent family is contractible wherever A x ∨ B x holds
+--
+
+-- if A x holds: contract the value with its A-path, then each B-path is determined
+union-D-contr-A ∷ {X : U} (A B : X → U) (pA : (x : X) → is-prop (A x)) (Y : U) (a : (Σ (x : X) . A x) → Y) (b : (Σ (x : X) . B x) → Y)
+  (c : (x : X) (p : A x) (q : B x) → a (x , p) ≡ b (x , q)) (x : X) → A x → is-contr (union-D A B Y a b c x)
+union-D-contr-A {X} A B pA Y a b c x p0 =
+  let κ : (p : A x) → p0 ≡ p = λ p . prop-path (pA x) p0 p in
+  let base : is-contr (union-D-base A Y a x) =
+    contr-Π-in-Σ {Y} {A x} (λ y p . y ≡ a (x , p)) p0 κ (is-contr-sing' (a (x , p0))) in
+  let fib : (u : union-D-base A Y a x) → is-contr (union-D-fib A B Y a b c x u) = λ (y , α) .
+    let V : U = (q : B x) → Σ (βq : y ≡ b (x , q)) . (p : A x) → βq ≡ trans (α p) (c x p q) in
+    let F : U = union-D-fib A B Y a b c x (y , α) in
+    let s : F → V = λ (β , γ) . λ q . (β q , λ p . γ p q) in
+    let r : V → F = λ v .
+      ((λ q . fst {y ≡ b (x , q)} (λ βq . (p : A x) → βq ≡ trans (α p) (c x p q)) (v q)) ,
+       (λ p q . snd {y ≡ b (x , q)} (λ βq . (p : A x) → βq ≡ trans (α p) (c x p q)) (v q) p)) in
+    let rs : (w : F) → r (s w) ≡ w = λ (β , γ) . refl in
+    is-contr-retract s (r , rs)
+      (is-contr-Π (λ q . Σ (βq : y ≡ b (x , q)) . (p : A x) → βq ≡ trans (α p) (c x p q))
+        (λ q . contr-Π-in-Σ {y ≡ b (x , q)} {A x} (λ βq p . βq ≡ trans (α p) (c x p q)) p0 κ
+          (is-contr-sing' (trans (α p0) (c x p0 q)))))
+  in
+  is-contr-Σ (union-D-fib A B Y a b c x) base fib
+
+-- the descent family with the roles of the two pieces exchanged (the B-path first)
+union-D'-base ∷ {X : U} (B : X → U) (Y : U) (b : (Σ (x : X) . B x) → Y) (x : X) → U
+union-D'-base {X} B Y b x = Σ (y : Y) . (q : B x) → y ≡ b (x , q)
+
+union-D'-fib ∷ {X : U} (A B : X → U) (Y : U) (a : (Σ (x : X) . A x) → Y) (b : (Σ (x : X) . B x) → Y)
+  (c : (x : X) (p : A x) (q : B x) → a (x , p) ≡ b (x , q)) (x : X) → union-D'-base B Y b x → U
+union-D'-fib {X} A B Y a b c x (y , β) =
+  Σ (α : (p : A x) → y ≡ a (x , p)) . (p : A x) (q : B x) → β q ≡ trans (α p) (c x p q)
+
+-- if B x holds: contract the value with its B-path, then each A-path is determined
+union-D-contr-B ∷ {X : U} (A B : X → U) (pB : (x : X) → is-prop (B x)) (Y : U) (a : (Σ (x : X) . A x) → Y) (b : (Σ (x : X) . B x) → Y)
+  (c : (x : X) (p : A x) (q : B x) → a (x , p) ≡ b (x , q)) (x : X) → B x → is-contr (union-D A B Y a b c x)
+union-D-contr-B {X} A B pB Y a b c x q0 =
+  let κ : (q : B x) → q0 ≡ q = λ q . prop-path (pB x) q0 q in
+  let D : U = union-D A B Y a b c x in
+  let D' : U = Σ (v : union-D'-base B Y b x) . union-D'-fib A B Y a b c x v in
+  let s : D → D' = λ (u , w) .
+    let h : (u : union-D-base A Y a x) → union-D-fib A B Y a b c x u → D' = fun (y , α) (β , γ) → ((y , β) , (α , γ)) in h u w in
+  let r : D' → D = λ (v , w) .
+    let h : (v : union-D'-base B Y b x) → union-D'-fib A B Y a b c x v → D = fun (y , β) (α , γ) → ((y , α) , (β , γ)) in h v w in
+  let rs : (z : D) → r (s z) ≡ z = λ (u , w) .
+    let h : (u : union-D-base A Y a x) (w : union-D-fib A B Y a b c x u) → r (s (u , w)) ≡ (u , w) = fun (y , α) (β , γ) → refl in h u w in
+  let base : is-contr (union-D'-base B Y b x) =
+    contr-Π-in-Σ {Y} {B x} (λ y q . y ≡ b (x , q)) q0 κ (is-contr-sing' (b (x , q0))) in
+  let fib : (v : union-D'-base B Y b x) → is-contr (union-D'-fib A B Y a b c x v) = λ (y , β) .
+    let V : U = (p : A x) → Σ (αp : y ≡ a (x , p)) . (q : B x) → β q ≡ trans αp (c x p q) in
+    let F : U = union-D'-fib A B Y a b c x (y , β) in
+    let s : F → V = λ (α , γ) . λ p . (α p , λ q . γ p q) in
+    let r : V → F = λ v .
+      ((λ p . fst {y ≡ a (x , p)} (λ αp . (q : B x) → β q ≡ trans αp (c x p q)) (v p)) ,
+       (λ p q . snd {y ≡ a (x , p)} (λ αp . (q : B x) → β q ≡ trans αp (c x p q)) (v p) q)) in
+    let rs : (w : F) → r (s w) ≡ w = λ (α , γ) . refl in
+    is-contr-retract s (r , rs)
+      (is-contr-Π (λ p . Σ (αp : y ≡ a (x , p)) . (q : B x) → β q ≡ trans αp (c x p q))
+        (λ p . contr-Π-in-Σ {y ≡ a (x , p)} {B x} (λ αp q . β q ≡ trans αp (c x p q)) q0 κ
+          (trans-contr (c x p q0) (β q0))))
+  in
+  is-contr-retract s (r , rs) (is-contr-Σ (union-D'-fib A B Y a b c x) base fib)
+
+union-D-contr ∷ {X : U} (A B : X → U) (pA : (x : X) → is-prop (A x)) (pB : (x : X) → is-prop (B x)) (Y : U)
+  (a : (Σ (x : X) . A x) → Y) (b : (Σ (x : X) . B x) → Y) (c : (x : X) (p : A x) (q : B x) → a (x , p) ≡ b (x , q))
+  (x : X) → or (A x) (B x) → is-contr (union-D A B Y a b c x)
+union-D-contr {X} A B pA pB Y a b c x w =
+  rec-prop-trunc' (sum (A x) (B x)) (is-contr (union-D A B Y a b c x)) (is-prop-is-contr (union-D A B Y a b c x))
+    (rec-sum {A x} {B x} {is-contr (union-D A B Y a b c x)} (union-D-contr-A A B pA Y a b c x) (union-D-contr-B A B pB Y a b c x)) w
+
+--
+-- accessors of the descent family
+--
+
+uD-y ∷ {X : U} (A B : X → U) (Y : U) (a : (Σ (x : X) . A x) → Y) (b : (Σ (x : X) . B x) → Y)
+  (c : (x : X) (p : A x) (q : B x) → a (x , p) ≡ b (x , q)) (x : X) → union-D A B Y a b c x → Y
+uD-y {X} A B Y a b c x (u , w) = fst (λ y . (p : A x) → y ≡ a (x , p)) u
+
+uD-α ∷ {X : U} (A B : X → U) (Y : U) (a : (Σ (x : X) . A x) → Y) (b : (Σ (x : X) . B x) → Y)
+  (c : (x : X) (p : A x) (q : B x) → a (x , p) ≡ b (x , q)) (x : X) (z : union-D A B Y a b c x) (p : A x) →
+  uD-y A B Y a b c x z ≡ a (x , p)
+uD-α {X} A B Y a b c x (u , w) = snd (λ y . (p : A x) → y ≡ a (x , p)) u
+
+uD-β ∷ {X : U} (A B : X → U) (Y : U) (a : (Σ (x : X) . A x) → Y) (b : (Σ (x : X) . B x) → Y)
+  (c : (x : X) (p : A x) (q : B x) → a (x , p) ≡ b (x , q)) (x : X) (z : union-D A B Y a b c x) (q : B x) →
+  uD-y A B Y a b c x z ≡ b (x , q)
+uD-β {X} A B Y a b c x (u , w) =
+  let h : (u : union-D-base A Y a x) (w : union-D-fib A B Y a b c x u) (q : B x) → uD-y A B Y a b c x (u , w) ≡ b (x , q) =
+    fun (y , α) (β , γ) → β in
+  h u w
+
+uD-γ ∷ {X : U} (A B : X → U) (Y : U) (a : (Σ (x : X) . A x) → Y) (b : (Σ (x : X) . B x) → Y)
+  (c : (x : X) (p : A x) (q : B x) → a (x , p) ≡ b (x , q)) (x : X) (z : union-D A B Y a b c x) (p : A x) (q : B x) →
+  uD-β A B Y a b c x z q ≡ trans (uD-α A B Y a b c x z p) (c x p q)
+uD-γ {X} A B Y a b c x (u , w) =
+  let h : (u : union-D-base A Y a x) (w : union-D-fib A B Y a b c x u) (p : A x) (q : B x) →
+      uD-β A B Y a b c x (u , w) q ≡ trans (uD-α A B Y a b c x (u , w) p) (c x p q) = fun (y , α) (β , γ) → γ in
+  h u w
+
+--
+-- the extension of a cocone to the union, parametrised by a contractibility proof of the descent
+-- family (kept abstract until the end: the checker unfolds every definition and compares
+-- closures by evaluating them, so this large proof must not occur inside unified terms)
+--
+
+union-CD ∷ {X : U} (A B : X → U) (Y : U) → U
+union-CD {X} A B Y =
+  (a : (Σ (x : X) . A x) → Y) (b : (Σ (x : X) . B x) → Y) (c : (x : X) (p : A x) (q : B x) → a (x , p) ≡ b (x , q))
+  (x : X) → or (A x) (B x) → is-contr (union-D A B Y a b c x)
+
+union-ext3 ∷ {X : U} (A B : X → U) (Y : U) (cD : union-CD A B Y) (a : (Σ (x : X) . A x) → Y) (b : (Σ (x : X) . B x) → Y)
+  (c : (x : X) (p : A x) (q : B x) → a (x , p) ≡ b (x , q)) → union A B → Y
+union-ext3 {X} A B Y cD a b c (x , w) = uD-y A B Y a b c x (center (union-D A B Y a b c x) (cD a b c x w))
+
+union-ext ∷ {X : U} (A B : X → U) (Y : U) (cD : union-CD A B Y) → union-cocone A B Y → union A B → Y
+union-ext {X} A B Y cD (a , r) =
+  union-ext3 A B Y cD a
+    (fst {(Σ (x : X) . B x) → Y} (λ b . (x : X) (p : A x) (q : B x) → a (x , p) ≡ b (x , q)) r)
+    (snd {(Σ (x : X) . B x) → Y} (λ b . (x : X) (p : A x) (q : B x) → a (x , p) ≡ b (x , q)) r)
+
+--
+-- paths between cocones
+--
+
+union-cocone-path-J ∷ {X : U} (A B : X → U) (Y : U)
+  (a : (Σ (x : X) . A x) → Y) (b : (Σ (x : X) . B x) → Y) (c : (x : X) (p : A x) (q : B x) → a (x , p) ≡ b (x , q))
+  (a' : (Σ (x : X) . A x) → Y) (Pa : a ≡ a') (b' : (Σ (x : X) . B x) → Y) (Pb : b ≡ b')
+  (c' : (x : X) (p : A x) (q : B x) → a' (x , p) ≡ b' (x , q)) →
+  ((x : X) (p : A x) (q : B x) → trans (c x p q) (happly {Σ (x : X) . B x} {λ _ . Y} {b} {b'} Pb (x , q))
+                                   ≡ trans (happly {Σ (x : X) . A x} {λ _ . Y} {a} {a'} Pa (x , p)) (c' x p q)) →
+  (a , b , c) ≡{union-cocone A B Y} (a' , b' , c')
+union-cocone-path-J {X} A B Y a b c a' Pa =
+  J a (λ a' Pa . (b' : (Σ (x : X) . B x) → Y) (Pb : b ≡ b') (c' : (x : X) (p : A x) (q : B x) → a' (x , p) ≡ b' (x , q)) →
+        ((x : X) (p : A x) (q : B x) → trans (c x p q) (happly {Σ (x : X) . B x} {λ _ . Y} {b} {b'} Pb (x , q))
+                                         ≡ trans (happly {Σ (x : X) . A x} {λ _ . Y} {a} {a'} Pa (x , p)) (c' x p q)) →
+        (a , b , c) ≡{union-cocone A B Y} (a' , b' , c'))
+    (λ b' Pb . J b (λ b' Pb . (c' : (x : X) (p : A x) (q : B x) → a (x , p) ≡ b' (x , q)) →
+        ((x : X) (p : A x) (q : B x) → trans (c x p q) (happly {Σ (x : X) . B x} {λ _ . Y} {b} {b'} Pb (x , q))
+                                         ≡ trans (happly {Σ (x : X) . A x} {λ _ . Y} {a} {a} refl (x , p)) (c' x p q)) →
+        (a , b , c) ≡{union-cocone A B Y} (a , b' , c'))
+      (λ c' θ .
+        cong {(x : X) (p : A x) (q : B x) → a (x , p) ≡ b (x , q)} {union-cocone A B Y} (λ z . (a , b , z))
+          (funext (λ x . (p : A x) (q : B x) → a (x , p) ≡ b (x , q)) c c' (λ x .
+            funext (λ p . (q : B x) → a (x , p) ≡ b (x , q)) (c x) (c' x) (λ p .
+              funext (λ q . a (x , p) ≡ b (x , q)) (c x p) (c' x p) (λ q .
+                trans (θ x p q) (trans-refl-l (c' x p q)))))))
+      Pb)
+    Pa
+
+-- a path of cocones from pointwise homotopies of the two maps and a coherence on the intersection
+union-cocone-path ∷ {X : U} (A B : X → U) (Y : U)
+  (a : (Σ (x : X) . A x) → Y) (b : (Σ (x : X) . B x) → Y) (c : (x : X) (p : A x) (q : B x) → a (x , p) ≡ b (x , q))
+  (a' : (Σ (x : X) . A x) → Y) (b' : (Σ (x : X) . B x) → Y) (c' : (x : X) (p : A x) (q : B x) → a' (x , p) ≡ b' (x , q))
+  (α : (u : Σ (x : X) . A x) → a u ≡ a' u) (β : (v : Σ (x : X) . B x) → b v ≡ b' v) →
+  ((x : X) (p : A x) (q : B x) → trans (c x p q) (β (x , q)) ≡ trans (α (x , p)) (c' x p q)) →
+  (a , b , c) ≡{union-cocone A B Y} (a' , b' , c')
+union-cocone-path {X} A B Y a b c a' b' c' α β θ =
+  union-cocone-path-J A B Y a b c a' (funext-htpy {Σ (x : X) . A x} {λ _ . Y} a a' α) b' (funext-htpy {Σ (x : X) . B x} {λ _ . Y} b b' β) c'
+    (λ x p q .
+      trans (cong {b (x , q) ≡ b' (x , q)} {a (x , p) ≡ b' (x , q)} (λ e . trans (c x p q) e)
+              (happly {Σ (x : X) . B x} {λ v . b v ≡ b' v} {happly {Σ (x : X) . B x} {λ _ . Y} {b} {b'} (funext-htpy {Σ (x : X) . B x} {λ _ . Y} b b' β)} {β}
+                (happly-funext-htpy {Σ (x : X) . B x} {λ _ . Y} b b' β) (x , q)))
+        (trans (θ x p q)
+          (sym (cong {a (x , p) ≡ a' (x , p)} {a (x , p) ≡ b' (x , q)} (λ e . trans e (c' x p q))
+                 (happly {Σ (x : X) . A x} {λ u . a u ≡ a' u} {happly {Σ (x : X) . A x} {λ _ . Y} {a} {a'} (funext-htpy {Σ (x : X) . A x} {λ _ . Y} a a' α)} {α}
+                   (happly-funext-htpy {Σ (x : X) . A x} {λ _ . Y} a a' α) (x , p))))))
+
+--
+-- first round trip: the restriction of the extension of a cocone is the cocone
+--
+
+-- the centre of the descent family at x, for a given witness of A x ∨ B x
+uZ ∷ {X : U} (A B : X → U) (Y : U) (cD : union-CD A B Y) (a : (Σ (x : X) . A x) → Y) (b : (Σ (x : X) . B x) → Y)
+  (c : (x : X) (p : A x) (q : B x) → a (x , p) ≡ b (x , q)) (x : X) → or (A x) (B x) → union-D A B Y a b c x
+uZ {X} A B Y cD a b c x w = center (union-D A B Y a b c x) (cD a b c x w)
+
+union-sec-α ∷ {X : U} (A B : X → U) (Y : U) (cD : union-CD A B Y) (a : (Σ (x : X) . A x) → Y) (b : (Σ (x : X) . B x) → Y)
+  (c : (x : X) (p : A x) (q : B x) → a (x , p) ≡ b (x , q)) (u : Σ (x : X) . A x) → union-ext3 A B Y cD a b c (union-inl A B u) ≡ a u
+union-sec-α {X} A B Y cD a b c (x , p) = uD-α A B Y a b c x (uZ A B Y cD a b c x (union-wl A B x p)) p
+
+union-sec-β ∷ {X : U} (A B : X → U) (Y : U) (cD : union-CD A B Y) (a : (Σ (x : X) . A x) → Y) (b : (Σ (x : X) . B x) → Y)
+  (c : (x : X) (p : A x) (q : B x) → a (x , p) ≡ b (x , q)) (v : Σ (x : X) . B x) → union-ext3 A B Y cD a b c (union-inr A B v) ≡ b v
+union-sec-β {X} A B Y cD a b c (x , q) = uD-β A B Y a b c x (uZ A B Y cD a b c x (union-wr A B x q)) q
+
+-- a path in the descent family moves the B-path along the value
+uD-β-path ∷ {X : U} (A B : X → U) (Y : U) (a : (Σ (x : X) . A x) → Y) (b : (Σ (x : X) . B x) → Y)
+  (c : (x : X) (p : A x) (q : B x) → a (x , p) ≡ b (x , q)) (x : X) (z z' : union-D A B Y a b c x) (ζ : z ≡ z') (q : B x) →
+  trans (cong (uD-y A B Y a b c x) ζ) (uD-β A B Y a b c x z' q) ≡ uD-β A B Y a b c x z q
+uD-β-path {X} A B Y a b c x z z' ζ q =
+  J z (λ z' ζ . trans (cong (uD-y A B Y a b c x) ζ) (uD-β A B Y a b c x z' q) ≡ uD-β A B Y a b c x z q)
+    (trans-refl-l (uD-β A B Y a b c x z q)) ζ
+
+
+-- the extension sends the glue to c: the centres at (x , inl p) and (x , inr q) are related by a
+-- path in the descent family, which moves the B-path along the value; conclude by the
+-- coherence of the first centre
+union-sec-θ ∷ {X : U} (A B : X → U) (Y : U) (cD : union-CD A B Y) (a : (Σ (x : X) . A x) → Y) (b : (Σ (x : X) . B x) → Y)
+  (c : (x : X) (p : A x) (q : B x) → a (x , p) ≡ b (x , q)) (x : X) (p : A x) (q : B x) →
+  trans (cong (union-ext3 A B Y cD a b c) (union-glue A B x p q)) (union-sec-β A B Y cD a b c (x , q))
+    ≡ trans (union-sec-α A B Y cD a b c (x , p)) (c x p q)
+union-sec-θ {X} A B Y cD a b c x p q =
+  trans
+    (cong {union-ext3 A B Y cD a b c (union-inl A B (x , p)) ≡ union-ext3 A B Y cD a b c (union-inr A B (x , q))}
+          {union-ext3 A B Y cD a b c (union-inl A B (x , p)) ≡ b (x , q)}
+          (λ e . trans e (union-sec-β A B Y cD a b c (x , q)))
+      (trans (sym (cong-comp {or (A x) (B x)} {union A B} {Y} (union-ext3 A B Y cD a b c) (union-ι A B x)
+                    (union-τ A B x (union-wl A B x p) (union-wr A B x q))))
+             (cong-comp {or (A x) (B x)} {union-D A B Y a b c x} {Y} (uD-y A B Y a b c x) (uZ A B Y cD a b c x)
+                    (union-τ A B x (union-wl A B x p) (union-wr A B x q)))))
+    (trans (uD-β-path A B Y a b c x (uZ A B Y cD a b c x (union-wl A B x p)) (uZ A B Y cD a b c x (union-wr A B x q))
+              (cong (uZ A B Y cD a b c x) (union-τ A B x (union-wl A B x p) (union-wr A B x q))) q)
+           (uD-γ A B Y a b c x (uZ A B Y cD a b c x (union-wl A B x p)) p q))
+
+union-sec3 ∷ {X : U} (A B : X → U) (Y : U) (cD : union-CD A B Y) (a : (Σ (x : X) . A x) → Y) (b : (Σ (x : X) . B x) → Y)
+  (c : (x : X) (p : A x) (q : B x) → a (x , p) ≡ b (x , q)) → union-restr A B Y (union-ext3 A B Y cD a b c) ≡ (a , b , c)
+union-sec3 {X} A B Y cD a b c =
+  union-cocone-path A B Y
+    (λ u . union-ext3 A B Y cD a b c (union-inl A B u)) (λ v . union-ext3 A B Y cD a b c (union-inr A B v))
+    (λ x p q . cong (union-ext3 A B Y cD a b c) (union-glue A B x p q))
+    a b c (union-sec-α A B Y cD a b c) (union-sec-β A B Y cD a b c) (union-sec-θ A B Y cD a b c)
+
+union-sec2 ∷ {X : U} (A B : X → U) (Y : U) (cD : union-CD A B Y) (a : (Σ (x : X) . A x) → Y)
+  (r : Σ (b : (Σ (x : X) . B x) → Y) . (x : X) (p : A x) (q : B x) → a (x , p) ≡ b (x , q)) →
+  union-restr A B Y (union-ext A B Y cD (a , r)) ≡ (a , r)
+union-sec2 {X} A B Y cD a (b , c) = union-sec3 A B Y cD a b c
+
+union-sec ∷ {X : U} (A B : X → U) (Y : U) (cD : union-CD A B Y) (d : union-cocone A B Y) → union-restr A B Y (union-ext A B Y cD d) ≡ d
+union-sec {X} A B Y cD (a , r) = union-sec2 A B Y cD a r
+
+--
+-- second round trip: the extension of the restriction of a map is the map
+--
+
+-- k gives a point of the descent family of its restriction: all paths live in one fibre of the
+-- union, which is a proposition, so the coherence holds
+union-ret-z ∷ {X : U} (A B : X → U) (Y : U) (k : union A B → Y) (x : X) (w : or (A x) (B x)) →
+  union-D A B Y (λ u . k (union-inl A B u)) (λ v . k (union-inr A B v)) (λ x p q . cong k (union-glue A B x p q)) x
+union-ret-z {X} A B Y k x w =
+  ((k (x , w) , λ p . cong k (cong (union-ι A B x) (union-τ A B x w (union-wl A B x p)))) ,
+   ((λ q . cong k (cong (union-ι A B x) (union-τ A B x w (union-wr A B x q)))) ,
+    λ p q .
+      trans (cong {w ≡ union-wr A B x q} {k (x , w) ≡ k (x , union-wr A B x q)} (λ t . cong k (cong (union-ι A B x) t))
+              (prop-path (is-prop→is-set (is-prop-type-prop-trunc (sum (A x) (B x))) w (union-wr A B x q))
+                (union-τ A B x w (union-wr A B x q))
+                (trans (union-τ A B x w (union-wl A B x p)) (union-τ A B x (union-wl A B x p) (union-wr A B x q)))))
+        (trans (cong {union-ι A B x w ≡ union-ι A B x (union-wr A B x q)} {k (x , w) ≡ k (x , union-wr A B x q)} (λ e . cong k e)
+                 (cong-trans (union-ι A B x) (union-τ A B x w (union-wl A B x p)) (union-τ A B x (union-wl A B x p) (union-wr A B x q))))
+          (cong-trans k (cong (union-ι A B x) (union-τ A B x w (union-wl A B x p)))
+            (cong (union-ι A B x) (union-τ A B x (union-wl A B x p) (union-wr A B x q)))))))
+
+union-ret-pw ∷ {X : U} (A B : X → U) (Y : U) (cD : union-CD A B Y) (k : union A B → Y) (z : union A B) →
+  union-ext A B Y cD (union-restr A B Y k) z ≡ k z
+union-ret-pw {X} A B Y cD k (x , w) =
+  cong {union-D A B Y (λ u . k (union-inl A B u)) (λ v . k (union-inr A B v)) (λ x p q . cong k (union-glue A B x p q)) x} {Y}
+    (uD-y A B Y (λ u . k (union-inl A B u)) (λ v . k (union-inr A B v)) (λ x p q . cong k (union-glue A B x p q)) x)
+    (is-contr-eq (cD (λ u . k (union-inl A B u)) (λ v . k (union-inr A B v)) (λ x p q . cong k (union-glue A B x p q)) x w)
+      (center _ (cD (λ u . k (union-inl A B u)) (λ v . k (union-inr A B v)) (λ x p q . cong k (union-glue A B x p q)) x w))
+      (union-ret-z A B Y k x w))
+
+union-ret ∷ {X : U} (A B : X → U) (Y : U) (cD : union-CD A B Y) (k : union A B → Y) → union-ext A B Y cD (union-restr A B Y k) ≡ k
+union-ret {X} A B Y cD k = funext-nd (union-ext A B Y cD (union-restr A B Y k)) k (union-ret-pw A B Y cD k)
+
+--
+-- the universal property of the union
+--
+
+union-up-param ∷ {X : U} (A B : X → U) (Y : U) (cD : union-CD A B Y) → is-equiv (union-restr A B Y)
+union-up-param {X} A B Y cD = ((union-ext A B Y cD , union-sec A B Y cD) , (union-ext A B Y cD , union-ret A B Y cD))
+
+union-up ∷ {X : U} (A B : X → U) (pA : (x : X) → is-prop (A x)) (pB : (x : X) → is-prop (B x)) (Y : U) → is-equiv (union-restr A B Y)
+union-up {X} A B pA pB Y = union-up-param A B Y (union-D-contr A B pA pB Y)
+
+---
+--- A union with a contractible intersection is a wedge
+---
+--- If the intersection Σ (x : X) . A x × B x is contractible, with centre (x0 , p0 , q0), then a
+--- cocone is determined by its two maps and the single path a (x0 , p0) ≡ b (x0 , q0) at the
+--- centre: the pushout over a point.
+---
+
+-- the intersection and its components
+union-I ∷ {X : U} (A B : X → U) → U
+union-I {X} A B = Σ (x : X) . A x × B x
+
+uI-x ∷ {X : U} (A B : X → U) → union-I A B → X
+uI-x {X} A B (x , w) = x
+
+uI-p ∷ {X : U} (A B : X → U) (t : union-I A B) → A (uI-x A B t)
+uI-p {X} A B (x , w) = prod-fst {A x} {B x} w
+
+uI-q ∷ {X : U} (A B : X → U) (t : union-I A B) → B (uI-x A B t)
+uI-q {X} A B (x , w) = prod-snd {A x} {B x} w
+
+-- cocones over a point of the intersection, and evaluation of the glue at that point
+union-pt-cocone ∷ {X : U} (A B : X → U) (Y : U) (x0 : X) (p0 : A x0) (q0 : B x0) → U
+union-pt-cocone {X} A B Y x0 p0 q0 = Σ (a : (Σ (x : X) . A x) → Y) . Σ (b : (Σ (x : X) . B x) → Y) . a (x0 , p0) ≡ b (x0 , q0)
+
+union-ev-pt3 ∷ {X : U} (A B : X → U) (Y : U) (x0 : X) (p0 : A x0) (q0 : B x0)
+  (a : (Σ (x : X) . A x) → Y) (b : (Σ (x : X) . B x) → Y) (c : (x : X) (p : A x) (q : B x) → a (x , p) ≡ b (x , q)) →
+  union-pt-cocone A B Y x0 p0 q0
+union-ev-pt3 {X} A B Y x0 p0 q0 a b c = (a , b , c x0 p0 q0)
+
+union-ev-pt ∷ {X : U} (A B : X → U) (Y : U) (x0 : X) (p0 : A x0) (q0 : B x0) → union-cocone A B Y → union-pt-cocone A B Y x0 p0 q0
+union-ev-pt {X} A B Y x0 p0 q0 (a , r) =
+  union-ev-pt3 A B Y x0 p0 q0 a
+    (fst {(Σ (x : X) . B x) → Y} (λ b . (x : X) (p : A x) (q : B x) → a (x , p) ≡ b (x , q)) r)
+    (snd {(Σ (x : X) . B x) → Y} (λ b . (x : X) (p : A x) (q : B x) → a (x , p) ≡ b (x , q)) r)
+
+-- the glue of a cocone, as a family over the intersection
+union-glue-fam ∷ {X : U} (A B : X → U) (Y : U) (a : (Σ (x : X) . A x) → Y) (b : (Σ (x : X) . B x) → Y) → union-I A B → U
+union-glue-fam {X} A B Y a b t = a (uI-x A B t , uI-p A B t) ≡ b (uI-x A B t , uI-q A B t)
+
+-- a contraction of the intersection which is refl at the centre
+union-κ' ∷ {X : U} (A B : X → U) (x0 : X) (p0 : A x0) (q0 : B x0) (κ : (t : union-I A B) → (x0 , p0 , q0) ≡{union-I A B} t) (t : union-I A B) →
+  (x0 , p0 , q0) ≡{union-I A B} t
+union-κ' {X} A B x0 p0 q0 κ t = trans (sym (κ (x0 , p0 , q0))) (κ t)
+
+-- the inverse: spread the glue at the centre along the contraction
+union-pt-inv3 ∷ {X : U} (A B : X → U) (Y : U) (x0 : X) (p0 : A x0) (q0 : B x0) (κ : (t : union-I A B) → (x0 , p0 , q0) ≡{union-I A B} t)
+  (a : (Σ (x : X) . A x) → Y) (b : (Σ (x : X) . B x) → Y) (e : a (x0 , p0) ≡ b (x0 , q0)) → union-cocone A B Y
+union-pt-inv3 {X} A B Y x0 p0 q0 κ a b e =
+  (a , b , λ x p q . subst (union-glue-fam A B Y a b) (union-κ' A B x0 p0 q0 κ (x , p , q)) e)
+
+union-pt-inv ∷ {X : U} (A B : X → U) (Y : U) (x0 : X) (p0 : A x0) (q0 : B x0) (κ : (t : union-I A B) → (x0 , p0 , q0) ≡{union-I A B} t) →
+  union-pt-cocone A B Y x0 p0 q0 → union-cocone A B Y
+union-pt-inv {X} A B Y x0 p0 q0 κ (a , r) =
+  union-pt-inv3 A B Y x0 p0 q0 κ a
+    (fst {(Σ (x : X) . B x) → Y} (λ b . a (x0 , p0) ≡ b (x0 , q0)) r)
+    (snd {(Σ (x : X) . B x) → Y} (λ b . a (x0 , p0) ≡ b (x0 , q0)) r)
+
+union-pt-sec3 ∷ {X : U} (A B : X → U) (Y : U) (x0 : X) (p0 : A x0) (q0 : B x0) (κ : (t : union-I A B) → (x0 , p0 , q0) ≡{union-I A B} t)
+  (a : (Σ (x : X) . A x) → Y) (b : (Σ (x : X) . B x) → Y) (e : a (x0 , p0) ≡ b (x0 , q0)) →
+  union-ev-pt A B Y x0 p0 q0 (union-pt-inv3 A B Y x0 p0 q0 κ a b e) ≡ (a , b , e)
+union-pt-sec3 {X} A B Y x0 p0 q0 κ a b e =
+  cong {a (x0 , p0) ≡ b (x0 , q0)} {union-pt-cocone A B Y x0 p0 q0} (λ z . (a , b , z))
+    (cong {(x0 , p0 , q0) ≡{union-I A B} (x0 , p0 , q0)} {a (x0 , p0) ≡ b (x0 , q0)}
+      (λ π . subst (union-glue-fam A B Y a b) π e) (trans-sym-l (κ (x0 , p0 , q0))))
+
+union-pt-ret3 ∷ {X : U} (A B : X → U) (Y : U) (x0 : X) (p0 : A x0) (q0 : B x0) (κ : (t : union-I A B) → (x0 , p0 , q0) ≡{union-I A B} t)
+  (a : (Σ (x : X) . A x) → Y) (b : (Σ (x : X) . B x) → Y) (c : (x : X) (p : A x) (q : B x) → a (x , p) ≡ b (x , q)) →
+  union-pt-inv3 A B Y x0 p0 q0 κ a b (c x0 p0 q0) ≡ (a , b , c)
+union-pt-ret3 {X} A B Y x0 p0 q0 κ a b c =
+  let h : (t : union-I A B) → union-glue-fam A B Y a b t = λ t . c (uI-x A B t) (uI-p A B t) (uI-q A B t) in
+  cong {(x : X) (p : A x) (q : B x) → a (x , p) ≡ b (x , q)} {union-cocone A B Y} (λ z . (a , b , z))
+    (funext (λ x . (p : A x) (q : B x) → a (x , p) ≡ b (x , q)) (λ x p q . subst (union-glue-fam A B Y a b) (union-κ' A B x0 p0 q0 κ (x , p , q)) (c x0 p0 q0)) c (λ x .
+      funext (λ p . (q : B x) → a (x , p) ≡ b (x , q)) (λ p q . subst (union-glue-fam A B Y a b) (union-κ' A B x0 p0 q0 κ (x , p , q)) (c x0 p0 q0)) (c x) (λ p .
+        funext (λ q . a (x , p) ≡ b (x , q)) (λ q . subst (union-glue-fam A B Y a b) (union-κ' A B x0 p0 q0 κ (x , p , q)) (c x0 p0 q0)) (c x p) (λ q .
+          subst-section {union-I A B} (union-glue-fam A B Y a b) h {(x0 , p0 , q0)} {(x , p , q)} (union-κ' A B x0 p0 q0 κ (x , p , q))))))
+
+union-pt-sec ∷ {X : U} (A B : X → U) (Y : U) (x0 : X) (p0 : A x0) (q0 : B x0) (κ : (t : union-I A B) → (x0 , p0 , q0) ≡{union-I A B} t)
+  (d : union-pt-cocone A B Y x0 p0 q0) → union-ev-pt A B Y x0 p0 q0 (union-pt-inv A B Y x0 p0 q0 κ d) ≡ d
+union-pt-sec {X} A B Y x0 p0 q0 κ (a , r) =
+  let h : (r : Σ (b : (Σ (x : X) . B x) → Y) . a (x0 , p0) ≡ b (x0 , q0)) →
+      union-ev-pt A B Y x0 p0 q0 (union-pt-inv A B Y x0 p0 q0 κ (a , r)) ≡ (a , r) = fun (b , e) → union-pt-sec3 A B Y x0 p0 q0 κ a b e in
+  h r
+
+union-pt-ret ∷ {X : U} (A B : X → U) (Y : U) (x0 : X) (p0 : A x0) (q0 : B x0) (κ : (t : union-I A B) → (x0 , p0 , q0) ≡{union-I A B} t)
+  (d : union-cocone A B Y) → union-pt-inv A B Y x0 p0 q0 κ (union-ev-pt A B Y x0 p0 q0 d) ≡ d
+union-pt-ret {X} A B Y x0 p0 q0 κ (a , r) =
+  let h : (r : Σ (b : (Σ (x : X) . B x) → Y) . (x : X) (p : A x) (q : B x) → a (x , p) ≡ b (x , q)) →
+      union-pt-inv A B Y x0 p0 q0 κ (union-ev-pt A B Y x0 p0 q0 (a , r)) ≡ (a , r) = fun (b , c) → union-pt-ret3 A B Y x0 p0 q0 κ a b c in
+  h r
+
+-- with a contractible intersection, cocones on the union are cocones over the centre
+is-equiv-union-ev-pt ∷ {X : U} (A B : X → U) (Y : U) (x0 : X) (p0 : A x0) (q0 : B x0) (κ : (t : union-I A B) → (x0 , p0 , q0) ≡{union-I A B} t) →
+  is-equiv (union-ev-pt A B Y x0 p0 q0)
+is-equiv-union-ev-pt {X} A B Y x0 p0 q0 κ =
+  ((union-pt-inv A B Y x0 p0 q0 κ , union-pt-sec A B Y x0 p0 q0 κ) , (union-pt-inv A B Y x0 p0 q0 κ , union-pt-ret A B Y x0 p0 q0 κ))
+
+-- the universal property of a union with a contractible intersection, as a pushout over a point
+union-pt-up ∷ {X : U} (A B : X → U) (pA : (x : X) → is-prop (A x)) (pB : (x : X) → is-prop (B x)) (Y : U)
+  (x0 : X) (p0 : A x0) (q0 : B x0) (κ : (t : union-I A B) → (x0 , p0 , q0) ≡{union-I A B} t) →
+  is-equiv {union A B → Y} {union-pt-cocone A B Y x0 p0 q0} (λ k . union-ev-pt A B Y x0 p0 q0 (union-restr A B Y k))
+union-pt-up {X} A B pA pB Y x0 p0 q0 κ =
+  is-equiv-circ (union-ev-pt A B Y x0 p0 q0) (union-restr A B Y) (is-equiv-union-ev-pt A B Y x0 p0 q0 κ) (union-up A B pA pB Y)

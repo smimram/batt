@@ -47,6 +47,10 @@ happly {A} {B} {f} refl x = refl
 --- Basic lemmas
 ---
 
+-- transport in a family along e : t0 ≡ t sends the value at t0 of a section to its value at t
+subst-section ∷ {T : Type} (P : T → Type) (h : (t : T) → P t) {t0 t : T} (e : t0 ≡ t) → subst P e (h t0) ≡ h t
+subst-section {T} P h {t0} {t} e = J t0 (λ t e . subst P e (h t0) ≡ h t) refl e
+
 sym-sym ∷ {A : Type} {x y : A} (p : x ≡ y) → sym (sym p) ≡ p
 sym-sym {A} {x} refl = refl
 
@@ -96,3 +100,76 @@ ap-l {S} {X} {y0} refl φ = refl
 -- evaluation of a path between lax maps at a crisp point
 ev-l ∷ {S X ∷ U} (y ∷ S) {φ ψ : S →ₗ X} → φ ≡ ψ → φ y ≡ ψ y
 ev-l {S} {X} y {φ} {ψ} p = cong {S →ₗ X} {X} (λ h . h y) p
+
+---
+--- More path algebra
+---
+
+-- Equality
+trans-refl-l ∷ {A : Type} {x y : A} (p : x ≡ y) → trans refl p ≡ p
+trans-refl-l {A} {x} refl = refl
+
+cong-comp ∷ {A B C : Type} (g : B → C) (f : A → B) {x y : A} (p : x ≡ y) → cong (λ a . g (f a)) p ≡ cong g (cong f p)
+cong-comp g f {x} refl = refl
+
+cong-trans ∷ {A B : Type} (f : A → B) {x y : A} (p : x ≡ y) {z : A} (q : y ≡ z) → cong f (trans p q) ≡ trans (cong f p) (cong f q)
+cong-trans f {x} p refl = refl
+
+-- path algebra
+cong-trans4 ∷ {A B : Type} (k : A → B) {x y z u v : A} (p : x ≡ y) (q : y ≡ z) (r : z ≡ u) (s : u ≡ v) →
+  cong k (trans p (trans q (trans r s))) ≡ trans (cong k p) (trans (cong k q) (trans (cong k r) (cong k s)))
+cong-trans4 {A} {B} k {x} {y} {z} {u} {v} p q r s =
+  trans (cong-trans k p (trans q (trans r s)))
+    (cong {k y ≡ k v} {k x ≡ k v} (λ e . trans (cong k p) e)
+      (trans (cong-trans k q (trans r s)) (cong {k z ≡ k v} {k y ≡ k v} (λ e . trans (cong k q) e) (cong-trans k r s))))
+
+ap-trans-mid ∷ {A : Type} {x y z u w : A} (X : x ≡ y) {m m' : y ≡ z} (e : m ≡ m') (Z : z ≡ u) {n n' : u ≡ w} (e' : n ≡ n') →
+  trans X (trans m (trans Z n)) ≡ trans X (trans m' (trans Z n'))
+ap-trans-mid X {m} refl Z {n} refl = refl
+
+---
+--- Crisp paths and directed functions
+---
+
+ev-l-at ∷ {G X ∷ U} {h h' ∷ G →ₗ X} (q ∷ h ≡ h') (w : G) → h w ≡ h' w
+ev-l-at {G} {X} {h} refl w = refl
+
+ev-r-at ∷ {G X ∷ U} {h h' ∷ G →ᵣ X} (q ∷ h ≡ h') (w : G) → h w ≡ h' w
+ev-r-at {G} {X} {h} refl w = refl
+
+-- the glue of the restriction of λ x . e x w is the evaluation of the glue of the restriction of e
+ap-r-family ∷ {S G X ∷ U} {y0 y1 ∷ S} (c ∷ y0 ≡ y1) (e ∷ S → (G →ₗ X)) (w : G) →
+  ap-r {S} {X} {y0} {y1} c (λ x . e x w) ≡ ev-l-at {G} {X} {e y0} {e y1} (cong e c) w
+ap-r-family {S} {G} {X} {y0} refl e w = refl
+
+-- applying a crisp path of families to a point
+family-r-path ∷ {S G X ∷ U} {e e' ∷ S → (G →ₗ X)} (p ∷ e ≡ e') (φ : G) → (λ x . e x φ) ≡{S →ᵣ X} (λ x . e' x φ)
+family-r-path {S} {G} {X} {e} refl φ = refl
+
+-- the cartesian map "evaluate at y" and its action on crisp paths
+ev-r-path ∷ {S X ∷ U} {y0 y1 ∷ S} (c ∷ y0 ≡ y1) → (λ φ . φ y0) ≡{(S →ᵣ X) → X} (λ φ . φ y1)
+ev-r-path {S} {X} {y0} refl = refl
+
+happly-ev-r-path ∷ {S X ∷ U} {y0 y1 ∷ S} (c ∷ y0 ≡ y1) →
+  happly {S →ᵣ X} {λ _ . X} {λ φ . φ y0} {λ φ . φ y1} (ev-r-path {S} {X} c) ≡ (λ φ . ap-r {S} {X} {y0} {y1} c φ)
+happly-ev-r-path {S} {X} {y0} refl = refl
+
+-- the lax mirrors of the four lemmas above
+ap-l-family ∷ {S G X ∷ U} {y0 y1 ∷ S} (c ∷ y0 ≡ y1) (e ∷ S → (G →ᵣ X)) (w : G) →
+  ap-l {S} {X} {y0} {y1} c (λ x . e x w) ≡ ev-r-at {G} {X} {e y0} {e y1} (cong e c) w
+ap-l-family {S} {G} {X} {y0} refl e w = refl
+
+family-l-path ∷ {S G X ∷ U} {e e' ∷ S → (G →ᵣ X)} (p ∷ e ≡ e') (φ : G) → (λ x . e x φ) ≡{S →ₗ X} (λ x . e' x φ)
+family-l-path {S} {G} {X} {e} refl φ = refl
+
+ev-l-path ∷ {S X ∷ U} {y0 y1 ∷ S} (c ∷ y0 ≡ y1) → (λ φ . φ y0) ≡{(S →ₗ X) → X} (λ φ . φ y1)
+ev-l-path {S} {X} {y0} refl = refl
+
+happly-ev-l-path ∷ {S X ∷ U} {y0 y1 ∷ S} (c ∷ y0 ≡ y1) →
+  happly {S →ₗ X} {λ _ . X} {λ φ . φ y0} {λ φ . φ y1} (ev-l-path {S} {X} c) ≡ (λ φ . ap-l {S} {X} {y0} {y1} c φ)
+happly-ev-l-path {S} {X} {y0} refl = refl
+
+happly-cong-pre ∷ {A A' B : U} (h : A' → A) {k k' : A → B} (p : k ≡ k') →
+  happly {A'} {λ _ . B} {λ a . k (h a)} {λ a . k' (h a)} (cong {A → B} {A' → B} (λ m . λ a . m (h a)) p)
+    ≡ (λ a . happly {A} {λ _ . B} {k} {k'} p (h a))
+happly-cong-pre {A} {A'} {B} h {k} refl = refl

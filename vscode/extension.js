@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const cp = require('child_process');
 const vscode = require('vscode');
-const { registerNavigation } = require('./navigation');
+const { registerNavigation, projectRoot } = require('./navigation');
 
 const NO_FILE_MESSAGE = 'Open a .batt file to see its output.';
 
@@ -52,9 +52,11 @@ class BattOutputViewProvider {
       return;
     }
 
-    const workspaceFolder = vscode.workspace.getWorkspaceFolder(document.uri);
-    if (!workspaceFolder) {
-      this.update('Open the workspace root that contains the BATT project.');
+    // the checker is run from the project root (the closest ancestor with a stdlib/), whatever
+    // the workspace folder is (the repository, graytt/, a parent directory, ...)
+    const projectDir = projectRoot(vscode, document.uri);
+    if (!fs.existsSync(path.join(projectDir, 'stdlib', 'Stdlib.batt'))) {
+      this.update('Open a file of the BATT project (no stdlib/ found above this file).');
       return;
     }
 
@@ -70,9 +72,9 @@ class BattOutputViewProvider {
     }
     this.render(document.isDirty ? 'checking unsaved changes…' : 'checking…');
     try {
-      const source = await this.materializeDocument(document, workspaceFolder.uri.fsPath);
+      const source = await this.materializeDocument(document, projectDir);
       try {
-        const root = workspaceFolder.uri.fsPath;
+        const root = projectDir;
         const shownName = path.relative(root, document.fileName);
         const result = await runBatt(root, source.filePath);
         this.lastModel = result.stopped

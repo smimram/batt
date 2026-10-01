@@ -472,12 +472,11 @@ class Resolver {
 
 // ---------------------------------------------------------------- VS Code glue
 
-// Root used to find modules: the workspace folder, else the closest ancestor with a stdlib/.
+// Root used to find modules: the closest ancestor of the file with a stdlib/ (the directory
+// the checker is run from), so that it does not matter whether the workspace folder is the
+// repository, a subdirectory such as graytt/, or a parent directory; else the workspace
+// folder, else the file's directory.
 function projectRoot(vscode, uri) {
-  const folder = vscode.workspace.getWorkspaceFolder(uri);
-  if (folder) {
-    return folder.uri.fsPath;
-  }
   let dir = path.dirname(uri.fsPath);
   for (;;) {
     if (fs.existsSync(path.join(dir, 'stdlib', 'Stdlib.batt'))) {
@@ -485,10 +484,12 @@ function projectRoot(vscode, uri) {
     }
     const parent = path.dirname(dir);
     if (parent === dir) {
-      return path.dirname(uri.fsPath);
+      break;
     }
     dir = parent;
   }
+  const folder = vscode.workspace.getWorkspaceFolder(uri);
+  return folder ? folder.uri.fsPath : path.dirname(uri.fsPath);
 }
 
 function registerNavigation(vscode, context) {
@@ -541,4 +542,4 @@ function registerNavigation(vscode, context) {
   context.subscriptions.push(vscode.languages.registerDefinitionProvider({ language: 'batt' }, provider));
 }
 
-module.exports = { registerNavigation, tokenize, parseModule, Resolver };
+module.exports = { registerNavigation, tokenize, parseModule, Resolver, projectRoot };

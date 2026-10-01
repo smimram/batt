@@ -128,3 +128,28 @@ sorted-path ∷ (n ∷ ℕ) (x ∷ cart-cube (succ n)) (p q ∷ is-sorted n x) �
 sorted-path n x p q =
   let e ∷ p ≡ q = center (p ≡ q) (is-prop-is-sorted n x p q) in
   cong {is-sorted n x} {simplex (succ n)} (λ z . (x , z)) e
+
+--
+-- The spine as a set, and its vertex seen from both edges
+--
+
+is-set-cart-cube ∷ (n ∷ ℕ) → is-set (cart-cube n)
+is-set-cart-cube zero = is-set-unit
+is-set-cart-cube (succ n) = is-set-prod {𝕀} {cart-cube n} is-set-𝕀 rec
+
+is-prop-is-in-spine ∷ (n ∷ ℕ) (x : cart-cube n) → is-prop (is-in-spine n x)
+is-prop-is-in-spine zero x = is-prop-unit
+is-prop-is-in-spine (succ n) x = is-prop-type-prop-trunc _
+
+is-set-spine ∷ (n ∷ ℕ) → is-set (spine n)
+is-set-spine n = is-set-Σ-prop (is-in-spine n) (is-set-cart-cube n) (is-prop-is-in-spine n)
+
+spine-1-pt ∷ (t : 𝕀) → is-in-spine 1 (t , tt)
+spine-1-pt t = unit-prop-trunc (sum (tt ≡ zero-cube 0) ((t ≡ 𝕀1) × is-in-spine 0 tt)) (inl {tt ≡ zero-cube 0} {(t ≡ 𝕀1) × is-in-spine 0 tt} refl)
+
+spine-glue ∷ spine-edge-1 𝕀1 ≡{spine 2} spine-edge-2 𝕀0
+spine-glue =
+  let c0 ∷ cart-cube 2 = (𝕀1 , 𝕀0 , tt) in
+  let τ ∷ snd (is-in-spine 2) (spine-edge-1 𝕀1) ≡ snd (is-in-spine 2) (spine-edge-2 𝕀0) =
+    prop-path (is-prop-is-in-spine 2 c0) (snd (is-in-spine 2) (spine-edge-1 𝕀1)) (snd (is-in-spine 2) (spine-edge-2 𝕀0)) in
+  cong {is-in-spine 2 c0} {spine 2} (λ w . (c0 , w)) τ

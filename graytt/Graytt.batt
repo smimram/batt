@@ -7,3 +7,5 @@ open import FreeEquiv
 open import Complete
 open import Rezk
 open import Composition
+open import Spine-up
+open import Wedge
