@@ -151,8 +151,26 @@ let crispy_colon = function
   | Normal -> ":"
   | Crisp -> "∷"
 
-(** String representation of a term. *)
-let rec to_string t =
+module StringSet = Set.Make(String)
+
+(** A variant of the name [x] which is not [used], obtained by adding primes. *)
+let rec fresh_name used x =
+  if x = "_" || not (used x) then x else fresh_name used (x ^ "'")
+
+(** Make the names of a list of variables (most recent first) distinct, by adding primes to the ones shadowing older ones. *)
+let fresh_names vars =
+  snd @@ List.fold_left (fun (used, vars) x -> let x = fresh_name (fun x -> StringSet.mem x used) x in StringSet.add x used, x::vars) (StringSet.empty, []) (List.rev vars)
+
+(** String representation of a term. The list [vars] gives the (distinct) names of the variables, indexed by de Bruijn indices. A bound variable whose name is already in [vars] is renamed by adding primes: [ren] records those renamings, which are used for named variables [Var x]. *)
+let rec to_string ?(vars=[]) ?(ren=[]) t =
+  let fresh vars x = fresh_name (fun x -> List.mem x vars) x in
+  let bind x t = let x' = fresh vars x in x', to_string ~vars:(x'::vars) ~ren:((x,x')::ren) t in
+  let bind2 x y t =
+    let x' = fresh vars x in
+    let y' = fresh (x'::vars) y in
+    x', y', to_string ~vars:(y'::x'::vars) ~ren:((y,y')::(x,x')::ren) t
+  in
+  let to_string t = to_string ~vars ~ren t in
   let colon = crispy_colon in
   match t with
   | Type 0 -> "Type"
@@ -176,16 +194,18 @@ let rec to_string t =
     )
   | IndTerm _ -> assert false
   | Pi (i, c, x, a, t) ->
+    let x, t = bind x t in
     (
       match i with
-      | Explicit -> Printf.sprintf "(%s %s %s) → %s" x (colon c) (to_string a) (to_string t)
-      | Implicit -> Printf.sprintf "{%s %s %s} → %s" x (colon c) (to_string a) (to_string t)
+      | Explicit -> Printf.sprintf "(%s %s %s) → %s" x (colon c) (to_string a) t
+      | Implicit -> Printf.sprintf "{%s %s %s} → %s" x (colon c) (to_string a) t
     )
   | Abs (i, x, t) ->
+    let x, t = bind x t in
     (
       match i with
-      | Explicit -> Printf.sprintf "λ%s.%s" x (to_string t)
-      | Implicit -> Printf.sprintf "λ{%s}.%s" x (to_string t)
+      | Explicit -> Printf.sprintf "λ%s.%s" x t
+      | Implicit -> Printf.sprintf "λ{%s}.%s" x t
     )
   | App (t, i, u) ->
     (
@@ -193,22 +213,23 @@ let rec to_string t =
       | Explicit -> Printf.sprintf "(%s %s)" (to_string t) (to_string u)
       | Implicit -> Printf.sprintf "(%s {%s})" (to_string t) (to_string u)
     )
-  | Sigma (x, a, t) -> Printf.sprintf "(Σ(%s : %s).%s)" x (to_string a) (to_string t)
+  | Sigma (x, a, t) -> let x, t = bind x t in Printf.sprintf "(Σ(%s : %s).%s)" x (to_string a) t
   | Pair (t, u) -> Printf.sprintf "(%s, %s)" (to_string t) (to_string u)
-  | Pair_ind (x, y, t) -> Printf.sprintf "(λ(%s,%s).%s)" x y (to_string t)
+  | Pair_ind (x, y, t) -> let x, y, t = bind2 x y t in Printf.sprintf "(λ(%s,%s).%s)" x y t
   | Arr (s, a, b) -> Printf.sprintf "%s →%s %s" (to_string a) (string_of_side s) (to_string b)
   | Tens (a, b) -> Printf.sprintf "(%s ⨂ %s)" (to_string a) (to_string b)
   | TensPair (t, u) -> Printf.sprintf "(%s ⊗ %s)" (to_string t) (to_string u)
-  | Tens_ind (x, y, t) -> Printf.sprintf "(λ(%s⊗%s).%s)" x y (to_string t)
+  | Tens_ind (x, y, t) -> let x, y, t = bind2 x y t in Printf.sprintf "(λ(%s⊗%s).%s)" x y t
   | Flat t -> Printf.sprintf "♭%s" (to_string t)
   | Flatten t -> Printf.sprintf "𝄫%s" (to_string t)
-  | Flat_ind (x,t) -> Printf.sprintf "♭_ind(%s,%s)" x (to_string t)
+  | Flat_ind (x,t) -> let x, t = bind x t in Printf.sprintf "♭_ind(%s,%s)" x t
   | Eq (_,t,u) -> Printf.sprintf "%s ≡ %s" (to_string t) (to_string u)
   | Refl t -> Printf.sprintf "refl(%s)" (to_string t)
   | J r -> Printf.sprintf "J(%s)" (to_string r)
-  | Var x -> x
+  | Var x -> Option.value ~default:x @@ List.assoc_opt x ren
+  | Var' n when 0 <= n && n < List.length vars && not !Common.de_bruijn -> List.nth vars n
   | Var' n -> Printf.sprintf "x-%d" n
-  | Let (c,x,a,t,u) -> Printf.sprintf "let %s %s %s = %s in %s" x (colon c) (to_string a) (to_string t) (to_string u)
+  | Let (c,x,a,t,u) -> let x, u = bind x u in Printf.sprintf "let %s %s %s = %s in %s" x (colon c) (to_string a) (to_string t) u
   | Postulate n -> "postulate" ^ (match n with Some n -> string_of_int n | None -> "")
   | Hole _ -> "?"
   | Meta (`Fresh _) -> "_"
