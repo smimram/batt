@@ -75,14 +75,20 @@ module Bunch = struct
     | Tens (l,r) -> FV.union (dom l) (dom r)
 
   (** Split a buch so that we have the given free variables. *)
-  let split fvl fvr crisp b =
-    if !Common.show_debug then debug "SPLIT %s as %s / %s\n" (to_string 0 b) (FV.to_string fvl) (FV.to_string fvr);
+  let split ?t ?vars k fvl fvr crisp b =
+    let failwith s =
+      let pos = match t with Some t -> T.Position.to_string_comma t | None -> "" in
+      failwith (pos ^ s)
+    in
+    let to_string = to_string ?vars k in
+    if !Common.show_debug then debug "SPLIT %s as %s / %s\n" (to_string b) (FV.to_string fvl) (FV.to_string fvr);
     let fvc = FV.of_list @@ List.map fst crisp in
-    assert (FV.subset (FV.inter fvl fvr) fvc);
+    let shared = FV.diff (FV.inter fvl fvr) fvc in
+    if not (FV.is_empty shared) then failwith @@ Printf.sprintf "non-crisp variables used on both sides of a tensor: %s" (FV.to_string shared);
     let is_crisp fv = FV.subset fv fvc in
     (* Printf.printf "crisp: %s\n%!" @@ FV.to_string fvc; *)
     let rec aux fvl fvr b =
-      (* Printf.printf "split %s as %s / %s\n%!" (to_string 0 b) (FV.to_string fvl) (FV.to_string fvr); *)
+      (* Printf.printf "split %s as %s / %s\n%!" (to_string b) (FV.to_string fvl) (FV.to_string fvr); *)
       match b with
       | b when is_crisp fvl -> Empty, b
       | b when is_crisp fvr -> b, Empty
@@ -98,15 +104,15 @@ module Bunch = struct
           let b2', b2'' = aux (FV.diff fvl fv1) fvr b2 in
           Tens (b1, b2'), b2''
         else if not @@ FV.subset (FV.union fvl fvr) (FV.union fv1 fv2) then failwith @@ Printf.sprintf "split: undefined variables: %s" @@ FV.to_string (FV.diff (FV.union fvl fvr) (FV.union fv1 fv2))
-        else failwith @@ Printf.sprintf "cannot split %s as %s / %s" (to_string 0 b) (FV.to_string fvl) (FV.to_string fvr)
+        else failwith @@ Printf.sprintf "cannot split %s as %s / %s" (to_string b) (FV.to_string fvl) (FV.to_string fvr)
       | Prod (Empty, b)
       | Prod (b, Empty) -> aux fvl fvr b
-      | Decl _ -> failwith @@ Printf.sprintf "trying to split %s as %s / %s" (to_string 0 b) (FV.to_string fvl) (FV.to_string fvr)
+      | Decl _ -> failwith @@ Printf.sprintf "trying to split %s as %s / %s" (to_string b) (FV.to_string fvl) (FV.to_string fvr)
       | Prod (b1, b2) ->
         let fv = FV.union fvl fvr in
         if FV.subset fv (dom b1) then aux fvl fvr b1
         else if FV.subset fv (dom b2) then aux fvl fvr b2
-        else failwith @@ Printf.sprintf "cannot split %s as %s / %s" (to_string 0 b) (FV.to_string fvl) (FV.to_string fvr)
+        else failwith @@ Printf.sprintf "cannot split %s as %s / %s" (to_string b) (FV.to_string fvl) (FV.to_string fvr)
     in
     aux fvl fvr b
 
@@ -160,8 +166,8 @@ module Context = struct
     | Some a -> Some a
     | None -> List.assoc_opt x cenv
 
-  let split fvl fvr ((cenv,benv):t) =
-    let l, r = Bunch.split fvl fvr cenv benv in
+  let split ?t ?vars k fvl fvr ((cenv,benv):t) =
+    let l, r = Bunch.split ?t ?vars k fvl fvr cenv benv in
     (cenv,l),(cenv,r)
 end
 
@@ -551,7 +557,7 @@ let rec check k env ctx (t:term) (a:value) : term =
     )
   | Pair_ind _, Arr _ -> failwith "TODO: pair_ind vs arr"
   | TensPair (t, u), Tens (a, b) ->
-    let ctxa, ctxb = Context.split (FV.term t) (FV.term u) ctx in
+    let ctxa, ctxb = Context.split ~t:t0 ~vars:(names k env) k (FV.term t) (FV.term u) ctx in
     let t = check k env ctxa t a in
     let u = check k env ctxb u b in
     TensPair (t, u)
@@ -812,8 +818,8 @@ and infer k env ctx (t:term) : term * value =
         | Arr (s, a, b) ->
           let ctxt, ctxu =
             match s with
-            | Left -> let ctxu, ctxt = Context.split (FV.term u) (FV.term t1) ctx in ctxt, ctxu
-            | Right -> Context.split (FV.term t1) (FV.term u) ctx
+            | Left -> let ctxu, ctxt = Context.split ~t:t0 ~vars:(names k env) k (FV.term u) (FV.term t1) ctx in ctxt, ctxu
+            | Right -> Context.split ~t:t0 ~vars:(names k env) k (FV.term t1) (FV.term u) ctx
           in
           let t = check k env ctxt t1 (Arr (s, a, b)) in
           let u = check k env ctxu u a in
