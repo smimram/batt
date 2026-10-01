@@ -151,79 +151,32 @@ let crispy_colon = function
   | Normal -> ":"
   | Crisp -> "∷"
 
-module IntSet = Set.Make(Int)
 module StringSet = Set.Make(String)
 
-(** Free de Bruijn indices of a term. *)
-let free_indices t =
-  let rec aux n t =
-    (* n is the number of binders we went through *)
-    let list l = List.fold_left (fun s t -> IntSet.union s (aux n t)) IntSet.empty l in
-    match t with
-    | Var' i -> if i >= n then IntSet.singleton (i-n) else IntSet.empty
-    | Type _ | IndType _ | Var _ | Postulate _ | Hole _ | Meta _ | Import _ | I | I0 | I1 -> IntSet.empty
-    | IndType_ind (_, l) | IndTerm (_, l) -> list l
-    | Pi (_, _, _, a, t) | Sigma (_, a, t) -> IntSet.union (aux n a) (aux (n+1) t)
-    | Abs (_, _, t) | Flat_ind (_, t) -> aux (n+1) t
-    | Pair_ind (_, _, t) | Tens_ind (_, _, t) -> aux (n+2) t
-    | App (t, _, u) | Pair (t, u) | Arr (_, t, u) | Tens (t, u) | TensPair (t, u) | Iv (t, u) | Iw (t, u) -> list [t; u]
-    | Flat t | Flatten t | Refl t | J t | RecordField (t, _) -> aux n t
-    | Eq (a, t, u) -> list [a; t; u]
-    | Let (_, _, a, t, u) -> IntSet.union (list [a; t]) (aux (n+1) u)
-    | RecordType l -> list @@ List.map (fun (_, _, a) -> a) l
-    | Record (`NonRecursive, l) -> list @@ List.map snd l
-    | Record (`Recursive, l) ->
-      (* each field is bound in the following ones *)
-      snd @@ List.fold_left (fun (n, s) (_, t) -> n+1, IntSet.union s (aux n t)) (n, IntSet.empty) l
-  in
-  aux 0 t
-
-(** A variant of the name [x] which does not belong to [used], obtained by adding primes. *)
+(** A variant of the name [x] which is not [used], obtained by adding primes. *)
 let rec fresh_name used x =
-  if x = "_" || not (StringSet.mem x used) then x else fresh_name used (x ^ "'")
+  if x = "_" || not (used x) then x else fresh_name used (x ^ "'")
 
 (** Make the names of a list of variables (most recent first) distinct, by adding primes to the ones shadowing older ones. *)
 let fresh_names vars =
-  snd @@ List.fold_left (fun (used, vars) x -> let x = fresh_name used x in StringSet.add x used, x::vars) (StringSet.empty, []) (List.rev vars)
+  snd @@ List.fold_left (fun (used, vars) x -> let x = fresh_name (fun x -> StringSet.mem x used) x in StringSet.add x used, x::vars) (StringSet.empty, []) (List.rev vars)
 
-(** Name of the variable with de Bruijn index [n] in [vars]: when it is shadowed by more recent variables with the same name, we add one prime for each of those. *)
-let var_name vars n =
-  let rec aux i shadow = function
-    | x::_ when i = n ->
-      let shadow = List.length @@ List.filter (fun y -> y = x) shadow in
-      Some (x ^ String.make shadow '\'')
-    | x::l -> aux (i+1) (x::shadow) l
-    | [] -> None
-  in
-  if n < 0 then None else aux 0 [] vars
-
-(** String representation of a term. The list [vars] gives the names of the variables, indexed by de Bruijn indices (most recent first); shadowed variables are disambiguated by [var_name]. A bound variable keeps its name, unless this would capture a variable occurring in its scope, in which case we add primes to it: [ren] records those renamings, which are used for named variables [Var x]. *)
-let rec to_string ?(ren=[]) vars t =
-  (* Names of the variables of vars which occur in t, under n binders. *)
-  let used n t =
-    IntSet.fold (fun i used -> if i < n then used else match var_name vars (i-n) with Some x -> StringSet.add x used | None -> used) (free_indices t) StringSet.empty
-  in
-  (* Bind a variable x in t: we return the name used for x and the representation of t. We only look for the variables occurring in t when x could capture one of them. *)
-  let bind x t =
-    (* Printed names of variables are of the form y followed by primes, with y in vars. *)
-    let rec base x = if String.ends_with ~suffix:"'" x then base (String.sub x 0 (String.length x - 1)) else x in
-    let x' = if List.mem (base x) (List.map base vars) then fresh_name (used 1 t) x else x in
-    x', to_string ~ren:((x,x')::ren) (x'::vars) t
-  in
-  (* Bind two variables x and y (y being the most recent) in t. *)
+(** String representation of a term. The list [vars] gives the (distinct) names of the variables, indexed by de Bruijn indices. A bound variable whose name is already in [vars] is renamed by adding primes: [ren] records those renamings, which are used for named variables [Var x]. *)
+let rec to_string ?(vars=[]) ?(ren=[]) t =
+  let fresh vars x = fresh_name (fun x -> List.mem x vars) x in
+  let bind x t = let x' = fresh vars x in x', to_string ~vars:(x'::vars) ~ren:((x,x')::ren) t in
   let bind2 x y t =
-    let used = used 2 t in
-    let y' = fresh_name used y in
-    let x' = fresh_name (if IntSet.mem 1 (free_indices t) then StringSet.add y' used else used) x in
-    x', y', to_string ~ren:((y,y')::(x,x')::ren) (y'::x'::vars) t
+    let x' = fresh vars x in
+    let y' = fresh (x'::vars) y in
+    x', y', to_string ~vars:(y'::x'::vars) ~ren:((y,y')::(x,x')::ren) t
   in
-  let to_string vars t = to_string ~ren vars t in
+  let to_string t = to_string ~vars ~ren t in
   let colon = crispy_colon in
   match t with
   | Type 0 -> "Type"
   | Type n -> Printf.sprintf "Type %d" n
   | IndType ind -> string_of_inductive_type ind
-  | IndType_ind (ind, args) -> Printf.sprintf "%s_ind(%s)" (string_of_inductive_type ind) (String.concat "," @@ List.map (to_string vars) args)
+  | IndType_ind (ind, args) -> Printf.sprintf "%s_ind(%s)" (string_of_inductive_type ind) (String.concat "," @@ List.map to_string args)
   | IndTerm (`Unit, []) -> "tt"
   | IndTerm (`Bool b, []) ->  string_of_bool b
   | IndTerm (`Zero, []) -> "0"
@@ -237,15 +190,15 @@ let rec to_string ?(ren=[]) vars t =
     (
       match numeral 1 n with
       | Some k -> string_of_int k
-      | None -> Printf.sprintf "succ(%s)" @@ to_string vars n
+      | None -> Printf.sprintf "succ(%s)" @@ to_string n
     )
   | IndTerm _ -> assert false
   | Pi (i, c, x, a, t) ->
     let x, t = bind x t in
     (
       match i with
-      | Explicit -> Printf.sprintf "(%s %s %s) → %s" x (colon c) (to_string vars a) t
-      | Implicit -> Printf.sprintf "{%s %s %s} → %s" x (colon c) (to_string vars a) t
+      | Explicit -> Printf.sprintf "(%s %s %s) → %s" x (colon c) (to_string a) t
+      | Implicit -> Printf.sprintf "{%s %s %s} → %s" x (colon c) (to_string a) t
     )
   | Abs (i, x, t) ->
     let x, t = bind x t in
@@ -257,30 +210,26 @@ let rec to_string ?(ren=[]) vars t =
   | App (t, i, u) ->
     (
       match i with
-      | Explicit -> Printf.sprintf "(%s %s)" (to_string vars t) (to_string vars u)
-      | Implicit -> Printf.sprintf "(%s {%s})" (to_string vars t) (to_string vars u)
+      | Explicit -> Printf.sprintf "(%s %s)" (to_string t) (to_string u)
+      | Implicit -> Printf.sprintf "(%s {%s})" (to_string t) (to_string u)
     )
-  | Sigma (x, a, t) -> let x, t = bind x t in Printf.sprintf "(Σ(%s : %s).%s)" x (to_string vars a) t
-  | Pair (t, u) -> Printf.sprintf "(%s, %s)" (to_string vars t) (to_string vars u)
+  | Sigma (x, a, t) -> let x, t = bind x t in Printf.sprintf "(Σ(%s : %s).%s)" x (to_string a) t
+  | Pair (t, u) -> Printf.sprintf "(%s, %s)" (to_string t) (to_string u)
   | Pair_ind (x, y, t) -> let x, y, t = bind2 x y t in Printf.sprintf "(λ(%s,%s).%s)" x y t
-  | Arr (s, a, b) -> Printf.sprintf "%s →%s %s" (to_string vars a) (string_of_side s) (to_string vars b)
-  | Tens (a, b) -> Printf.sprintf "(%s ⨂ %s)" (to_string vars a) (to_string vars b)
-  | TensPair (t, u) -> Printf.sprintf "(%s ⊗ %s)" (to_string vars t) (to_string vars u)
+  | Arr (s, a, b) -> Printf.sprintf "%s →%s %s" (to_string a) (string_of_side s) (to_string b)
+  | Tens (a, b) -> Printf.sprintf "(%s ⨂ %s)" (to_string a) (to_string b)
+  | TensPair (t, u) -> Printf.sprintf "(%s ⊗ %s)" (to_string t) (to_string u)
   | Tens_ind (x, y, t) -> let x, y, t = bind2 x y t in Printf.sprintf "(λ(%s⊗%s).%s)" x y t
-  | Flat t -> Printf.sprintf "♭%s" (to_string vars t)
-  | Flatten t -> Printf.sprintf "𝄫%s" (to_string vars t)
+  | Flat t -> Printf.sprintf "♭%s" (to_string t)
+  | Flatten t -> Printf.sprintf "𝄫%s" (to_string t)
   | Flat_ind (x,t) -> let x, t = bind x t in Printf.sprintf "♭_ind(%s,%s)" x t
-  | Eq (_,t,u) -> Printf.sprintf "%s ≡ %s" (to_string vars t) (to_string vars u)
-  | Refl t -> Printf.sprintf "refl(%s)" (to_string vars t)
-  | J r -> Printf.sprintf "J(%s)" (to_string vars r)
+  | Eq (_,t,u) -> Printf.sprintf "%s ≡ %s" (to_string t) (to_string u)
+  | Refl t -> Printf.sprintf "refl(%s)" (to_string t)
+  | J r -> Printf.sprintf "J(%s)" (to_string r)
   | Var x -> Option.value ~default:x @@ List.assoc_opt x ren
-  | Var' n ->
-    (
-      match var_name vars n with
-      | Some x when not !Common.de_bruijn -> x
-      | _ -> Printf.sprintf "x-%d" n
-    )
-  | Let (c,x,a,t,u) -> let x, u = bind x u in Printf.sprintf "let %s %s %s = %s in %s" x (colon c) (to_string vars a) (to_string vars t) u
+  | Var' n when 0 <= n && n < List.length vars && not !Common.de_bruijn -> List.nth vars n
+  | Var' n -> Printf.sprintf "x-%d" n
+  | Let (c,x,a,t,u) -> let x, u = bind x u in Printf.sprintf "let %s %s %s = %s in %s" x (colon c) (to_string a) (to_string t) u
   | Postulate n -> "postulate" ^ (match n with Some n -> string_of_int n | None -> "")
   | Hole _ -> "?"
   | Meta (`Fresh _) -> "_"
@@ -289,11 +238,11 @@ let rec to_string ?(ren=[]) vars t =
   | Import m -> "import " ^ m
   | Record _ -> "record"
   | RecordType l ->
-    let l = String.concat "; " @@ List.map (fun (x,c,a) -> x ^ " " ^ crispy_colon c ^ " " ^ to_string vars a) l in
+    let l = String.concat "; " @@ List.map (fun (x,c,a) -> x ^ " " ^ crispy_colon c ^ " " ^ to_string a) l in
     Printf.sprintf "{ %s }" l
-  | RecordField (t,x) -> Printf.sprintf "%s.%s" (to_string vars t) x
+  | RecordField (t,x) -> Printf.sprintf "%s.%s" (to_string t) x
   | I -> "𝕀"
   | I0 -> "𝕀0"
   | I1 -> "𝕀1"
-  | Iv (i, j) -> Printf.sprintf "%s 𝕀∨ %s" (to_string vars i) (to_string vars j)
-  | Iw (i, j) -> Printf.sprintf "%s 𝕀∧ %s" (to_string vars i) (to_string vars j)
+  | Iv (i, j) -> Printf.sprintf "%s 𝕀∨ %s" (to_string i) (to_string j)
+  | Iw (i, j) -> Printf.sprintf "%s 𝕀∧ %s" (to_string i) (to_string j)

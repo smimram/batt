@@ -8,24 +8,20 @@ type value = V.t
 
 module FV = Term.FV
 
-(** Original names of the variables at levels [0], ..., [k-1] in an environment. The environment also contains definitions, which do not have a level, so that we look for the entries whose value is a variable. *)
-let level_names k env =
+(** Names of the variables at levels [k-1], ..., [0] in an environment, made distinct by adding primes. The environment also contains definitions, which do not have a level, so that we look for the entries whose value is a variable. *)
+let names k env =
   let a = Array.init k (fun i -> "x" ^ string_of_int i) in
   (* Go from the most recent entry to the oldest one, so that the binder of a variable wins over later definitions such as let y = x. *)
   List.iter (fun (x,v) -> match V.force v with V.Var (i, []) when 0 <= i && i < k -> a.(i) <- x | _ -> ()) env;
-  a
-
-(** Names of the variables at levels [k-1], ..., [0] in an environment, as expected by [V.to_string]. Names are made distinct by adding primes, starting from the outermost variable. *)
-let names k env =
-  T.fresh_names @@ List.rev @@ Array.to_list @@ level_names k env
+  T.fresh_names @@ List.rev @@ Array.to_list a
 
 (** String representation of a value at level [k] in environment [env]. *)
-let string_of_value k env v = V.to_string (names k env) k v
+let string_of_value k env v = V.to_string ~vars:(names k env) k v
 
 (** String representation of an elaborated term in environment [env]: its variables are de Bruijn indices in [env]. *)
-let string_of_term env t = T.to_string (List.map fst env) t
+let string_of_term env t = T.to_string ~vars:(T.fresh_names @@ List.map fst env) t
 
-let string_of_environment k env = List.map (fun (x,t) -> x ^ "=" ^ string_of_value k env t) env |> String.concat ", "
+let string_of_environment k env = List.map (fun (x,t) -> x ^ "=" ^ V.to_string k t) env |> String.concat ", "
 
 type var = string
 
@@ -41,18 +37,11 @@ module Bunch = struct
     | Prod of t * t
     | Tens of t * t
 
-  (** String representation of a bunch. The function [rename] is called on declared variables, from left to right. *)
-  let rec to_string ?(rename=Fun.id) vars k = function
+  let rec to_string ?vars k = function
     | Empty -> "()"
-    | Decl (x, a) -> Printf.sprintf "%s:%s" (rename x) (V.to_string vars k a)
-    | Prod (l,r) ->
-      let l = to_string ~rename vars k l in
-      let r = to_string ~rename vars k r in
-      Printf.sprintf "(%s,%s)" l r
-    | Tens (l,r) ->
-      let l = to_string ~rename vars k l in
-      let r = to_string ~rename vars k r in
-      Printf.sprintf "(%s⊗%s)" l r
+    | Decl (x, a) -> Printf.sprintf "%s:%s" x (V.to_string ?vars k a)
+    | Prod (l,r) -> Printf.sprintf "(%s,%s)" (to_string ?vars k l) (to_string ?vars k r)
+    | Tens (l,r) -> Printf.sprintf "(%s⊗%s)" (to_string ?vars k l) (to_string ?vars k r)
 
   let ext ctx x a = Prod (ctx,Decl(x,a))
 
@@ -112,19 +101,19 @@ module Bunch = struct
         else failwith "split"
       | Prod (Empty, b)
       | Prod (b, Empty) -> aux fvl fvr b
-      | Decl _ -> failwith @@ Printf.sprintf "trying to split %s as %s / %s" (to_string [] 0 b) (FV.to_string fvl) (FV.to_string fvr)
+      | Decl _ -> failwith @@ Printf.sprintf "trying to split %s as %s / %s" (to_string 0 b) (FV.to_string fvl) (FV.to_string fvr)
       | Prod (b1, b2) ->
         let fv = FV.union fvl fvr in
         if FV.subset fv (dom b1) then aux fvl fvr b1
         else if FV.subset fv (dom b2) then aux fvl fvr b2
-        else failwith @@ Printf.sprintf "cannot split %s as %s / %s" (to_string [] 0 b) (FV.to_string fvl) (FV.to_string fvr)
+        else failwith @@ Printf.sprintf "cannot split %s as %s / %s" (to_string 0 b) (FV.to_string fvl) (FV.to_string fvr)
     in
     aux fvl fvr b
 
   (*
   let split fvl fvr crisp b =
     let l, r = split fvl fvr crisp b in
-    if !Common.show_debug then debug "SPLITED AS %s / %s\n" (to_string 0 l) (to_string 0 r);
+    debug "SPLITED AS %s / %s\n" (to_string 0 l) (to_string 0 r);
     l, r
   *)
 end
@@ -136,15 +125,15 @@ type bunch = Bunch.t
 module Context = struct
   type t = crisp * bunch
 
-  (** String representation of a context at level [k]: [vars] are the names of the variables at levels [k-1], ..., [0] and [rename] is called on declared variables, the crisp ones first, from the oldest to the most recent. *)
-  let to_string ?(multiline=false) ?(crisp=true) ?(rename=Fun.id) vars k (cenv,benv) =
-    let sep = if multiline then " ∷ " else "∷" in
-    (* We always rename crisp variables, even if we do not show them, so that renaming stays in sync. *)
-    let cenv = List.map (fun (x,a) -> let x = rename x in Printf.sprintf "%s%s%s" x sep (V.to_string vars k a)) (List.rev cenv) in
+  let to_string ?(multiline=false) ?(crisp=true) ?vars k (cenv,benv) =
     let cenv = if crisp then cenv else [] in
-    let benv = Bunch.to_string ~rename vars k benv in
-    if multiline then String.concat "\n" @@ (cenv @ [benv])
-    else Printf.sprintf "%s / %s" (String.concat ", " cenv) benv
+    if multiline then
+      let benv = Bunch.to_string ?vars k benv in
+      String.concat "\n" @@ (List.rev_map (fun (x,a) -> Printf.sprintf "%s ∷ %s" x (V.to_string ?vars k a)) cenv @ [benv])
+    else
+      let cenv = String.concat ", " @@ List.rev_map (fun (x,a) -> Printf.sprintf "%s∷%s" x (V.to_string ?vars k a)) cenv in
+      let benv = Bunch.to_string ?vars k benv in
+      Printf.sprintf "%s / %s" cenv benv
 
   let empty : t = [],Bunch.Empty
 
@@ -179,39 +168,10 @@ end
 (** A context. *)
 type context = Context.t
 
-(** Renaming of the variables declared in a context, consistent with [names], to be passed to [Context.to_string]. If a name x is used by n variables, the last n declarations of x (the context also contains definitions, which come first) are renamed as those variables, in order. *)
-let context_renaming k env ((cenv,benv):context) =
-  let orig = level_names k env in
-  let fresh = Array.of_list @@ List.rev @@ names k env in
-  let q = Hashtbl.create 10 in
-  Array.iteri
-    (fun i x ->
-       if not (Hashtbl.mem q x) then Hashtbl.add q x (Queue.create ());
-       Queue.push fresh.(i) (Hashtbl.find q x)
-    ) orig;
-  (* Number of declarations of each name which are not renamed. *)
-  let skip = Hashtbl.create 10 in
-  let decl x = Hashtbl.replace skip x (1 + Option.value ~default:0 (Hashtbl.find_opt skip x)) in
-  let rec bunch = function
-    | Bunch.Empty -> ()
-    | Decl (x, _) -> decl x
-    | Prod (l, r) | Tens (l, r) -> bunch l; bunch r
-  in
-  List.iter (fun (x,_) -> decl x) cenv;
-  bunch benv;
-  Hashtbl.iter (fun x q -> Hashtbl.replace skip x (Option.value ~default:0 (Hashtbl.find_opt skip x) - Queue.length q)) q;
-  fun x ->
-    match Hashtbl.find_opt skip x with
-    | Some n when n > 0 -> Hashtbl.replace skip x (n-1); x
-    | _ ->
-      match Hashtbl.find_opt q x with
-      | Some q when not (Queue.is_empty q) -> Queue.pop q
-      | _ -> x
-
 (** Unification problems. *)
 module Unification = struct
   let set m t =
-    if !Common.show_debug then debug "META  %s <- %s\n%!" (V.Meta.to_string m) (T.to_string [] t);
+    if !Common.show_debug then debug "META  %s <- %s\n%!" (V.Meta.to_string m) (T.to_string t);
     assert (m.value = None);
     let t = V.eval [] t in
     m.value <- Some t
@@ -275,10 +235,10 @@ let error ?t fmt =
 
 (** Unify two values. *)
 let unify ~pos k (t:value) (u:value) =
-  if !Common.show_debug then debug "UNIFY %s WITH %s\n%!" (V.to_string [] k t) (V.to_string [] k u);
+  if !Common.show_debug then debug "UNIFY %s WITH %s\n%!" (V.to_string k t) (V.to_string k u);
   (* Make sure that metavariable m applied to spine s equals t. *)
   let solve k m s t =
-    if !Common.show_debug then debug "SOLVE %s =? %s\n" (V.to_string [] k (Meta (m, s))) (V.to_string [] k t);
+    if !Common.show_debug then debug "SOLVE %s =? %s\n" (V.to_string k (Meta (m, s))) (V.to_string k t);
     (* Construct the initial renaming. Note that we number variables x0, x1, etc so that the furthest variable is x0: this is to avoid having to shift all indices when lifting. *)
     let r =
       let rec aux = function
@@ -373,10 +333,10 @@ let unify ~pos k (t:value) (u:value) =
             match IntMap.find_opt x r.ren with
             | Some (Some y) -> var y
             | Some None ->
-              if !Common.show_debug then debug "DUPLICATE %s\n" (V.to_string [] k (V.var x));
+              if !Common.show_debug then debug "DUPLICATE %s\n" (V.to_string k (V.var x));
               raise Unification
             | None ->
-              if !Common.show_debug then debug "ESCAPED %s\n" (V.to_string [] k (V.var x));
+              if !Common.show_debug then debug "ESCAPED %s\n" (V.to_string k (V.var x));
               raise Unification
           )
         | Postulate (n, l) ->
@@ -386,7 +346,7 @@ let unify ~pos k (t:value) (u:value) =
         | I1 -> I1
         | Iv (i, j) -> Iv (rename r i, rename r j)
         | Iw (i, j) -> Iw (rename r i, rename r j)
-        | t -> failwith @@ Printf.sprintf "TODO: rename %s" (V.to_string [] k t)
+        | t -> failwith @@ Printf.sprintf "TODO: rename %s" (V.to_string k t)
       in
       rename r t
     in
@@ -494,7 +454,7 @@ let unify ~pos k (t:value) (u:value) =
       let p = V.TensPair (x,y) in
       unify (k+2) (V.app t p) (V.app u p)
     | t, u ->
-      if !Common.show_debug then debug "CLASH %s VS %s \n%!" (V.to_string [] k t) (V.to_string [] k u);
+      if !Common.show_debug then debug "CLASH %s VS %s \n%!" (V.to_string k t) (V.to_string k u);
       raise Unification
   in
   Unification.defer pos k t u;
@@ -513,7 +473,7 @@ let finalize_unify () =
   if not @@ Unification.is_empty () then
     let pb =
       List.rev !Unification.deferred
-      |> List.map (fun (pos,k,t,u) -> Printf.sprintf "- %s: %s vs %s" (Pos.opt_to_string pos) (V.to_string [] k t) (V.to_string [] k u))
+      |> List.map (fun (pos,k,t,u) -> Printf.sprintf "- %s: %s vs %s" (Pos.opt_to_string pos) (V.to_string k t) (V.to_string k u))
       |> String.concat "\n"
     in
     warning "\n%d unsolved unification problems:\n%s\n" (List.length !Unification.deferred) pb
@@ -733,7 +693,7 @@ let rec check k env ctx (t:term) (a:value) : term =
     important "\nPOSTULATE %d %s\n%!" n (string_of_value k env a);
     Postulate (Some n)
   | Hole pos, a ->
-    important "\nHOLE %s : %s IN\n%s\n%!" (Pos.to_string pos) (string_of_value k env a) (Context.to_string ~multiline:true ~crisp:true ~rename:(context_renaming k env ctx) (names k env) k ctx);
+    important "\nHOLE %s : %s IN\n%s\n%!" (Pos.to_string pos) (string_of_value k env a) (Context.to_string ~multiline:true ~crisp:false ~vars:(names k env) k ctx);
     Hole pos
   | t, a ->
     let t0 = t in
@@ -876,9 +836,9 @@ and infer k env ctx (t:term) : term * value =
       | [] -> error ~t "undefined variable %s" x
     in
     (* The de Bruijn index of x in env (not a level!). *)
-    let n = aux 0 env in
+    let k = aux 0 env in
     let a = match Context.assoc_opt x ctx with Some a -> a | None -> error ~t "variable %s is in the context but not in the typing environment (crispness issue?)" x in
-    Var' n, a
+    Var' k, a
   | Meta (`Fresh pos) ->
     let a = V.eval env @@ fresh_meta env in
     let t = fresh_meta ?pos env in
@@ -942,7 +902,7 @@ and check_decls k env ctx (decls:T.decls) =
     decls := List.tl !decls;
     match decl with
     | T.Def (x,c,a,t) ->
-      Common.print "\nDECL  %s = %s%s\n%!" x (string_of_term !env t) (match a with Some a -> " " ^ T.crispy_colon c ^ " " ^ string_of_term !env a | None -> "");
+      Common.print "\nDECL  %s = %s%s\n%!" x (T.to_string t) (match a with Some a -> " " ^ T.crispy_colon c ^ " " ^ T.to_string a | None -> "");
       let t, a =
         match a with
         | Some a ->

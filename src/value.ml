@@ -284,4 +284,4 @@ let rec readback k v : Term.t =
   | Iw (i, j) -> Iw (readback k i, readback k j)
 
 (** String representation of a value at level [k]: [vars] are the names of the variables at levels [k-1], ..., [0]. *)
-let to_string vars k v = Term.to_string vars @@ readback k v
+let to_string ?vars k v = Term.to_string ?vars @@ readback k v
