@@ -319,3 +319,21 @@ flat-tens≃prod {A} {B} =
   ( flat-tens-to-prod {A} {B}
   , ( (flat-prod-to-tens {A} {B} , flat-prod-to-tens-to-prod {A} {B})
     , (flat-prod-to-tens {A} {B} , flat-tens-to-prod-to-tens {A} {B}) ) )
+
+-- a crisp left factor makes the tensor cartesian
+flat-tens-prod-l ∷ {A B ∷ U} → ♭A ⨂ B ≃ ♭A × B
+flat-tens-prod-l {A} {B} =
+  let f ∷ ♭A ⨂ B → ♭A × B = tens-to-prod in
+  let g ∷ ♭A × B → ♭A ⨂ B = fun (u , b) →
+    let h : (u : ♭A) → B → ♭A ⨂ B = fun 𝄫a → fun b → 𝄫a ⊗ b in
+    h u b
+  in
+  let fg ∷ (y : ♭A × B) → f (g y) ≡ y = fun (u , b) →
+    let h : (u : ♭A) → f (g (u , b)) ≡ (u , b) = fun 𝄫a → refl in
+    h u
+  in
+  let gf ∷ (x : ♭A ⨂ B) → g (f x) ≡ x = fun (u ⊗ b) →
+    let h : (u : ♭A) → g (f (u ⊗ b)) ≡ (u ⊗ b) = fun 𝄫a → refl in
+    h u
+  in
+  (f , (g , fg) , (g , gf))
