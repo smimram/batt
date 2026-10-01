@@ -264,33 +264,29 @@ let unify ~pos k (t:value) (u:value) =
     in
     (* Add an extra variable to a renaming. *)
     let lift r = { dom = r.dom+1; cod = r.cod+1; ren = IntMap.add r.dom (Some r.cod) r.ren } in
-    (* Fresh variable name. *)
-    let var_name i = "x!" ^ string_of_int i in
-    (* Apply a partial renaming to a value. Along the way, we also make sure that the metavariable does not occur in the term (occurs check). *)
+    (* Apply a partial renaming to a value. Along the way, we also make sure that the metavariable does not occur in the term (occurs check). The result uses de Bruijn indices, so that binders can keep their original names. *)
     let rename (m:V.meta) (r:partial_renaming) (t:value) : term =
-      let var i = T.Var (var_name i) in
       let rec rename r t =
+        (* The variable at level y in the codomain. *)
+        let var y = T.Var' (r.cod - y - 1) in
         let t = V.force t in
         let spine l (t:term) = T.app_spine t (List.map (rename r) l) in
         match t with
         | Meta (m',l) ->
           if m'.id = m.id then (debug "OCCURS\n"; raise Unification); (* Occurs-check. *)
           spine l @@ Meta (`Generated m'.id)
-        | Pi (i, c, a, b) ->
+        | Pi (i, c, a, ((x,_,_) as b)) ->
           let a = rename r a in
-          let x = var_name r.cod in
           let b = rename (lift r) @@ V.capp b (V.var r.dom) in
           Pi (i, c, x, a, b)
         | Arr (s, a, b) ->
           let a = rename r a in
           let b = rename r b in
           Arr (s, a, b)
-        | Abs t ->
-          let x = var_name r.cod in
+        | Abs ((x,_,_) as t) ->
           let t = V.capp t (V.var r.dom) in
           Abs (Explicit, x, rename (lift r) t)
-        | Sigma (a, b) ->
-          let x = var_name r.cod in
+        | Sigma (a, ((x,_,_) as b)) ->
           let a = rename r a in
           let b = rename (lift r) @@ V.capp b (V.var r.dom) in
           Sigma (x, a, b)
@@ -299,19 +295,15 @@ let unify ~pos k (t:value) (u:value) =
         | IndTerm (t, l) -> IndTerm (t, List.map (rename r) l)
         | IndType_ind (i, t, l) -> spine l @@ IndType_ind (i, List.map (rename r) t)
         | Pair (t, u) -> Pair (rename r t, rename r u)
-        | Pair_ind (t, l) ->
+        | Pair_ind ((x,y,_,_) as t, l) ->
           let k = r.dom in
-          let x = var_name r.cod in
-          let y = var_name (r.cod+1) in
           let t = V.capp2 t (V.var k) (V.var (k+1)) in
           let t = rename (lift (lift r)) t in
           spine l @@ Pair_ind (x, y, t)
         | Tens (a,b) -> Tens (rename r a, rename r b)
         | TensPair (t, u) -> TensPair (rename r t, rename r u)
-        | Tens_ind (t, l) ->
+        | Tens_ind ((x,y,_,_) as t, l) ->
           let k = r.dom in
-          let x = var_name r.cod in
-          let y = var_name (r.cod+1) in
           let t = V.capp2 t (V.var k) (V.var (k+1)) in
           let t = rename (lift (lift r)) t in
           spine l @@ Tens_ind (x, y, t)
@@ -320,8 +312,7 @@ let unify ~pos k (t:value) (u:value) =
         | J (t, l) -> spine l @@ J (rename r t)
         | Flat a -> Flat (rename r a)
         | Flatten t -> Flatten (rename r t)
-        | Flat_ind (t, l) ->
-          let x = var_name r.cod in
+        | Flat_ind ((x,_,_) as t, l) ->
           let t = V.capp t (V.var r.dom) in
           let t = rename (lift r) t in
           spine l @@ Flat_ind (x, t)
@@ -353,7 +344,7 @@ let unify ~pos k (t:value) (u:value) =
     let t = rename m r t in
     let t =
       (* TODO: correctly handle side... *)
-      T.abss (List.init r.cod var_name) t
+      T.abss (List.init r.cod (fun i -> "x" ^ string_of_int i)) t
     in
     Unification.set m t
   in
@@ -677,6 +668,11 @@ let rec check k env ctx (t:term) (a:value) : term =
     let c = V.capp (snd @@ unpi ~icit:Explicit k @@ V.capp b x) (Refl x) in
     let r = check k env ctx r c in
     J r
+  | Postulate n, a ->
+    (* This is before implicit abstraction insertion so that the postulate gets its full type. *)
+    let n = match n with Some n -> n | None -> incr V.postulate; !V.postulate in
+    important "\nPOSTULATE %d %s\n%!" n (string_of_value k env a);
+    Postulate (Some n)
   | _, Pi (Implicit, _, _, _) ->
     (* Insert implicit abstraction. *)
     check k env ctx (Abs (Implicit, "_", t)) a
@@ -688,10 +684,6 @@ let rec check k env ctx (t:term) (a:value) : term =
     let t, level = check_type k env ctx t in
     if level > m then error ~t:t0 "universe level %d but at most %d expected" level m;
     t
-  | Postulate n, a ->
-    let n = match n with Some n -> n | None -> incr V.postulate; !V.postulate in
-    important "\nPOSTULATE %d %s\n%!" n (string_of_value k env a);
-    Postulate (Some n)
   | Hole pos, a ->
     important "\nHOLE %s : %s IN\n%s\n%!" (Pos.to_string pos) (string_of_value k env a) (Context.to_string ~multiline:true ~crisp:false ~vars:(names k env) k ctx);
     Hole pos

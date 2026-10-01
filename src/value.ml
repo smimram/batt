@@ -212,8 +212,10 @@ and force t =
     of atoms, with atoms sorted and deduplicated in each join, and absorbed
     joins removed. *)
 and interval i =
-  let subset c c' = List.for_all (fun a -> List.mem a c') c in
-  let rec cnf i : t list list =
+  (* Atoms are compared through their readback (at level 0, which is enough for a canonical form) and not directly as values: these contain closures, whose environments depend on how the value was obtained. *)
+  let compare (k,_) (k',_) = compare k k' in
+  let subset c c' = List.for_all (fun a -> List.exists (fun a' -> compare a a' = 0) c') c in
+  let rec cnf i : (Term.t * t) list list =
     match force i with
     | I0 -> [[]]
     | I1 -> []
@@ -221,17 +223,17 @@ and interval i =
       let j = cnf j in
       List.concat_map (fun c -> List.map (fun c' -> c @ c') j) (cnf i)
     | Iw (i, j) -> cnf i @ cnf j
-    | a -> [[a]]
+    | a -> [[readback 0 a, a]]
   in
   let clauses = List.map (List.sort_uniq compare) (cnf i) in
   (* Absorption: remove joins containing another one. *)
-  let clauses = List.stable_sort (fun c c' -> compare (List.length c) (List.length c')) clauses in
+  let clauses = List.stable_sort (fun c c' -> Int.compare (List.length c) (List.length c')) clauses in
   let clauses = List.fold_left (fun kept c -> if List.exists (fun c' -> subset c' c) kept then kept else c::kept) [] clauses in
-  let clauses = List.sort compare clauses in
+  let clauses = List.sort (List.compare compare) clauses in
   let rec sup = function
     | [] -> I0
-    | [i] -> i
-    | i::l -> Iv (i, sup l)
+    | [_,i] -> i
+    | (_,i)::l -> Iv (i, sup l)
   in
   let rec inf = function
     | [] -> I1
@@ -241,7 +243,7 @@ and interval i =
   inf @@ List.map sup clauses
 
 (** Reify a value as a term, [k] being the current level: value variables are levels, whereas term variables are de Bruijn indices. *)
-let rec readback k v : Term.t =
+and readback k v : Term.t =
   (* Binders keep the name of the original variable (Term.to_string takes care of avoiding clashes). *)
   let spine l t = Term.app_spine t (List.map (readback k) l) in
   match force v with
