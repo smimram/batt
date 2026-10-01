@@ -76,3 +76,10 @@ thicken-unit-equiv {X} =
 thick-spine-incl-unthickened ∷ (n ∷ ℕ) (a b ∷ ℕ → ℕ) (x : spine n) →
   thicken-unit {simplex n} (thick-spine→thick-simplex a 0 n b 0 (thicken-counit {spine n} x)) ≡ spine→simplex n x
 thick-spine-incl-unthickened n a b x = refl
+
+-- the unit laws of the thickening are equivalences
+is-equiv-thicken-unit ∷ {X ∷ U} → is-equiv (thicken-unit {X})
+is-equiv-thicken-unit {X} = ((thicken-counit {X} , thicken-unit-counit {X}) , (thicken-counit {X} , thicken-counit-unit {X}))
+
+is-equiv-thicken-counit ∷ {X ∷ U} → is-equiv (thicken-counit {X})
+is-equiv-thicken-counit {X} = ((thicken-unit {X} , thicken-counit-unit {X}) , (thicken-unit {X} , thicken-unit-counit {X}))

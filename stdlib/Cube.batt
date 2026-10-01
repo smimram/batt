@@ -153,3 +153,10 @@ spine-glue =
   let τ ∷ snd (is-in-spine 2) (spine-edge-1 𝕀1) ≡ snd (is-in-spine 2) (spine-edge-2 𝕀0) =
     prop-path (is-prop-is-in-spine 2 c0) (snd (is-in-spine 2) (spine-edge-1 𝕀1)) (snd (is-in-spine 2) (spine-edge-2 𝕀0)) in
   cong {is-in-spine 2 c0} {spine 2} (λ w . (c0 , w)) τ
+
+-- the two coordinates of a point of the 2-simplex
+simplex-2-fst ∷ simplex 2 → 𝕀
+simplex-2-fst z = prod-fst {𝕀} {cart-cube 1} (fst (is-sorted 1) z)
+
+simplex-2-snd ∷ simplex 2 → 𝕀
+simplex-2-snd z = prod-fst {𝕀} {⊤} (prod-snd {𝕀} {cart-cube 1} (fst (is-sorted 1) z))

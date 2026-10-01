@@ -69,6 +69,22 @@ wr-q ∷ {A B ∷ U} {a1 ∷ A} {b0 ∷ B} {X ∷ U} (w : wedge-cocone-r A B a1 
   wr-f w a1 ≡ wr-g w b0
 wr-q {A} {B} {a1} {b0} {X} (f , r) = snd {B →ᵣ X} (λ g . f a1 ≡ g b0) r
 
+-- a path of oplax cocones from paths of the two maps and a coherence of the glue
+wedge-cocone-r-path ∷ (A B ∷ U) (a1 ∷ A) (b0 ∷ B) (X ∷ U) (f : A →ᵣ X) (g : B →ᵣ X) (q : f a1 ≡ g b0)
+  (f' : A →ᵣ X) (Pf : f ≡ f') (g' : B →ᵣ X) (Pg : g ≡ g') (q' : f' a1 ≡ g' b0) →
+  trans q (ev-r {B} {X} b0 {g} {g'} Pg) ≡ trans (ev-r {A} {X} a1 {f} {f'} Pf) q' →
+  (f , g , q) ≡{wedge-cocone-r A B a1 b0 X} (f' , g' , q')
+wedge-cocone-r-path A B a1 b0 X f g q f' Pf =
+  J f (λ f' Pf . (g' : B →ᵣ X) (Pg : g ≡ g') (q' : f' a1 ≡ g' b0) →
+        trans q (ev-r {B} {X} b0 {g} {g'} Pg) ≡ trans (ev-r {A} {X} a1 {f} {f'} Pf) q' →
+        (f , g , q) ≡{wedge-cocone-r A B a1 b0 X} (f' , g' , q'))
+    (λ g' Pg . J g (λ g' Pg . (q' : f a1 ≡ g' b0) →
+        trans q (ev-r {B} {X} b0 {g} {g'} Pg) ≡ trans (ev-r {A} {X} a1 {f} {f} refl) q' →
+        (f , g , q) ≡{wedge-cocone-r A B a1 b0 X} (f , g' , q'))
+      (λ q' θ . cong {f a1 ≡ g b0} {wedge-cocone-r A B a1 b0 X} (λ z . (f , g , z)) (trans θ (trans-refl-l q')))
+      Pg)
+    Pf
+
 -- restriction of an oplax map out of the wedge
 wedge-restr-r ∷ (S A B ∷ U) (i ∷ A → S) (j ∷ B → S) (a1 ∷ A) (b0 ∷ B) (γ ∷ i a1 ≡ j b0) (X ∷ U) →
   (S →ᵣ X) → wedge-cocone-r A B a1 b0 X
@@ -266,6 +282,22 @@ wl-g {A} {B} {a1} {b0} {X} (f , r) = fst {B →ₗ X} (λ g . f a1 ≡ g b0) r
 wl-q ∷ {A B ∷ U} {a1 ∷ A} {b0 ∷ B} {X ∷ U} (w : wedge-cocone-l A B a1 b0 X) →
   wl-f w a1 ≡ wl-g w b0
 wl-q {A} {B} {a1} {b0} {X} (f , r) = snd {B →ₗ X} (λ g . f a1 ≡ g b0) r
+
+-- a path of lax cocones from paths of the two maps and a coherence of the glue
+wedge-cocone-l-path ∷ (A B ∷ U) (a1 ∷ A) (b0 ∷ B) (X ∷ U) (f : A →ₗ X) (g : B →ₗ X) (q : f a1 ≡ g b0)
+  (f' : A →ₗ X) (Pf : f ≡ f') (g' : B →ₗ X) (Pg : g ≡ g') (q' : f' a1 ≡ g' b0) →
+  trans q (ev-l {B} {X} b0 {g} {g'} Pg) ≡ trans (ev-l {A} {X} a1 {f} {f'} Pf) q' →
+  (f , g , q) ≡{wedge-cocone-l A B a1 b0 X} (f' , g' , q')
+wedge-cocone-l-path A B a1 b0 X f g q f' Pf =
+  J f (λ f' Pf . (g' : B →ₗ X) (Pg : g ≡ g') (q' : f' a1 ≡ g' b0) →
+        trans q (ev-l {B} {X} b0 {g} {g'} Pg) ≡ trans (ev-l {A} {X} a1 {f} {f'} Pf) q' →
+        (f , g , q) ≡{wedge-cocone-l A B a1 b0 X} (f' , g' , q'))
+    (λ g' Pg . J g (λ g' Pg . (q' : f a1 ≡ g' b0) →
+        trans q (ev-l {B} {X} b0 {g} {g'} Pg) ≡ trans (ev-l {A} {X} a1 {f} {f} refl) q' →
+        (f , g , q) ≡{wedge-cocone-l A B a1 b0 X} (f , g' , q'))
+      (λ q' θ . cong {f a1 ≡ g b0} {wedge-cocone-l A B a1 b0 X} (λ z . (f , g , z)) (trans θ (trans-refl-l q')))
+      Pg)
+    Pf
 
 -- restriction of an lax map out of the wedge
 wedge-restr-l ∷ (S A B ∷ U) (i ∷ A → S) (j ∷ B → S) (a1 ∷ A) (b0 ∷ B) (γ ∷ i a1 ≡ j b0) (X ∷ U) →

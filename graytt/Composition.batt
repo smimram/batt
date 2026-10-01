@@ -101,6 +101,29 @@ comp-r-tgt X s φ =
       (is-in-spine→is-sorted 1 (𝕀1 , 𝕀1 , tt) (snd (is-in-spine 2) (spine-edge-2 𝕀1))))
 
 --
+-- Uniqueness of fillers: any 2-simplex restricting to φ on the spine is the filler of φ, so its
+-- long edge is the composite of φ (unthickened oplax Segal condition, Segal.batt)
+--
+
+comp-filler-r-restr ∷ (X ∷ U) (s : is-segal-r X) (φ : spine 2 →ᵣ X) → spine-restr-r 2 X (comp-filler-r X s φ) ≡ φ
+comp-filler-r-restr X s φ =
+  let c ∷ spine 2 → thick-spine no-grid 0 2 no-grid 0 = thicken-counit {spine 2} in
+  cong {thick-spine no-grid 0 2 no-grid 0 →ᵣ X} {spine 2 →ᵣ X} (λ ψ . pre-r (spine 2) {thick-spine no-grid 0 2 no-grid 0} {X} ψ c)
+    (thick-filler-r-restr X s (thick-pair-r {X} φ))
+
+comp-filler-r-unique ∷ (X ∷ U) (s : is-segal-r X) (φ : spine 2 →ᵣ X) (Ψ : simplex 2 →ᵣ X) →
+  spine-restr-r 2 X Ψ ≡ φ → comp-filler-r X s φ ≡ Ψ
+comp-filler-r-unique X s φ Ψ H =
+  retraction-inj (spine-restr-r 2 X) (is-equiv-ret (spine-restr-r 2 X) (is-segal-r-unthick X s 2)) {comp-filler-r X s φ} {Ψ}
+    (trans (comp-filler-r-restr X s φ) (sym H))
+
+comp-r-unique ∷ (X ∷ U) (s : is-segal-r X) (φ : spine 2 →ᵣ X) (Ψ : simplex 2 →ᵣ X) →
+  spine-restr-r 2 X Ψ ≡ φ → comp-r X s φ ≡ pre-r 𝕀 {simplex 2} {X} Ψ long-edge
+comp-r-unique X s φ Ψ H =
+  let δ ∷ 𝕀 → simplex 2 = long-edge in
+  cong {simplex 2 →ᵣ X} {𝕀 →ᵣ X} (λ F . pre-r 𝕀 {simplex 2} {X} F δ) (comp-filler-r-unique X s φ Ψ H)
+
+--
 -- Composition on hom types
 --
 -- Two 1-cells u : hom X x y and v : hom X y z form an oplax cocone on the two edges of the

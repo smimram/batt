@@ -290,3 +290,29 @@ funext-htpy {A} {B} f g = map-section (happly {A} {B} {f} {g}) (is-equiv-sec (ha
 happly-funext-htpy ∷ {A : U} {B : A → U} (f g : (x : A) → B x) (h : (x : A) → f x ≡ g x) → happly (funext-htpy {A} {B} f g h) ≡ h
 happly-funext-htpy {A} {B} f g =
   snd (is-section (happly {A} {B} {f} {g})) (is-equiv-sec (happly {A} {B} {f} {g}) (is-equiv-happly {A} {B} f g))
+
+---
+--- precomposition with a crisp equivalence is an equivalence, for oplax and lax maps
+---
+
+pre-r-equiv ∷ (A B ∷ U) (f ∷ A → B) (e ∷ is-equiv f) (X ∷ U) → is-equiv {B →ᵣ X} {A →ᵣ X} (λ φ . pre-r A {B} {X} φ f)
+pre-r-equiv A B f e X =
+  let s ∷ B → A = map-section f (is-equiv-sec f e) in
+  let r ∷ B → A = map-retraction f (is-equiv-ret f e) in
+  let fs ∷ (λ b . f (s b)) ≡{B → B} (λ b . b) =
+    funext-nd (λ b . f (s b)) (λ b . b) (snd (is-section f) (is-equiv-sec f e)) in
+  let rf ∷ (λ a . r (f a)) ≡{A → A} (λ a . a) =
+    funext-nd (λ a . r (f a)) (λ a . a) (snd (is-retraction f) (is-equiv-ret f e)) in
+  (((λ ψ . pre-r B {A} {X} ψ r) , (λ ψ . pre-r-path A {A} {X} {λ a . r (f a)} {λ a . a} rf ψ)) ,
+   ((λ ψ . pre-r B {A} {X} ψ s) , (λ φ . pre-r-path B {B} {X} {λ b . f (s b)} {λ b . b} fs φ)))
+
+pre-l-equiv ∷ (A B ∷ U) (f ∷ A → B) (e ∷ is-equiv f) (X ∷ U) → is-equiv {B →ₗ X} {A →ₗ X} (λ φ . pre-l A {B} {X} φ f)
+pre-l-equiv A B f e X =
+  let s ∷ B → A = map-section f (is-equiv-sec f e) in
+  let r ∷ B → A = map-retraction f (is-equiv-ret f e) in
+  let fs ∷ (λ b . f (s b)) ≡{B → B} (λ b . b) =
+    funext-nd (λ b . f (s b)) (λ b . b) (snd (is-section f) (is-equiv-sec f e)) in
+  let rf ∷ (λ a . r (f a)) ≡{A → A} (λ a . a) =
+    funext-nd (λ a . r (f a)) (λ a . a) (snd (is-retraction f) (is-equiv-ret f e)) in
+  (((λ ψ . pre-l B {A} {X} ψ r) , (λ ψ . pre-l-path A {A} {X} {λ a . r (f a)} {λ a . a} rf ψ)) ,
+   ((λ ψ . pre-l B {A} {X} ψ s) , (λ φ . pre-l-path B {B} {X} {λ b . f (s b)} {λ b . b} fs φ)))
