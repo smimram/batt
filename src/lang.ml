@@ -407,9 +407,8 @@ let unify ~pos k (t:value) (u:value) =
     | J (r, l), J (r', l') ->
       unify k r r';
       spine k l l'
-    | Postulate (_n, l), Postulate (_n', l') ->
-      (* NOTE: disabling for now because we regenerate numbers when we include multiple times *)
-      (* if n <> n' then raise Unification; *)
+    | Postulate (n, l), Postulate (n', l') ->
+      if n <> n' then raise Unification;
       spine k l l'
     | Var (x, l), Var (x', l') ->
       if x <> x' then raise Unification;

@@ -1,0 +1,6 @@
+postulate I : Type
+postulate i0 : I
+postulate i1 : I
+
+test : i0 ≡ i1
+test = refl

@@ -3,6 +3,7 @@ open import Empty
 open import Unit
 open import Bool
 open import Equality
+open import Equivalence
 
 flat ∷ ♭U → U
 flat 𝄫A = A
@@ -42,27 +43,6 @@ flat-unique C f 𝄫x = refl
 flat-map ∷ {A B ∷ Type} (f ∷ A → B) → ♭A → ♭B
 flat-map f 𝄫a = 𝄫(f a)
 
-flat-tens-to-prod ∷ {A B ∷ U} → ♭(A ⨂ B) → ♭(A × B)
-flat-tens-to-prod = flat-map tens-to-prod
--- flat-tens-to-prod A B 𝄫ab =
---   let f : (ab ∷ A ⨂ B) → ♭(A × B) = fun (a ⊗ b) → 𝄫 (a , b) in
---   f ab
-
-flat-prod-to-tens ∷ {A B ∷ U} → ♭(A × B) → ♭(A ⨂ B)
-flat-prod-to-tens {A} {B} 𝄫ab =
-  let f : (ab ∷ A × B) → ♭(A ⨂ B) = fun (a , b) → 𝄫(a ⊗ b) in
-  f ab
-
-flat-prod-to-tens-to-prod ∷ {A B ∷ U} (x : ♭(A × B)) → flat-tens-to-prod (flat-prod-to-tens x) ≡ x
-flat-prod-to-tens-to-prod {A} {B} 𝄫x =
-  let f : (x : A × B) → flat-tens-to-prod (flat-prod-to-tens 𝄫x) ≡ 𝄫x = fun (a , b) → refl in
-  f x
-
-flat-tens-to-prod-to-tens ∷ {A B ∷ U} (x : ♭(A ⨂ B)) → flat-prod-to-tens (flat-tens-to-prod x) ≡ x
-flat-tens-to-prod-to-tens {A} {B} 𝄫x =
-  let f : (x : A ⨂ B) → flat-prod-to-tens (flat-tens-to-prod 𝄫x) ≡ 𝄫x = fun (a ⊗ b) → refl in
-  f x
-
 crispify-empty ∷ ⊥ → ♭⊥
 crispify-empty ()
 
@@ -86,7 +66,6 @@ is-section-crispify-bool = ind-bool (λb. unflatten (crispify-bool b) ≡ b) ref
 --- Discreteness
 ---
 
-open import Equivalence
 open import Funext
 
 -- Theorem 6.1
@@ -309,3 +288,69 @@ is-discrete-id {A} {x} {y} d =
     {cong (unflatten {A}) {𝄫x} {𝄫y} ∘ flat-decode {A} 𝄫x 𝄫y} {unflatten {x ≡ y}}
     (unflatten-flat-decode {A} {x} {y})
     (is-equiv-circ (cong (unflatten {A}) {𝄫x} {𝄫y}) (flat-decode {A} 𝄫x 𝄫y) (ap-equiv (unflatten {A}) d 𝄫x 𝄫y) (flat-id-inv {A} {x} {y}))
+
+---
+--- Tensor
+---
+
+flat-tens-to-prod ∷ {A B ∷ U} → ♭(A ⨂ B) → ♭(A × B)
+flat-tens-to-prod = flat-map tens-to-prod
+-- flat-tens-to-prod A B 𝄫ab =
+--   let f : (ab ∷ A ⨂ B) → ♭(A × B) = fun (a ⊗ b) → 𝄫 (a , b) in
+--   f ab
+
+flat-prod-to-tens ∷ {A B ∷ U} → ♭(A × B) → ♭(A ⨂ B)
+flat-prod-to-tens {A} {B} 𝄫ab =
+  let f : (ab ∷ A × B) → ♭(A ⨂ B) = fun (a , b) → 𝄫(a ⊗ b) in
+  f ab
+
+flat-prod-to-tens-to-prod ∷ {A B ∷ U} (x : ♭(A × B)) → flat-tens-to-prod (flat-prod-to-tens x) ≡ x
+flat-prod-to-tens-to-prod {A} {B} 𝄫x =
+  let f : (x : A × B) → flat-tens-to-prod (flat-prod-to-tens 𝄫x) ≡ 𝄫x = fun (a , b) → refl in
+  f x
+
+flat-tens-to-prod-to-tens ∷ {A B ∷ U} (x : ♭(A ⨂ B)) → flat-prod-to-tens (flat-tens-to-prod x) ≡ x
+flat-tens-to-prod-to-tens {A} {B} 𝄫x =
+  let f : (x : A ⨂ B) → flat-prod-to-tens (flat-tens-to-prod 𝄫x) ≡ 𝄫x = fun (a ⊗ b) → refl in
+  f x
+
+flat-tens≃prod ∷ {A B ∷ U} → ♭(A ⨂ B) ≃ ♭(A × B)
+flat-tens≃prod {A} {B} =
+  ( flat-tens-to-prod {A} {B}
+  , ( (flat-prod-to-tens {A} {B} , flat-prod-to-tens-to-prod {A} {B})
+    , (flat-prod-to-tens {A} {B} , flat-tens-to-prod-to-tens {A} {B}) ) )
+
+-- a crisp left factor makes the tensor cartesian
+flat-tens-prod-l ∷ {A B ∷ U} → ♭A ⨂ B ≃ ♭A × B
+flat-tens-prod-l {A} {B} =
+  let f ∷ ♭A ⨂ B → ♭A × B = tens-to-prod in
+  let g ∷ ♭A × B → ♭A ⨂ B = fun (u , b) →
+    let h : (u : ♭A) → B → ♭A ⨂ B = fun 𝄫a → fun b → 𝄫a ⊗ b in
+    h u b
+  in
+  let fg ∷ (y : ♭A × B) → f (g y) ≡ y = fun (u , b) →
+    let h : (u : ♭A) → f (g (u , b)) ≡ (u , b) = fun 𝄫a → refl in
+    h u
+  in
+  let gf ∷ (x : ♭A ⨂ B) → g (f x) ≡ x = fun (u ⊗ b) →
+    let h : (u : ♭A) → g (f (u ⊗ b)) ≡ (u ⊗ b) = fun 𝄫a → refl in
+    h u
+  in
+  (f , (g , fg) , (g , gf))
+
+flat-tens-prod-r ∷ {A B ∷ U} → A ⨂ ♭B ≃ A × ♭B
+flat-tens-prod-r {A} {B} =
+  let f ∷ A ⨂ ♭B → A × ♭B = tens-to-prod in
+  let g ∷ A × ♭B → A ⨂ ♭B = fun (a , v) →
+    let h : (v : ♭B) → A → A ⨂ ♭B = fun 𝄫b → fun a → a ⊗ 𝄫b in
+    h v a
+  in
+  let fg ∷ (y : A × ♭B) → f (g y) ≡ y = fun (a , v) →
+    let h : (v : ♭B) → f (g (a , v)) ≡ (a , v) = fun 𝄫b → refl in
+    h v
+  in
+  let gf ∷ (x : A ⨂ ♭B) → g (f x) ≡ x = fun (a ⊗ v) →
+    let h : (v : ♭B) → g (f (a ⊗ v)) ≡ (a ⊗ v) = fun 𝄫b → refl in
+    h v
+  in
+  (f , (g , fg) , (g , gf))
