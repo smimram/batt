@@ -6,6 +6,7 @@ let include_directories_list = ref ([] : string list)
 
 let include_directories () = "." :: !include_directories_list
 
+(** Declare builtins. *)
 let builtins = ref true
 
 (** Use de Bruijn indices for variables. *)
