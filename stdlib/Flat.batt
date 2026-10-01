@@ -337,3 +337,20 @@ flat-tens-prod-l {A} {B} =
     h u
   in
   (f , (g , fg) , (g , gf))
+
+flat-tens-prod-r ∷ {A B ∷ U} → A ⨂ ♭B ≃ A × ♭B
+flat-tens-prod-r {A} {B} =
+  let f ∷ A ⨂ ♭B → A × ♭B = tens-to-prod in
+  let g ∷ A × ♭B → A ⨂ ♭B = fun (a , v) →
+    let h : (v : ♭B) → A → A ⨂ ♭B = fun 𝄫b → fun a → a ⊗ 𝄫b in
+    h v a
+  in
+  let fg ∷ (y : A × ♭B) → f (g y) ≡ y = fun (a , v) →
+    let h : (v : ♭B) → f (g (a , v)) ≡ (a , v) = fun 𝄫b → refl in
+    h v
+  in
+  let gf ∷ (x : A ⨂ ♭B) → g (f x) ≡ x = fun (a ⊗ v) →
+    let h : (v : ♭B) → g (f (a ⊗ v)) ≡ (a ⊗ v) = fun 𝄫b → refl in
+    h v
+  in
+  (f , (g , fg) , (g , gf))
