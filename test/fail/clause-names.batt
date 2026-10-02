@@ -1,0 +1,3 @@
+xor : bool → bool → bool
+xor x false = x
+xor y true = y

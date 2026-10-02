@@ -1,0 +1,4 @@
+open import Nat
+bad : ℕ → ℕ
+bad zero = zero
+bad (succ n) = bad (succ n)

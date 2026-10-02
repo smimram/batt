@@ -11,6 +11,8 @@ type side = Term.side
 type term = Term.t
 type var = string
 [@@deriving show]
+type level = int
+[@@deriving show]
 
 (** A value. *)
 type t =
@@ -34,7 +36,7 @@ type t =
   | Refl of t
   | J of t * spine
   | Meta of meta * spine
-  | Var of int * spine
+  | Var of level * spine (** a variable given by its de Bruijn level (0 is the outermost variable) *)
   | Hole of (Pos.t [@opaque]) * spine
   | Postulate of int * spine
   | RecordType of (string * crispness * t) list
@@ -49,7 +51,7 @@ and closure = var * (term[@opaque]) * (environment[@opaque])
 (** A binary closure. *)
 and closure2 = var * var * (term[@opaque]) * (environment[@opaque])
 
-(** An environment. *)
+(** An environment: the most recent entry comes first, so that it is indexed by de Bruijn indices (see [Var'] in [eval]). *)
 and environment = (var * t) list
 
 (** A metavariable. *)
@@ -123,7 +125,7 @@ let rec eval (env:environment) : Term.t -> t = function
       | Some v -> v
       | None -> failwith @@ Printf.sprintf "eval: could not find %s" x
     )
-  | Var' n -> snd @@ List.nth env n
+  | Var' n -> snd @@ List.nth env n (* n is a de Bruijn index *)
   | Let (_c,x,_a,t,u) ->
     eval env (Term.app (Abs(Explicit, x, u)) t)
   | Postulate (Some n) -> Postulate (n, [])
@@ -155,7 +157,7 @@ let rec eval (env:environment) : Term.t -> t = function
   | Iv (i, j) -> interval @@ Iv (eval env i, eval env j)
   | Iw (i, j) -> interval @@ Iw (eval env i, eval env j)
 
-(** Make a variable. *)
+(** Make a variable with given de Bruijn level. *)
 and var k = Var (k, [])
 
 (** Apply a value to another. *)
@@ -210,8 +212,10 @@ and force t =
     of atoms, with atoms sorted and deduplicated in each join, and absorbed
     joins removed. *)
 and interval i =
-  let subset c c' = List.for_all (fun a -> List.mem a c') c in
-  let rec cnf i : t list list =
+  (* Atoms are compared through their readback (at level 0, which is enough for a canonical form) and not directly as values: these contain closures, whose environments depend on how the value was obtained. *)
+  let compare (k,_) (k',_) = compare k k' in
+  let subset c c' = List.for_all (fun a -> List.exists (fun a' -> compare a a' = 0) c') c in
+  let rec cnf i : (Term.t * t) list list =
     match force i with
     | I0 -> [[]]
     | I1 -> []
@@ -219,17 +223,17 @@ and interval i =
       let j = cnf j in
       List.concat_map (fun c -> List.map (fun c' -> c @ c') j) (cnf i)
     | Iw (i, j) -> cnf i @ cnf j
-    | a -> [[a]]
+    | a -> [[readback 0 a, a]]
   in
   let clauses = List.map (List.sort_uniq compare) (cnf i) in
   (* Absorption: remove joins containing another one. *)
-  let clauses = List.stable_sort (fun c c' -> compare (List.length c) (List.length c')) clauses in
+  let clauses = List.stable_sort (fun c c' -> Int.compare (List.length c) (List.length c')) clauses in
   let clauses = List.fold_left (fun kept c -> if List.exists (fun c' -> subset c' c) kept then kept else c::kept) [] clauses in
-  let clauses = List.sort compare clauses in
+  let clauses = List.sort (List.compare compare) clauses in
   let rec sup = function
     | [] -> I0
-    | [i] -> i
-    | i::l -> Iv (i, sup l)
+    | [_,i] -> i
+    | (_,i)::l -> Iv (i, sup l)
   in
   let rec inf = function
     | [] -> I1
@@ -238,32 +242,32 @@ and interval i =
   in
   inf @@ List.map sup clauses
 
-(** Reify a value as a term. *)
-let rec readback k v : Term.t =
-  let var_name k = "x" ^ string_of_int k in
+(** Reify a value as a term, [k] being the current level: value variables are levels, whereas term variables are de Bruijn indices. *)
+and readback k v : Term.t =
+  (* Binders keep the name of the original variable (Term.to_string takes care of avoiding clashes). *)
   let spine l t = Term.app_spine t (List.map (readback k) l) in
   match force v with
   | Type n -> Type n
   | IndType ind -> IndType ind
   | IndType_ind (ind, args, l) -> spine l @@ IndType_ind (ind, List.map (readback k) args)
   | IndTerm (t, l) -> IndTerm (t, List.map (readback k) l)
-  | Pi (i, c, a, b) -> Pi (i, c, var_name k, readback k a, readback (k+1) (capp b (var k)))
-  | Abs f -> Abs (Explicit, var_name k, readback (k+1) (capp f (var k)))
-  | Sigma (a, b) -> Sigma (var_name k, readback k a, readback (k+1) (capp b (var k)))
+  | Pi (i, c, a, ((x,_,_) as b)) -> Pi (i, c, x, readback k a, readback (k+1) (capp b (var k)))
+  | Abs ((x,_,_) as f) -> Abs (Explicit, x, readback (k+1) (capp f (var k)))
+  | Sigma (a, ((x,_,_) as b)) -> Sigma (x, readback k a, readback (k+1) (capp b (var k)))
   | Pair (t, u) -> Pair (readback k t, readback k u)
-  | Pair_ind (t, l) -> spine l @@ Pair_ind (var_name k, var_name (k+1), readback (k+2) @@ capp2 t (var k) (var (k+1)))
+  | Pair_ind ((x,y,_,_) as t, l) -> spine l @@ Pair_ind (x, y, readback (k+2) @@ capp2 t (var k) (var (k+1)))
   | Arr (s, a, b) -> Arr (s, readback k a, readback k b)
   | Tens (a, b) -> Tens (readback k a, readback k b)
   | TensPair (t, u) -> TensPair (readback k t, readback k u)
-  | Tens_ind (t, l) -> spine l @@ Tens_ind (var_name k, var_name (k+1), readback (k+2) @@ capp2 t (var k) (var (k+1)))
+  | Tens_ind ((x,y,_,_) as t, l) -> spine l @@ Tens_ind (x, y, readback (k+2) @@ capp2 t (var k) (var (k+1)))
   | Flat a -> Flat (readback k a)
   | Flatten t -> Flatten (readback k t)
-  | Flat_ind (t, l) -> spine l @@ Flat_ind (var_name k, readback (k+1) (capp t (var k)))
+  | Flat_ind ((x,_,_) as t, l) -> spine l @@ Flat_ind (x, readback (k+1) (capp t (var k)))
   | Eq (a, t, u) -> Eq (readback k a, readback k t, readback k u)
   | Refl t -> Refl (readback k t)
   | J (r, l) -> spine l @@ J (readback k r)
   | Meta (m, l) -> spine l @@ Meta (`Generated m.id)
-  | Var (i, l) -> spine l @@ Var' i
+  | Var (i, l) -> spine l @@ Var' (k - i - 1) (* convert the level i into an index *)
   | Postulate (n, l) -> spine l @@ Postulate (Some n)
   | Hole (pos, l) -> spine l @@ Hole pos
   | RecordType l -> RecordType (List.map (fun (x, c, a) -> x, c, readback k a) l)
@@ -281,4 +285,5 @@ let rec readback k v : Term.t =
   | Iv (i, j) -> Iv (readback k i, readback k j)
   | Iw (i, j) -> Iw (readback k i, readback k j)
 
-let to_string k v = Term.to_string @@ readback k v
+(** String representation of a value at level [k]: [vars] are the names of the variables at levels [k-1], ..., [0]. *)
+let to_string ?vars k v = Term.to_string ?vars @@ readback k v

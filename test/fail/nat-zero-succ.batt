@@ -1,0 +1,2 @@
+zero-succ : 0 ≡ succ 0
+zero-succ = refl

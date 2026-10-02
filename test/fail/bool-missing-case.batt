@@ -1,0 +1,2 @@
+f : bool → bool
+f false = true
