@@ -14,7 +14,7 @@ let binder_names ~pos t =
 let meta ~pos = mk ~pos @@ Meta (`Fresh (Some pos))
 %}
 
-%token COLON CCOLON EQ LPAR RPAR LRPAR LACC RACC COMMA LET IN POSTULATE META HOLE N EOF
+%token COLON CCOLON EQ LPAR RPAR LRPAR LACC RACC COMMA LET IN POSTULATE ABSTRACT META HOLE N EOF
 %token TYPE LARGETYPE
 %token<int> INT
 %token EMPTY
@@ -54,10 +54,11 @@ items:
   | item N items { $1::$3 }
 
 item:
-  | x=IDENT c=ccolon a=term { Sig ($loc, x, c, a) }
+  | x=IDENT c=ccolon a=term { Sig ($loc, false, x, c, a) }
+  | ABSTRACT x=IDENT c=ccolon a=term { Sig ($loc, true, x, c, a) }
   | y=IDENT args=list(pattern) EQ t=term { Clause ($loc, y, args, t) }
   | y=IDENT args=list(pattern) LRPAR { Clause ($loc, y, args, mk ~pos:$loc($3) (IndType_ind (`Empty, []))) }
-  | POSTULATE x=IDENT c=ccolon a=term { Decls [Def (x, c, Some a, mk ~pos:$loc @@ Postulate None)] }
+  | POSTULATE x=IDENT c=ccolon a=term { Decls [Def (x, c, Some a, mk ~pos:$loc @@ Abstract None)] }
   | m=IMPORT { Decls [Def (m, Crisp, None, mk ~pos:$loc @@ Import m)] }
   | OPEN m=IMPORT { Decls [Def (m, Crisp, None, mk ~pos:$loc(m) @@ Import m); Open (mk ~pos:$loc(m) @@ Var m)] }
   | OPEN t=term { Decls [Open t] }

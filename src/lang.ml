@@ -336,8 +336,8 @@ let unify ~pos k (t:value) (u:value) =
               if !Common.show_debug then debug "ESCAPED %s\n" (V.to_string k (V.var x));
               raise Unification
           )
-        | Postulate (n, l) ->
-          spine l @@ Postulate (Some n)
+        | Abstract (n, l) ->
+          spine l @@ Abstract (Some n)
         | I -> I
         | I0 -> I0
         | I1 -> I1
@@ -418,7 +418,7 @@ let unify ~pos k (t:value) (u:value) =
     | J (r, l), J (r', l') ->
       unify k r r';
       spine k l l'
-    | Postulate (n, l), Postulate (n', l') ->
+    | Abstract (n, l), Abstract (n', l') ->
       if n <> n' then raise Unification;
       spine k l l'
     | Var (x, l), Var (x', l') ->
@@ -674,11 +674,11 @@ let rec check k env ctx (t:term) (a:value) : term =
     let c = V.capp (snd @@ unpi ~icit:Explicit k @@ V.capp b x) (Refl x) in
     let r = check k env ctx r c in
     J r
-  | Postulate n, a ->
+  | Abstract n, a ->
     (* This is before implicit abstraction insertion so that the postulate gets its full type. *)
-    let n = match n with Some n -> n | None -> incr V.postulate; !V.postulate in
-    important "\nPOSTULATE %d %s\n%!" n (string_of_value k env a);
-    Postulate (Some n)
+    let n = match n with Some n -> n | None -> incr V.abstract; `Postulate !V.abstract in
+    important "\nPOSTULATE %s %s\n%!" (T.string_of_abstract n) (string_of_value k env a);
+    Abstract (Some n)
   | _, Pi (Implicit, _, _, _) ->
     (* Insert implicit abstraction. *)
     check k env ctx (Abs (Implicit, "_", t)) a
@@ -914,6 +914,18 @@ and check_decls k env ctx (decls:T.decls) =
       tm := (x,t) :: !tm;
       let t = V.eval !env t in
       env := (x,t) :: !env;
+      ctx := Context.ext ~crispness:c !ctx x a;
+      ty := (x,c,a) :: !ty
+    | T.AbstractDef (x,c,a,t) ->
+      Common.print "\nABSTRACT DECL  %s = %s %s %s\n%!" x (T.to_string t) (T.crispy_colon c) (T.to_string a);
+      let a, _ = check_type k !env !ctx a in
+      let a = V.eval !env a in
+      ignore @@ check k !env (Context.crisp ~crispness:c !ctx) t a;
+      (* The definition is elaborated to a fresh opaque constant so that it does not reduce, including when imported from another module. *)
+      incr V.abstract;
+      let t = T.Abstract (Some (`Abstract (x, !V.abstract))) in
+      tm := (x,t) :: !tm;
+      env := (x, V.eval !env t) :: !env;
       ctx := Context.ext ~crispness:c !ctx x a;
       ty := (x,c,a) :: !ty
     | Open t ->
