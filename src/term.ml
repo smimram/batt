@@ -32,7 +32,7 @@ type icit = Explicit | Implicit
 type abstract = [`Postulate of int | `Abstract of string * int]
 [@@deriving show]
 
-let string_of_abstract = function
+let string_of_opaque = function
   | `Postulate n -> "postulate" ^ string_of_int n
   | `Abstract (x, _) -> x
 
@@ -64,7 +64,7 @@ type t =
   | Var of var
   | Var' of int (** a variable given de Bruijn index *) (* TODO: it would be much better to have preterms (strings) and terms (de Bruijn) *)
   | Let of crispness * string * t * t * t
-  | Abstract of abstract option (** an opaque constant ([None] for a fresh postulate) *)
+  | Opaque of abstract option (** an opaque constant ([None] for a fresh postulate) *)
   | Hole of Pos.t
   | Meta of [`Fresh of Pos.t option | `Generated of int] (** metavariable with given internal identifier *)
   | Import of string (** import a module *)
@@ -145,7 +145,7 @@ module FV = struct
     | Var x -> singleton x
     | Var' _ -> assert false
     | Let (_c, _x, a, t, u) -> union (term a) @@ union (term t) (term u)
-    | Abstract _ -> empty
+    | Opaque _ -> empty
     | Hole _ -> empty
     | Meta _ -> empty
     | Import _ -> assert false
@@ -239,7 +239,7 @@ let rec to_string ?(vars=[]) ?(ren=[]) t =
   | Var' n when 0 <= n && n < List.length vars && not !Common.de_bruijn -> List.nth vars n
   | Var' n -> Printf.sprintf "x-%d" n
   | Let (c,x,a,t,u) -> let x, u = bind x u in Printf.sprintf "let %s %s %s = %s in %s" x (colon c) (to_string a) (to_string t) u
-  | Abstract n -> (match n with Some n -> string_of_abstract n | None -> "postulate")
+  | Opaque n -> (match n with Some n -> string_of_opaque n | None -> "postulate")
   | Hole _ -> "?"
   | Meta (`Fresh _) -> "_"
 
