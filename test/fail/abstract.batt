@@ -1,0 +1,5 @@
+abstract two : ℕ
+two = 2
+
+test : two ≡ 2
+test = refl

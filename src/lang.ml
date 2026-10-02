@@ -336,8 +336,8 @@ let unify ~pos k (t:value) (u:value) =
               if !Common.show_debug then debug "ESCAPED %s\n" (V.to_string k (V.var x));
               raise Unification
           )
-        | Postulate (n, l) ->
-          spine l @@ Postulate (Some n)
+        | Opaque (o, l) ->
+          spine l @@ Opaque (Some o)
         | I -> I
         | I0 -> I0
         | I1 -> I1
@@ -418,8 +418,8 @@ let unify ~pos k (t:value) (u:value) =
     | J (r, l), J (r', l') ->
       unify k r r';
       spine k l l'
-    | Postulate (n, l), Postulate (n', l') ->
-      if n <> n' then raise Unification;
+    | Opaque (o, l), Opaque (o', l') ->
+      if o <> o' then raise Unification;
       spine k l l'
     | Var (x, l), Var (x', l') ->
       if x <> x' then raise Unification;
@@ -674,11 +674,11 @@ let rec check k env ctx (t:term) (a:value) : term =
     let c = V.capp (snd @@ unpi ~icit:Explicit k @@ V.capp b x) (Refl x) in
     let r = check k env ctx r c in
     J r
-  | Postulate n, a ->
+  | Opaque o, a ->
     (* This is before implicit abstraction insertion so that the postulate gets its full type. *)
-    let n = match n with Some n -> n | None -> incr V.postulate; !V.postulate in
-    important "\nPOSTULATE %d %s\n%!" n (string_of_value k env a);
-    Postulate (Some n)
+    let o = match o with Some o -> o | None -> incr V.abstract; `Postulate !V.abstract in
+    important "\nPOSTULATE %s %s\n%!" (T.string_of_opaque o) (string_of_value k env a);
+    Opaque (Some o)
   | _, Pi (Implicit, _, _, _) ->
     (* Insert implicit abstraction. *)
     check k env ctx (Abs (Implicit, "_", t)) a
@@ -899,8 +899,8 @@ and check_decls k env ctx (decls:T.decls) =
     let decl = List.hd !decls in
     decls := List.tl !decls;
     match decl with
-    | T.Def (x,c,a,t) ->
-      Common.print "\nDECL  %s = %s%s\n%!" x (T.to_string t) (match a with Some a -> " " ^ T.crispy_colon c ^ " " ^ T.to_string a | None -> "");
+    | T.Def (x,c,abstract,a,t) ->
+      Common.print "\n%sDECL  %s = %s%s\n%!" (if abstract then "ABSTRACT " else "") x (T.to_string t) (match a with Some a -> " " ^ T.crispy_colon c ^ " " ^ T.to_string a | None -> "");
       let t, a =
         match a with
         | Some a ->
@@ -911,9 +911,16 @@ and check_decls k env ctx (decls:T.decls) =
         | None ->
           infer k !env (Context.crisp ~crispness:c !ctx) t
       in
+      let t =
+        if not abstract then t else
+          (
+            (* The definition is elaborated to a fresh opaque constant so that it does not reduce, including when imported from another module. *)
+            incr V.abstract;
+            T.Opaque (Some (`Abstract (x, !V.abstract)))
+          )
+      in
       tm := (x,t) :: !tm;
-      let t = V.eval !env t in
-      env := (x,t) :: !env;
+      env := (x, V.eval !env t) :: !env;
       ctx := Context.ext ~crispness:c !ctx x a;
       ty := (x,c,a) :: !ty
     | Open t ->
@@ -938,7 +945,7 @@ and check_decls k env ctx (decls:T.decls) =
       in
       let l = List.filter (fun (x,_,_) -> not (already_bound x)) l in
       let pos = T.Position.find_opt t0 in
-      List.iter (fun (x,c,_) -> decls := (Def (x,c,None,T.mk ?pos @@ RecordField(t0, x)) :: !decls)) (List.rev l)
+      List.iter (fun (x,c,_) -> decls := (Def (x,c,false,None,T.mk ?pos @@ RecordField(t0, x)) :: !decls)) (List.rev l)
   done;
   let tm = List.rev !tm in
   let ty = List.rev !ty in

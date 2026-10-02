@@ -38,7 +38,7 @@ type t =
   | Meta of meta * spine
   | Var of level * spine (** a variable given by its de Bruijn level (0 is the outermost variable) *)
   | Hole of (Pos.t [@opaque]) * spine
-  | Postulate of int * spine
+  | Opaque of Term.abstract * spine
   | RecordType of (string * crispness * t) list
   | Record of (string * t) list
   | RecordField of string * spine
@@ -94,8 +94,8 @@ module Meta = struct
     Dynarray.get variables id
 end
 
-(** Postulate counter. *)
-let postulate = ref (-1)
+(** Counter for abstract constants. *)
+let abstract = ref (-1)
 
 (** Evaluate a term to a value. *)
 let rec eval (env:environment) : Term.t -> t = function
@@ -128,8 +128,8 @@ let rec eval (env:environment) : Term.t -> t = function
   | Var' n -> snd @@ List.nth env n (* n is a de Bruijn index *)
   | Let (_c,x,_a,t,u) ->
     eval env (Term.app (Abs(Explicit, x, u)) t)
-  | Postulate (Some n) -> Postulate (n, [])
-  | Postulate None -> assert false
+  | Opaque (Some n) -> Opaque (n, [])
+  | Opaque None -> assert false
   | Hole pos -> Hole (pos, [])
   | Meta (`Fresh _) -> assert false
   | Meta (`Generated id) -> Meta (Meta.get id, [])
@@ -181,7 +181,7 @@ and app t u =
   | Var (x, l), u -> Var (x, u::l)
   | Meta (m, l), u -> Meta (m, u::l)
   | Hole (pos, l), u -> Hole (pos, u::l)
-  | Postulate (n, l), u -> Postulate (n, u::l)
+  | Opaque (n, l), u -> Opaque (n, u::l)
   | RecordField (x, []), Record l -> List.assoc x l
   | _ -> failwith @@ Printf.sprintf "vapp: %s vs %s" (show t) (show u)
 
@@ -268,7 +268,7 @@ and readback k v : Term.t =
   | J (r, l) -> spine l @@ J (readback k r)
   | Meta (m, l) -> spine l @@ Meta (`Generated m.id)
   | Var (i, l) -> spine l @@ Var' (k - i - 1) (* convert the level i into an index *)
-  | Postulate (n, l) -> spine l @@ Postulate (Some n)
+  | Opaque (n, l) -> spine l @@ Opaque (Some n)
   | Hole (pos, l) -> spine l @@ Hole pos
   | RecordType l -> RecordType (List.map (fun (x, c, a) -> x, c, readback k a) l)
   | Record l -> Record (`NonRecursive, List.map (fun (x, t) -> x, readback k t) l)
