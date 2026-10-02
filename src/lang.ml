@@ -336,8 +336,8 @@ let unify ~pos k (t:value) (u:value) =
               if !Common.show_debug then debug "ESCAPED %s\n" (V.to_string k (V.var x));
               raise Unification
           )
-        | Opaque (n, l) ->
-          spine l @@ Opaque (Some n)
+        | Opaque (o, l) ->
+          spine l @@ Opaque (Some o)
         | I -> I
         | I0 -> I0
         | I1 -> I1
@@ -418,8 +418,8 @@ let unify ~pos k (t:value) (u:value) =
     | J (r, l), J (r', l') ->
       unify k r r';
       spine k l l'
-    | Opaque (n, l), Opaque (n', l') ->
-      if n <> n' then raise Unification;
+    | Opaque (o, l), Opaque (o', l') ->
+      if o <> o' then raise Unification;
       spine k l l'
     | Var (x, l), Var (x', l') ->
       if x <> x' then raise Unification;
