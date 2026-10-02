@@ -899,8 +899,8 @@ and check_decls k env ctx (decls:T.decls) =
     let decl = List.hd !decls in
     decls := List.tl !decls;
     match decl with
-    | T.Def (x,c,a,t) ->
-      Common.print "\nDECL  %s = %s%s\n%!" x (T.to_string t) (match a with Some a -> " " ^ T.crispy_colon c ^ " " ^ T.to_string a | None -> "");
+    | T.Def (x,c,abstract,a,t) ->
+      Common.print "\n%sDECL  %s = %s%s\n%!" (if abstract then "ABSTRACT " else "") x (T.to_string t) (match a with Some a -> " " ^ T.crispy_colon c ^ " " ^ T.to_string a | None -> "");
       let t, a =
         match a with
         | Some a ->
@@ -911,19 +911,14 @@ and check_decls k env ctx (decls:T.decls) =
         | None ->
           infer k !env (Context.crisp ~crispness:c !ctx) t
       in
-      tm := (x,t) :: !tm;
-      let t = V.eval !env t in
-      env := (x,t) :: !env;
-      ctx := Context.ext ~crispness:c !ctx x a;
-      ty := (x,c,a) :: !ty
-    | T.AbstractDef (x,c,a,t) ->
-      Common.print "\nABSTRACT DECL  %s = %s %s %s\n%!" x (T.to_string t) (T.crispy_colon c) (T.to_string a);
-      let a, _ = check_type k !env !ctx a in
-      let a = V.eval !env a in
-      ignore @@ check k !env (Context.crisp ~crispness:c !ctx) t a;
-      (* The definition is elaborated to a fresh opaque constant so that it does not reduce, including when imported from another module. *)
-      incr V.abstract;
-      let t = T.Opaque (Some (`Abstract (x, !V.abstract))) in
+      let t =
+        if not abstract then t else
+          (
+            (* The definition is elaborated to a fresh opaque constant so that it does not reduce, including when imported from another module. *)
+            incr V.abstract;
+            T.Opaque (Some (`Abstract (x, !V.abstract)))
+          )
+      in
       tm := (x,t) :: !tm;
       env := (x, V.eval !env t) :: !env;
       ctx := Context.ext ~crispness:c !ctx x a;
@@ -950,7 +945,7 @@ and check_decls k env ctx (decls:T.decls) =
       in
       let l = List.filter (fun (x,_,_) -> not (already_bound x)) l in
       let pos = T.Position.find_opt t0 in
-      List.iter (fun (x,c,_) -> decls := (Def (x,c,None,T.mk ?pos @@ RecordField(t0, x)) :: !decls)) (List.rev l)
+      List.iter (fun (x,c,_) -> decls := (Def (x,c,false,None,T.mk ?pos @@ RecordField(t0, x)) :: !decls)) (List.rev l)
   done;
   let tm = List.rev !tm in
   let ty = List.rev !ty in

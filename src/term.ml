@@ -75,8 +75,7 @@ type t =
 
 (** A declaration. *)
 and decl =
-  | Def of (string * crispness * t option * t)
-  | AbstractDef of (string * crispness * t * t) (** a definition which does not reduce *)
+  | Def of (string * crispness * bool * t option * t) (** a definition, the boolean indicates whether it is abstract (does not reduce) *)
   | Open of t
 
 (** A list of declarations. *)

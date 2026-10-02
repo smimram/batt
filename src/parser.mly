@@ -58,9 +58,9 @@ item:
   | ABSTRACT x=IDENT c=ccolon a=term { Sig ($loc, true, x, c, a) }
   | y=IDENT args=list(pattern) EQ t=term { Clause ($loc, y, args, t) }
   | y=IDENT args=list(pattern) LRPAR { Clause ($loc, y, args, mk ~pos:$loc($3) (IndType_ind (`Empty, []))) }
-  | POSTULATE x=IDENT c=ccolon a=term { Decls [Def (x, c, Some a, mk ~pos:$loc @@ Opaque None)] }
-  | m=IMPORT { Decls [Def (m, Crisp, None, mk ~pos:$loc @@ Import m)] }
-  | OPEN m=IMPORT { Decls [Def (m, Crisp, None, mk ~pos:$loc(m) @@ Import m); Open (mk ~pos:$loc(m) @@ Var m)] }
+  | POSTULATE x=IDENT c=ccolon a=term { Decls [Def (x, c, false, Some a, mk ~pos:$loc @@ Opaque None)] }
+  | m=IMPORT { Decls [Def (m, Crisp, false, None, mk ~pos:$loc @@ Import m)] }
+  | OPEN m=IMPORT { Decls [Def (m, Crisp, false, None, mk ~pos:$loc(m) @@ Import m); Open (mk ~pos:$loc(m) @@ Var m)] }
   | OPEN t=term { Decls [Open t] }
 
 atom:

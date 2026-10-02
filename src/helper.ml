@@ -134,4 +134,4 @@ let rec group_decls = function
     );
     let pos = List.fold_left (fun pos (pos', _) -> Pos.union pos pos') (fst (List.hd cl)) cl in
     let t = compile_clauses ~pos (List.map snd cl) in
-    (if abstract then AbstractDef (x, c, a, t) else Def (x, c, Some a, t)) :: group_decls items
+    Def (x, c, abstract, Some a, t) :: group_decls items
