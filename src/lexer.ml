@@ -57,6 +57,7 @@ let rec token lexbuf =
   | "let" -> LET
   | "in" -> IN
   | "postulate" -> POSTULATE
+  | "abstract" -> ABSTRACT
   | "open" -> OPEN
   | "import ", Star (letter | '-' | '_') ->
     let s = Sedlexing.Utf8.lexeme lexbuf in

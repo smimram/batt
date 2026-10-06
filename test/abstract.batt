@@ -1,0 +1,16 @@
+abstract double : ℕ → ℕ
+double zero = zero
+double (succ n) = succ (succ rec)
+
+four : ℕ
+four = double 2
+
+test : double 2 ≡ four
+test = refl
+
+abstract two : ℕ
+two = 2
+
+-- Abstract definitions can be used in later definitions.
+three : ℕ
+three = succ two

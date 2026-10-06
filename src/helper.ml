@@ -109,7 +109,7 @@ let rec compile_clauses ~pos rows =
 
 (** A toplevel item, before grouping clauses. *)
 type item =
-  | Sig of Pos.t * string * crispness * t (** type signature *)
+  | Sig of Pos.t * bool * string * crispness * t (** type signature, the boolean indicates whether the definition is abstract *)
   | Clause of Pos.t * string * pattern list * t (** defining clause *)
   | Decls of decls (** other declarations *)
 
@@ -120,7 +120,7 @@ let rec group_decls = function
   | [] -> []
   | Decls d :: items -> d @ group_decls items
   | Clause (pos, x, _, _) :: _ -> failwith @@ Printf.sprintf "%s: missing type declaration for %s" (Pos.to_string pos) x
-  | Sig (pos, x, c, a) :: items ->
+  | Sig (pos, abstract, x, c, a) :: items ->
     let rec clauses = function
       | Clause (pos, y, l, t) :: items when y = x -> let cl, items = clauses items in (pos, (l, t)) :: cl, items
       | items -> [], items
@@ -133,4 +133,5 @@ let rec group_decls = function
       | _ -> ()
     );
     let pos = List.fold_left (fun pos (pos', _) -> Pos.union pos pos') (fst (List.hd cl)) cl in
-    Def (x, c, Some a, compile_clauses ~pos (List.map snd cl)) :: group_decls items
+    let t = compile_clauses ~pos (List.map snd cl) in
+    Def (x, c, abstract, Some a, t) :: group_decls items
