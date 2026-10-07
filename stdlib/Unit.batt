@@ -17,6 +17,9 @@ open import Funext
 unit→-equiv ∷ {A ∷ U} → (⊤ → A) ≃ A
 unit→-equiv {A} = iso→equiv {⊤ → A} {A} (λ f . f tt) (λ a _ . a) (λ a . refl) (λ f . funext-nd (λ _ . f tt) f (λ tt . refl))
 
+terminal-equiv ∷ {A : U} → (A → ⊤) ≃ ⊤
+terminal-equiv {A} = iso→equiv {A → ⊤} {⊤} (λ _ . tt) (λ _ _ . tt) (λ tt . refl) (λ f . funext-nd (λ _ . tt) f (λ a . unit-ind (λ y . tt ≡ y) refl (f a)))
+
 ---
 --- The unit type is a proposition
 ---
