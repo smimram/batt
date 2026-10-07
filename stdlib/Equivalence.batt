@@ -102,6 +102,9 @@ is-iso {A} {B} f = Σ (g : B → A) . (is-section f g) × (is-retraction f g)
 is-iso→is-equiv ∷ {A B : U} → (f : A → B) → is-iso {A} {B} f → is-equiv f
 is-iso→is-equiv f (g , sr) = (g , prod-fst sr) , (g , prod-snd sr)
 
+iso→equiv ∷ {A B : U} → (f : A → B) (g : B → A) → is-section f g → is-retraction f g → A ≃ B
+iso→equiv f g sec ret = (f , (g , sec) , (g , ret))
+
 -- underlying map of an equivalence
 
 map-equiv ∷ {A B : U} → equiv A B → A → B
