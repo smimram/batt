@@ -12,6 +12,7 @@ open import Set
 open import Tensor
 open import Arrow
 open import Flat
+open import Pullback
 open import Pushout
 open import Funext
 open import Equivalence
