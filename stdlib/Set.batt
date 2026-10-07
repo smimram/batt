@@ -1,6 +1,5 @@
 open import Equality
 open import Product
-open import Unit
 open import Prop
 
 is-set ∷ U → U
@@ -50,6 +49,3 @@ is-set-prod {A} {B} sA sB u u' =
   let rs : (π : u ≡ u') → prod-path u u' (s π) ≡ π =
     λ π . J u (λ u' π . prod-path u u' (cong prod-fst π , cong prod-snd π) ≡ π) (prod-path-refl u) π in
   is-prop-retract s (prod-path u u') rs (is-prop-prod (sA (prod-fst u) (prod-fst u')) (sB (prod-snd u) (prod-snd u')))
-
-is-set-unit ∷ is-set ⊤
-is-set-unit = is-prop→is-set is-prop-unit
