@@ -504,6 +504,9 @@ let fresh_meta ?pos env =
   let vars = aux 0 env in
   T.apps (T.Meta (`Generated m.id)) vars
 
+(** Modules currently being imported, most recent first (used to detect cyclic imports). *)
+let importing = ref ([] : string list)
+
 (** Check that term has given type and elaborate it. Here, [k] is the current level (the number of bound variables, which is the length of [env] minus the number of definitions), values use de Bruijn levels and the elaborated terms use de Bruijn indices in [env]. *)
 let rec check k env ctx (t:term) (a:value) : term =
   if !Common.show_debug then debug "CHECK %s : %s\n%!" (string_of_term env t) (string_of_value k env a);
@@ -856,9 +859,11 @@ and infer k env ctx (t:term) : term * value =
         warning "\nmodule %s apparently already imported, ignoring\n" m;
         Var m, a
       | None ->
+        if List.mem m !importing then error ~t "cyclic import of module %s (%s)" m (String.concat " -> " (List.rev (m :: !importing)));
         let pos = T.Position.find_opt t in
         let decls = Module.parse ?pos m in
-        let _,tm,ty = check_decls k env ctx decls in
+        importing := m :: !importing;
+        let _,tm,ty = Fun.protect ~finally:(fun () -> importing := List.tl !importing) (fun () -> check_decls k env ctx decls) in
         if List.mem_assoc m tm then error ~t "module %s contains a field %s, this is expected to cause problems" m m;
         T.Record (`Recursive, tm), V.RecordType ty
     )

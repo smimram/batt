@@ -1,0 +1,2 @@
+-- Two mutually recursive imports
+open import rec2
