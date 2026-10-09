@@ -265,3 +265,49 @@ abstract is-equiv-conj' ∷ {A B C D : U} (f : A → B) (g : C → D) (α : A �
   ((a : A) → g (α a) ≡ β (f a)) → is-equiv α → is-equiv β → is-equiv g → is-equiv f
 is-equiv-conj' {A} {B} {C} {D} f g α β H eα eβ eg =
   is-equiv-cancel-l β f eβ (is-equiv-htpy {A} {D} {g ∘ α} {β ∘ f} H (is-equiv-circ g α eg eα))
+
+---
+--- Base change of equivalences along families, and rotation of squares of paths
+---
+
+-- a point transported back along a path is equal to the original one, in the total space
+Σ-subst-sym ∷ {B : U} (Q : B → U) {b' b : B} (p : b' ≡ b) (q : Q b) → (b' , subst Q (sym p) q) ≡{Σ (b : B) . Q b} (b , q)
+Σ-subst-sym {B} Q {b'} refl q = refl
+
+Σ-subst-sym-cong ∷ {A B : U} (f : A → B) (Q : B → U) {a' a : A} (p : a' ≡ a) (q : Q (f a)) →
+  (a' , subst Q (sym (cong f p)) q) ≡{Σ (a : A) . Q (f a)} (a , q)
+Σ-subst-sym-cong {A} {B} f Q {a'} refl q = refl
+
+Σ-base ∷ {A B : U} (f : A → B) (Q : B → U) → (Σ (a : A) . Q (f a)) → Σ (b : B) . Q b
+Σ-base {A} {B} f Q (a , q) = (f a , q)
+
+-- base change of an equivalence along a family
+abstract is-equiv-Σ-base ∷ {A B : U} (f : A → B) → is-equiv f → (Q : B → U) → is-equiv (Σ-base f Q)
+is-equiv-Σ-base {A} {B} f (sec , ret) Q =
+  let h : section f → retraction f → is-equiv (Σ-base f Q) = fun (g , ε) (r , rf) →
+    let η : (x : A) → g (f x) ≡ x = λ x . trans (sym (trans (sym (cong r (ε (f x)))) (rf (g (f x))))) (rf x) in
+    let ε' : (y : B) → f (g y) ≡ y = ha-sec f g η ε in
+    let inv : (Σ (b : B) . Q b) → Σ (a : A) . Q (f a) = fun (b , q) → (g b , subst Q (sym (ε' b)) q) in
+    let s : (w : Σ (b : B) . Q b) → Σ-base f Q (inv w) ≡ w = fun (b , q) → Σ-subst-sym Q (ε' b) q in
+    let rt : (w : Σ (a : A) . Q (f a)) → inv (Σ-base f Q w) ≡ w = fun (a , q) →
+      trans (cong {f (g (f a)) ≡ f a} {Σ (a' : A) . Q (f a')} (λ r' . (g (f a) , subst Q (sym r') q)) (ha-coh f g η ε a))
+        (Σ-subst-sym-cong f Q (η a) q) in
+    ((inv , s) , (inv , rt))
+  in
+  h sec ret
+
+-- rotating a square of paths
+trans-sym-trans ∷ {T : U} {a0 a1 : T} (A : a0 ≡ a1) {a3 : T} (X : a1 ≡ a3) → trans (sym A) (trans A X) ≡ X
+trans-sym-trans {T} {a0} {a1} A refl = trans-sym-l A
+
+path-rot ∷ {T : U} {a0 a1 a2 a3 : T} (A : a0 ≡ a1) (B : a1 ≡ a2) (C : a2 ≡ a3) {d1 : T} (D : a0 ≡ d1) {d2 : T} (E : d1 ≡ d2) (F : d2 ≡ a3) →
+  trans A (trans B C) ≡ trans D (trans E F) → trans B (trans C (trans (sym F) (sym E))) ≡ trans (sym A) D
+path-rot {T} {a0} {a1} {a2} {a3} A B C {d1} D {d2} E F =
+  J' (λ d2' a3' F' . (C' : a2 ≡ a3') (E' : d1 ≡ d2') → trans A (trans B C') ≡ trans D (trans E' F') →
+        trans B (trans C' (trans (sym F') (sym E'))) ≡ trans (sym A) D)
+    (λ d C' E' .
+      J' (λ d1' d' E'' . (C'' : a2 ≡ d') (D' : a0 ≡ d1') → trans A (trans B C'') ≡ trans D' (trans E'' refl) →
+            trans B (trans C'' (trans refl (sym E''))) ≡ trans (sym A) D')
+        (λ d' C'' D' h . trans (sym (trans-sym-trans A (trans B C''))) (cong {a0 ≡ d'} {a1 ≡ d'} (λ w . trans (sym A) w) h))
+        E' C' D)
+    F C E
