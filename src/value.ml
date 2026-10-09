@@ -17,7 +17,7 @@ type level = int
 (** A value. *)
 type t =
   | Type of int (** universe level *)
-  | IndType of inductive_type
+  | IndType of inductive_type * t list
   | IndTerm of inductive_term * t list
   | IndType_ind of inductive_type * t list * spine
   | Pi of icit * crispness * t * closure
@@ -100,7 +100,7 @@ let abstract = ref (-1)
 (** Evaluate a term to a value. *)
 let rec eval (env:environment) : Term.t -> t = function
   | Type n -> Type n
-  | IndType a -> IndType a
+  | IndType (a, l) -> IndType (a, List.map (eval env) l)
   | IndTerm (t,l) -> IndTerm (t, List.map (eval env) l)
   | IndType_ind (ind, args) -> IndType_ind (ind, List.map (eval env) args, [])
   | Pi (i, c, x, a, t) -> Pi (i, c, eval env a, (x, t, env))
@@ -169,6 +169,8 @@ and app t u =
   | IndType_ind (`Bool, [_tf;tt], []), IndTerm (`Bool true, []) -> tt
   | IndType_ind (`Nat, [tz;_ts], []), IndTerm (`Zero, []) -> tz
   | IndType_ind (`Nat, [_tz;ts], []), IndTerm (`Succ, [n]) -> apps ts [n; app t n]
+  | IndType_ind (`List, [tn;_tc], []), IndTerm (`Nil, []) -> tn
+  | IndType_ind (`List, [_tn;tc], []), IndTerm (`Cons, [x; l]) -> apps tc [x; l; app t l]
   | IndType_ind (ind, t, l), u -> IndType_ind (ind, t, u::l)
   | Pair_ind (t, []), Pair (u, v) -> capp2 t u v
   | Pair_ind (t, l), u -> Pair_ind (t, u::l)
@@ -248,7 +250,7 @@ and readback k v : Term.t =
   let spine l t = Term.app_spine t (List.map (readback k) l) in
   match force v with
   | Type n -> Type n
-  | IndType ind -> IndType ind
+  | IndType (ind, l) -> IndType (ind, List.map (readback k) l)
   | IndType_ind (ind, args, l) -> spine l @@ IndType_ind (ind, List.map (readback k) args)
   | IndTerm (t, l) -> IndTerm (t, List.map (readback k) l)
   | Pi (i, c, a, ((x,_,_) as b)) -> Pi (i, c, x, readback k a, readback (k+1) (capp b (var k)))

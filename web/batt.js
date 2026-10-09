@@ -7,7 +7,7 @@ function esc(s) {
   return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 
-const keywords = new Set(["Type", "U", "let", "in", "fun", "postulate", "open", "import", "refl", "tt", "true", "false", "ℕ", "Nat", "zero", "succ"]);
+const keywords = new Set(["Type", "U", "let", "in", "fun", "postulate", "open", "import", "refl", "tt", "true", "false", "ℕ", "Nat", "zero", "succ", "List", "nil", "cons"]);
 
 // One combined regex: matching is done on raw text, pieces are escaped afterwards.
 const rules = [

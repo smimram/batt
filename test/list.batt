@@ -1,0 +1,40 @@
+-- Lists.
+
+open import Equality
+
+l3 : List ℕ
+l3 = cons 1 (cons 2 (cons 3 nil))
+
+length ∷ {A : Type} → List A → ℕ
+length nil = 0
+length (cons _ l) = succ rec
+
+length-l3 : length l3 ≡ 3
+length-l3 = refl
+
+append ∷ {A : Type} → List A → List A → List A
+append nil m = m
+append (cons x l) m = cons x (rec m)
+
+append-l3 : append l3 l3 ≡ cons 1 (cons 2 (cons 3 (cons 1 (cons 2 (cons 3 nil)))))
+append-l3 = refl
+
+map ∷ {A B : Type} → (A → B) → List A → List B
+map f nil = nil
+map f (cons x l) = cons (f x) rec
+
+map-l3 : map succ l3 ≡ cons 2 (cons 3 (cons 4 nil))
+map-l3 = refl
+
+add ∷ ℕ → ℕ → ℕ
+add zero n = n
+add (succ m) n = succ (rec n)
+
+append-nil ∷ {A : Type} → (l : List A) → append l nil ≡ l
+append-nil nil = refl
+append-nil (cons x l) = cong (cons x) rec
+
+-- Variable patterns mixed with constructor patterns.
+is-empty ∷ {A : Type} → List A → bool
+is-empty nil = true
+is-empty l = false
