@@ -73,11 +73,11 @@ free-equiv-13-cst = pushout-eq {simplex 1} {⊤} {free-equiv-02} (λ _ . tt) edg
 -- which is □[𝐚] ⊗ τ ⊗ □[𝐛] followed by the unit law 1 ⊗ □[𝐛] ≃ □[𝐛], i.e. id ⊗ tens-snd.
 --
 
-thick-free-equiv ∷ (a ∷ ℕ → ℕ) (d ∷ ℕ) (b ∷ ℕ → ℕ) (e ∷ ℕ) → U
-thick-free-equiv a d b e = thicken (grid a d) free-equiv (grid b e)
+thick-free-equiv ∷ (a ∷ List ℕ) (b ∷ List ℕ) → U
+thick-free-equiv a b = thicken (grid a) free-equiv (grid b)
 
-thick-τ ∷ (a ∷ ℕ → ℕ) (d ∷ ℕ) (b ∷ ℕ → ℕ) (e ∷ ℕ) → thick-free-equiv a d b e → grid a d ⨂ grid b e
-thick-τ a d b e = tens-map {grid a d} {grid a d} {free-equiv ⨂ grid b e} {grid b e} id (tens-snd {free-equiv} {grid b e})
+thick-τ ∷ (a ∷ List ℕ) (b ∷ List ℕ) → thick-free-equiv a b → grid a ⨂ grid b
+thick-τ a b = tens-map {grid a} {grid a} {free-equiv ⨂ grid b} {grid b} id (tens-snd {free-equiv} {grid b})
 
 -- Gray-cube thickenings 𝕀^{⊗p} ⊗ E ⊗ 𝕀^{⊗q}, as for spines
 cube-thick-free-equiv ∷ (p q ∷ ℕ) → U
@@ -87,5 +87,5 @@ cube-thick-τ ∷ (p q ∷ ℕ) → cube-thick-free-equiv p q → gray-cube p �
 cube-thick-τ p q = tens-map {gray-cube p} {gray-cube p} {free-equiv ⨂ gray-cube q} {gray-cube q} id (tens-snd {free-equiv} {gray-cube q})
 
 -- the unthickened case: τ_{(),()} is τ, up to the unit laws of ⊗
-thick-τ-unthickened ∷ (a b ∷ ℕ → ℕ) (x : free-equiv) → thick-τ a 0 b 0 (thicken-counit {free-equiv} x) ≡ (tt ⊗ τ x)
-thick-τ-unthickened a b x = refl
+thick-τ-unthickened ∷ (x : free-equiv) → thick-τ nil nil (thicken-counit {free-equiv} x) ≡ (tt ⊗ τ x)
+thick-τ-unthickened x = refl

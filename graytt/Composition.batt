@@ -36,35 +36,35 @@ snd-cell {X} φ =
 --
 
 -- the unthickened oplax Segal condition for Λ² ↪ Δ²
-abstract is-segal-r-2 ∷ (X ∷ U) → is-segal-r X → is-equiv (segal-restr-r no-grid 0 2 no-grid 0 X)
-is-segal-r-2 X s = s no-grid 0 2 no-grid 0
+abstract is-segal-r-2 ∷ (X ∷ U) → is-segal-r X → is-equiv (segal-restr-r nil 2 nil X)
+is-segal-r-2 X s = s nil 2 nil
 
 -- the section of restriction along Λ² ↪ Δ² given by the oplax Segal condition
-segal-section-r ∷ (X ∷ U) → is-segal-r X → section (segal-restr-r no-grid 0 2 no-grid 0 X)
-segal-section-r X s = is-equiv-sec (segal-restr-r no-grid 0 2 no-grid 0 X) (is-segal-r-2 X s)
+segal-section-r ∷ (X ∷ U) → is-segal-r X → section (segal-restr-r nil 2 nil X)
+segal-section-r X s = is-equiv-sec (segal-restr-r nil 2 nil X) (is-segal-r-2 X s)
 
 -- the extension of a (trivially thickened) composable pair to a (trivially thickened) 2-simplex
-thick-filler-r ∷ (X ∷ U) → is-segal-r X → (thick-spine no-grid 0 2 no-grid 0 →ᵣ X) → (thick-simplex no-grid 0 2 no-grid 0 →ᵣ X)
-thick-filler-r X s = map-section (segal-restr-r no-grid 0 2 no-grid 0 X) (segal-section-r X s)
+thick-filler-r ∷ (X ∷ U) → is-segal-r X → (thick-spine nil 2 nil →ᵣ X) → (thick-simplex nil 2 nil →ᵣ X)
+thick-filler-r X s = map-section (segal-restr-r nil 2 nil X) (segal-section-r X s)
 
 -- it restricts back to the given pair
-abstract thick-filler-r-restr ∷ (X ∷ U) (s : is-segal-r X) (ψ : thick-spine no-grid 0 2 no-grid 0 →ᵣ X) →
-  segal-restr-r no-grid 0 2 no-grid 0 X (thick-filler-r X s ψ) ≡ ψ
+abstract thick-filler-r-restr ∷ (X ∷ U) (s : is-segal-r X) (ψ : thick-spine nil 2 nil →ᵣ X) →
+  segal-restr-r nil 2 nil X (thick-filler-r X s ψ) ≡ ψ
 thick-filler-r-restr X s ψ =
-  snd {(thick-spine no-grid 0 2 no-grid 0 →ᵣ X) → (thick-simplex no-grid 0 2 no-grid 0 →ᵣ X)}
-    (is-section (segal-restr-r no-grid 0 2 no-grid 0 X)) (segal-section-r X s) ψ
+  snd {(thick-spine nil 2 nil →ᵣ X) → (thick-simplex nil 2 nil →ᵣ X)}
+    (is-section (segal-restr-r nil 2 nil X)) (segal-section-r X s) ψ
 
 -- the composable pair φ, trivially thickened
-thick-pair-r ∷ {X ∷ U} → (spine 2 →ᵣ X) → (thick-spine no-grid 0 2 no-grid 0 →ᵣ X)
+thick-pair-r ∷ {X ∷ U} → (spine 2 →ᵣ X) → (thick-spine nil 2 nil →ᵣ X)
 thick-pair-r {X} φ =
-  let u ∷ thick-spine no-grid 0 2 no-grid 0 → spine 2 = thicken-unit {spine 2} in
-  pre-r {thick-spine no-grid 0 2 no-grid 0} φ u
+  let u ∷ thick-spine nil 2 nil → spine 2 = thicken-unit {spine 2} in
+  pre-r {thick-spine nil 2 nil} φ u
 
 -- the 2-simplex filling a composable pair: the Segal extension along Λ² ↪ Δ², transported
 -- through the unit laws ⊤ ⊗ (− ⊗ ⊤) of the (trivial) thickening
 comp-filler-r ∷ (X ∷ U) → is-segal-r X → (spine 2 →ᵣ X) → (simplex 2 →ᵣ X)
 comp-filler-r X s φ =
-  let c ∷ simplex 2 → thick-simplex no-grid 0 2 no-grid 0 = thicken-counit {simplex 2} in
+  let c ∷ simplex 2 → thick-simplex nil 2 nil = thicken-counit {simplex 2} in
   pre-r {simplex 2} (thick-filler-r X s (thick-pair-r {X} φ)) c
 
 -- the composite of a composable pair: the long edge of its filler
@@ -82,10 +82,10 @@ comp-r X s φ =
 abstract comp-filler-r-spine ∷ (X ∷ U) (s : is-segal-r X) (φ : spine 2 →ᵣ X) (v ∷ spine 2) {y ∷ simplex 2}
   (r ∷ y ≡ spine→simplex 2 v) → comp-filler-r X s φ y ≡ φ v
 comp-filler-r-spine X s φ v {y} r =
-  let c ∷ simplex 2 → thick-simplex no-grid 0 2 no-grid 0 = thicken-counit {simplex 2} in
+  let c ∷ simplex 2 → thick-simplex nil 2 nil = thicken-counit {simplex 2} in
   let r' ∷ c y ≡ c (spine→simplex 2 v) = cong c r in
-  let w ∷ thick-spine no-grid 0 2 no-grid 0 = thicken-counit {spine 2} v in
-  let Φ : thick-simplex no-grid 0 2 no-grid 0 →ᵣ X = thick-filler-r X s (thick-pair-r {X} φ) in
+  let w ∷ thick-spine nil 2 nil = thicken-counit {spine 2} v in
+  let Φ : thick-simplex nil 2 nil →ᵣ X = thick-filler-r X s (thick-pair-r {X} φ) in
   trans (ap-r r' Φ) (ev-r w (thick-filler-r-restr X s (thick-pair-r {X} φ)))
 
 abstract comp-r-src ∷ (X ∷ U) (s : is-segal-r X) (φ : spine 2 →ᵣ X) → comp-r X s φ 𝕀0 ≡ fst-cell {X} φ 𝕀0
@@ -107,8 +107,8 @@ comp-r-tgt X s φ =
 
 abstract comp-filler-r-restr ∷ (X ∷ U) (s : is-segal-r X) (φ : spine 2 →ᵣ X) → spine-restr-r 2 X (comp-filler-r X s φ) ≡ φ
 comp-filler-r-restr X s φ =
-  let c ∷ spine 2 → thick-spine no-grid 0 2 no-grid 0 = thicken-counit {spine 2} in
-  cong {thick-spine no-grid 0 2 no-grid 0 →ᵣ X} {spine 2 →ᵣ X} (λ ψ . pre-r {spine 2} {thick-spine no-grid 0 2 no-grid 0} {X} ψ c)
+  let c ∷ spine 2 → thick-spine nil 2 nil = thicken-counit {spine 2} in
+  cong {thick-spine nil 2 nil →ᵣ X} {spine 2 →ᵣ X} (λ ψ . pre-r {spine 2} {thick-spine nil 2 nil} {X} ψ c)
     (thick-filler-r-restr X s (thick-pair-r {X} φ))
 
 abstract comp-filler-r-unique ∷ (X ∷ U) (s : is-segal-r X) (φ : spine 2 →ᵣ X) (Ψ : simplex 2 →ᵣ X) →

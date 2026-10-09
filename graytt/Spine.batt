@@ -24,21 +24,21 @@ thicken-map Q {X} {Y} f Q' = tens-map {Q} {Q} {X ⨂ Q'} {Y ⨂ Q'} id (tens-map
 --   Sp_{n,𝐚,𝐛} := □[𝐚] ⊗ Spₙ ⊗ □[𝐛]
 --   ι_{𝐚,𝐛}    := □[𝐚] ⊗ ιₙ ⊗ □[𝐛]
 --
--- with 𝐚 = (a 0, …, a (d-1)) and 𝐛 = (b 0, …, b (e-1)).
+-- with 𝐚 and 𝐛 lists (see Grid.batt for the order of the factors).
 --
 
-thick-simplex ∷ (a ∷ ℕ → ℕ) (d ∷ ℕ) (n ∷ ℕ) (b ∷ ℕ → ℕ) (e ∷ ℕ) → U
-thick-simplex a d n b e = thicken (grid a d) (simplex n) (grid b e)
+thick-simplex ∷ (a ∷ List ℕ) (n ∷ ℕ) (b ∷ List ℕ) → U
+thick-simplex a n b = thicken (grid a) (simplex n) (grid b)
 
-thick-spine ∷ (a ∷ ℕ → ℕ) (d ∷ ℕ) (n ∷ ℕ) (b ∷ ℕ → ℕ) (e ∷ ℕ) → U
-thick-spine a d n b e = thicken (grid a d) (spine n) (grid b e)
+thick-spine ∷ (a ∷ List ℕ) (n ∷ ℕ) (b ∷ List ℕ) → U
+thick-spine a n b = thicken (grid a) (spine n) (grid b)
 
-thick-spine→thick-simplex ∷ (a ∷ ℕ → ℕ) (d ∷ ℕ) (n ∷ ℕ) (b ∷ ℕ → ℕ) (e ∷ ℕ) → thick-spine a d n b e → thick-simplex a d n b e
-thick-spine→thick-simplex a d n b e = thicken-map (grid a d) {spine n} {simplex n} (spine→simplex n) (grid b e)
+thick-spine→thick-simplex ∷ (a ∷ List ℕ) (n ∷ ℕ) (b ∷ List ℕ) → thick-spine a n b → thick-simplex a n b
+thick-spine→thick-simplex a n b = thicken-map (grid a) {spine n} {simplex n} (spine→simplex n) (grid b)
 
 --
 -- Thickening by Gray cubes 𝕀^{⊗p} (grids are retracts of cubes, so these
--- suffice for Segalness in the model; note that grid (λ _ . 1) p is not judgmentally
+-- suffice for Segalness in the model; note that grid [1, …, 1] is not judgmentally
 -- gray-cube p, since simplex 1 = Σ (x : 𝕀 × ⊤) . ⊤)
 --
 
@@ -73,9 +73,9 @@ thicken-unit-equiv {X} =
     (thicken-counit {X} , thicken-counit-unit {X}))
 
 -- the unthickened inclusion is ιₙ, judgmentally, under these unit laws
-thick-spine-incl-unthickened ∷ (n ∷ ℕ) (a b ∷ ℕ → ℕ) (x : spine n) →
-  thicken-unit {simplex n} (thick-spine→thick-simplex a 0 n b 0 (thicken-counit {spine n} x)) ≡ spine→simplex n x
-thick-spine-incl-unthickened n a b x = refl
+thick-spine-incl-unthickened ∷ (n ∷ ℕ) (x : spine n) →
+  thicken-unit {simplex n} (thick-spine→thick-simplex nil n nil (thicken-counit {spine n} x)) ≡ spine→simplex n x
+thick-spine-incl-unthickened n x = refl
 
 -- the unit laws of the thickening are equivalences
 abstract is-equiv-thicken-unit ∷ {X ∷ U} → is-equiv (thicken-unit {X})

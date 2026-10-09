@@ -19,30 +19,30 @@ open import Stdlib
 open import Spine
 
 -- the thickened spine inclusion ι_{𝐚,𝐛} : Sp_{n,𝐚,𝐛} → Δⁿ_{𝐚,𝐛}
-thick-incl ∷ (a ∷ ℕ → ℕ) (d ∷ ℕ) (n ∷ ℕ) (b ∷ ℕ → ℕ) (e ∷ ℕ) → thick-spine a d n b e → thick-simplex a d n b e
+thick-incl ∷ (a ∷ List ℕ) (n ∷ ℕ) (b ∷ List ℕ) → thick-spine a n b → thick-simplex a n b
 thick-incl = thick-spine→thick-simplex
 
 --
 -- Restriction along ι, for each kind of arrow
 --
 
-segal-restr ∷ (a ∷ ℕ → ℕ) (d ∷ ℕ) (n ∷ ℕ) (b ∷ ℕ → ℕ) (e ∷ ℕ) (X : U) → (thick-simplex a d n b e → X) → (thick-spine a d n b e → X)
-segal-restr a d n b e X g = pre (thick-spine a d n b e) g (thick-incl a d n b e)
+segal-restr ∷ (a ∷ List ℕ) (n ∷ ℕ) (b ∷ List ℕ) (X : U) → (thick-simplex a n b → X) → (thick-spine a n b → X)
+segal-restr a n b X g = pre (thick-spine a n b) g (thick-incl a n b)
 
-segal-restr-flat ∷ (a ∷ ℕ → ℕ) (d ∷ ℕ) (n ∷ ℕ) (b ∷ ℕ → ℕ) (e ∷ ℕ) (X ∷ U) → ♭(thick-simplex a d n b e → X) → ♭(thick-spine a d n b e → X)
-segal-restr-flat a d n b e X = flat-map (segal-restr a d n b e X)
+segal-restr-flat ∷ (a ∷ List ℕ) (n ∷ ℕ) (b ∷ List ℕ) (X ∷ U) → ♭(thick-simplex a n b → X) → ♭(thick-spine a n b → X)
+segal-restr-flat a n b X = flat-map (segal-restr a n b X)
 
-segal-restr-r ∷ (a ∷ ℕ → ℕ) (d ∷ ℕ) (n ∷ ℕ) (b ∷ ℕ → ℕ) (e ∷ ℕ) (X ∷ U) → (thick-simplex a d n b e →ᵣ X) → (thick-spine a d n b e →ᵣ X)
-segal-restr-r a d n b e X g =
+segal-restr-r ∷ (a ∷ List ℕ) (n ∷ ℕ) (b ∷ List ℕ) (X ∷ U) → (thick-simplex a n b →ᵣ X) → (thick-spine a n b →ᵣ X)
+segal-restr-r a n b X g =
   -- a crisp name for ι, so that the oplax application shares no free variable with its function
-  let ι ∷ thick-spine a d n b e → thick-simplex a d n b e = thick-incl a d n b e in
-  pre-r {thick-spine a d n b e} g ι
+  let ι ∷ thick-spine a n b → thick-simplex a n b = thick-incl a n b in
+  pre-r {thick-spine a n b} g ι
 
-segal-restr-l ∷ (a ∷ ℕ → ℕ) (d ∷ ℕ) (n ∷ ℕ) (b ∷ ℕ → ℕ) (e ∷ ℕ) (X ∷ U) → (thick-simplex a d n b e →ₗ X) → (thick-spine a d n b e →ₗ X)
-segal-restr-l a d n b e X g =
+segal-restr-l ∷ (a ∷ List ℕ) (n ∷ ℕ) (b ∷ List ℕ) (X ∷ U) → (thick-simplex a n b →ₗ X) → (thick-spine a n b →ₗ X)
+segal-restr-l a n b X g =
   -- a crisp name for ι, so that the lax application shares no free variable with its function
-  let ι ∷ thick-spine a d n b e → thick-simplex a d n b e = thick-incl a d n b e in
-  pre-l {thick-spine a d n b e} g ι
+  let ι ∷ thick-spine a n b → thick-simplex a n b = thick-incl a n b in
+  pre-l {thick-spine a n b} g ι
 
 --
 -- The four Segal conditions
@@ -50,23 +50,23 @@ segal-restr-l a d n b e X g =
 
 -- internal Segalness: X is local, as a type, against every thickened spine inclusion
 is-segal ∷ (X : U) → U
-is-segal X = (a ∷ ℕ → ℕ) (d ∷ ℕ) (n ∷ ℕ) (b ∷ ℕ → ℕ) (e ∷ ℕ) →
-  is-equiv {thick-simplex a d n b e → X} {thick-spine a d n b e → X} (segal-restr a d n b e X)
+is-segal X = (a ∷ List ℕ) (n ∷ ℕ) (b ∷ List ℕ) →
+  is-equiv {thick-simplex a n b → X} {thick-spine a n b → X} (segal-restr a n b X)
 
 -- ♭-Segalness (global locality): only the global maps out of the shapes are tested
 is-segal-flat ∷ (X ∷ U) → U
-is-segal-flat X = (a ∷ ℕ → ℕ) (d ∷ ℕ) (n ∷ ℕ) (b ∷ ℕ → ℕ) (e ∷ ℕ) →
-  is-equiv {♭(thick-simplex a d n b e → X)} {♭(thick-spine a d n b e → X)} (segal-restr-flat a d n b e X)
+is-segal-flat X = (a ∷ List ℕ) (n ∷ ℕ) (b ∷ List ℕ) →
+  is-equiv {♭(thick-simplex a n b → X)} {♭(thick-spine a n b → X)} (segal-restr-flat a n b X)
 
 -- oplax Segalness: restriction of oplax maps out of the shapes is an equivalence
 is-segal-r ∷ (X ∷ U) → U
-is-segal-r X = (a ∷ ℕ → ℕ) (d ∷ ℕ) (n ∷ ℕ) (b ∷ ℕ → ℕ) (e ∷ ℕ) →
-  is-equiv {thick-simplex a d n b e →ᵣ X} {thick-spine a d n b e →ᵣ X} (segal-restr-r a d n b e X)
+is-segal-r X = (a ∷ List ℕ) (n ∷ ℕ) (b ∷ List ℕ) →
+  is-equiv {thick-simplex a n b →ᵣ X} {thick-spine a n b →ᵣ X} (segal-restr-r a n b X)
 
 -- lax Segalness: restriction of lax maps out of the shapes is an equivalence
 is-segal-l ∷ (X ∷ U) → U
-is-segal-l X = (a ∷ ℕ → ℕ) (d ∷ ℕ) (n ∷ ℕ) (b ∷ ℕ → ℕ) (e ∷ ℕ) →
-  is-equiv {thick-simplex a d n b e →ₗ X} {thick-spine a d n b e →ₗ X} (segal-restr-l a d n b e X)
+is-segal-l X = (a ∷ List ℕ) (n ∷ ℕ) (b ∷ List ℕ) →
+  is-equiv {thick-simplex a n b →ₗ X} {thick-spine a n b →ₗ X} (segal-restr-l a n b X)
 
 --
 -- The unthickened oplax Segal condition: restriction (Δⁿ →ᵣ X) → (Spₙ →ᵣ X) along the spine
@@ -81,24 +81,24 @@ spine-restr-r n X Ψ =
 
 abstract is-segal-r-unthick ∷ (X ∷ U) → is-segal-r X → (n ∷ ℕ) → is-equiv (spine-restr-r n X)
 is-segal-r-unthick X s n =
-  let u ∷ thick-simplex no-grid 0 n no-grid 0 → simplex n = thicken-unit {simplex n} in
-  let c ∷ spine n → thick-spine no-grid 0 n no-grid 0 = thicken-counit {spine n} in
-  is-equiv-circ {simplex n →ᵣ X} {thick-spine no-grid 0 n no-grid 0 →ᵣ X} {spine n →ᵣ X}
-    (λ ψ . pre-r {spine n} {thick-spine no-grid 0 n no-grid 0} {X} ψ c)
-    (λ Ψ . segal-restr-r no-grid 0 n no-grid 0 X (pre-r {thick-simplex no-grid 0 n no-grid 0} {simplex n} {X} Ψ u))
-    (pre-r-equiv (spine n) (thick-spine no-grid 0 n no-grid 0) c (is-equiv-thicken-counit {spine n}) X)
-    (is-equiv-circ {simplex n →ᵣ X} {thick-simplex no-grid 0 n no-grid 0 →ᵣ X} {thick-spine no-grid 0 n no-grid 0 →ᵣ X}
-      (segal-restr-r no-grid 0 n no-grid 0 X)
-      (λ Ψ . pre-r {thick-simplex no-grid 0 n no-grid 0} {simplex n} {X} Ψ u)
-      (s no-grid 0 n no-grid 0)
-      (pre-r-equiv (thick-simplex no-grid 0 n no-grid 0) (simplex n) u (is-equiv-thicken-unit {simplex n}) X))
+  let u ∷ thick-simplex nil n nil → simplex n = thicken-unit {simplex n} in
+  let c ∷ spine n → thick-spine nil n nil = thicken-counit {spine n} in
+  is-equiv-circ {simplex n →ᵣ X} {thick-spine nil n nil →ᵣ X} {spine n →ᵣ X}
+    (λ ψ . pre-r {spine n} {thick-spine nil n nil} {X} ψ c)
+    (λ Ψ . segal-restr-r nil n nil X (pre-r {thick-simplex nil n nil} {simplex n} {X} Ψ u))
+    (pre-r-equiv (spine n) (thick-spine nil n nil) c (is-equiv-thicken-counit {spine n}) X)
+    (is-equiv-circ {simplex n →ᵣ X} {thick-simplex nil n nil →ᵣ X} {thick-spine nil n nil →ᵣ X}
+      (segal-restr-r nil n nil X)
+      (λ Ψ . pre-r {thick-simplex nil n nil} {simplex n} {X} Ψ u)
+      (s nil n nil)
+      (pre-r-equiv (thick-simplex nil n nil) (simplex n) u (is-equiv-thicken-unit {simplex n}) X))
 
 ---
 --- Arrow types are oplax-Segal
 ---
 --- By currying, an oplax map Δⁿ_{𝐚,𝐛} →ᵣ (𝕀 →ᵣ A) is an oplax map Δⁿ_{𝐚,𝐛} ⊗ 𝕀 →ᵣ A, and
 --- Δⁿ_{𝐚,𝐛} ⊗ 𝕀 is the thickened simplex Δⁿ_{𝐚,𝐛'} where 𝐛' = (𝐛, 1) extends 𝐛 by one factor
---- 𝕀 ≃ Δ¹ (grid-snoc, Grid.batt). Both restrictions are conjugate, by currying, to the restriction
+--- 𝕀 ≃ Δ¹ (judgmentally, grid (cons 1 𝐛) is □[𝐛] ⊗ Δ¹, see Grid.batt). Both restrictions are conjugate, by currying, to the restriction
 --- (□[𝐚] →ᵣ Δⁿ →ᵣ T) → (□[𝐚] →ᵣ Spₙ →ᵣ T) along the spine inclusion on the middle variable
 --- (cur-restr), for T = □[𝐛] →ᵣ 𝕀 →ᵣ A and T = □[𝐛'] →ᵣ A, which are equivalent types.
 ---
@@ -120,15 +120,10 @@ is-equiv-cur2 {Q} {S} {G} {T} =
 cur-restr ∷ {Q S S' T ∷ U} (ι ∷ S' → S) → (Q →ᵣ S →ᵣ T) → (Q →ᵣ S' →ᵣ T)
 cur-restr {Q} {S} {S'} {T} ι k q s = k q (ι s)
 
-cur-segal-restr ∷ (a ∷ ℕ → ℕ) (d n ∷ ℕ) (b ∷ ℕ → ℕ) (e ∷ ℕ) (X ∷ U) (f : thick-simplex a d n b e →ᵣ X) →
-  cur2 {grid a d} {spine n} {grid b e} {X} (segal-restr-r a d n b e X f)
-    ≡ cur-restr {grid a d} {simplex n} {spine n} {grid b e →ᵣ X} (spine→simplex n) (cur2 {grid a d} {simplex n} {grid b e} {X} f)
-cur-segal-restr a d n b e X f = refl
-
--- transport along a crisp path of the target
-abstract cur-restr-path ∷ {Q S S' ∷ U} (ι ∷ S' → S) {T T' ∷ U} (P ∷ T ≡ T') →
-  is-equiv (cur-restr {Q} {S} {S'} {T} ι) → is-equiv (cur-restr {Q} {S} {S'} {T'} ι)
-cur-restr-path {Q} {S} {S'} ι {T} refl = λ e . e
+cur-segal-restr ∷ (a ∷ List ℕ) (n ∷ ℕ) (b ∷ List ℕ) (X ∷ U) (f : thick-simplex a n b →ᵣ X) →
+  cur2 {grid a} {spine n} {grid b} {X} (segal-restr-r a n b X f)
+    ≡ cur-restr {grid a} {simplex n} {spine n} {grid b →ᵣ X} (spine→simplex n) (cur2 {grid a} {simplex n} {grid b} {X} f)
+cur-segal-restr a n b X f = refl
 
 -- postcomposition with a crisp equivalence of the target
 abstract cur-restr-equiv ∷ {Q S S' ∷ U} (ι ∷ S' → S) {T T' ∷ U} (h ∷ T → T') (eh ∷ is-equiv h) →
@@ -140,10 +135,6 @@ cur-restr-equiv {Q} {S} {S'} ι {T} {T'} h eh e =
     (post-r-equiv Q {S →ᵣ T} {S →ᵣ T'} (post-r {S} {T} {T'} h) (post-r-equiv S {T} {T'} h eh))
     (post-r-equiv Q {S' →ᵣ T} {S' →ᵣ T'} (post-r {S'} {T} {T'} h) (post-r-equiv S' {T} {T'} h eh))
     e
-
--- crisp precomposition paths of the target
-arr-path ∷ {Q Q' ∷ U} (P ∷ Q ≡ Q') (X ∷ U) → (Q →ᵣ X) ≡ (Q' →ᵣ X)
-arr-path {Q} refl X = refl
 
 --
 -- The interval as the 1-simplex
@@ -172,26 +163,24 @@ is-equiv-𝕀→simplex-1 = ((simplex-1→𝕀 , simplex-1-eta) , (simplex-1→�
 --
 
 abstract is-segal-arrᵣ ∷ {A ∷ U} → is-segal-r A → is-segal-r (arrᵣ A)
-is-segal-arrᵣ {A} sA a d n b e =
-  let c ∷ ℕ → ℕ = snoc e b 1 in
+is-segal-arrᵣ {A} sA a n b =
+  let c ∷ List ℕ = cons 1 b in
   let ι ∷ spine n → simplex n = spine→simplex n in
-  let e1 : is-equiv (cur-restr {grid a d} {simplex n} {spine n} {grid c (succ e) →ᵣ A} ι) =
-    is-equiv-conj (segal-restr-r a d n c (succ e) A) (cur-restr {grid a d} {simplex n} {spine n} {grid c (succ e) →ᵣ A} ι)
-      (cur2 {grid a d} {simplex n} {grid c (succ e)} {A}) (cur2 {grid a d} {spine n} {grid c (succ e)} {A})
-      (λ f . refl) (is-equiv-cur2 {grid a d} {simplex n} {grid c (succ e)} {A}) (is-equiv-cur2 {grid a d} {spine n} {grid c (succ e)} {A})
-      (sA a d n c (succ e)) in
-  let e2 : is-equiv (cur-restr {grid a d} {simplex n} {spine n} {grid b e ⨂ simplex 1 →ᵣ A} ι) =
-    cur-restr-path {grid a d} {simplex n} {spine n} ι {grid c (succ e) →ᵣ A} {grid b e ⨂ simplex 1 →ᵣ A}
-      (arr-path {grid c (succ e)} {grid b e ⨂ simplex 1} (grid-snoc b e 1) A) e1 in
-  let e3 : is-equiv (cur-restr {grid a d} {simplex n} {spine n} {grid b e →ᵣ simplex 1 →ᵣ A} ι) =
-    cur-restr-equiv {grid a d} {simplex n} {spine n} ι {grid b e ⨂ simplex 1 →ᵣ A} {grid b e →ᵣ simplex 1 →ᵣ A}
-      (tens-curry-right {grid b e} {simplex 1} {A}) (snd _ (tens-curry-equiv-right {grid b e} {simplex 1} {A})) e2 in
-  let e4 : is-equiv (cur-restr {grid a d} {simplex n} {spine n} {grid b e →ᵣ arrᵣ A} ι) =
-    cur-restr-equiv {grid a d} {simplex n} {spine n} ι {grid b e →ᵣ simplex 1 →ᵣ A} {grid b e →ᵣ arrᵣ A}
-      (post-r {grid b e} {simplex 1 →ᵣ A} {𝕀 →ᵣ A} (λ φ . pre-r {𝕀} {simplex 1} {A} φ 𝕀→simplex-1))
-      (post-r-equiv (grid b e) {simplex 1 →ᵣ A} {𝕀 →ᵣ A} (λ φ . pre-r {𝕀} {simplex 1} {A} φ 𝕀→simplex-1)
+  -- grid c is grid b ⨂ simplex 1, judgmentally
+  let e2 : is-equiv (cur-restr {grid a} {simplex n} {spine n} {grid b ⨂ simplex 1 →ᵣ A} ι) =
+    is-equiv-conj (segal-restr-r a n c A) (cur-restr {grid a} {simplex n} {spine n} {grid c →ᵣ A} ι)
+      (cur2 {grid a} {simplex n} {grid c} {A}) (cur2 {grid a} {spine n} {grid c} {A})
+      (λ f . refl) (is-equiv-cur2 {grid a} {simplex n} {grid c} {A}) (is-equiv-cur2 {grid a} {spine n} {grid c} {A})
+      (sA a n c) in
+  let e3 : is-equiv (cur-restr {grid a} {simplex n} {spine n} {grid b →ᵣ simplex 1 →ᵣ A} ι) =
+    cur-restr-equiv {grid a} {simplex n} {spine n} ι {grid b ⨂ simplex 1 →ᵣ A} {grid b →ᵣ simplex 1 →ᵣ A}
+      (tens-curry-right {grid b} {simplex 1} {A}) (snd _ (tens-curry-equiv-right {grid b} {simplex 1} {A})) e2 in
+  let e4 : is-equiv (cur-restr {grid a} {simplex n} {spine n} {grid b →ᵣ arrᵣ A} ι) =
+    cur-restr-equiv {grid a} {simplex n} {spine n} ι {grid b →ᵣ simplex 1 →ᵣ A} {grid b →ᵣ arrᵣ A}
+      (post-r {grid b} {simplex 1 →ᵣ A} {𝕀 →ᵣ A} (λ φ . pre-r {𝕀} {simplex 1} {A} φ 𝕀→simplex-1))
+      (post-r-equiv (grid b) {simplex 1 →ᵣ A} {𝕀 →ᵣ A} (λ φ . pre-r {𝕀} {simplex 1} {A} φ 𝕀→simplex-1)
         (pre-r-equiv 𝕀 (simplex 1) 𝕀→simplex-1 is-equiv-𝕀→simplex-1 A)) e3 in
-  is-equiv-conj' (segal-restr-r a d n b e (arrᵣ A)) (cur-restr {grid a d} {simplex n} {spine n} {grid b e →ᵣ arrᵣ A} ι)
-    (cur2 {grid a d} {simplex n} {grid b e} {arrᵣ A}) (cur2 {grid a d} {spine n} {grid b e} {arrᵣ A})
-    (λ f . refl) (is-equiv-cur2 {grid a d} {simplex n} {grid b e} {arrᵣ A}) (is-equiv-cur2 {grid a d} {spine n} {grid b e} {arrᵣ A})
+  is-equiv-conj' (segal-restr-r a n b (arrᵣ A)) (cur-restr {grid a} {simplex n} {spine n} {grid b →ᵣ arrᵣ A} ι)
+    (cur2 {grid a} {simplex n} {grid b} {arrᵣ A}) (cur2 {grid a} {spine n} {grid b} {arrᵣ A})
+    (λ f . refl) (is-equiv-cur2 {grid a} {simplex n} {grid b} {arrᵣ A}) (is-equiv-cur2 {grid a} {spine n} {grid b} {arrᵣ A})
     e4
