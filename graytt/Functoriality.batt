@@ -1,0 +1,167 @@
+--
+-- Functoriality of maps on hom types
+--
+-- A map p ∷ X → A acts on homs (hom-map), and this action commutes with composition in
+-- oplax-Segal types (hom-map-comp): the image by p of a filler of (u , v) is a filler of
+-- (p u , p v), whose long edge is the image of the long edge; by contractibility of fillers
+-- (fill-hom-unique), it computes the composite.
+--
+
+open import Stdlib
+open import Hom
+open import Segal
+open import Spine-up
+open import Wedge
+open import Composition
+
+--
+-- Action of a map on homs
+--
+
+hom-map ∷ {X A ∷ U} (p ∷ X → A) {x y : X} → hom X x y → hom A (p x) (p y)
+hom-map {X} {A} p {x} {y} u =
+  (post-r 𝕀 {X} {A} p (hom-cell {X} {x} {y} u) , cong p (hom-src {X} {x} {y} u) , cong p (hom-tgt {X} {x} {y} u))
+
+-- image of an oplax cocone on the two edges of the spine
+post-coc ∷ {X A ∷ U} (p ∷ X → A) → spine-cocone-r X → spine-cocone-r A
+post-coc {X} {A} p c =
+  (post-r sp-EA {X} {A} p (wr-f {sp-EA} {sp-EB} {sp-a1} {sp-b0} {X} c) ,
+   post-r sp-EB {X} {A} p (wr-g {sp-EA} {sp-EB} {sp-a1} {sp-b0} {X} c) ,
+   cong p (wr-q {sp-EA} {sp-EB} {sp-a1} {sp-b0} {X} c))
+
+-- the image of an oplax map along a crisp path
+ap-r-post ∷ {S X A ∷ U} (p ∷ X → A) {y0 y1 ∷ S} (γ ∷ y0 ≡ y1) (φ : S →ᵣ X) →
+  ap-r {S} {A} {y0} {y1} γ (post-r S {X} {A} p φ) ≡ cong p (ap-r {S} {X} {y0} {y1} γ φ)
+ap-r-post {S} {X} {A} p {y0} refl φ = refl
+
+-- paths of cocones which only move the glue do not move the maps
+coc-glue-path-f ∷ {X ∷ U} (F : sp-EA →ᵣ X) (G : sp-EB →ᵣ X) {q q' : F sp-a1 ≡ G sp-b0} (α : q ≡ q') →
+  cong (wr-f {sp-EA} {sp-EB} {sp-a1} {sp-b0} {X}) (cong {F sp-a1 ≡ G sp-b0} {spine-cocone-r X} (λ z . (F , G , z)) α) ≡ refl
+coc-glue-path-f {X} F G {q} refl = refl
+
+coc-glue-path-g ∷ {X ∷ U} (F : sp-EA →ᵣ X) (G : sp-EB →ᵣ X) {q q' : F sp-a1 ≡ G sp-b0} (α : q ≡ q') →
+  cong (wr-g {sp-EA} {sp-EB} {sp-a1} {sp-b0} {X}) (cong {F sp-a1 ≡ G sp-b0} {spine-cocone-r X} (λ z . (F , G , z)) α) ≡ refl
+coc-glue-path-g {X} F G {q} refl = refl
+
+-- the image of a path of cocones, evaluated at a vertex
+post-coc-ev-f ∷ {X A ∷ U} (p ∷ X → A) (a ∷ sp-EA) {c c' : spine-cocone-r X} (P : c ≡ c') →
+  ev-r {sp-EA} {A} a (cong (wr-f {sp-EA} {sp-EB} {sp-a1} {sp-b0} {A}) (cong (post-coc {X} {A} p) P))
+    ≡ cong p (ev-r {sp-EA} {X} a (cong (wr-f {sp-EA} {sp-EB} {sp-a1} {sp-b0} {X}) P))
+post-coc-ev-f {X} {A} p a {c} refl = refl
+
+post-coc-ev-g ∷ {X A ∷ U} (p ∷ X → A) (b ∷ sp-EB) {c c' : spine-cocone-r X} (P : c ≡ c') →
+  ev-r {sp-EB} {A} b (cong (wr-g {sp-EA} {sp-EB} {sp-a1} {sp-b0} {A}) (cong (post-coc {X} {A} p) P))
+    ≡ cong p (ev-r {sp-EB} {X} b (cong (wr-g {sp-EA} {sp-EB} {sp-a1} {sp-b0} {X}) P))
+post-coc-ev-g {X} {A} p b {c} refl = refl
+
+-- restricting the image of a 2-simplex is taking the image of its restriction
+post-simplex-coc ∷ (X A ∷ U) (p ∷ X → A) (Ψ : simplex 2 →ᵣ X) →
+  simplex-coc-r A (post-r (simplex 2) {X} {A} p Ψ) ≡ post-coc {X} {A} p (simplex-coc-r X Ψ)
+post-simplex-coc X A p Ψ =
+  let φ : spine 2 →ᵣ X = spine-restr-r 2 X Ψ in
+  cong {post-r (spine 2) {X} {A} p φ (sp-i sp-a1) ≡ post-r (spine 2) {X} {A} p φ (sp-j sp-b0)} {spine-cocone-r A}
+    (λ z . (post-r sp-EA {X} {A} p (pre-r sp-EA {spine 2} {X} φ sp-i) , post-r sp-EB {X} {A} p (pre-r sp-EB {spine 2} {X} φ sp-j) , z))
+    (ap-r-post {spine 2} {X} {A} p {sp-i sp-a1} {sp-j sp-b0} sp-γ φ)
+
+-- the image of the cocone of two homs is the cocone of their images
+post-hom-pair ∷ (X A ∷ U) (p ∷ X → A) {x y z : X} (u : hom X x y) (v : hom X y z) →
+  post-coc {X} {A} p (hom-pair {X} {x} {y} {z} u v) ≡ hom-pair {A} {p x} {p y} {p z} (hom-map {X} {A} p {x} {y} u) (hom-map {X} {A} p {y} {z} v)
+post-hom-pair X A p {x} {y} {z} u v =
+  let ca ∷ sp-EA → 𝕀 = sp-EA-coord in
+  let cb ∷ sp-EB → 𝕀 = sp-EB-coord in
+  let tu : hom-cell {X} {x} {y} u 𝕀1 ≡ y = hom-tgt {X} {x} {y} u in
+  let sv : hom-cell {X} {y} {z} v 𝕀0 ≡ y = hom-src {X} {y} {z} v in
+  cong {p (hom-cell {X} {x} {y} u 𝕀1) ≡ p (hom-cell {X} {y} {z} v 𝕀0)} {spine-cocone-r A}
+    (λ w . (post-r sp-EA {X} {A} p (pre-r sp-EA {𝕀} {X} (hom-cell {X} {x} {y} u) ca) ,
+            post-r sp-EB {X} {A} p (pre-r sp-EB {𝕀} {X} (hom-cell {X} {y} {z} v) cb) , w))
+    (trans (cong-trans p tu (sym sv)) (cong {p y ≡ p (hom-cell {X} {y} {z} v 𝕀0)} {p (hom-cell {X} {x} {y} u 𝕀1) ≡ p (hom-cell {X} {y} {z} v 𝕀0)} (λ e . trans (cong p tu) e) (cong-sym p sv)))
+
+-- the image of a path of cocones from the restriction of a filler of (u , v)
+map-fill-path ∷ (X A ∷ U) (p ∷ X → A) {x y z : X} (u : hom X x y) (v : hom X y z) (Ψ : simplex 2 →ᵣ X) →
+  simplex-coc-r X Ψ ≡ hom-pair {X} {x} {y} {z} u v →
+  simplex-coc-r A (post-r (simplex 2) {X} {A} p Ψ) ≡ hom-pair {A} {p x} {p y} {p z} (hom-map {X} {A} p {x} {y} u) (hom-map {X} {A} p {y} {z} v)
+map-fill-path X A p {x} {y} {z} u v Ψ P =
+  trans (post-simplex-coc X A p Ψ) (trans (cong (post-coc {X} {A} p) P) (post-hom-pair X A p {x} {y} {z} u v))
+
+-- the image of a filler of (u , v) is a filler of (p u , p v)
+map-fill ∷ (X A ∷ U) (p ∷ X → A) {x y z : X} (u : hom X x y) (v : hom X y z) →
+  hom-fill X {x} {y} {z} u v → hom-fill A {p x} {p y} {p z} (hom-map {X} {A} p {x} {y} u) (hom-map {X} {A} p {y} {z} v)
+map-fill X A p {x} {y} {z} u v (Ψ , P) =
+  (post-r (simplex 2) {X} {A} p Ψ , map-fill-path X A p {x} {y} {z} u v Ψ P)
+
+-- on the maps of the cocones, the path of map-fill is the image of the path of the filler
+abstract map-fill-f ∷ (X A ∷ U) (p ∷ X → A) {x y z : X} (u : hom X x y) (v : hom X y z) (Ψ : simplex 2 →ᵣ X)
+  (P : simplex-coc-r X Ψ ≡ hom-pair {X} {x} {y} {z} u v) →
+  cong (wr-f {sp-EA} {sp-EB} {sp-a1} {sp-b0} {A}) (map-fill-path X A p {x} {y} {z} u v Ψ P)
+    ≡ cong (wr-f {sp-EA} {sp-EB} {sp-a1} {sp-b0} {A}) (cong (post-coc {X} {A} p) P)
+map-fill-f X A p {x} {y} {z} u v Ψ P =
+  let wf : spine-cocone-r A → (sp-EA →ᵣ A) = wr-f {sp-EA} {sp-EB} {sp-a1} {sp-b0} {A} in
+  let N : simplex-coc-r A (post-r (simplex 2) {X} {A} p Ψ) ≡ post-coc {X} {A} p (simplex-coc-r X Ψ) = post-simplex-coc X A p Ψ in
+  let C : post-coc {X} {A} p (simplex-coc-r X Ψ) ≡ post-coc {X} {A} p (hom-pair {X} {x} {y} {z} u v) = cong (post-coc {X} {A} p) P in
+  let H : post-coc {X} {A} p (hom-pair {X} {x} {y} {z} u v) ≡ hom-pair {A} {p x} {p y} {p z} (hom-map {X} {A} p {x} {y} u) (hom-map {X} {A} p {y} {z} v) =
+    post-hom-pair X A p {x} {y} {z} u v in
+  let Fa : sp-EA →ᵣ A = wf (simplex-coc-r A (post-r (simplex 2) {X} {A} p Ψ)) in
+  let Fb : sp-EA →ᵣ A = wf (hom-pair {A} {p x} {p y} {p z} (hom-map {X} {A} p {x} {y} u) (hom-map {X} {A} p {y} {z} v)) in
+  trans (cong-trans wf N (trans C H))
+    (trans (cong {Fa ≡ Fa} {Fa ≡ Fb} (λ e . trans e (cong wf (trans C H))) (coc-glue-path-f _ _ _))
+      (trans (trans-refl-l (cong wf (trans C H)))
+        (trans (cong-trans wf C H) (cong {Fb ≡ Fb} {Fa ≡ Fb} (λ e . trans (cong wf C) e) (coc-glue-path-f _ _ _)))))
+
+abstract map-fill-g ∷ (X A ∷ U) (p ∷ X → A) {x y z : X} (u : hom X x y) (v : hom X y z) (Ψ : simplex 2 →ᵣ X)
+  (P : simplex-coc-r X Ψ ≡ hom-pair {X} {x} {y} {z} u v) →
+  cong (wr-g {sp-EA} {sp-EB} {sp-a1} {sp-b0} {A}) (map-fill-path X A p {x} {y} {z} u v Ψ P)
+    ≡ cong (wr-g {sp-EA} {sp-EB} {sp-a1} {sp-b0} {A}) (cong (post-coc {X} {A} p) P)
+map-fill-g X A p {x} {y} {z} u v Ψ P =
+  let wg : spine-cocone-r A → (sp-EB →ᵣ A) = wr-g {sp-EA} {sp-EB} {sp-a1} {sp-b0} {A} in
+  let N : simplex-coc-r A (post-r (simplex 2) {X} {A} p Ψ) ≡ post-coc {X} {A} p (simplex-coc-r X Ψ) = post-simplex-coc X A p Ψ in
+  let C : post-coc {X} {A} p (simplex-coc-r X Ψ) ≡ post-coc {X} {A} p (hom-pair {X} {x} {y} {z} u v) = cong (post-coc {X} {A} p) P in
+  let H : post-coc {X} {A} p (hom-pair {X} {x} {y} {z} u v) ≡ hom-pair {A} {p x} {p y} {p z} (hom-map {X} {A} p {x} {y} u) (hom-map {X} {A} p {y} {z} v) =
+    post-hom-pair X A p {x} {y} {z} u v in
+  let Fa : sp-EB →ᵣ A = wg (simplex-coc-r A (post-r (simplex 2) {X} {A} p Ψ)) in
+  let Fb : sp-EB →ᵣ A = wg (hom-pair {A} {p x} {p y} {p z} (hom-map {X} {A} p {x} {y} u) (hom-map {X} {A} p {y} {z} v)) in
+  trans (cong-trans wg N (trans C H))
+    (trans (cong {Fa ≡ Fa} {Fa ≡ Fb} (λ e . trans e (cong wg (trans C H))) (coc-glue-path-g _ _ _))
+      (trans (trans-refl-l (cong wg (trans C H)))
+        (trans (cong-trans wg C H) (cong {Fb ≡ Fb} {Fa ≡ Fb} (λ e . trans (cong wg C) e) (coc-glue-path-g _ _ _)))))
+
+-- the hom read off the image of a filler is the image of the hom read off the filler
+abstract map-fill-hom ∷ (X A ∷ U) (p ∷ X → A) {x y z : X} (u : hom X x y) (v : hom X y z) (F : hom-fill X {x} {y} {z} u v) →
+  fill-hom A {p x} {p y} {p z} (hom-map {X} {A} p {x} {y} u) (hom-map {X} {A} p {y} {z} v) (map-fill X A p {x} {y} {z} u v F)
+    ≡ hom-map {X} {A} p {x} {z} (fill-hom X {x} {y} {z} u v F)
+map-fill-hom X A p {x} {y} {z} u v (Ψ , P) =
+  let δ ∷ 𝕀 → simplex 2 = long-edge in
+  let a0 : Ψ (long-edge 𝕀0) ≡ Ψ (spine→simplex 2 (sp-i sp-a0)) = ap-r {simplex 2} {X} long-edge-src Ψ in
+  let b0 : Ψ (spine→simplex 2 (sp-i sp-a0)) ≡ hom-cell {X} {x} {y} u 𝕀0 =
+    ev-r {sp-EA} {X} sp-a0 (cong (wr-f {sp-EA} {sp-EB} {sp-a1} {sp-b0} {X}) P) in
+  let su : hom-cell {X} {x} {y} u 𝕀0 ≡ x = hom-src {X} {x} {y} u in
+  let a1 : Ψ (long-edge 𝕀1) ≡ Ψ (spine→simplex 2 (sp-j sp-b1)) = ap-r {simplex 2} {X} long-edge-tgt Ψ in
+  let b1 : Ψ (spine→simplex 2 (sp-j sp-b1)) ≡ hom-cell {X} {y} {z} v 𝕀1 =
+    ev-r {sp-EB} {X} sp-b1 (cong (wr-g {sp-EA} {sp-EB} {sp-a1} {sp-b0} {X}) P) in
+  let tv : hom-cell {X} {y} {z} v 𝕀1 ≡ z = hom-tgt {X} {y} {z} v in
+  let S : trans (ap-r {simplex 2} {A} long-edge-src (post-r (simplex 2) {X} {A} p Ψ))
+            (trans (ev-r {sp-EA} {A} sp-a0 (cong (wr-f {sp-EA} {sp-EB} {sp-a1} {sp-b0} {A}) (map-fill-path X A p {x} {y} {z} u v Ψ P))) (cong p su))
+          ≡ cong p (trans a0 (trans b0 su)) =
+    trans (cong2 {p (Ψ (long-edge 𝕀0)) ≡ p (Ψ (spine→simplex 2 (sp-i sp-a0)))} {p (Ψ (spine→simplex 2 (sp-i sp-a0))) ≡ p x} {p (Ψ (long-edge 𝕀0)) ≡ p x} (λ α β . trans α β) (ap-r-post {simplex 2} {X} {A} p long-edge-src Ψ)
+             (cong {p (Ψ (spine→simplex 2 (sp-i sp-a0))) ≡ p (hom-cell {X} {x} {y} u 𝕀0)} {p (Ψ (spine→simplex 2 (sp-i sp-a0))) ≡ p x} (λ β . trans β (cong p su))
+               (trans (cong (ev-r {sp-EA} {A} sp-a0) (map-fill-f X A p {x} {y} {z} u v Ψ P)) (post-coc-ev-f {X} {A} p sp-a0 P))))
+      (sym (trans (cong-trans p a0 (trans b0 su)) (cong {p (Ψ (spine→simplex 2 (sp-i sp-a0))) ≡ p x} {p (Ψ (long-edge 𝕀0)) ≡ p x} (λ e . trans (cong p a0) e) (cong-trans p b0 su)))) in
+  let T : trans (ap-r {simplex 2} {A} long-edge-tgt (post-r (simplex 2) {X} {A} p Ψ))
+            (trans (ev-r {sp-EB} {A} sp-b1 (cong (wr-g {sp-EA} {sp-EB} {sp-a1} {sp-b0} {A}) (map-fill-path X A p {x} {y} {z} u v Ψ P))) (cong p tv))
+          ≡ cong p (trans a1 (trans b1 tv)) =
+    trans (cong2 {p (Ψ (long-edge 𝕀1)) ≡ p (Ψ (spine→simplex 2 (sp-j sp-b1)))} {p (Ψ (spine→simplex 2 (sp-j sp-b1))) ≡ p z} {p (Ψ (long-edge 𝕀1)) ≡ p z} (λ α β . trans α β) (ap-r-post {simplex 2} {X} {A} p long-edge-tgt Ψ)
+             (cong {p (Ψ (spine→simplex 2 (sp-j sp-b1))) ≡ p (hom-cell {X} {y} {z} v 𝕀1)} {p (Ψ (spine→simplex 2 (sp-j sp-b1))) ≡ p z} (λ β . trans β (cong p tv))
+               (trans (cong (ev-r {sp-EB} {A} sp-b1) (map-fill-g X A p {x} {y} {z} u v Ψ P)) (post-coc-ev-g {X} {A} p sp-b1 P))))
+      (sym (trans (cong-trans p a1 (trans b1 tv)) (cong {p (Ψ (spine→simplex 2 (sp-j sp-b1))) ≡ p z} {p (Ψ (long-edge 𝕀1)) ≡ p z} (λ e . trans (cong p a1) e) (cong-trans p b1 tv)))) in
+  cong {(p (Ψ (long-edge 𝕀0)) ≡ p x) × (p (Ψ (long-edge 𝕀1)) ≡ p z)} {hom A (p x) (p z)}
+    (λ w . (post-r 𝕀 {X} {A} p (pre-r 𝕀 {simplex 2} {X} Ψ δ) , w))
+    (cong2 {p (Ψ (long-edge 𝕀0)) ≡ p x} {p (Ψ (long-edge 𝕀1)) ≡ p z} {(p (Ψ (long-edge 𝕀0)) ≡ p x) × (p (Ψ (long-edge 𝕀1)) ≡ p z)} pair S T)
+
+-- the action of p on homs preserves composition
+abstract hom-map-comp ∷ (X A ∷ U) (p ∷ X → A) (sX : is-segal-r X) (sA : is-segal-r A) {x y z : X} (u : hom X x y) (v : hom X y z) →
+  hom-map {X} {A} p {x} {z} (comp-hom-r X sX {x} {y} {z} u v)
+    ≡ comp-hom-r A sA {p x} {p y} {p z} (hom-map {X} {A} p {x} {y} u) (hom-map {X} {A} p {y} {z} v)
+hom-map-comp X A p sX sA {x} {y} {z} u v =
+  let F : hom-fill X {x} {y} {z} u v = comp-fill X sX {x} {y} {z} u v in
+  sym (trans (fill-hom-unique A sA {p x} {p y} {p z} (hom-map {X} {A} p {x} {y} u) (hom-map {X} {A} p {y} {z} v) (map-fill X A p {x} {y} {z} u v F))
+         (map-fill-hom X A p {x} {y} {z} u v F))
+

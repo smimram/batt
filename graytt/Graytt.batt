@@ -10,5 +10,7 @@ open import Composition
 open import Spine-up
 open import Wedge
 open import Unitality
+open import Functoriality
+open import Fibration
 open import Composable
 open import Associativity

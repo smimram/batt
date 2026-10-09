@@ -3,12 +3,14 @@
 (defvar batt-font-lock-keywords
  '(
    ("--.*" . 'font-lock-comment-face)
-   ("\\<\\(let\\|in\\|fun\\|λ\\|open\\|import\\)\\>\\|:\\|∷\\|=" . font-lock-keyword-face)
-   ("\\<\\(true\\|false\\|tt\\|refl\\|zero\\|succ\\|[0-9]+\\)\\>" . font-lock-constant-face)
-   ;; ℕ but not ℕ-ind (the - is not a word constituent)
-   ("\\<\\(Nat\\|ℕ\\)\\(?:[^-[:word:]]\\|$\\)" 1 font-lock-builtin-face)
-   ("\\\\\\(bigotimes\\|otimes\\|Sigma\\|times\\|fflat\\|flat\\|equiv\\|simeq\\|circ\\|top\\|bot\\|tol\\|tor\\|to\\)\\|\\<\\(U\\|Type\\|TYPE\\|Bool\\|Unit\\|Empty\\|II[01vw]?\\)\\>\\|𝕀[01∨∧]?\\|->l\\|->r\\|->\\|→ₗ\\|→ᵣ\\|⇀\\|⇁\\|→\\|⨂\\|⊗\\|@\\|≡\\|≃\\|∘\\|Σ\\|×\\|⊥\\|⊤\\|♭\\|𝄫" . font-lock-builtin-face)
+   ;; Definition names come before operators so that names containing
+   ;; symbols (e.g. f→g) are highlighted as a whole.
+   ("^\\(abstract\\)[ \t]+\\([^ (=\n]+\\)" (1 font-lock-keyword-face) (2 'font-lock-function-name-face))
    ("^\\([^ (=\n]+\\)" 1 'font-lock-function-name-face)
+   ("\\_<\\(let\\|in\\|fun\\|λ\\|open\\|import\\|abstract\\)\\_>\\|:\\|∷\\|=" . font-lock-keyword-face)
+   ("\\_<\\(true\\|false\\|tt\\|refl\\|zero\\|succ\\|[0-9]+\\)\\_>" . font-lock-constant-face)
+   ("\\<\\(Nat\\|ℕ\\)" 1 font-lock-builtin-face)
+   ("\\\\\\(bigotimes\\|otimes\\|Sigma\\|times\\|fflat\\|flat\\|equiv\\|simeq\\|circ\\|top\\|bot\\|tol\\|tor\\|to\\)\\|\\_<\\(U\\|Type\\|TYPE\\|Bool\\|Unit\\|Empty\\|II[01vw]?\\)\\_>\\|𝕀[01∨∧]?\\|->l\\|->r\\|->\\|→ₗ\\|→ᵣ\\|⇀\\|⇁\\|→\\|⨂\\|⊗\\|@\\|≡\\|≃\\|∘\\|Σ\\|×\\|⊥\\|⊤\\|♭\\|𝄫" . font-lock-builtin-face)
   )
 )
 
@@ -16,8 +18,8 @@
   (let ((st (make-syntax-table)))
     ;; Allow some extra characters in words
     (modify-syntax-entry ?_ "w" st)
-    ;; Comments
-    (modify-syntax-entry ?- ". 12" st)
+    ;; Comments (- is also part of identifiers such as is-segal-r-2)
+    (modify-syntax-entry ?- "_ 12" st)
     (modify-syntax-entry ?\n ">" st)
     st)
   "Syntax table for BATT major mode.")

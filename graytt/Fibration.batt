@@ -1,0 +1,120 @@
+--
+-- (Co)cartesian arrows
+--
+-- Following Gepner–Heine, for a map p ∷ X → A between oplax-Segal types, an arrow f : x → y of
+-- X is p-cartesian when, for every x' : X, the gap map
+--
+--   hom X x' x → hom X x' y ×_{hom A (p x') (p y)} hom A (p x') (p x)
+--   g ↦ (f ∘ g , p g , functoriality of p on (g , f))
+--
+-- is an equivalence, i.e. the square
+--
+--   hom X x' x ──f∘─→ hom X x' y
+--       │p               │p
+--       ↓                ↓
+--   hom A (p x') (p x) ──(p f)∘─→ hom A (p x') (p y)
+--
+-- is a pullback. Dually, f is p-cocartesian when, for every y' : X, the gap map
+--
+--   hom X y y' → hom X x y' ×_{hom A (p x) (p y')} hom A (p y) (p y')
+--   g ↦ (g ∘ f , p g , functoriality of p on (f , g))
+--
+-- is an equivalence. Composition is written diagrammatically: f ∘ g is comp-hom-r X s g f, and the
+-- third components come from the functoriality of p on homs (Functoriality.batt).
+--
+
+open import Stdlib
+open import Hom
+open import Segal
+open import Composition
+open import Functoriality
+
+--
+-- Cartesian arrows
+--
+
+-- the fibre product hom X x' y ×_{hom A (p x') (p y)} hom A (p x') (p x), over p and (p f) ∘ -
+cart-pb ∷ (X A ∷ U) (p ∷ X → A) (sA : is-segal-r A) {x y : X} (f : hom X x y) (x' : X) → U
+cart-pb X A p sA {x} {y} f x' =
+  Σ (h : hom X x' y) . Σ (k : hom A (p x') (p x)) .
+    hom-map {X} {A} p {x'} {y} h ≡ comp-hom-r A sA {p x'} {p x} {p y} k (hom-map {X} {A} p {x} {y} f)
+
+-- the gap map g ↦ (f ∘ g , p g , functoriality of p on (g , f))
+cart-gap ∷ (X A ∷ U) (p ∷ X → A) (sX : is-segal-r X) (sA : is-segal-r A) {x y : X} (f : hom X x y) (x' : X) →
+  hom X x' x → cart-pb X A p sA {x} {y} f x'
+cart-gap X A p sX sA {x} {y} f x' g =
+  (comp-hom-r X sX {x'} {x} {y} g f , hom-map {X} {A} p {x'} {x} g , hom-map-comp X A p sX sA {x'} {x} {y} g f)
+
+-- f is p-cartesian when its gap maps are equivalences
+is-cartesian ∷ (X A ∷ U) (p ∷ X → A) (sX : is-segal-r X) (sA : is-segal-r A) {x y : X} → hom X x y → U
+is-cartesian X A p sX sA {x} {y} f = (x' : X) → is-equiv (cart-gap X A p sX sA {x} {y} f x')
+
+--
+-- Cocartesian arrows
+--
+
+-- the fibre product hom X x y' ×_{hom A (p x) (p y')} hom A (p y) (p y'), over p and - ∘ (p f)
+cocart-pb ∷ (X A ∷ U) (p ∷ X → A) (sA : is-segal-r A) {x y : X} (f : hom X x y) (y' : X) → U
+cocart-pb X A p sA {x} {y} f y' =
+  Σ (h : hom X x y') . Σ (k : hom A (p y) (p y')) .
+    hom-map {X} {A} p {x} {y'} h ≡ comp-hom-r A sA {p x} {p y} {p y'} (hom-map {X} {A} p {x} {y} f) k
+
+-- the gap map g ↦ (g ∘ f , p g , functoriality of p on (f , g))
+cocart-gap ∷ (X A ∷ U) (p ∷ X → A) (sX : is-segal-r X) (sA : is-segal-r A) {x y : X} (f : hom X x y) (y' : X) →
+  hom X y y' → cocart-pb X A p sA {x} {y} f y'
+cocart-gap X A p sX sA {x} {y} f y' g =
+  (comp-hom-r X sX {x} {y} {y'} f g , hom-map {X} {A} p {y} {y'} g , hom-map-comp X A p sX sA {x} {y} {y'} f g)
+
+-- f is p-cocartesian when its gap maps are equivalences
+is-cocartesian ∷ (X A ∷ U) (p ∷ X → A) (sX : is-segal-r X) (sA : is-segal-r A) {x y : X} → hom X x y → U
+is-cocartesian X A p sX sA {x} {y} f = (y' : X) → is-equiv (cocart-gap X A p sX sA {x} {y} f y')
+
+--
+-- Cartesian fibrations
+--
+-- p is a cartesian fibration when every arrow of A admits a unique cartesian lift with a given
+-- target, i.e. when the map
+--
+--   (ev₁ , p ∘ -) : Σ (f : 𝕀 →ᵣ X) . is-cartesian p f → X ×_A (𝕀 →ᵣ A)
+--
+-- is an equivalence (the pullback is over p and ev₁).
+--
+
+-- a 1-cell, as a hom between its endpoints
+cell-hom ∷ {X ∷ U} (f : 𝕀 →ᵣ X) → hom X (f 𝕀0) (f 𝕀1)
+cell-hom {X} f = (f , refl , refl)
+
+-- cartesian 1-cells
+cart-cell ∷ (X A ∷ U) (p ∷ X → A) (sX : is-segal-r X) (sA : is-segal-r A) → U
+cart-cell X A p sX sA = Σ (f : 𝕀 →ᵣ X) . is-cartesian X A p sX sA {f 𝕀0} {f 𝕀1} (cell-hom {X} f)
+
+-- the target of a cartesian 1-cell together with its image
+cart-cell-lift ∷ (X A ∷ U) (p ∷ X → A) (sX : is-segal-r X) (sA : is-segal-r A) →
+  cart-cell X A p sX sA → pullback {X} {𝕀 →ᵣ A} {A} p (λ u . u 𝕀1)
+cart-cell-lift X A p sX sA (f , c) = (f 𝕀1 , post-r 𝕀 {X} {A} p f , refl)
+
+is-cartesian-fibration ∷ (X A ∷ U) (p ∷ X → A) (sX : is-segal-r X) (sA : is-segal-r A) → U
+is-cartesian-fibration X A p sX sA = is-equiv (cart-cell-lift X A p sX sA)
+
+--
+-- Cocartesian fibrations
+--
+-- Dually, p is a cocartesian fibration when every arrow of A admits a unique cocartesian lift
+-- with a given source, i.e. when the map
+--
+--   (ev₀ , p ∘ -) : Σ (f : 𝕀 →ᵣ X) . is-cocartesian p f → X ×_A (𝕀 →ᵣ A)
+--
+-- is an equivalence (the pullback is over p and ev₀).
+--
+
+-- cocartesian 1-cells
+cocart-cell ∷ (X A ∷ U) (p ∷ X → A) (sX : is-segal-r X) (sA : is-segal-r A) → U
+cocart-cell X A p sX sA = Σ (f : 𝕀 →ᵣ X) . is-cocartesian X A p sX sA {f 𝕀0} {f 𝕀1} (cell-hom {X} f)
+
+-- the source of a cocartesian 1-cell together with its image
+cocart-cell-lift ∷ (X A ∷ U) (p ∷ X → A) (sX : is-segal-r X) (sA : is-segal-r A) →
+  cocart-cell X A p sX sA → pullback {X} {𝕀 →ᵣ A} {A} p (λ u . u 𝕀0)
+cocart-cell-lift X A p sX sA (f , c) = (f 𝕀0 , post-r 𝕀 {X} {A} p f , refl)
+
+is-cocartesian-fibration ∷ (X A ∷ U) (p ∷ X → A) (sX : is-segal-r X) (sA : is-segal-r A) → U
+is-cocartesian-fibration X A p sX sA = is-equiv (cocart-cell-lift X A p sX sA)
