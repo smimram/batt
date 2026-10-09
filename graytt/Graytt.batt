@@ -12,5 +12,6 @@ open import Wedge
 open import Unitality
 open import Functoriality
 open import Fibration
+open import Coslice
 open import Composable
 open import Associativity

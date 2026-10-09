@@ -1,0 +1,32 @@
+--
+-- Coslice categories
+--
+-- The coslice of a crisp type A under a : A is the type of 1-cells of A starting at a
+-- (called the slice at a in BATT.tex):
+--
+--   a/A := Σ (f : 𝕀 →ᵣ A) . f 0 ≡ a
+--
+-- It comes with the projection to 𝕀 →ᵣ A and the evaluation at the target ev₁ : a/A → A.
+-- It is the pullback of ev₀ : (𝕀 →ᵣ A) → A along a : 1 → A.
+--
+
+open import Stdlib
+
+coslice ∷ (A ∷ U) (a : A) → U
+coslice A a = Σ (f : 𝕀 →ᵣ A) . f 𝕀0 ≡ a
+
+-- the underlying 1-cell
+coslice-cell ∷ {A ∷ U} {a : A} → coslice A a → (𝕀 →ᵣ A)
+coslice-cell (f , e) = f
+
+-- its source is a
+coslice-src ∷ {A ∷ U} {a : A} (s : coslice A a) → coslice-cell {A} {a} s 𝕀0 ≡ a
+coslice-src (f , e) = e
+
+-- evaluation at the target
+coslice-ev1 ∷ {A ∷ U} {a : A} → coslice A a → A
+coslice-ev1 {A} {a} s = coslice-cell {A} {a} s 𝕀1
+
+-- the identity of a, as an object of the coslice
+coslice-id ∷ {A ∷ U} (a : A) → coslice A a
+coslice-id {A} a = ((λ t . a) , refl)
