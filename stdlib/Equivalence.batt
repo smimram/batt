@@ -145,6 +145,69 @@ is-contr-map ∷ {A B : U} → (A → B) → U
 is-contr-map {A} {B} f = (y : B) → is-contr (fib f y)
 
 ---
+--- Equivalences have contractible fibres
+---
+
+-- naturality of a homotopy
+htpy-nat ∷ {A B : U} {h k : A → B} (H : (a : A) → h a ≡ k a) {a a' : A} (p : a ≡ a') →
+  trans (H a) (cong k p) ≡ trans (cong h p) (H a')
+htpy-nat {A} {B} {h} {k} H {a} refl = sym (trans-refl-l (H a))
+
+-- right cancellation of a path
+trans-cancel-r ∷ {A : U} {x y : A} {p q : x ≡ y} {z : A} (r : y ≡ z) → trans p r ≡ trans q r → p ≡ q
+trans-cancel-r {A} {x} {y} {p} {q} refl e = e
+
+-- a homotopy g ∘ f ~ id commutes with g ∘ f
+abstract htpy-gf-coh ∷ {A B : U} (f : A → B) (g : B → A) (η : (x : A) → g (f x) ≡ x) (x : A) →
+  η (g (f x)) ≡ cong (λ a . g (f a)) (η x)
+htpy-gf-coh {A} {B} f g η x =
+  trans-cancel-r (η x)
+    (trans (cong {g (f x) ≡ x} {g (f (g (f x))) ≡ x} (λ w . trans (η (g (f x))) w) (sym (cong-id (η x))))
+      (htpy-nat {A} {A} {λ a . g (f a)} {λ a . a} η (η x)))
+
+-- the half-adjoint section homotopy
+ha-sec ∷ {A B : U} (f : A → B) (g : B → A) (η : (x : A) → g (f x) ≡ x) (ε : (y : B) → f (g y) ≡ y) (y : B) → f (g y) ≡ y
+ha-sec {A} {B} f g η ε y = trans (sym (ε (f (g y)))) (trans (cong f (η (g y))) (ε y))
+
+-- cancelling a path on the left
+trans-sym-cancel ∷ {A : U} {x y : A} (E : x ≡ y) {z : A} (q : y ≡ z) (X : x ≡ z) → X ≡ trans E q → trans (sym E) X ≡ q
+trans-sym-cancel {A} {x} {y} E {z} q X h =
+  trans (cong {x ≡ z} {y ≡ z} (λ w . trans (sym E) w) h) (trans (sym (assoc (sym E) E q)) (trans (cong {y ≡ y} {y ≡ z} (λ w . trans w q) (trans-sym-l E)) (trans-refl-l q)))
+
+abstract ha-coh ∷ {A B : U} (f : A → B) (g : B → A) (η : (x : A) → g (f x) ≡ x) (ε : (y : B) → f (g y) ≡ y) (x : A) →
+  ha-sec f g η ε (f x) ≡ cong f (η x)
+ha-coh {A} {B} f g η ε x =
+  trans-sym-cancel (ε (f (g (f x)))) (cong f (η x)) (trans (cong f (η (g (f x)))) (ε (f x)))
+    (trans (cong {g (f (g (f x))) ≡ g (f x)} {f (g (f (g (f x)))) ≡ f x} (λ w . trans (cong f w) (ε (f x))) (htpy-gf-coh f g η x))
+      (trans (cong {f (g (f (g (f x)))) ≡ f (g (f x))} {f (g (f (g (f x)))) ≡ f x} (λ w . trans w (ε (f x)))
+                (trans (sym (cong-comp f (λ a . g (f a)) (η x))) (cong-comp (λ b . f (g b)) f (η x))))
+        (trans (sym (htpy-nat {B} {B} {λ b . f (g b)} {λ b . b} ε (cong f (η x))))
+          (cong {f (g (f x)) ≡ f x} {f (g (f (g (f x)))) ≡ f x} (λ w . trans (ε (f (g (f x)))) w) (cong-id (cong f (η x)))))))
+
+-- a point of the fibre over f x, with a path to x over which its path is the image of that path
+fib-path ∷ {A B : U} (f : A → B) {a x : A} (e : a ≡ x) (q : f a ≡ f x) → q ≡ cong f e → (a , q) ≡{fib f (f x)} (x , refl)
+fib-path {A} {B} f {a} {x} e =
+  J' (λ a x e . (q : f a ≡ f x) → q ≡ cong f e → (a , q) ≡{fib f (f x)} (x , refl))
+    (λ x q h . cong {f x ≡ f x} {fib f (f x)} (λ w . (x , w)) h) e
+
+-- quasi-inverses have contractible fibres
+abstract is-contr-fib-qinv ∷ {A B : U} (f : A → B) (g : B → A) (η : (x : A) → g (f x) ≡ x) (ε : (y : B) → f (g y) ≡ y) (y : B) →
+  is-contr (fib f y)
+is-contr-fib-qinv {A} {B} f g η ε y =
+  ((g y , ha-sec f g η ε y) ,
+   fun (x , p) →
+     J (f x) (λ y p . (g y , ha-sec f g η ε y) ≡{fib f y} (x , p))
+       (fib-path f (η x) (ha-sec f g η ε (f x)) (ha-coh f g η ε x)) p)
+
+-- equivalences have contractible fibres
+abstract is-contr-fib ∷ {A B : U} (f : A → B) → is-equiv f → (y : B) → is-contr (fib f y)
+is-contr-fib {A} {B} f (sec , ret) y =
+  let h : section f → retraction f → is-contr (fib f y) = fun (g , ε) (r , rf) →
+    is-contr-fib-qinv f g (λ x . trans (sym (trans (sym (cong r (ε (f x)))) (rf (g (f x))))) (rf x)) ε y
+  in
+  h sec ret
+
+---
 --- Fundamental theorem of identity types
 ---
 

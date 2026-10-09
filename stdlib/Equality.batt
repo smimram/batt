@@ -109,6 +109,10 @@ ev-l {S} {X} y {φ} {ψ} p = cong {S →ₗ X} {X} (λ h . h y) p
 trans-refl-l ∷ {A : Type} {x y : A} (p : x ≡ y) → trans refl p ≡ p
 trans-refl-l {A} {x} refl = refl
 
+-- the image of a path under a constant map is refl
+cong-cst ∷ {A B : Type} (b : B) {x y : A} (p : x ≡ y) → cong (λ _ . b) p ≡ refl
+cong-cst {A} {B} b {x} refl = refl
+
 cong-comp ∷ {A B C : Type} (g : B → C) (f : A → B) {x y : A} (p : x ≡ y) → cong (λ a . g (f a)) p ≡ cong g (cong f p)
 cong-comp g f {x} refl = refl
 
