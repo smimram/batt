@@ -494,15 +494,18 @@ let eq k t u =
 (** Generate a fresh metavariable. *)
 let fresh_meta ?pos env =
   let m = V.Meta.fresh ?pos () in
-  (* We only keep variables. Here, i is a de Bruijn index in env. *)
-  let rec aux i = function
+  (* We only keep variables, each one once, so that the metavariable is applied to a pattern: the
+     values of let-bound names which are not variables (e.g. applications f x) are expressed in
+     terms of the variables, and let-bound aliases of variables would repeat them. Here, i is a de
+     Bruijn index in env. *)
+  let rec aux seen i = function
     | [] -> []
     | (_x,v)::l ->
       match V.force v with
-      | Var _ -> (T.Var' i)::(aux (i+1) l)
-      | _ -> aux (i+1) l
+      | Var (n, []) when not (List.mem n seen) -> (T.Var' i)::(aux (n::seen) (i+1) l)
+      | _ -> aux seen (i+1) l
   in
-  let vars = aux 0 env in
+  let vars = aux [] 0 env in
   T.apps (T.Meta (`Generated m.id)) vars
 
 (** Modules currently being imported, most recent first (used to detect cyclic imports). *)

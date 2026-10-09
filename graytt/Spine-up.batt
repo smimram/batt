@@ -26,8 +26,7 @@ open import Wedge
 -- the spine as a union of two subtypes of 𝕀²
 --
 
--- coordinates, with explicit implicit arguments (metavariables created under a let are
--- applied to let-bound values, see test/todo/Let_meta.batt)
+-- coordinates, with explicit implicit arguments
 cc1 ∷ cart-cube 2 → 𝕀
 cc1 c = prod-fst {𝕀} {cart-cube 1} c
 

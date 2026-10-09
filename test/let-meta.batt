@@ -1,0 +1,17 @@
+-- Metavariables created under a let are applied to the variables only (not to let-bound values,
+-- which are expressed in terms of the variables), so that their spine is a pattern: the implicit
+-- argument of id' below is solved.
+
+id' ∷ {A : U} → A → A
+id' x = x
+
+let-meta ∷ (f : bool → bool) (b : bool) → bool
+let-meta f b =
+  let a : bool = f b in
+  id' b
+
+-- let-bound aliases of variables are not repeated in the spine
+let-alias ∷ (b : bool) → bool
+let-alias b =
+  let a : bool = b in
+  id' a
