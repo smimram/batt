@@ -180,6 +180,11 @@ ev-r-pre-r-path A {B} {X} {k} refl y φ = refl
 ap-r-path ∷ {S X ∷ U} {y0 y1 ∷ S} {e e' ∷ y0 ≡ y1} (E ∷ e ≡ e') (φ : S →ᵣ X) → ap-r {S} {X} {y0} {y1} e φ ≡ ap-r {S} {X} {y0} {y1} e' φ
 ap-r-path {S} {X} {y0} {y1} {e} refl φ = refl
 
+-- ap-r of a concatenation of crisp paths
+ap-r-trans ∷ {S X ∷ U} {y0 y1 ∷ S} (p ∷ y0 ≡ y1) {y2 ∷ S} (q ∷ y1 ≡ y2) (φ : S →ᵣ X) →
+  ap-r {S} {X} {y0} {y2} (trans p q) φ ≡ trans (ap-r {S} {X} {y0} {y1} p φ) (ap-r {S} {X} {y1} {y2} q φ)
+ap-r-trans {S} {X} {y0} {y1} p refl φ = refl
+
 -- ap-r of a precomposition is ap-r of the image path
 ap-r-pre-r ∷ (A ∷ U) {B X ∷ U} {y0 y1 ∷ A} (c ∷ y0 ≡ y1) (k ∷ A → B) (φ : B →ᵣ X) →
   ap-r {A} {X} {y0} {y1} c (pre-r A {B} {X} φ k) ≡ ap-r {B} {X} {k y0} {k y1} (cong k c) φ

@@ -1,0 +1,150 @@
+--
+-- Associativity of composition in oplax-Segal types
+--
+--   comp-hom-r-assoc : comp (comp u v) w ≡ comp u (comp v w)     in hom X x t
+--
+-- for u : hom X x y, v : hom X y z, w : hom X z t.
+--
+
+open import Stdlib
+open import Hom
+open import Segal
+open import Spine-up
+open import Composition
+open import Composable
+
+--
+-- Edges of a 3-simplex, as homs with refl boundary paths
+--
+
+simplex-3-hom ∷ {X ∷ U} (e ∷ 𝕀 → simplex 3) (Θ : simplex 3 →ᵣ X) → hom X (Θ (e 𝕀0)) (Θ (e 𝕀1))
+simplex-3-hom {X} e Θ = (pre-r 𝕀 {simplex 3} {X} Θ e , refl , refl)
+
+-- the faces of a 3-simplex
+simplex-3-face ∷ {X ∷ U} (d ∷ simplex 2 → simplex 3) (Θ : simplex 3 →ᵣ X) → (simplex 2 →ᵣ X)
+simplex-3-face {X} d Θ = pre-r (simplex 2) {simplex 3} {X} Θ d
+
+--
+-- Associativity for the edges of a 3-simplex
+--
+
+abstract assoc-simplex-3 ∷ (X ∷ U) (s : is-segal-r X) (Θ : simplex 3 →ᵣ X) →
+  comp-hom-r X s (comp-hom-r X s (simplex-3-hom {X} simplex-3-e01 Θ) (simplex-3-hom {X} simplex-3-e12 Θ)) (simplex-3-hom {X} simplex-3-e23 Θ)
+    ≡ comp-hom-r X s (simplex-3-hom {X} simplex-3-e01 Θ) (comp-hom-r X s (simplex-3-hom {X} simplex-3-e12 Θ) (simplex-3-hom {X} simplex-3-e23 Θ))
+assoc-simplex-3 X s Θ =
+  let Θ01 : hom X (Θ (simplex-3-e01 𝕀0)) (Θ (simplex-3-e01 𝕀1)) = simplex-3-hom {X} simplex-3-e01 Θ in
+  let Θ12 : hom X (Θ (simplex-3-e12 𝕀0)) (Θ (simplex-3-e12 𝕀1)) = simplex-3-hom {X} simplex-3-e12 Θ in
+  let Θ23 : hom X (Θ (simplex-3-e23 𝕀0)) (Θ (simplex-3-e23 𝕀1)) = simplex-3-hom {X} simplex-3-e23 Θ in
+  trans (cong {hom X (Θ (simplex-3-e01 𝕀0)) (Θ (simplex-3-e12 𝕀1))} {hom X (Θ (simplex-3-e01 𝕀0)) (Θ (simplex-3-e23 𝕀1))}
+          (λ h . comp-hom-r X s h Θ23) (comp-simplex-2 X s (simplex-3-face {X} simplex-3-d3 Θ)))
+    (trans (comp-simplex-2 X s (simplex-3-face {X} simplex-3-d1 Θ))
+      (trans (sym (comp-simplex-2 X s (simplex-3-face {X} simplex-3-d2 Θ)))
+        (cong {hom X (Θ (simplex-3-e12 𝕀0)) (Θ (simplex-3-e23 𝕀1))} {hom X (Θ (simplex-3-e01 𝕀0)) (Θ (simplex-3-e23 𝕀1))}
+          (λ h . comp-hom-r X s Θ01 h) (sym (comp-simplex-2 X s (simplex-3-face {X} simplex-3-d0 Θ))))))
+
+--
+-- Composable triples drawn on a 3-simplex
+--
+
+-- the triple given by three crisp paths in Δ³ and paths between the images of their endpoints
+tri-shape ∷ {X ∷ U} (Θ : simplex 3 →ᵣ X) (ku kv kw ∷ 𝕀 → simplex 3) → Θ (ku 𝕀1) ≡ Θ (kv 𝕀0) → Θ (kv 𝕀1) ≡ Θ (kw 𝕀0) → triples X
+tri-shape {X} Θ ku kv kw α β =
+  (Θ (ku 𝕀0) , Θ (kv 𝕀0) , (pre-r 𝕀 {simplex 3} {X} Θ ku , refl , α) , Θ (kw 𝕀0) , Θ (kw 𝕀1) ,
+   (pre-r 𝕀 {simplex 3} {X} Θ kv , refl , β) , (pre-r 𝕀 {simplex 3} {X} Θ kw , refl , refl))
+
+-- the triple of edges of a 3-simplex
+edges-tri ∷ {X ∷ U} (Θ : simplex 3 →ᵣ X) → triples X
+edges-tri {X} Θ = tri-shape {X} Θ simplex-3-e01 simplex-3-e12 simplex-3-e23 refl refl
+
+-- homotopic shape data give the same triple: by crisp path induction, then the glues are images
+-- of crisp paths in the set Δ³
+tri-shape-path ∷ {X ∷ U} (Θ : simplex 3 →ᵣ X) (ku ∷ 𝕀 → simplex 3) {ku' ∷ 𝕀 → simplex 3} (Hu ∷ ku ≡ ku')
+  (kv ∷ 𝕀 → simplex 3) {kv' ∷ 𝕀 → simplex 3} (Hv ∷ kv ≡ kv') (kw ∷ 𝕀 → simplex 3) {kw' ∷ 𝕀 → simplex 3} (Hw ∷ kw ≡ kw')
+  (gu ∷ ku 𝕀1 ≡ kv 𝕀0) (gu' ∷ ku' 𝕀1 ≡ kv' 𝕀0) (gv ∷ kv 𝕀1 ≡ kw 𝕀0) (gv' ∷ kv' 𝕀1 ≡ kw' 𝕀0) →
+  tri-shape {X} Θ ku kv kw (ap-r {simplex 3} {X} gu Θ) (ap-r {simplex 3} {X} gv Θ)
+    ≡ tri-shape {X} Θ ku' kv' kw' (ap-r {simplex 3} {X} gu' Θ) (ap-r {simplex 3} {X} gv' Θ)
+tri-shape-path {X} Θ ku refl kv refl kw refl gu gu' gv gv' =
+  cong2 {Θ (ku 𝕀1) ≡ Θ (kv 𝕀0)} {Θ (kv 𝕀1) ≡ Θ (kw 𝕀0)} {triples X} (λ α β . tri-shape {X} Θ ku kv kw α β)
+    (ap-r-set (is-set-simplex 2) gu gu' Θ) (ap-r-set (is-set-simplex 2) gv gv' Θ)
+
+-- the edges of the 3-spine, included in the 3-simplex
+sp3-ku ∷ 𝕀 → simplex 3
+sp3-ku t = spine→simplex 3 (sp3-i (sp3-eA t))
+
+sp3-kv ∷ 𝕀 → simplex 3
+sp3-kv t = spine→simplex 3 (sp3-j (sp3-eB1 t))
+
+sp3-kw ∷ 𝕀 → simplex 3
+sp3-kw t = spine→simplex 3 (sp3-j (sp3-eB2 t))
+
+sp3-ku-path ∷ sp3-ku ≡{𝕀 → simplex 3} simplex-3-e01
+sp3-ku-path = funext-htpy {𝕀} {λ _ . simplex 3} sp3-ku simplex-3-e01
+  (λ t . simplex-path 2 {(t , 𝕀0 , 𝕀0 , tt)} {(t , 𝕀0 , 𝕀0 , tt)} refl (snd (is-sorted 2) (sp3-ku t)) (refl , (refl , tt)))
+
+sp3-kv-path ∷ sp3-kv ≡{𝕀 → simplex 3} simplex-3-e12
+sp3-kv-path = funext-htpy {𝕀} {λ _ . simplex 3} sp3-kv simplex-3-e12
+  (λ t . simplex-path 2 {(𝕀1 , t , 𝕀0 , tt)} {(𝕀1 , t , 𝕀0 , tt)} refl (snd (is-sorted 2) (sp3-kv t)) (refl , (refl , tt)))
+
+sp3-kw-path ∷ sp3-kw ≡{𝕀 → simplex 3} simplex-3-e23
+sp3-kw-path = funext-htpy {𝕀} {λ _ . simplex 3} sp3-kw simplex-3-e23
+  (λ t . simplex-path 2 {(𝕀1 , 𝕀1 , t , tt)} {(𝕀1 , 𝕀1 , t , tt)} refl (snd (is-sorted 2) (sp3-kw t)) (refl , (refl , tt)))
+
+-- the triple read off the restriction of a 3-simplex to the 3-spine is its triple of edges
+abstract spine-restr-edges-tri ∷ {X ∷ U} (Θ : simplex 3 →ᵣ X) →
+  coc3-tri {X} (wedge-restr-r (spine 3) sp3-EA sp3-EB sp3-i sp3-j sp3-a1 sp3-b0 sp3-γ X (spine-restr-r 3 X Θ)) ≡ edges-tri {X} Θ
+spine-restr-edges-tri {X} Θ =
+  trans
+    (cong2 {Θ (sp3-ku 𝕀1) ≡ Θ (sp3-kv 𝕀0)} {Θ (sp3-kv 𝕀1) ≡ Θ (sp3-kw 𝕀0)} {triples X} (λ α β . tri-shape {X} Θ sp3-ku sp3-kv sp3-kw α β)
+      (ap-r-pre-r (spine 3) {simplex 3} {X} {sp3-i sp3-a1} {sp3-j sp3-b0} sp3-γ (spine→simplex 3) Θ)
+      (ap-r-pre-r sp3-EB {simplex 3} {X} {sp3-eB1 𝕀1} {sp3-eB2 𝕀0} sp3-γB (λ b . spine→simplex 3 (sp3-j b)) Θ))
+    (tri-shape-path {X} Θ sp3-ku sp3-ku-path sp3-kv sp3-kv-path sp3-kw sp3-kw-path
+      (cong (spine→simplex 3) sp3-γ) refl (cong (λ b . spine→simplex 3 (sp3-j b)) sp3-γB) refl)
+
+--
+-- Associativity, as a family over composable triples
+--
+
+assoc-stmt ∷ (X ∷ U) (s : is-segal-r X) {x y z t : X} → hom X x y → hom X y z → hom X z t → U
+assoc-stmt X s {x} {y} {z} {t} u v w =
+  comp-hom-r X s {x} {z} {t} (comp-hom-r X s {x} {y} {z} u v) w ≡ comp-hom-r X s {x} {y} {t} u (comp-hom-r X s {y} {z} {t} v w)
+
+tri-assoc ∷ (X ∷ U) (s : is-segal-r X) → triples X → U
+tri-assoc X s (x , a) =
+  let h : (y : X) (b : hom X x y × pair-from X y) → U = fun y (u , c) →
+    let h' : (z : X) (d : Σ (t : X) . hom X y z × hom X z t) → U = fun z (t , e) →
+      let h'' : (e : hom X y z × hom X z t) → U = fun (v , w) → assoc-stmt X s {x} {y} {z} {t} u v w in
+      h'' e
+    in
+    h' (fst (λ z . Σ (t : X) . hom X y z × hom X z t) c) (snd (λ z . Σ (t : X) . hom X y z × hom X z t) c)
+  in
+  h (fst (λ y . hom X x y × pair-from X y) a) (snd (λ y . hom X x y × pair-from X y) a)
+
+--
+-- Associativity
+--
+
+-- the 3-simplex filling a composable triple
+assoc-filler ∷ (X ∷ U) (s : is-segal-r X) {x y z t : X} (u : hom X x y) (v : hom X y z) (w : hom X z t) → (simplex 3 →ᵣ X)
+assoc-filler X s {x} {y} {z} {t} u v w =
+  map-section (spine-restr-r 3 X) (is-equiv-sec (spine-restr-r 3 X) (is-segal-r-unthick X s 3))
+    (wedge-σ-r (spine 3) sp3-EA sp3-EB sp3-i sp3-j sp3-a1 sp3-b0 sp3-γ spine-3-cart-up X (tri-section X {x} {y} {z} {t} u v w))
+
+-- its triple of edges is the given triple
+abstract assoc-filler-edges ∷ (X ∷ U) (s : is-segal-r X) {x y z t : X} (u : hom X x y) (v : hom X y z) (w : hom X z t) →
+  edges-tri {X} (assoc-filler X s {x} {y} {z} {t} u v w) ≡ (x , y , u , z , t , v , w)
+assoc-filler-edges X s {x} {y} {z} {t} u v w =
+  let Θs : spine 3 →ᵣ X =
+    wedge-σ-r (spine 3) sp3-EA sp3-EB sp3-i sp3-j sp3-a1 sp3-b0 sp3-γ spine-3-cart-up X (tri-section X {x} {y} {z} {t} u v w) in
+  trans (sym (spine-restr-edges-tri {X} (assoc-filler X s {x} {y} {z} {t} u v w)))
+    (trans (cong {spine 3 →ᵣ X} {triples X} (λ φ . coc3-tri {X} (wedge-restr-r (spine 3) sp3-EA sp3-EB sp3-i sp3-j sp3-a1 sp3-b0 sp3-γ X φ))
+             (snd (is-section (spine-restr-r 3 X)) (is-equiv-sec (spine-restr-r 3 X) (is-segal-r-unthick X s 3)) Θs))
+      (trans (cong {spine-3-cocone-r X} {triples X} (coc3-tri {X})
+               (wedge-σ-sec-r (spine 3) sp3-EA sp3-EB sp3-i sp3-j sp3-a1 sp3-b0 sp3-γ spine-3-cart-up X (tri-section X {x} {y} {z} {t} u v w)))
+        (tri-section-path X {x} {y} {z} {t} u v w)))
+
+-- associativity of composition in an oplax-Segal type
+abstract comp-hom-r-assoc ∷ (X ∷ U) (s : is-segal-r X) {x y z t : X} (u : hom X x y) (v : hom X y z) (w : hom X z t) →
+  comp-hom-r X s {x} {z} {t} (comp-hom-r X s {x} {y} {z} u v) w ≡ comp-hom-r X s {x} {y} {t} u (comp-hom-r X s {y} {z} {t} v w)
+comp-hom-r-assoc X s {x} {y} {z} {t} u v w =
+  subst {triples X} (tri-assoc X s) (assoc-filler-edges X s {x} {y} {z} {t} u v w)
+    (assoc-simplex-3 X s (assoc-filler X s {x} {y} {z} {t} u v w))

@@ -160,3 +160,79 @@ simplex-2-fst z = prod-fst {𝕀} {cart-cube 1} (fst (is-sorted 1) z)
 
 simplex-2-snd ∷ simplex 2 → 𝕀
 simplex-2-snd z = prod-fst {𝕀} {⊤} (prod-snd {𝕀} {cart-cube 1} (fst (is-sorted 1) z))
+
+-- simplices are sets
+abstract is-set-simplex ∷ (n ∷ ℕ) → is-set (simplex (succ n))
+is-set-simplex n = is-set-Σ-prop (is-sorted n) (is-set-cart-cube (succ n)) (is-prop-is-sorted n)
+
+--
+-- Edges of the 2-simplex, and faces and edges of the 3-simplex (coordinates x₁ ≥ x₂ ≥ x₃;
+-- vertices 0 = (0,0,0), 1 = (1,0,0), 2 = (1,1,0), 3 = (1,1,1)). All sortedness proofs are refl
+-- (the lattice laws are judgmental), so that faces of edges are edges judgmentally.
+--
+
+-- the first and second edges of the 2-simplex, t ↦ (t, 0) and t ↦ (1, t)
+simplex-2-e01 ∷ 𝕀 → simplex 2
+simplex-2-e01 t = ((t , 𝕀0 , tt) , (refl , tt))
+
+simplex-2-e12 ∷ 𝕀 → simplex 2
+simplex-2-e12 t = ((𝕀1 , t , tt) , (refl , tt))
+
+-- the edges of the 3-simplex
+simplex-3-e01 ∷ 𝕀 → simplex 3
+simplex-3-e01 t = ((t , 𝕀0 , 𝕀0 , tt) , (refl , (refl , tt)))
+
+simplex-3-e12 ∷ 𝕀 → simplex 3
+simplex-3-e12 t = ((𝕀1 , t , 𝕀0 , tt) , (refl , (refl , tt)))
+
+simplex-3-e23 ∷ 𝕀 → simplex 3
+simplex-3-e23 t = ((𝕀1 , 𝕀1 , t , tt) , (refl , (refl , tt)))
+
+simplex-3-e02 ∷ 𝕀 → simplex 3
+simplex-3-e02 t = ((t , t , 𝕀0 , tt) , (refl , (refl , tt)))
+
+simplex-3-e13 ∷ 𝕀 → simplex 3
+simplex-3-e13 t = ((𝕀1 , t , t , tt) , (refl , (refl , tt)))
+
+simplex-3-e03 ∷ 𝕀 → simplex 3
+simplex-3-e03 t = ((t , t , t , tt) , (refl , (refl , tt)))
+
+-- the inequality of a point of the 2-simplex
+simplex-2-geq ∷ (y : simplex 2) → simplex-2-fst y ≥ simplex-2-snd y
+simplex-2-geq y = prod-fst (snd (is-sorted 1) y)
+
+-- the faces dᵢ : Δ² → Δ³, missing the vertex i
+simplex-3-d0 ∷ simplex 2 → simplex 3
+simplex-3-d0 y = ((𝕀1 , simplex-2-fst y , simplex-2-snd y , tt) , (refl , (simplex-2-geq y , tt)))
+
+simplex-3-d1 ∷ simplex 2 → simplex 3
+simplex-3-d1 y = ((simplex-2-fst y , simplex-2-fst y , simplex-2-snd y , tt) , (refl , (simplex-2-geq y , tt)))
+
+simplex-3-d2 ∷ simplex 2 → simplex 3
+simplex-3-d2 y = ((simplex-2-fst y , simplex-2-snd y , simplex-2-snd y , tt) , (simplex-2-geq y , (refl , tt)))
+
+simplex-3-d3 ∷ simplex 2 → simplex 3
+simplex-3-d3 y = ((simplex-2-fst y , simplex-2-snd y , 𝕀0 , tt) , (simplex-2-geq y , (refl , tt)))
+
+-- the faces of the edges are edges, judgmentally
+simplex-3-faces-edges ∷
+  ((λ t . simplex-3-d3 (simplex-2-e01 t)) ≡{𝕀 → simplex 3} simplex-3-e01) ×
+  ((λ t . simplex-3-d3 (simplex-2-e12 t)) ≡{𝕀 → simplex 3} simplex-3-e12) ×
+  ((λ t . simplex-3-d3 (long-edge t)) ≡{𝕀 → simplex 3} simplex-3-e02) ×
+  ((λ t . simplex-3-d0 (simplex-2-e01 t)) ≡{𝕀 → simplex 3} simplex-3-e12) ×
+  ((λ t . simplex-3-d0 (simplex-2-e12 t)) ≡{𝕀 → simplex 3} simplex-3-e23) ×
+  ((λ t . simplex-3-d0 (long-edge t)) ≡{𝕀 → simplex 3} simplex-3-e13) ×
+  ((λ t . simplex-3-d1 (simplex-2-e01 t)) ≡{𝕀 → simplex 3} simplex-3-e02) ×
+  ((λ t . simplex-3-d1 (simplex-2-e12 t)) ≡{𝕀 → simplex 3} simplex-3-e23) ×
+  ((λ t . simplex-3-d1 (long-edge t)) ≡{𝕀 → simplex 3} simplex-3-e03) ×
+  ((λ t . simplex-3-d2 (simplex-2-e01 t)) ≡{𝕀 → simplex 3} simplex-3-e01) ×
+  ((λ t . simplex-3-d2 (simplex-2-e12 t)) ≡{𝕀 → simplex 3} simplex-3-e13) ×
+  ((λ t . simplex-3-d2 (long-edge t)) ≡{𝕀 → simplex 3} simplex-3-e03)
+simplex-3-faces-edges = (refl , refl , refl , refl , refl , refl , refl , refl , refl , refl , refl , refl)
+
+
+-- a path of coordinates gives a path of points of a simplex, whatever the sortedness proofs
+simplex-path ∷ (n ∷ ℕ) {x x' : cart-cube (succ n)} (e : x ≡ x') (p : is-sorted n x) (p' : is-sorted n x') → (x , p) ≡{simplex (succ n)} (x' , p')
+simplex-path n {x} {x'} e =
+  J' (λ x x' e . (p : is-sorted n x) (p' : is-sorted n x') → (x , p) ≡{simplex (succ n)} (x' , p'))
+    (λ x p p' . cong {is-sorted n x} {simplex (succ n)} (λ z . (x , z)) (prop-path (is-prop-is-sorted n x) p p')) e

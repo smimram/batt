@@ -76,6 +76,11 @@
           "default": 64,
           "minimum": 1,
           "description": "Maximum amount of checker output read, in MB. The run is stopped beyond it."
+        },
+        "batt.debugTrace": {
+          "type": "boolean",
+          "default": false,
+          "description": "Run the checker with --debug, to show its last steps when a run is stopped. The debug messages print full normal forms: on large developments they can be huge and make the run many times slower."
         }
       }
     }

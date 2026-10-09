@@ -1124,6 +1124,8 @@ const { StringDecoder } = require('string_decoder');
 // debug lines printed by --debug (src/lang.ml), removed from the output
 const DEBUG_LINE = /^(UNIFY|SOLVE|META|OCCURS|CHECK TYPE|CHECK|INFER|SPLIT|SPLITED AS|ESCAPED|DUPLICATE|CLASH) /;
 const TRACE_LINES = 12;
+// beyond this length, a debug line being received is cut (only its first 400 characters are kept)
+const LINE_CAP = 4096;
 
 // Write `text` next to the document, for a check of a modified copy.
 async function writeTemp(dir, text) {
@@ -1236,15 +1238,17 @@ function runBatt(workspaceRoot, fileName) {
   const timeoutSeconds = Math.max(1, config.get('timeoutSeconds', 60));
   const memoryLimitMB = Math.max(0, config.get('memoryLimitMB', 4096));
   const maxOutputBytes = Math.max(1, config.get('maxOutputMB', 64)) * 1024 * 1024;
+  const debugTrace = config.get('debugTrace', false);
   const limits = [`ulimit -t ${Math.ceil(timeoutSeconds * 2)}`];
   if (memoryLimitMB > 0) {
     limits.push(`ulimit -v ${Math.floor(memoryLimitMB) * 1024}`);
   }
-  // --debug makes the checker flush stdout after every debug line. Its normal printing
-  // is not flushed (ksprintf ignores %!), so without it up to 64 KB of output (e.g. the
-  // declaration being checked) would be lost when a run is killed. The debug lines are
-  // filtered out below as they arrive; only the last few are kept, as a trace.
-  const script = `${limits.map((l) => `${l} 2>/dev/null`).join('; ')}; exec batt --no-colors --debug "$1"`;
+  // The checker flushes every message, so its output is complete up to the point where a
+  // run is killed. With batt.debugTrace, it also prints its debug messages (--debug): they
+  // are filtered out below as they arrive, and only the last few are kept, as a trace of the
+  // steps before a stop. They print full normal forms, so they can be huge and make the run
+  // many times slower: off by default.
+  const script = `${limits.map((l) => `${l} 2>/dev/null`).join('; ')}; exec batt --no-colors ${debugTrace ? '--debug ' : ''}"$1"`;
 
   return new Promise((resolve, reject) => {
     const child = cp.spawn('/bin/sh', ['-c', script, 'batt', fileName], {
@@ -1266,7 +1270,13 @@ function runBatt(workspaceRoot, fileName) {
       }
     };
     const decoder = new StringDecoder('utf8');
-    let pending = '';
+    // The line being received, as a list of pieces (joined once, at its end: appending each
+    // chunk to a string would be quadratic in the length of the line). A debug line longer
+    // than LINE_CAP is cut: only its beginning is kept, for the trace.
+    let parts = [];
+    let partsLen = 0;
+    let capChecked = false;
+    let cut = false;
     const takeLine = (line) => {
       if (DEBUG_LINE.test(line)) {
         trace.push(line.length > 400 ? line.slice(0, 400) + ' …' : line);
@@ -1282,15 +1292,53 @@ function runBatt(workspaceRoot, fileName) {
       }
       kept.push(line);
     };
+    const endLine = () => {
+      const line = parts.join('');
+      const wasCut = cut;
+      parts = [];
+      partsLen = 0;
+      capChecked = false;
+      cut = false;
+      takeLine(wasCut ? line + ' …' : line);
+    };
+    const feed = (text) => {
+      let start = 0;
+      let idx;
+      while (!stopped && (idx = text.indexOf('\n', start)) !== -1) {
+        if (!cut) {
+          parts.push(text.slice(start, idx));
+        }
+        endLine();
+        start = idx + 1;
+      }
+      if (stopped || cut || start >= text.length) {
+        return;
+      }
+      const rest = text.slice(start);
+      parts.push(rest);
+      partsLen += rest.length;
+      if (!capChecked && partsLen > LINE_CAP) {
+        capChecked = true;
+        const head = parts.join('');
+        if (DEBUG_LINE.test(head)) {
+          parts = [head.slice(0, 400)];
+          partsLen = 400;
+          cut = true;
+        } else {
+          parts = [head];
+        }
+      }
+      if (partsLen > maxOutputBytes) {
+        stop('output');
+      }
+    };
     child.stdout.on('data', (chunk) => {
       rawSize += chunk.length;
       if (rawSize > maxOutputBytes * 20) {
         stop('output'); // debug output can be much larger; bound it too
         return;
       }
-      const lines = (pending + decoder.write(chunk)).split('\n');
-      pending = lines.pop();
-      lines.forEach(takeLine);
+      feed(decoder.write(chunk));
     });
     child.stderr.on('data', (chunk) => {
       if (stderr.length < 1000) {
@@ -1308,9 +1356,9 @@ function runBatt(workspaceRoot, fileName) {
       clearTimeout(timer);
       killGroup(child.pid); // no stragglers
       runningGroups.delete(child.pid);
-      pending += decoder.end();
-      if (pending) {
-        takeLine(pending);
+      feed(decoder.end());
+      if (partsLen > 0 || cut) {
+        endLine();
       }
       const out = kept.join('\n');
       const err = Buffer.concat(stderr).toString('utf8');

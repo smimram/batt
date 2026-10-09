@@ -77,6 +77,13 @@ sp-a1 = ((𝕀1 , 𝕀0 , tt) , refl)
 sp-b0 ∷ sp-EB
 sp-b0 = ((𝕀1 , 𝕀0 , tt) , (refl , spine-1-pt 𝕀0))
 
+-- the outer vertices of the spine: 0 on the first edge, 2 on the second one
+sp-a0 ∷ sp-EA
+sp-a0 = ((𝕀0 , 𝕀0 , tt) , refl)
+
+sp-b1 ∷ sp-EB
+sp-b1 = ((𝕀1 , 𝕀1 , tt) , (refl , spine-1-pt 𝕀1))
+
 -- the glue is the vertex path of Cube.batt
 sp-γ ∷ sp-i sp-a1 ≡{spine 2} sp-j sp-b0
 sp-γ = spine-glue
@@ -117,3 +124,94 @@ spine-lax-up X = wedge-lax-up (spine 2) sp-EA sp-EB sp-i sp-j sp-a1 sp-b0 sp-γ 
 
 spine-cocone-r ∷ (X ∷ U) → U
 spine-cocone-r X = wedge-cocone-r sp-EA sp-EB sp-a1 sp-b0 X
+
+--
+-- The 3-spine as a wedge of an edge and a 2-spine
+--
+-- Sp₃ = {x : 𝕀³ | (x₂ , x₃) = 0 ∨ (x₁ = 1 ∧ (x₂ , x₃) ∈ Sp₂)} is, judgmentally, the union of the
+-- subtypes {(x₂ , x₃) = 0} (the first edge) and {x₁ = 1 , (x₂ , x₃) ∈ Sp₂} (a copy of the 2-spine),
+-- which meet at the single vertex (1 , 0 , 0). The same three general facts as for the 2-spine
+-- give its universal properties.
+--
+
+-- coordinates
+cc3-1 ∷ cart-cube 3 → 𝕀
+cc3-1 c = prod-fst {𝕀} {cart-cube 2} c
+
+cc3-xs ∷ cart-cube 3 → cart-cube 2
+cc3-xs c = prod-snd {𝕀} {cart-cube 2} c
+
+sp3-A ∷ cart-cube 3 → U
+sp3-A c = cc3-xs c ≡{cart-cube 2} zero-cube 2
+
+sp3-B ∷ cart-cube 3 → U
+sp3-B c = (cc3-1 c ≡ 𝕀1) × is-in-spine 2 (cc3-xs c)
+
+is-prop-sp3-A ∷ (c : cart-cube 3) → is-prop (sp3-A c)
+is-prop-sp3-A c = is-set-cart-cube 2 (cc3-xs c) (zero-cube 2)
+
+is-prop-sp3-B ∷ (c : cart-cube 3) → is-prop (sp3-B c)
+is-prop-sp3-B c = is-prop-prod (is-set-𝕀 (cc3-1 c) 𝕀1) (is-prop-is-in-spine 2 (cc3-xs c))
+
+spine-3-is-union ∷ spine 3 ≡ union sp3-A sp3-B
+spine-3-is-union = refl
+
+-- the two pieces: the first edge, and the copy {1} × Sp₂ of the 2-spine
+sp3-EA ∷ U
+sp3-EA = Σ (c : cart-cube 3) . sp3-A c
+
+sp3-EB ∷ U
+sp3-EB = Σ (c : cart-cube 3) . sp3-B c
+
+sp3-i ∷ sp3-EA → spine 3
+sp3-i = union-inl sp3-A sp3-B
+
+sp3-j ∷ sp3-EB → spine 3
+sp3-j = union-inr sp3-A sp3-B
+
+-- the 2-spine as the second piece, and back
+sp3-incl ∷ spine 2 → sp3-EB
+sp3-incl (xs , w) = ((𝕀1 , xs) , (refl , w))
+
+sp3-proj ∷ sp3-EB → spine 2
+sp3-proj (c , w) = (cc3-xs c , prod-snd {cc3-1 c ≡ 𝕀1} {is-in-spine 2 (cc3-xs c)} w)
+
+-- the vertex (1 , 0 , 0), on each piece; on the second one it is the vertex 0 of the 2-spine
+sp3-a1 ∷ sp3-EA
+sp3-a1 = ((𝕀1 , 𝕀0 , 𝕀0 , tt) , refl)
+
+sp3-b0 ∷ sp3-EB
+sp3-b0 = sp3-incl (sp-i sp-a0)
+
+sp3-q0 ∷ sp3-B (𝕀1 , 𝕀0 , 𝕀0 , tt)
+sp3-q0 = snd sp3-B sp3-b0
+
+sp3-γ ∷ sp3-i sp3-a1 ≡{spine 3} sp3-j sp3-b0
+sp3-γ = union-glue sp3-A sp3-B (𝕀1 , 𝕀0 , 𝕀0 , tt) refl sp3-q0
+
+-- the intersection of the two pieces is contractible, with centre the vertex
+sp3-κ2 ∷ (c1 : 𝕀) (xs : cart-cube 2) (w : sp3-A (c1 , xs) × sp3-B (c1 , xs)) →
+  ((𝕀1 , 𝕀0 , 𝕀0 , tt) , refl , sp3-q0) ≡{union-I sp3-A sp3-B} ((c1 , xs) , w)
+sp3-κ2 c1 xs w =
+  subtype-path (λ c . sp3-A c × sp3-B c) (λ c . is-prop-prod (is-prop-sp3-A c) (is-prop-sp3-B c)) {(𝕀1 , 𝕀0 , 𝕀0 , tt)} {(c1 , xs)}
+    (cong2 {𝕀} {cart-cube 2} {cart-cube 3} pair
+      (sym (prod-fst {c1 ≡ 𝕀1} {is-in-spine 2 xs} (prod-snd {sp3-A (c1 , xs)} {sp3-B (c1 , xs)} w)))
+      (sym (prod-fst {sp3-A (c1 , xs)} {sp3-B (c1 , xs)} w)))
+    (refl , sp3-q0) w
+
+sp3-κ1 ∷ (c : cart-cube 3) (w : sp3-A c × sp3-B c) → ((𝕀1 , 𝕀0 , 𝕀0 , tt) , refl , sp3-q0) ≡{union-I sp3-A sp3-B} (c , w)
+sp3-κ1 (c1 , xs) w = sp3-κ2 c1 xs w
+
+sp3-κ ∷ (t : union-I sp3-A sp3-B) → ((𝕀1 , 𝕀0 , 𝕀0 , tt) , refl , sp3-q0) ≡{union-I sp3-A sp3-B} t
+sp3-κ (c , w) = sp3-κ1 c w
+
+-- the universal properties of the 3-spine
+-- abstract: only its type is used, and unfolding its proof inside unified terms is expensive
+abstract spine-3-cart-up ∷ wedge-cart-up (spine 3) sp3-EA sp3-EB sp3-i sp3-j sp3-a1 sp3-b0 sp3-γ
+spine-3-cart-up Y = union-pt-up sp3-A sp3-B is-prop-sp3-A is-prop-sp3-B Y (𝕀1 , 𝕀0 , 𝕀0 , tt) refl sp3-q0 sp3-κ
+
+abstract spine-3-oplax-up ∷ (X ∷ U) → is-equiv (wedge-restr-r (spine 3) sp3-EA sp3-EB sp3-i sp3-j sp3-a1 sp3-b0 sp3-γ X)
+spine-3-oplax-up X = wedge-oplax-up (spine 3) sp3-EA sp3-EB sp3-i sp3-j sp3-a1 sp3-b0 sp3-γ spine-3-cart-up X
+
+spine-3-cocone-r ∷ (X ∷ U) → U
+spine-3-cocone-r X = wedge-cocone-r sp3-EA sp3-EB sp3-a1 sp3-b0 X
