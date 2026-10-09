@@ -368,6 +368,7 @@ class BattOutputViewProvider {
     .decl { margin: 0.1rem 0; }
     .decl .name { color: var(--c-name); font-weight: 700; }
     .postulate .name { color: var(--c-post); font-weight: 700; }
+    .abstract-tag { font-size: 0.72em; font-weight: 700; color: var(--c-kw); border: 1px solid currentColor; border-radius: 3px; padding: 0 0.3em; margin-right: 0.4em; }
     .t-kw { color: var(--c-kw); font-weight: 600; }
     .t-type { color: var(--c-type); }
     .t-const { color: var(--c-const); }
@@ -541,7 +542,7 @@ function messageHtml(text) {
 // whole before being classified. The printer writes Bool / Unit / Empty for the
 // builtin types, and `_` for anonymous binders (not metas, which print as ?n).
 const TOKEN_RE = /(𝕀∨|𝕀∧)|(_≃_|(?:[A-Za-z]|𝕀)(?:[A-Za-z0-9'_\-→⁻ₗᵣ]|𝕀)*)|(→ₗ|→ᵣ|⇀|⇁|→)|(⊗|⨂|×|Σ|♭|𝄫|≡|≃|∘|¬|∷)|(λ)|(\?\d*)|(\d+)/gu;
-const KEYWORDS = new Set(['let', 'in', 'fun', 'postulate', 'import', 'open']);
+const KEYWORDS = new Set(['let', 'in', 'fun', 'postulate', 'abstract', 'import', 'open']);
 const TYPES = new Set(['Type', 'TYPE', 'U', 'Bool', 'Unit', 'Empty', 'bool', 'unit', 'empty', '𝕀']);
 const CONSTANTS = new Set(['tt', 'true', 'false', 'refl', '𝕀0', '𝕀1']);
 // names the checker always puts in the crisp context
@@ -622,12 +623,13 @@ function parseOutput(result, runPath, shownName) {
     if (line.trim() === '' || line === 'Welcome to BATT!' || /^Checking .*\.\.\.$/.test(line)) {
       continue;
     }
-    if ((m = /^DECL  (\S+) = (.*)$/.exec(line))) {
-      const name = m[1];
-      const body = m[2];
+    if ((m = /^(ABSTRACT )?DECL  (\S+) = (.*)$/.exec(line))) {
+      // abstract (opaque) definitions are printed as `ABSTRACT DECL  name = body ∷ type`
+      const name = m[2];
+      const body = m[3];
       globals.add(name);
       const reexportOf = /^([A-Z][A-Za-z_-]*)\.(\S+)$/.exec(body.split(' ')[0]);
-      const decl = { name, body };
+      const decl = { name, body, abstract: Boolean(m[1]) };
       if (body.startsWith('import ')) {
         importStack.push(name);
         model.importedDecls.push(decl);
@@ -648,21 +650,22 @@ function parseOutput(result, runPath, shownName) {
         decl.occurrence = ownCount[name];
       }
       lastDecl = decl;
-    } else if ((m = /^POSTULATE (\d+) (.*)$/.exec(line))) {
+    } else if ((m = /^POSTULATE (\S+) (.*)$/.exec(line))) {
       // the postulate's name is on the DECL line just before
       model.postulates.push({
-        n: m[1],
+        n: m[1], // the checker's internal name, e.g. postulate2
         type: m[2],
         name: lastDecl && lastDecl.body.startsWith('postulate') ? lastDecl.name : undefined,
         own: importStack.length === 0
       });
     } else if ((m = /^HOLE (.*?) : (.*) IN$/.exec(line))) {
       const context = readBlock();
-      // the last line is the bunch; the crisp context lists globals first, then locals
-      const bunch = context.length && context[context.length - 1].startsWith('(') ? context.pop() : undefined;
+      // the last line is the bunch (`()`, `x:A` or a parenthesised tree); any crisp entries
+      // (`x ∷ A`, older checkers `x : A`) come first, globals before locals
+      const bunch = context.length ? context.pop() : undefined;
       const entries = context.map((l) => {
-        const k = l.indexOf(' : ');
-        return k < 0 ? { name: '', type: l } : { name: l.slice(0, k), type: l.slice(k + 3) };
+        const m2 = /^(\S+) (∷|:) (.*)$/.exec(l);
+        return m2 ? { name: m2[1], type: m2[3] } : { name: '', type: l };
       });
       let firstLocal = 0;
       while (firstLocal < entries.length && globals.has(entries[firstLocal].name)) {
@@ -707,6 +710,12 @@ function parseOutput(result, runPath, shownName) {
     } else if (/apparently already imported/.test(line) || /^Include .*\.\.\.$/.test(line)) {
       // routine messages when importing (e.g. the diamond imports of Stdlib)
       model.notes.push(line);
+      // a module already imported prints `M = import M` and then this note, with no body and
+      // no re-exports: it does not open an import block
+      const skipped = /^module (\S+) apparently already imported/.exec(line);
+      if (skipped && importStack[importStack.length - 1] === skipped[1]) {
+        importStack.pop();
+      }
     } else {
       model.other.push(line);
     }
@@ -734,7 +743,8 @@ function details(key, title, inner, openState, extraClass) {
 }
 
 function renderDecl(d, cls) {
-  return `<div class="${cls || 'decl'} code"><span class="name">${escapeHtml(d.name)}</span> = ${highlight(d.body)}</div>`;
+  const tag = d.abstract ? '<span class="abstract-tag" title="abstract: opaque, never unfolds">abstract</span>' : '';
+  return `<div class="${cls || 'decl'} code">${tag}<span class="name">${escapeHtml(d.name)}</span> = ${highlight(d.body)}</div>`;
 }
 
 // Parse a bunch as printed by Bunch.to_string (src/lang.ml):
@@ -1012,7 +1022,8 @@ function renderModel(model, cursorLine, openState, bunchMode) {
     const own = model.postulates.filter((p) => p.own).length;
     chips.push(`<span class="chip post">${pluralise(model.postulates.length, 'postulate')}${own ? ` (${own} here)` : ''}</span>`);
   }
-  chips.push(`<span class="chip decl">${pluralise(model.ownDecls.length, 'declaration')}</span>`);
+  const nAbstract = model.ownDecls.filter((d) => d.abstract).length;
+  chips.push(`<span class="chip decl">${pluralise(model.ownDecls.length, 'declaration')}${nAbstract ? ` (${nAbstract} abstract)` : ''}</span>`);
   if (model.warnings.length) {
     chips.push(`<span class="chip warn">${pluralise(model.warnings.length, 'warning')}</span>`);
   }
@@ -1136,7 +1147,7 @@ function escapeRegExp(t) {
 
 // 1-based line of the signature of the `occurrence`-th top-level definition `name`
 function findDeclLine(text, name, occurrence) {
-  const signature = new RegExp(`^${escapeRegExp(name)}\\s*(∷|::|:)(\\s|$)`);
+  const signature = new RegExp(`^(?:abstract\\s+)?${escapeRegExp(name)}\\s*(∷|::|:)(\\s|$)`);
   const lines = text.split('\n');
   let seen = 0;
   for (let i = 0; i < lines.length; i++) {
@@ -1165,7 +1176,7 @@ function locateErrors(model, text) {
 function replaceBodyWithHole(text, name, occurrence) {
   const lines = text.split('\n');
   const n = escapeRegExp(name);
-  const signature = new RegExp(`^${n}\\s*(∷|::|:)(\\s|$)`);
+  const signature = new RegExp(`^(?:abstract\\s+)?${n}\\s*(∷|::|:)(\\s|$)`);
   const clause = new RegExp(`^${n}(\\s|=|$)`);
   let seen = 0;
   let sig = -1;

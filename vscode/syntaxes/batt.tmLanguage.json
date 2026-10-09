@@ -25,8 +25,8 @@
     "declarations": {
       "patterns": [
         {
-          "comment": "postulate name ∷ A",
-          "match": "^(postulate)\\s+((?:[A-Za-zΑ-ΡΣ-Ωα-κμ-ω]|𝕀)(?:[A-Za-z0-9'_\\-→⁻ₗᵣ≡Α-ΡΣ-Ωα-κμ-ω]|𝕀)*)",
+          "comment": "postulate name ∷ A, abstract name ∷ A",
+          "match": "^(postulate|abstract)\\s+((?:[A-Za-zΑ-ΡΣ-Ωα-κμ-ω]|𝕀)(?:[A-Za-z0-9'_\\-→⁻ₗᵣ≡Α-ΡΣ-Ωα-κμ-ω]|𝕀)*)",
           "captures": {
             "1": { "name": "keyword.other.postulate.batt" },
             "2": { "name": "entity.name.function.batt" }
@@ -34,7 +34,7 @@
         },
         {
           "comment": "top-level signature or clause head: an identifier at column 0",
-          "match": "^(?!(?:open|postulate|let|in|import|Type|U|refl|tt|true|false)(?![A-Za-z0-9'_\\-→⁻ₗᵣ≡Α-ΡΣ-Ωα-κμ-ω]|𝕀))((?:[A-Za-zΑ-ΡΣ-Ωα-κμ-ω]|𝕀)(?:[A-Za-z0-9'_\\-→⁻ₗᵣ≡Α-ΡΣ-Ωα-κμ-ω]|𝕀)*)",
+          "match": "^(?!(?:open|postulate|abstract|let|in|import|Type|U|refl|tt|true|false)(?![A-Za-z0-9'_\\-→⁻ₗᵣ≡Α-ΡΣ-Ωα-κμ-ω]|𝕀))((?:[A-Za-zΑ-ΡΣ-Ωα-κμ-ω]|𝕀)(?:[A-Za-z0-9'_\\-→⁻ₗᵣ≡Α-ΡΣ-Ωα-κμ-ω]|𝕀)*)",
           "captures": {
             "1": { "name": "entity.name.function.batt" }
           }
@@ -67,7 +67,7 @@
           }
         },
         {
-          "match": "(?:in|postulate|fun|ℕ-ind|Nat-ind)(?![A-Za-z0-9'_\\-→⁻ₗᵣ≡Α-ΡΣ-Ωα-κμ-ω]|𝕀)",
+          "match": "(?:in|postulate|abstract|fun|ℕ-ind|Nat-ind)(?![A-Za-z0-9'_\\-→⁻ₗᵣ≡Α-ΡΣ-Ωα-κμ-ω]|𝕀)",
           "name": "keyword.other.batt"
         },
         {
