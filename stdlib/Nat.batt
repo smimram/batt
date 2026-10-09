@@ -36,6 +36,19 @@ abstract mul-assoc ∷ (l m n : ℕ) → mul (mul l m) n ≡ mul l (mul m n)
 mul-assoc l m zero = refl
 mul-assoc l m (succ n) = trans (cong (λ x . add x (mul l m)) rec) (sym (mul-add l (mul m n) m))
 
+-- Order
+
+le-succ ∷ (ℕ → U) → ℕ → U
+le-succ r zero = ⊥
+le-succ r (succ n) = r n
+
+le ∷ ℕ → ℕ → U
+le zero n = ⊤
+le (succ m) n = le-succ rec n
+
+lt ∷ ℕ → ℕ → U
+lt m n = le (succ m) n
+
 ---
 --- r/l nat recursion, derived from ordinary recursion
 ---
