@@ -3,12 +3,14 @@
 (defvar batt-font-lock-keywords
  '(
    ("--.*" . 'font-lock-comment-face)
+   ;; Definition names come before operators so that names containing
+   ;; symbols (e.g. f→g) are highlighted as a whole.
+   ("^\\(abstract\\)[ \t]+\\([^ (=\n]+\\)" (1 font-lock-keyword-face) (2 'font-lock-function-name-face))
+   ("^\\([^ (=\n]+\\)" 1 'font-lock-function-name-face)
    ("\\_<\\(let\\|in\\|fun\\|λ\\|open\\|import\\|abstract\\)\\_>\\|:\\|∷\\|=" . font-lock-keyword-face)
    ("\\_<\\(true\\|false\\|tt\\|refl\\|zero\\|succ\\|[0-9]+\\)\\_>" . font-lock-constant-face)
    ("\\<\\(Nat\\|ℕ\\)" 1 font-lock-builtin-face)
    ("\\\\\\(bigotimes\\|otimes\\|Sigma\\|times\\|fflat\\|flat\\|equiv\\|simeq\\|circ\\|top\\|bot\\|tol\\|tor\\|to\\)\\|\\_<\\(U\\|Type\\|TYPE\\|Bool\\|Unit\\|Empty\\|II[01vw]?\\)\\_>\\|𝕀[01∨∧]?\\|->l\\|->r\\|->\\|→ₗ\\|→ᵣ\\|⇀\\|⇁\\|→\\|⨂\\|⊗\\|@\\|≡\\|≃\\|∘\\|Σ\\|×\\|⊥\\|⊤\\|♭\\|𝄫" . font-lock-builtin-face)
-   ("^abstract[ \t]+\\([^ (=\n]+\\)" 1 'font-lock-function-name-face)
-   ("^\\([^ (=\n]+\\)" 1 'font-lock-function-name-face)
   )
 )
 
