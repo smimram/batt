@@ -31,6 +31,7 @@ const LITERALS = [
   ['≃', 'OP', '_≃_'], ['\\simeq', 'OP', '_≃_'], ['≤', 'OP', 'leq'], ['≥', 'OP', 'geq'],
   ['∘', 'OP', 'circ'], ['\\circ', 'OP', 'circ'], ['∨', 'OP', 'or'], ['¬', 'OP', 'not'],
   ['ℕ', 'KW'], ['Nat', 'KW'], ['zero', 'KW'], ['succ', 'KW'],
+  ['nil', 'KW'], ['cons', 'KW'],
   ['𝕀0', 'KW'], ['II0', 'KW'], ['𝕀1', 'KW'], ['II1', 'KW'], ['𝕀∨', 'KW'], ['IIv', 'KW'],
   ['𝕀∧', 'KW'], ['IIw', 'KW'], ['𝕀', 'KW'], ['II', 'KW'],
   ['_', 'KW'], ['refl', 'KW'], ['let', 'LET'], ['in', 'IN'],
