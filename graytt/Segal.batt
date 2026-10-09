@@ -92,3 +92,106 @@ is-segal-r-unthick X s n =
       (λ Ψ . pre-r {thick-simplex no-grid 0 n no-grid 0} {simplex n} {X} Ψ u)
       (s no-grid 0 n no-grid 0)
       (pre-r-equiv (thick-simplex no-grid 0 n no-grid 0) (simplex n) u (is-equiv-thicken-unit {simplex n}) X))
+
+---
+--- Arrow types are oplax-Segal
+---
+--- By currying, an oplax map Δⁿ_{𝐚,𝐛} →ᵣ (𝕀 →ᵣ A) is an oplax map Δⁿ_{𝐚,𝐛} ⊗ 𝕀 →ᵣ A, and
+--- Δⁿ_{𝐚,𝐛} ⊗ 𝕀 is the thickened simplex Δⁿ_{𝐚,𝐛'} where 𝐛' = (𝐛, 1) extends 𝐛 by one factor
+--- 𝕀 ≃ Δ¹ (grid-snoc, Grid.batt). Both restrictions are conjugate, by currying, to the restriction
+--- (□[𝐚] →ᵣ Δⁿ →ᵣ T) → (□[𝐚] →ᵣ Spₙ →ᵣ T) along the spine inclusion on the middle variable
+--- (cur-restr), for T = □[𝐛] →ᵣ 𝕀 →ᵣ A and T = □[𝐛'] →ᵣ A, which are equivalent types.
+---
+
+--
+-- currying thickened shapes
+--
+
+cur2 ∷ {Q S G T ∷ U} → (Q ⨂ (S ⨂ G) →ᵣ T) → (Q →ᵣ S →ᵣ G →ᵣ T)
+cur2 {Q} {S} {G} {T} f = post-r {Q} {S ⨂ G →ᵣ T} {S →ᵣ G →ᵣ T} (tens-curry-right {S} {G} {T}) (tens-curry-right {Q} {S ⨂ G} {T} f)
+
+abstract is-equiv-cur2 ∷ {Q S G T ∷ U} → is-equiv (cur2 {Q} {S} {G} {T})
+is-equiv-cur2 {Q} {S} {G} {T} =
+  is-equiv-circ (post-r {Q} {S ⨂ G →ᵣ T} {S →ᵣ G →ᵣ T} (tens-curry-right {S} {G} {T})) (tens-curry-right {Q} {S ⨂ G} {T})
+    (post-r-equiv Q {S ⨂ G →ᵣ T} {S →ᵣ G →ᵣ T} (tens-curry-right {S} {G} {T}) (snd _ (tens-curry-equiv-right {S} {G} {T})))
+    (snd _ (tens-curry-equiv-right {Q} {S ⨂ G} {T}))
+
+-- the restriction along a map of the middle factor, curried
+cur-restr ∷ {Q S S' T ∷ U} (ι ∷ S' → S) → (Q →ᵣ S →ᵣ T) → (Q →ᵣ S' →ᵣ T)
+cur-restr {Q} {S} {S'} {T} ι k q s = k q (ι s)
+
+cur-segal-restr ∷ (a ∷ ℕ → ℕ) (d n ∷ ℕ) (b ∷ ℕ → ℕ) (e ∷ ℕ) (X ∷ U) (f : thick-simplex a d n b e →ᵣ X) →
+  cur2 {grid a d} {spine n} {grid b e} {X} (segal-restr-r a d n b e X f)
+    ≡ cur-restr {grid a d} {simplex n} {spine n} {grid b e →ᵣ X} (spine→simplex n) (cur2 {grid a d} {simplex n} {grid b e} {X} f)
+cur-segal-restr a d n b e X f = refl
+
+-- transport along a crisp path of the target
+abstract cur-restr-path ∷ {Q S S' ∷ U} (ι ∷ S' → S) {T T' ∷ U} (P ∷ T ≡ T') →
+  is-equiv (cur-restr {Q} {S} {S'} {T} ι) → is-equiv (cur-restr {Q} {S} {S'} {T'} ι)
+cur-restr-path {Q} {S} {S'} ι {T} refl = λ e . e
+
+-- postcomposition with a crisp equivalence of the target
+abstract cur-restr-equiv ∷ {Q S S' ∷ U} (ι ∷ S' → S) {T T' ∷ U} (h ∷ T → T') (eh ∷ is-equiv h) →
+  is-equiv (cur-restr {Q} {S} {S'} {T} ι) → is-equiv (cur-restr {Q} {S} {S'} {T'} ι)
+cur-restr-equiv {Q} {S} {S'} ι {T} {T'} h eh e =
+  is-equiv-conj (cur-restr {Q} {S} {S'} {T} ι) (cur-restr {Q} {S} {S'} {T'} ι)
+    (post-r {Q} {S →ᵣ T} {S →ᵣ T'} (post-r {S} {T} {T'} h)) (post-r {Q} {S' →ᵣ T} {S' →ᵣ T'} (post-r {S'} {T} {T'} h))
+    (λ k . refl)
+    (post-r-equiv Q {S →ᵣ T} {S →ᵣ T'} (post-r {S} {T} {T'} h) (post-r-equiv S {T} {T'} h eh))
+    (post-r-equiv Q {S' →ᵣ T} {S' →ᵣ T'} (post-r {S'} {T} {T'} h) (post-r-equiv S' {T} {T'} h eh))
+    e
+
+-- crisp precomposition paths of the target
+arr-path ∷ {Q Q' ∷ U} (P ∷ Q ≡ Q') (X ∷ U) → (Q →ᵣ X) ≡ (Q' →ᵣ X)
+arr-path {Q} refl X = refl
+
+--
+-- The interval as the 1-simplex
+--
+
+𝕀→simplex-1 ∷ 𝕀 → simplex 1
+𝕀→simplex-1 t = ((t , tt) , tt)
+
+simplex-1→𝕀 ∷ simplex 1 → 𝕀
+simplex-1→𝕀 x = prod-fst {𝕀} {⊤} (fst (is-sorted 0) x)
+
+simplex-1-eta-aux ∷ (t : 𝕀) (u v : ⊤) → ((t , tt) , tt) ≡{simplex 1} ((t , u) , v)
+simplex-1-eta-aux t = λ tt . λ tt . refl
+
+simplex-1-eta' ∷ (c : 𝕀 × ⊤) (v : ⊤) → 𝕀→simplex-1 (simplex-1→𝕀 (c , v)) ≡ (c , v)
+simplex-1-eta' (t , u) v = simplex-1-eta-aux t u v
+
+simplex-1-eta ∷ (x : simplex 1) → 𝕀→simplex-1 (simplex-1→𝕀 x) ≡ x
+simplex-1-eta (c , v) = simplex-1-eta' c v
+
+is-equiv-𝕀→simplex-1 ∷ is-equiv 𝕀→simplex-1
+is-equiv-𝕀→simplex-1 = ((simplex-1→𝕀 , simplex-1-eta) , (simplex-1→𝕀 , λ t . refl))
+
+--
+-- Arrow types are oplax-Segal
+--
+
+abstract is-segal-arrᵣ ∷ {A ∷ U} → is-segal-r A → is-segal-r (arrᵣ A)
+is-segal-arrᵣ {A} sA a d n b e =
+  let c ∷ ℕ → ℕ = snoc e b 1 in
+  let ι ∷ spine n → simplex n = spine→simplex n in
+  let e1 : is-equiv (cur-restr {grid a d} {simplex n} {spine n} {grid c (succ e) →ᵣ A} ι) =
+    is-equiv-conj (segal-restr-r a d n c (succ e) A) (cur-restr {grid a d} {simplex n} {spine n} {grid c (succ e) →ᵣ A} ι)
+      (cur2 {grid a d} {simplex n} {grid c (succ e)} {A}) (cur2 {grid a d} {spine n} {grid c (succ e)} {A})
+      (λ f . refl) (is-equiv-cur2 {grid a d} {simplex n} {grid c (succ e)} {A}) (is-equiv-cur2 {grid a d} {spine n} {grid c (succ e)} {A})
+      (sA a d n c (succ e)) in
+  let e2 : is-equiv (cur-restr {grid a d} {simplex n} {spine n} {grid b e ⨂ simplex 1 →ᵣ A} ι) =
+    cur-restr-path {grid a d} {simplex n} {spine n} ι {grid c (succ e) →ᵣ A} {grid b e ⨂ simplex 1 →ᵣ A}
+      (arr-path {grid c (succ e)} {grid b e ⨂ simplex 1} (grid-snoc b e 1) A) e1 in
+  let e3 : is-equiv (cur-restr {grid a d} {simplex n} {spine n} {grid b e →ᵣ simplex 1 →ᵣ A} ι) =
+    cur-restr-equiv {grid a d} {simplex n} {spine n} ι {grid b e ⨂ simplex 1 →ᵣ A} {grid b e →ᵣ simplex 1 →ᵣ A}
+      (tens-curry-right {grid b e} {simplex 1} {A}) (snd _ (tens-curry-equiv-right {grid b e} {simplex 1} {A})) e2 in
+  let e4 : is-equiv (cur-restr {grid a d} {simplex n} {spine n} {grid b e →ᵣ arrᵣ A} ι) =
+    cur-restr-equiv {grid a d} {simplex n} {spine n} ι {grid b e →ᵣ simplex 1 →ᵣ A} {grid b e →ᵣ arrᵣ A}
+      (post-r {grid b e} {simplex 1 →ᵣ A} {𝕀 →ᵣ A} (λ φ . pre-r {𝕀} {simplex 1} {A} φ 𝕀→simplex-1))
+      (post-r-equiv (grid b e) {simplex 1 →ᵣ A} {𝕀 →ᵣ A} (λ φ . pre-r {𝕀} {simplex 1} {A} φ 𝕀→simplex-1)
+        (pre-r-equiv 𝕀 (simplex 1) 𝕀→simplex-1 is-equiv-𝕀→simplex-1 A)) e3 in
+  is-equiv-conj' (segal-restr-r a d n b e (arrᵣ A)) (cur-restr {grid a d} {simplex n} {spine n} {grid b e →ᵣ arrᵣ A} ι)
+    (cur2 {grid a d} {simplex n} {grid b e} {arrᵣ A}) (cur2 {grid a d} {spine n} {grid b e} {arrᵣ A})
+    (λ f . refl) (is-equiv-cur2 {grid a d} {simplex n} {grid b e} {arrᵣ A}) (is-equiv-cur2 {grid a d} {spine n} {grid b e} {arrᵣ A})
+    e4
