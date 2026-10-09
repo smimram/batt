@@ -15,10 +15,16 @@ jobs:
       run: dune build
     - name: Test
       run: dune runtest
+    - name: Build website
+      run: |
+        sudo apt-get -y install mkdocs
+        cp -rL _build/default/web _site
+        chmod -R u+w _site
+        mkdocs build --strict -f documentation/mkdocs.yml -d ../_site/documentation
     - name: Upload webpage
       uses: actions/upload-pages-artifact@v5
       with:
-        path: _build/default/web
+        path: _site
   deploy:
     needs: build
     if: github.ref == 'refs/heads/main'

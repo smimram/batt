@@ -1,0 +1,7 @@
+site_name: BATT
+site_description: A type checker for bunched affine type theory
+repo_url: https://github.com/smimram/batt
+
+nav:
+  - Home: index.md
+  - Language: language.md
