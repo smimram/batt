@@ -21,7 +21,7 @@ tens-counit-left a = (tt ⊗ a)
 tens-unit-counit-left ∷ {A ∷ U} (a : A) → tens-unit-left (tens-counit-left a) ≡ a
 tens-unit-counit-left a = refl
 
-tens-counit-unit-left ∷ {A ∷ U} (x : ⊤ ⨂ A) → tens-counit-left (tens-unit-left x) ≡ x
+abstract tens-counit-unit-left ∷ {A ∷ U} (x : ⊤ ⨂ A) → tens-counit-left (tens-unit-left x) ≡ x
 tens-counit-unit-left (t ⊗ a) =
   -- let tt = t in refl
   let f : (t : ⊤) → tens-counit-left (tens-unit-left (t ⊗ a)) ≡ (t ⊗ a) = λ tt → refl in
@@ -42,7 +42,7 @@ tens-counit-right a = a ⊗ tt
 tens-unit-counit-right ∷ {A ∷ U} (a : A) → tens-unit-right (tens-counit-right a) ≡ a
 tens-unit-counit-right a = refl
 
-tens-counit-unit-right ∷ {A ∷ U} (x : A ⨂ ⊤) → tens-counit-right (tens-unit-right x) ≡ x
+abstract tens-counit-unit-right ∷ {A ∷ U} (x : A ⨂ ⊤) → tens-counit-right (tens-unit-right x) ≡ x
 tens-counit-unit-right (a ⊗ t) =
   let f : (t : ⊤) → tens-counit-right (tens-unit-right (a ⊗ t)) ≡ (a ⊗ t) = λ tt → refl in
   f t

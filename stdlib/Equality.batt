@@ -48,7 +48,7 @@ happly {A} {B} {f} refl x = refl
 ---
 
 -- transport in a family along e : t0 ≡ t sends the value at t0 of a section to its value at t
-subst-section ∷ {T : Type} (P : T → Type) (h : (t : T) → P t) {t0 t : T} (e : t0 ≡ t) → subst P e (h t0) ≡ h t
+abstract subst-section ∷ {T : Type} (P : T → Type) (h : (t : T) → P t) {t0 t : T} (e : t0 ≡ t) → subst P e (h t0) ≡ h t
 subst-section {T} P h {t0} {t} e = J t0 (λ t e . subst P e (h t0) ≡ h t) refl e
 
 sym-sym ∷ {A : Type} {x y : A} (p : x ≡ y) → sym (sym p) ≡ p
@@ -116,7 +116,7 @@ cong-trans ∷ {A B : Type} (f : A → B) {x y : A} (p : x ≡ y) {z : A} (q : y
 cong-trans f {x} p refl = refl
 
 -- path algebra
-cong-trans4 ∷ {A B : Type} (k : A → B) {x y z u v : A} (p : x ≡ y) (q : y ≡ z) (r : z ≡ u) (s : u ≡ v) →
+abstract cong-trans4 ∷ {A B : Type} (k : A → B) {x y z u v : A} (p : x ≡ y) (q : y ≡ z) (r : z ≡ u) (s : u ≡ v) →
   cong k (trans p (trans q (trans r s))) ≡ trans (cong k p) (trans (cong k q) (trans (cong k r) (cong k s)))
 cong-trans4 {A} {B} k {x} {y} {z} {u} {v} p q r s =
   trans (cong-trans k p (trans q (trans r s)))

@@ -61,7 +61,7 @@ thicken-counit x = tt ⊗ (x ⊗ tt)
 thicken-unit-counit ∷ {X ∷ U} (x : X) → thicken-unit {X} (thicken-counit {X} x) ≡ x
 thicken-unit-counit x = refl
 
-thicken-counit-unit ∷ {X ∷ U} (u : thicken ⊤ X ⊤) → thicken-counit {X} (thicken-unit {X} u) ≡ u
+abstract thicken-counit-unit ∷ {X ∷ U} (u : thicken ⊤ X ⊤) → thicken-counit {X} (thicken-unit {X} u) ≡ u
 thicken-counit-unit {X} u =
   trans (cong (tens-counit-left {X ⨂ ⊤}) (tens-counit-unit-right {X} (tens-unit-left {X ⨂ ⊤} u)))
     (tens-counit-unit-left {X ⨂ ⊤} u)
@@ -78,8 +78,8 @@ thick-spine-incl-unthickened ∷ (n ∷ ℕ) (a b ∷ ℕ → ℕ) (x : spine n)
 thick-spine-incl-unthickened n a b x = refl
 
 -- the unit laws of the thickening are equivalences
-is-equiv-thicken-unit ∷ {X ∷ U} → is-equiv (thicken-unit {X})
+abstract is-equiv-thicken-unit ∷ {X ∷ U} → is-equiv (thicken-unit {X})
 is-equiv-thicken-unit {X} = ((thicken-counit {X} , thicken-unit-counit {X}) , (thicken-counit {X} , thicken-counit-unit {X}))
 
-is-equiv-thicken-counit ∷ {X ∷ U} → is-equiv (thicken-counit {X})
+abstract is-equiv-thicken-counit ∷ {X ∷ U} → is-equiv (thicken-counit {X})
 is-equiv-thicken-counit {X} = ((thicken-unit {X} , thicken-counit-unit {X}) , (thicken-unit {X} , thicken-unit-counit {X}))

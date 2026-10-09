@@ -13,11 +13,11 @@ postulate ind-prop-trunc-unit-prop-trunc ∷ (X : U) (P : type-prop-trunc(X) →
 rec-prop-trunc ∷ (X : U) (P : HProp) → (X → type-Prop P) → type-prop-trunc(X) → type-Prop(P)
 rec-prop-trunc X P = ind-prop-trunc X (λ_.P)
 
-rec-prop-trunc-unit-prop-trunc ∷ (X : U) (P : HProp) (f : X → type-Prop P) (x : X) → rec-prop-trunc X P f (unit-prop-trunc X x) ≡ f x
+abstract rec-prop-trunc-unit-prop-trunc ∷ (X : U) (P : HProp) (f : X → type-Prop P) (x : X) → rec-prop-trunc X P f (unit-prop-trunc X x) ≡ f x
 rec-prop-trunc-unit-prop-trunc X P = ind-prop-trunc-unit-prop-trunc X (λ_.P)
 
 rec-prop-trunc' ∷ (X Y : U) → is-prop Y → (X → Y) → (type-prop-trunc(X) → Y)
 rec-prop-trunc' X Y p = ind-prop-trunc X (λ_.(Y,p))
 
-rec-prop-trunc-unit-prop-trunc' ∷ (X Y : U) → (p : is-prop Y) → (f : X → Y) → (x : X) → rec-prop-trunc' X Y p f (unit-prop-trunc X x) ≡ f x
+abstract rec-prop-trunc-unit-prop-trunc' ∷ (X Y : U) → (p : is-prop Y) → (f : X → Y) → (x : X) → rec-prop-trunc' X Y p f (unit-prop-trunc X x) ≡ f x
 rec-prop-trunc-unit-prop-trunc' X Y p = ind-prop-trunc-unit-prop-trunc X (λ_.(Y,p))

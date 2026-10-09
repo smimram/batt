@@ -25,7 +25,7 @@ map-retraction ∷ {A B : U} (f : A → B) → retraction f → B → A
 map-retraction f r' = fst _ r'
 
 -- maps with a retraction are injective
-retraction-inj ∷ {A B : U} (f : A → B) → retraction f → {x y : A} → f x ≡ f y → x ≡ y
+abstract retraction-inj ∷ {A B : U} (f : A → B) → retraction f → {x y : A} → f x ≡ f y → x ≡ y
 retraction-inj f (r , rr) {x} {y} p = trans (sym (rr x)) (trans (cong r p) (rr y))
 
 ---
@@ -74,11 +74,11 @@ equiv-inv-r ∷ {A B : U} → equiv A B → B → A
 equiv-inv-r (f , e) = map-section f (is-equiv-sec f e)
 
 -- the left inverse is a retraction
-equiv-ret ∷ {A B : U} (e : equiv A B) (x : A) → equiv-inv-l e (equiv-fun e x) ≡ x
+abstract equiv-ret ∷ {A B : U} (e : equiv A B) (x : A) → equiv-inv-l e (equiv-fun e x) ≡ x
 equiv-ret (f , e) = snd _ (is-equiv-ret f e)
 
 -- the right inverse is a section
-equiv-sec ∷ {A B : U} (e : equiv A B) (y : B) → equiv-fun e (equiv-inv-r e y) ≡ y
+abstract equiv-sec ∷ {A B : U} (e : equiv A B) (y : B) → equiv-fun e (equiv-inv-r e y) ≡ y
 equiv-sec (f , e) = snd _ (is-equiv-sec f e)
 
 -- identity equivalence
@@ -153,7 +153,7 @@ fund-id-map ∷ {X : U} (P : X → U) (x0 : X) (p0 : P x0) (x : X) → x0 ≡ x 
 fund-id-map P x0 p0 x p = subst P p p0
 
 -- if the total space of P is contractible, transporting p0 is a fiberwise equivalence
-fund-id ∷ {X : U} (P : X → U) (x0 : X) (p0 : P x0) → is-contr (Σ (x : X) . P x) → (x : X) → is-equiv (fund-id-map P x0 p0 x)
+abstract fund-id ∷ {X : U} (P : X → U) (x0 : X) (p0 : P x0) → is-contr (Σ (x : X) . P x) → (x : X) → is-equiv (fund-id-map P x0 p0 x)
 fund-id {X} P x0 p0 c x =
   let inv : (x : X) → P x → x0 ≡ x = fun x y → cong (fst P) (is-contr-eq c (x0 , p0) (x , y)) in
   -- section: by induction on the path in the total space

@@ -34,14 +34,14 @@ homotopy-cst f x = path-cst (f x)
 -- Any path is equal to a constant path
 --
 
-path-cst-src' ∷ {A : U} (x : A) (q : Σ (y : A) . x ≡ y) → path-cst x ≡ (x , q)
+abstract path-cst-src' ∷ {A : U} (x : A) (q : Σ (y : A) . x ≡ y) → path-cst x ≡ (x , q)
 path-cst-src' x (y , p) = J x (fun y p → path-cst x ≡ (x , y , p)) refl p
 
-path-cst-src ∷ {A : U} (p : path A) → path-cst (path-src p) ≡ p
+abstract path-cst-src ∷ {A : U} (p : path A) → path-cst (path-src p) ≡ p
 path-cst-src (x , q) = path-cst-src' x q
 
 -- the space of free paths is equivalent to the base
-is-equiv-path-src ∷ (A : U) → is-equiv (path-src {A})
+abstract is-equiv-path-src ∷ (A : U) → is-equiv (path-src {A})
 is-equiv-path-src A = ((path-cst , fun x → refl) , (path-cst , path-cst-src))
 
 
