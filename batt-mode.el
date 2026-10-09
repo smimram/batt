@@ -3,10 +3,11 @@
 (defvar batt-font-lock-keywords
  '(
    ("--.*" . 'font-lock-comment-face)
-   ("\\_<\\(let\\|in\\|fun\\|λ\\|open\\|import\\)\\_>\\|:\\|∷\\|=" . font-lock-keyword-face)
+   ("\\_<\\(let\\|in\\|fun\\|λ\\|open\\|import\\|abstract\\)\\_>\\|:\\|∷\\|=" . font-lock-keyword-face)
    ("\\_<\\(true\\|false\\|tt\\|refl\\|zero\\|succ\\|[0-9]+\\)\\_>" . font-lock-constant-face)
    ("\\<\\(Nat\\|ℕ\\)" 1 font-lock-builtin-face)
    ("\\\\\\(bigotimes\\|otimes\\|Sigma\\|times\\|fflat\\|flat\\|equiv\\|simeq\\|circ\\|top\\|bot\\|tol\\|tor\\|to\\)\\|\\_<\\(U\\|Type\\|TYPE\\|Bool\\|Unit\\|Empty\\|II[01vw]?\\)\\_>\\|𝕀[01∨∧]?\\|->l\\|->r\\|->\\|→ₗ\\|→ᵣ\\|⇀\\|⇁\\|→\\|⨂\\|⊗\\|@\\|≡\\|≃\\|∘\\|Σ\\|×\\|⊥\\|⊤\\|♭\\|𝄫" . font-lock-builtin-face)
+   ("^abstract[ \t]+\\([^ (=\n]+\\)" 1 'font-lock-function-name-face)
    ("^\\([^ (=\n]+\\)" 1 'font-lock-function-name-face)
   )
 )
