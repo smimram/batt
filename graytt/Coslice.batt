@@ -24,8 +24,8 @@ coslice-src ∷ {A ∷ U} {a : A} (s : coslice A a) → coslice-cell {A} {a} s �
 coslice-src (f , e) = e
 
 -- evaluation at the target
-coslice-ev1 ∷ {A ∷ U} {a : A} → coslice A a → A
-coslice-ev1 {A} {a} s = coslice-cell {A} {a} s 𝕀1
+coslice-tgt ∷ {A ∷ U} {a : A} → coslice A a → A
+coslice-tgt {A} {a} s = coslice-cell {A} {a} s 𝕀1
 
 -- the identity of a, as an object of the coslice
 coslice-id ∷ {A ∷ U} (a : A) → coslice A a
