@@ -46,6 +46,15 @@ simplex ∷ (n ∷ ℕ) → Type
 simplex zero = unit
 simplex (succ n) = Σ (x : cart-cube (succ n)) . is-sorted n x
 
+-- Grids: □[a₀, …, a_{d-1}] := Δ^{a₀} ⊗ … ⊗ Δ^{a_{d-1}}
+-- A grid is given by the list of its dimensions, the head being the last factor. It is nested
+-- to the left, with a leading unit: grid [a₂, a₁, a₀] = ((⊤ ⊗ Δ^{a₀}) ⊗ Δ^{a₁}) ⊗ Δ^{a₂}, and
+-- grid nil = ⊤ is the unit of ⊗. Extending a grid by one factor is thus cons, judgmentally:
+-- grid (cons m b) = grid b ⊗ Δᵐ.
+grid ∷ (a ∷ List ℕ) → Type
+grid nil = ⊤
+grid (cons m a) = rec ⨂ simplex m
+
 zero-cube ∷ (n ∷ ℕ) → cart-cube n
 zero-cube zero = tt
 zero-cube (succ n) = (𝕀0, rec)

@@ -98,7 +98,7 @@ is-segal-r-unthick X s n =
 ---
 --- By currying, an oplax map Δⁿ_{𝐚,𝐛} →ᵣ (𝕀 →ᵣ A) is an oplax map Δⁿ_{𝐚,𝐛} ⊗ 𝕀 →ᵣ A, and
 --- Δⁿ_{𝐚,𝐛} ⊗ 𝕀 is the thickened simplex Δⁿ_{𝐚,𝐛'} where 𝐛' = (𝐛, 1) extends 𝐛 by one factor
---- 𝕀 ≃ Δ¹ (judgmentally, grid (cons 1 𝐛) is □[𝐛] ⊗ Δ¹, see Grid.batt). Both restrictions are conjugate, by currying, to the restriction
+--- 𝕀 ≃ Δ¹ (judgmentally, grid (cons 1 𝐛) is □[𝐛] ⊗ Δ¹, see stdlib/Cube.batt). Both restrictions are conjugate, by currying, to the restriction
 --- (□[𝐚] →ᵣ Δⁿ →ᵣ T) → (□[𝐚] →ᵣ Spₙ →ᵣ T) along the spine inclusion on the middle variable
 --- (cur-restr), for T = □[𝐛] →ᵣ 𝕀 →ᵣ A and T = □[𝐛'] →ᵣ A, which are equivalent types.
 ---

@@ -4,7 +4,6 @@
 --
 
 open import Stdlib
-open import Grid
 
 --
 -- Thickening by arbitrary crisp types
@@ -24,7 +23,7 @@ thicken-map Q {X} {Y} f Q' = tens-map {Q} {Q} {X ⨂ Q'} {Y ⨂ Q'} id (tens-map
 --   Sp_{n,𝐚,𝐛} := □[𝐚] ⊗ Spₙ ⊗ □[𝐛]
 --   ι_{𝐚,𝐛}    := □[𝐚] ⊗ ιₙ ⊗ □[𝐛]
 --
--- with 𝐚 and 𝐛 lists (see Grid.batt for the order of the factors).
+-- with 𝐚 and 𝐛 lists (see stdlib/Cube.batt for the order of the factors).
 --
 
 thick-simplex ∷ (a ∷ List ℕ) (n ∷ ℕ) (b ∷ List ℕ) → U
