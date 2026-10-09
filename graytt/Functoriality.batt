@@ -145,55 +145,99 @@ assoc-coh-stmt X A p sX sA {x} {y} {z} {t} u v w =
         (comp-hom-r-assoc A sA {p x} {p y} {p z} {p t}
           (hom-map {X} {A} p {x} {y} u) (hom-map {X} {A} p {y} {z} v) (hom-map {X} {A} p {z} {t} w)))
 
--- the coherence, for a composable triple given with the four faces of a 3-simplex: its edges a, b
--- and c, the composites of its faces (in X and in A), the commutations of p on the faces, and
--- the associators given by the faces
-abstract assoc-coh-faces ∷ (X A ∷ U) (p ∷ X → A) (sX : is-segal-r X) (sA : is-segal-r A) {x0 x1 x2 x3 : X}
-  (u : hom X x0 x1) (v : hom X x1 x2) (w : hom X x2 x3) (a : (hom X x0 x2)) (b : (hom X x1 x3)) (c : (hom X x0 x3))
-  (c3 : (comp-hom-r X sX {x0} {x1} {x2} u v) ≡ a) (c1 : (comp-hom-r X sX {x0} {x2} {x3} a w) ≡ c) (c2 : (comp-hom-r X sX {x0} {x1} {x3} u b) ≡ c) (c0 : (comp-hom-r X sX {x1} {x2} {x3} v w) ≡ b)
-  (c3' : (comp-hom-r A sA {p x0} {p x1} {p x2} ((hom-map {X} {A} p {x0} {x1}) u) ((hom-map {X} {A} p {x1} {x2}) v)) ≡ ((hom-map {X} {A} p {x0} {x2}) a)) (c1' : (comp-hom-r A sA {p x0} {p x2} {p x3} ((hom-map {X} {A} p {x0} {x2}) a) ((hom-map {X} {A} p {x2} {x3}) w)) ≡ ((hom-map {X} {A} p {x0} {x3}) c)) (c2' : (comp-hom-r A sA {p x0} {p x1} {p x3} ((hom-map {X} {A} p {x0} {x1}) u) ((hom-map {X} {A} p {x1} {x3}) b)) ≡ ((hom-map {X} {A} p {x0} {x3}) c)) (c0' : (comp-hom-r A sA {p x1} {p x2} {p x3} ((hom-map {X} {A} p {x1} {x2}) v) ((hom-map {X} {A} p {x2} {x3}) w)) ≡ ((hom-map {X} {A} p {x1} {x3}) b))
-  (E3 : (hom-map-comp X A p sX sA {x0} {x1} {x2} u v) ≡ trans (cong (hom-map {X} {A} p {x0} {x2}) c3) (sym c3')) (E1 : (hom-map-comp X A p sX sA {x0} {x2} {x3} a w) ≡ trans (cong (hom-map {X} {A} p {x0} {x3}) c1) (sym c1'))
-  (E2 : (hom-map-comp X A p sX sA {x0} {x1} {x3} u b) ≡ trans (cong (hom-map {X} {A} p {x0} {x3}) c2) (sym c2')) (E0 : (hom-map-comp X A p sX sA {x1} {x2} {x3} v w) ≡ trans (cong (hom-map {X} {A} p {x1} {x3}) c0) (sym c0'))
-  (AX : (comp-hom-r-assoc X sX {x0} {x1} {x2} {x3} u v w) ≡ (trans (cong {(hom X x0 x2)} {(hom X x0 x3)} (λ h . (comp-hom-r X sX {x0} {x2} {x3} h w)) c3) (trans c1 (trans (sym c2) (cong {(hom X x1 x3)} {(hom X x0 x3)} (λ h . (comp-hom-r X sX {x0} {x1} {x3} u h)) (sym c0))))))
-  (AA : (comp-hom-r-assoc A sA {p x0} {p x1} {p x2} {p x3} ((hom-map {X} {A} p {x0} {x1}) u) ((hom-map {X} {A} p {x1} {x2}) v) ((hom-map {X} {A} p {x2} {x3}) w)) ≡ (trans (cong {(hom A (p x0) (p x2))} {(hom A (p x0) (p x3))} (λ m . (comp-hom-r A sA {p x0} {p x2} {p x3} m ((hom-map {X} {A} p {x2} {x3}) w))) c3') (trans c1' (trans (sym c2') (cong {(hom A (p x1) (p x3))} {(hom A (p x0) (p x3))} (λ m . (comp-hom-r A sA {p x0} {p x1} {p x3} ((hom-map {X} {A} p {x0} {x1}) u) m)) (sym c0')))))) →
-  assoc-coh-stmt X A p sX sA {x0} {x1} {x2} {x3} u v w
-assoc-coh-faces X A p sX sA {x0} {x1} {x2} {x3} u v w a b c c3 c1 c2 c0 c3' c1' c2' c0' E3 E1 E2 E0 AX AA =
-  trans (cong {(comp-hom-r X sX {x0} {x2} {x3} (comp-hom-r X sX {x0} {x1} {x2} u v) w) ≡ (comp-hom-r X sX {x0} {x1} {x3} u (comp-hom-r X sX {x1} {x2} {x3} v w))} {(hom-map {X} {A} p {x0} {x3}) (comp-hom-r X sX {x0} {x2} {x3} (comp-hom-r X sX {x0} {x1} {x2} u v) w) ≡ (comp-hom-r A sA {p x0} {p x1} {p x3} ((hom-map {X} {A} p {x0} {x1}) u) (comp-hom-r A sA {p x1} {p x2} {p x3} ((hom-map {X} {A} p {x1} {x2}) v) ((hom-map {X} {A} p {x2} {x3}) w)))} (λ q . trans (cong (hom-map {X} {A} p {x0} {x3}) q) (trans (hom-map-comp X A p sX sA {x0} {x1} {x3} u (comp-hom-r X sX {x1} {x2} {x3} v w)) (cong (λ m . (comp-hom-r A sA {p x0} {p x1} {p x3} ((hom-map {X} {A} p {x0} {x1}) u) m)) (hom-map-comp X A p sX sA {x1} {x2} {x3} v w)))) AX)
-    (trans (cong {(hom-map {X} {A} p {x0} {x3}) (comp-hom-r X sX {x0} {x2} {x3} (comp-hom-r X sX {x0} {x1} {x2} u v) w) ≡ (hom-map {X} {A} p {x0} {x3}) (comp-hom-r X sX {x0} {x1} {x3} u (comp-hom-r X sX {x1} {x2} {x3} v w))} {(hom-map {X} {A} p {x0} {x3}) (comp-hom-r X sX {x0} {x2} {x3} (comp-hom-r X sX {x0} {x1} {x2} u v) w) ≡ (comp-hom-r A sA {p x0} {p x1} {p x3} ((hom-map {X} {A} p {x0} {x1}) u) (comp-hom-r A sA {p x1} {p x2} {p x3} ((hom-map {X} {A} p {x1} {x2}) v) ((hom-map {X} {A} p {x2} {x3}) w)))} (λ q . trans q (trans (hom-map-comp X A p sX sA {x0} {x1} {x3} u (comp-hom-r X sX {x1} {x2} {x3} v w)) (cong (λ m . (comp-hom-r A sA {p x0} {p x1} {p x3} ((hom-map {X} {A} p {x0} {x1}) u) m)) (hom-map-comp X A p sX sA {x1} {x2} {x3} v w)))) (trans (cong-trans4 (hom-map {X} {A} p {x0} {x3}) (cong {(hom X x0 x2)} {(hom X x0 x3)} (λ h . (comp-hom-r X sX {x0} {x2} {x3} h w)) c3) c1 (sym c2) (cong {(hom X x1 x3)} {(hom X x0 x3)} (λ h . (comp-hom-r X sX {x0} {x1} {x3} u h)) (sym c0)))
-      (cong {((hom-map {X} {A} p {x0} {x3}) c) ≡ (hom-map {X} {A} p {x0} {x3}) (comp-hom-r X sX {x0} {x1} {x3} u b)} {(hom-map {X} {A} p {x0} {x3}) (comp-hom-r X sX {x0} {x2} {x3} (comp-hom-r X sX {x0} {x1} {x2} u v) w) ≡ (hom-map {X} {A} p {x0} {x3}) (comp-hom-r X sX {x0} {x1} {x3} u (comp-hom-r X sX {x1} {x2} {x3} v w))}
-        (λ e . trans (cong (hom-map {X} {A} p {x0} {x3}) (cong {(hom X x0 x2)} {(hom X x0 x3)} (λ h . (comp-hom-r X sX {x0} {x2} {x3} h w)) c3)) (trans (cong (hom-map {X} {A} p {x0} {x3}) c1) (trans e (cong (hom-map {X} {A} p {x0} {x3}) (cong {(hom X x1 x3)} {(hom X x0 x3)} (λ h . (comp-hom-r X sX {x0} {x1} {x3} u h)) (sym c0)))))) (cong-sym (hom-map {X} {A} p {x0} {x3}) c2))))
-      (trans (coh-alg (cong (hom-map {X} {A} p {x0} {x3}) (cong {(hom X x0 x2)} {(hom X x0 x3)} (λ h . (comp-hom-r X sX {x0} {x2} {x3} h w)) c3)) (cong (hom-map {X} {A} p {x0} {x3}) c1) (cong (hom-map {X} {A} p {x0} {x3}) c2) (cong (hom-map {X} {A} p {x0} {x3}) (cong {(hom X x1 x3)} {(hom X x0 x3)} (λ h . (comp-hom-r X sX {x0} {x1} {x3} u h)) (sym c0))) (hom-map-comp X A p sX sA {x0} {x1} {x3} u (comp-hom-r X sX {x1} {x2} {x3} v w)) (cong (λ m . (comp-hom-r A sA {p x0} {p x1} {p x3} ((hom-map {X} {A} p {x0} {x1}) u) m)) (hom-map-comp X A p sX sA {x1} {x2} {x3} v w))
-      (hom-map-comp X A p sX sA {x0} {x1} {x3} u b) (cong (λ m . (comp-hom-r A sA {p x0} {p x1} {p x3} ((hom-map {X} {A} p {x0} {x1}) u) m)) (cong (hom-map {X} {A} p {x1} {x3}) (sym c0))) c2' (cong (λ m . (comp-hom-r A sA {p x0} {p x1} {p x3} ((hom-map {X} {A} p {x0} {x1}) u) m)) (sym c0'))
-      (hom-map-comp X A p sX sA {x0} {x2} {x3} a w) c1' (hom-map-comp X A p sX sA {x0} {x2} {x3} (comp-hom-r X sX {x0} {x1} {x2} u v) w) (cong (λ m . (comp-hom-r A sA {p x0} {p x2} {p x3} m ((hom-map {X} {A} p {x2} {x3}) w))) (cong (hom-map {X} {A} p {x0} {x2}) c3)) (cong (λ m . (comp-hom-r A sA {p x0} {p x2} {p x3} m ((hom-map {X} {A} p {x2} {x3}) w))) (hom-map-comp X A p sX sA {x0} {x1} {x2} u v)) (cong (λ m . (comp-hom-r A sA {p x0} {p x2} {p x3} m ((hom-map {X} {A} p {x2} {x3}) w))) c3')
-      (htpy-nat-cong (hom-map {X} {A} p {x1} {x3}) (hom-map {X} {A} p {x0} {x3}) (λ h . (comp-hom-r X sX {x0} {x1} {x3} u h)) (λ m . (comp-hom-r A sA {p x0} {p x1} {p x3} ((hom-map {X} {A} p {x0} {x1}) u) m)) (λ h . (hom-map-comp X A p sX sA {x0} {x1} {x3} u h)) (sym c0))
-      E2
-      (trans (sym (cong-trans (λ m . (comp-hom-r A sA {p x0} {p x1} {p x3} ((hom-map {X} {A} p {x0} {x1}) u) m)) (cong (hom-map {X} {A} p {x1} {x3}) (sym c0)) (hom-map-comp X A p sX sA {x1} {x2} {x3} v w)))
-      (cong {(hom-map {X} {A} p {x1} {x3}) b ≡ (comp-hom-r A sA {p x1} {p x2} {p x3} ((hom-map {X} {A} p {x1} {x2}) v) ((hom-map {X} {A} p {x2} {x3}) w))} {(comp-hom-r A sA {p x0} {p x1} {p x3} ((hom-map {X} {A} p {x0} {x1}) u) ((hom-map {X} {A} p {x1} {x3}) b)) ≡ (comp-hom-r A sA {p x0} {p x1} {p x3} ((hom-map {X} {A} p {x0} {x1}) u) (comp-hom-r A sA {p x1} {p x2} {p x3} ((hom-map {X} {A} p {x1} {x2}) v) ((hom-map {X} {A} p {x2} {x3}) w)))} (cong (λ m . (comp-hom-r A sA {p x0} {p x1} {p x3} ((hom-map {X} {A} p {x0} {x1}) u) m))) (trans (cong {(hom-map {X} {A} p {x1} {x3}) (comp-hom-r X sX {x1} {x2} {x3} v w) ≡ (comp-hom-r A sA {p x1} {p x2} {p x3} ((hom-map {X} {A} p {x1} {x2}) v) ((hom-map {X} {A} p {x2} {x3}) w))} {(hom-map {X} {A} p {x1} {x3}) b ≡ (comp-hom-r A sA {p x1} {p x2} {p x3} ((hom-map {X} {A} p {x1} {x2}) v) ((hom-map {X} {A} p {x2} {x3}) w))} (λ e . trans (cong (hom-map {X} {A} p {x1} {x3}) (sym c0)) e) E0)
-      (trans (cong {(hom-map {X} {A} p {x1} {x3}) b ≡ (hom-map {X} {A} p {x1} {x3}) (comp-hom-r X sX {x1} {x2} {x3} v w)} {(hom-map {X} {A} p {x1} {x3}) b ≡ (comp-hom-r A sA {p x1} {p x2} {p x3} ((hom-map {X} {A} p {x1} {x2}) v) ((hom-map {X} {A} p {x2} {x3}) w))} (λ e . trans e (trans (cong (hom-map {X} {A} p {x1} {x3}) c0) (sym c0'))) (cong-sym (hom-map {X} {A} p {x1} {x3}) c0))
-        (trans-sym-trans (cong (hom-map {X} {A} p {x1} {x3}) c0) (sym c0'))))))
-      (trans (sym (trans-sym-cancel-r (cong (hom-map {X} {A} p {x0} {x3}) c1) c1')) (cong {(hom-map {X} {A} p {x0} {x3}) (comp-hom-r X sX {x0} {x2} {x3} a w) ≡ (comp-hom-r A sA {p x0} {p x2} {p x3} ((hom-map {X} {A} p {x0} {x2}) a) ((hom-map {X} {A} p {x2} {x3}) w))} {(hom-map {X} {A} p {x0} {x3}) (comp-hom-r X sX {x0} {x2} {x3} a w) ≡ ((hom-map {X} {A} p {x0} {x3}) c)} (λ e . trans e c1') (sym E1)))
-      (htpy-nat-cong (hom-map {X} {A} p {x0} {x2}) (hom-map {X} {A} p {x0} {x3}) (λ h . (comp-hom-r X sX {x0} {x2} {x3} h w)) (λ m . (comp-hom-r A sA {p x0} {p x2} {p x3} m ((hom-map {X} {A} p {x2} {x3}) w))) (λ h . (hom-map-comp X A p sX sA {x0} {x2} {x3} h w)) c3)
-      (trans (cong {(hom-map {X} {A} p {x0} {x2}) (comp-hom-r X sX {x0} {x1} {x2} u v) ≡ ((hom-map {X} {A} p {x0} {x2}) a)} {(comp-hom-r A sA {p x0} {p x2} {p x3} ((hom-map {X} {A} p {x0} {x2}) (comp-hom-r X sX {x0} {x1} {x2} u v)) ((hom-map {X} {A} p {x2} {x3}) w)) ≡ (comp-hom-r A sA {p x0} {p x2} {p x3} ((hom-map {X} {A} p {x0} {x2}) a) ((hom-map {X} {A} p {x2} {x3}) w))} (cong (λ m . (comp-hom-r A sA {p x0} {p x2} {p x3} m ((hom-map {X} {A} p {x2} {x3}) w)))) (trans (sym (trans-sym-cancel-r (cong (hom-map {X} {A} p {x0} {x2}) c3) c3')) (cong {(hom-map {X} {A} p {x0} {x2}) (comp-hom-r X sX {x0} {x1} {x2} u v) ≡ (comp-hom-r A sA {p x0} {p x1} {p x2} ((hom-map {X} {A} p {x0} {x1}) u) ((hom-map {X} {A} p {x1} {x2}) v))} {(hom-map {X} {A} p {x0} {x2}) (comp-hom-r X sX {x0} {x1} {x2} u v) ≡ ((hom-map {X} {A} p {x0} {x2}) a)} (λ e . trans e c3') (sym E3)))) (cong-trans (λ m . (comp-hom-r A sA {p x0} {p x2} {p x3} m ((hom-map {X} {A} p {x2} {x3}) w))) (hom-map-comp X A p sX sA {x0} {x1} {x2} u v) c3')))
-        (cong {(comp-hom-r A sA {p x0} {p x2} {p x3} (comp-hom-r A sA {p x0} {p x1} {p x2} ((hom-map {X} {A} p {x0} {x1}) u) ((hom-map {X} {A} p {x1} {x2}) v)) ((hom-map {X} {A} p {x2} {x3}) w)) ≡ (comp-hom-r A sA {p x0} {p x1} {p x3} ((hom-map {X} {A} p {x0} {x1}) u) (comp-hom-r A sA {p x1} {p x2} {p x3} ((hom-map {X} {A} p {x1} {x2}) v) ((hom-map {X} {A} p {x2} {x3}) w)))} {(hom-map {X} {A} p {x0} {x3}) (comp-hom-r X sX {x0} {x2} {x3} (comp-hom-r X sX {x0} {x1} {x2} u v) w) ≡ (comp-hom-r A sA {p x0} {p x1} {p x3} ((hom-map {X} {A} p {x0} {x1}) u) (comp-hom-r A sA {p x1} {p x2} {p x3} ((hom-map {X} {A} p {x1} {x2}) v) ((hom-map {X} {A} p {x2} {x3}) w)))} (λ q . trans (hom-map-comp X A p sX sA {x0} {x2} {x3} (comp-hom-r X sX {x0} {x1} {x2} u v) w) (trans (cong (λ m . (comp-hom-r A sA {p x0} {p x2} {p x3} m ((hom-map {X} {A} p {x2} {x3}) w))) (hom-map-comp X A p sX sA {x0} {x1} {x2} u v)) q)) (sym AA))))
-
 -- on the edges of a 3-simplex Θ: the faces of Θ and of p ∘ Θ
 abstract assoc-coh-simplex ∷ (X A ∷ U) (p ∷ X → A) (sX : is-segal-r X) (sA : is-segal-r A) (Θ : simplex 3 →ᵣ X) →
-  assoc-coh-stmt X A p sX sA {Θ (simplex-3-e01 𝕀0)} {Θ (simplex-3-e12 𝕀0)} {Θ (simplex-3-e23 𝕀0)} {Θ (simplex-3-e23 𝕀1)} (simplex-3-hom {X} simplex-3-e01 Θ) (simplex-3-hom {X} simplex-3-e12 Θ) (simplex-3-hom {X} simplex-3-e23 Θ)
+  assoc-coh-stmt X A p sX sA {Θ (simplex-3-e01 𝕀0)} {Θ (simplex-3-e12 𝕀0)} {Θ (simplex-3-e23 𝕀0)} {Θ (simplex-3-e23 𝕀1)}
+    (simplex-3-hom {X} simplex-3-e01 Θ) (simplex-3-hom {X} simplex-3-e12 Θ) (simplex-3-hom {X} simplex-3-e23 Θ)
 assoc-coh-simplex X A p sX sA Θ =
-  assoc-coh-faces X A p sX sA {Θ (simplex-3-e01 𝕀0)} {Θ (simplex-3-e12 𝕀0)} {Θ (simplex-3-e23 𝕀0)} {Θ (simplex-3-e23 𝕀1)} (simplex-3-hom {X} simplex-3-e01 Θ) (simplex-3-hom {X} simplex-3-e12 Θ) (simplex-3-hom {X} simplex-3-e23 Θ)
-    (simplex-3-hom {X} simplex-3-e02 Θ) (simplex-3-hom {X} simplex-3-e13 Θ) (simplex-3-hom {X} simplex-3-e03 Θ)
-    (comp-simplex-2 X sX (simplex-3-face {X} simplex-3-d3 Θ)) (comp-simplex-2 X sX (simplex-3-face {X} simplex-3-d1 Θ)) (comp-simplex-2 X sX (simplex-3-face {X} simplex-3-d2 Θ)) (comp-simplex-2 X sX (simplex-3-face {X} simplex-3-d0 Θ))
-    (comp-simplex-2 A sA (simplex-3-face {A} simplex-3-d3 (post-r {simplex 3} {X} {A} p Θ))) (comp-simplex-2 A sA (simplex-3-face {A} simplex-3-d1 (post-r {simplex 3} {X} {A} p Θ))) (comp-simplex-2 A sA (simplex-3-face {A} simplex-3-d2 (post-r {simplex 3} {X} {A} p Θ))) (comp-simplex-2 A sA (simplex-3-face {A} simplex-3-d0 (post-r {simplex 3} {X} {A} p Θ)))
-    (hom-map-comp-edges X A p sX sA (simplex-3-face {X} simplex-3-d3 Θ)) (hom-map-comp-edges X A p sX sA (simplex-3-face {X} simplex-3-d1 Θ))
-    (hom-map-comp-edges X A p sX sA (simplex-3-face {X} simplex-3-d2 Θ)) (hom-map-comp-edges X A p sX sA (simplex-3-face {X} simplex-3-d0 Θ))
-    (trans (comp-hom-r-assoc-eq X sX {Θ (simplex-3-e01 𝕀0)} {Θ (simplex-3-e12 𝕀0)} {Θ (simplex-3-e23 𝕀0)} {Θ (simplex-3-e23 𝕀1)} (simplex-3-hom {X} simplex-3-e01 Θ) (simplex-3-hom {X} simplex-3-e12 Θ) (simplex-3-hom {X} simplex-3-e23 Θ))
+  let x0 : X = Θ (simplex-3-e01 𝕀0) in
+  let x1 : X = Θ (simplex-3-e12 𝕀0) in
+  let x2 : X = Θ (simplex-3-e23 𝕀0) in
+  let x3 : X = Θ (simplex-3-e23 𝕀1) in
+  let Θ' : simplex 3 →ᵣ A = post-r {simplex 3} {X} {A} p Θ in
+  -- the edges of Θ and their images
+  let u : hom X x0 x1 = simplex-3-hom {X} simplex-3-e01 Θ in
+  let v : hom X x1 x2 = simplex-3-hom {X} simplex-3-e12 Θ in
+  let w : hom X x2 x3 = simplex-3-hom {X} simplex-3-e23 Θ in
+  let a : hom X x0 x2 = simplex-3-hom {X} simplex-3-e02 Θ in
+  let b : hom X x1 x3 = simplex-3-hom {X} simplex-3-e13 Θ in
+  let c : hom X x0 x3 = simplex-3-hom {X} simplex-3-e03 Θ in
+  let uv : hom X x0 x2 = comp-hom-r X sX {x0} {x1} {x2} u v in
+  let vw : hom X x1 x3 = comp-hom-r X sX {x1} {x2} {x3} v w in
+  let P02 : hom X x0 x2 → hom A (p x0) (p x2) = hom-map {X} {A} p {x0} {x2} in
+  let P13 : hom X x1 x3 → hom A (p x1) (p x3) = hom-map {X} {A} p {x1} {x3} in
+  let P03 : hom X x0 x3 → hom A (p x0) (p x3) = hom-map {X} {A} p {x0} {x3} in
+  let Pu : hom A (p x0) (p x1) = hom-map {X} {A} p {x0} {x1} u in
+  let Pv : hom A (p x1) (p x2) = hom-map {X} {A} p {x1} {x2} v in
+  let Pw : hom A (p x2) (p x3) = hom-map {X} {A} p {x2} {x3} w in
+  let Puv : hom A (p x0) (p x2) = comp-hom-r A sA {p x0} {p x1} {p x2} Pu Pv in
+  let Pvw : hom A (p x1) (p x3) = comp-hom-r A sA {p x1} {p x2} {p x3} Pv Pw in
+  -- composing with w and u, in X and in A
+  let L : hom X x0 x2 → hom X x0 x3 = λ h . comp-hom-r X sX {x0} {x2} {x3} h w in
+  let R : hom X x1 x3 → hom X x0 x3 = λ h . comp-hom-r X sX {x0} {x1} {x3} u h in
+  let L' : hom A (p x0) (p x2) → hom A (p x0) (p x3) = λ m . comp-hom-r A sA {p x0} {p x2} {p x3} m Pw in
+  let R' : hom A (p x1) (p x3) → hom A (p x0) (p x3) = λ m . comp-hom-r A sA {p x0} {p x1} {p x3} Pu m in
+  -- the faces of Θ and of p ∘ Θ
+  let c3 : uv ≡ a = comp-simplex-2 X sX (simplex-3-face {X} simplex-3-d3 Θ) in
+  let c1 : L a ≡ c = comp-simplex-2 X sX (simplex-3-face {X} simplex-3-d1 Θ) in
+  let c2 : R b ≡ c = comp-simplex-2 X sX (simplex-3-face {X} simplex-3-d2 Θ) in
+  let c0 : vw ≡ b = comp-simplex-2 X sX (simplex-3-face {X} simplex-3-d0 Θ) in
+  let c3' : Puv ≡ P02 a = comp-simplex-2 A sA (simplex-3-face {A} simplex-3-d3 Θ') in
+  let c1' : L' (P02 a) ≡ P03 c = comp-simplex-2 A sA (simplex-3-face {A} simplex-3-d1 Θ') in
+  let c2' : R' (P13 b) ≡ P03 c = comp-simplex-2 A sA (simplex-3-face {A} simplex-3-d2 Θ') in
+  let c0' : Pvw ≡ P13 b = comp-simplex-2 A sA (simplex-3-face {A} simplex-3-d0 Θ') in
+  -- the commutations of p with composition
+  let fn-uv : P02 uv ≡ Puv = hom-map-comp X A p sX sA {x0} {x1} {x2} u v in
+  let fn-aw : P03 (L a) ≡ L' (P02 a) = hom-map-comp X A p sX sA {x0} {x2} {x3} a w in
+  let fn-ub : P03 (R b) ≡ R' (P13 b) = hom-map-comp X A p sX sA {x0} {x1} {x3} u b in
+  let fn-vw : P13 vw ≡ Pvw = hom-map-comp X A p sX sA {x1} {x2} {x3} v w in
+  let F1 : P03 (R vw) ≡ R' (P13 vw) = hom-map-comp X A p sX sA {x0} {x1} {x3} u vw in
+  let F4 : P03 (L uv) ≡ L' (P02 uv) = hom-map-comp X A p sX sA {x0} {x2} {x3} uv w in
+  -- on the faces, they are given by the faces
+  let E3 : fn-uv ≡ trans (cong P02 c3) (sym c3') = hom-map-comp-edges X A p sX sA (simplex-3-face {X} simplex-3-d3 Θ) in
+  let E1 : fn-aw ≡ trans (cong P03 c1) (sym c1') = hom-map-comp-edges X A p sX sA (simplex-3-face {X} simplex-3-d1 Θ) in
+  let E2 : fn-ub ≡ trans (cong P03 c2) (sym c2') = hom-map-comp-edges X A p sX sA (simplex-3-face {X} simplex-3-d2 Θ) in
+  let E0 : fn-vw ≡ trans (cong P13 c0) (sym c0') = hom-map-comp-edges X A p sX sA (simplex-3-face {X} simplex-3-d0 Θ) in
+  -- the hypotheses of coh-alg
+  let h1 : trans (cong P03 (cong R (sym c0))) F1 ≡ trans fn-ub (cong R' (cong P13 (sym c0))) =
+    htpy-nat-cong P13 P03 R R' (λ h . hom-map-comp X A p sX sA {x0} {x1} {x3} u h) (sym c0) in
+  let K : trans (cong P13 (sym c0)) fn-vw ≡ sym c0' =
+    trans (cong {P13 vw ≡ Pvw} {P13 b ≡ Pvw} (λ e . trans (cong P13 (sym c0)) e) E0)
+      (trans (cong {P13 b ≡ P13 vw} {P13 b ≡ Pvw} (λ e . trans e (trans (cong P13 c0) (sym c0'))) (cong-sym P13 c0))
+        (trans-sym-trans (cong P13 c0) (sym c0'))) in
+  let h3 : trans (cong R' (cong P13 (sym c0))) (cong R' fn-vw) ≡ cong R' (sym c0') =
+    trans (sym (cong-trans R' (cong P13 (sym c0)) fn-vw)) (cong {P13 b ≡ Pvw} {R' (P13 b) ≡ R' Pvw} (cong R') K) in
+  let h4 : cong P03 c1 ≡ trans fn-aw c1' =
+    trans (sym (trans-sym-cancel-r (cong P03 c1) c1')) (cong {P03 (L a) ≡ L' (P02 a)} {P03 (L a) ≡ P03 c} (λ e . trans e c1') (sym E1)) in
+  let h5 : trans (cong P03 (cong L c3)) fn-aw ≡ trans F4 (cong L' (cong P02 c3)) =
+    htpy-nat-cong P02 P03 L L' (λ h . hom-map-comp X A p sX sA {x0} {x2} {x3} h w) c3 in
+  let H3 : cong P02 c3 ≡ trans fn-uv c3' =
+    trans (sym (trans-sym-cancel-r (cong P02 c3) c3')) (cong {P02 uv ≡ Puv} {P02 uv ≡ P02 a} (λ e . trans e c3') (sym E3)) in
+  let h6 : cong L' (cong P02 c3) ≡ trans (cong L' fn-uv) (cong L' c3') =
+    trans (cong {P02 uv ≡ P02 a} {L' (P02 uv) ≡ L' (P02 a)} (cong L') H3) (cong-trans L' fn-uv c3') in
+  -- the associators on the edges of Θ and of p ∘ Θ are given by their faces
+  let QX : comp-hom-r-assoc X sX {x0} {x1} {x2} {x3} u v w ≡ assoc-simplex-3-def X sX Θ =
+    trans (comp-hom-r-assoc-eq X sX {x0} {x1} {x2} {x3} u v w)
       (trans (transfer-equiv (edges-tri {X}) (is-equiv-edges-tri X sX) (tri-assoc X sX) (assoc-simplex-3 X sX) Θ
-               (assoc-filler X sX {Θ (simplex-3-e01 𝕀0)} {Θ (simplex-3-e12 𝕀0)} {Θ (simplex-3-e23 𝕀0)} {Θ (simplex-3-e23 𝕀1)} (simplex-3-hom {X} simplex-3-e01 Θ) (simplex-3-hom {X} simplex-3-e12 Θ) (simplex-3-hom {X} simplex-3-e23 Θ)) (assoc-filler-edges X sX {Θ (simplex-3-e01 𝕀0)} {Θ (simplex-3-e12 𝕀0)} {Θ (simplex-3-e23 𝕀0)} {Θ (simplex-3-e23 𝕀1)} (simplex-3-hom {X} simplex-3-e01 Θ) (simplex-3-hom {X} simplex-3-e12 Θ) (simplex-3-hom {X} simplex-3-e23 Θ)))
-        (assoc-simplex-3-eq X sX Θ)))
-    (trans (comp-hom-r-assoc-eq A sA {p (Θ (simplex-3-e01 𝕀0))} {p (Θ (simplex-3-e12 𝕀0))} {p (Θ (simplex-3-e23 𝕀0))} {p (Θ (simplex-3-e23 𝕀1))} (simplex-3-hom {A} simplex-3-e01 (post-r {simplex 3} {X} {A} p Θ)) (simplex-3-hom {A} simplex-3-e12 (post-r {simplex 3} {X} {A} p Θ)) (simplex-3-hom {A} simplex-3-e23 (post-r {simplex 3} {X} {A} p Θ)))
-      (trans (transfer-equiv (edges-tri {A}) (is-equiv-edges-tri A sA) (tri-assoc A sA) (assoc-simplex-3 A sA) (post-r {simplex 3} {X} {A} p Θ)
-               (assoc-filler A sA {p (Θ (simplex-3-e01 𝕀0))} {p (Θ (simplex-3-e12 𝕀0))} {p (Θ (simplex-3-e23 𝕀0))} {p (Θ (simplex-3-e23 𝕀1))} (simplex-3-hom {A} simplex-3-e01 (post-r {simplex 3} {X} {A} p Θ)) (simplex-3-hom {A} simplex-3-e12 (post-r {simplex 3} {X} {A} p Θ)) (simplex-3-hom {A} simplex-3-e23 (post-r {simplex 3} {X} {A} p Θ))) (assoc-filler-edges A sA {p (Θ (simplex-3-e01 𝕀0))} {p (Θ (simplex-3-e12 𝕀0))} {p (Θ (simplex-3-e23 𝕀0))} {p (Θ (simplex-3-e23 𝕀1))} (simplex-3-hom {A} simplex-3-e01 (post-r {simplex 3} {X} {A} p Θ)) (simplex-3-hom {A} simplex-3-e12 (post-r {simplex 3} {X} {A} p Θ)) (simplex-3-hom {A} simplex-3-e23 (post-r {simplex 3} {X} {A} p Θ))))
-        (assoc-simplex-3-eq A sA (post-r {simplex 3} {X} {A} p Θ))))
+               (assoc-filler X sX {x0} {x1} {x2} {x3} u v w) (assoc-filler-edges X sX {x0} {x1} {x2} {x3} u v w))
+        (assoc-simplex-3-eq X sX Θ)) in
+  let QA : comp-hom-r-assoc A sA {p x0} {p x1} {p x2} {p x3} Pu Pv Pw ≡ assoc-simplex-3-def A sA Θ' =
+    trans (comp-hom-r-assoc-eq A sA {p x0} {p x1} {p x2} {p x3} Pu Pv Pw)
+      (trans (transfer-equiv (edges-tri {A}) (is-equiv-edges-tri A sA) (tri-assoc A sA) (assoc-simplex-3 A sA) Θ'
+               (assoc-filler A sA {p x0} {p x1} {p x2} {p x3} Pu Pv Pw) (assoc-filler-edges A sA {p x0} {p x1} {p x2} {p x3} Pu Pv Pw))
+        (assoc-simplex-3-eq A sA Θ')) in
+  -- the image of the associator of X
+  let dist : cong P03 (assoc-simplex-3-def X sX Θ)
+             ≡ trans (cong P03 (cong L c3)) (trans (cong P03 c1) (trans (sym (cong P03 c2)) (cong P03 (cong R (sym c0))))) =
+    trans (cong-trans4 P03 (cong L c3) c1 (sym c2) (cong R (sym c0)))
+      (cong {P03 c ≡ P03 (R b)} {P03 (L uv) ≡ P03 (R vw)} (λ e . trans (cong P03 (cong L c3)) (trans (cong P03 c1) (trans e (cong P03 (cong R (sym c0)))))) (cong-sym P03 c2)) in
+  trans (cong {L uv ≡ R vw} {P03 (L uv) ≡ R' Pvw} (λ q . trans (cong P03 q) (trans F1 (cong R' fn-vw))) QX)
+    (trans (cong {P03 (L uv) ≡ P03 (R vw)} {P03 (L uv) ≡ R' Pvw} (λ q . trans q (trans F1 (cong R' fn-vw))) dist)
+      (trans (coh-alg (cong P03 (cong L c3)) (cong P03 c1) (cong P03 c2) (cong P03 (cong R (sym c0))) F1 (cong R' fn-vw)
+               fn-ub (cong R' (cong P13 (sym c0))) c2' (cong R' (sym c0'))
+               fn-aw c1' F4 (cong L' (cong P02 c3)) (cong L' fn-uv) (cong L' c3')
+               h1 E2 h3 h4 h5 h6)
+        (cong {L' Puv ≡ R' Pvw} {P03 (L uv) ≡ R' Pvw} (λ q . trans F4 (trans (cong L' fn-uv) q)) (sym QA))))
 
 -- the coherence, as a family over composable triples
 assoc-coh-tri ∷ (X A ∷ U) (p ∷ X → A) (sX : is-segal-r X) (sA : is-segal-r A) → triples X → U
