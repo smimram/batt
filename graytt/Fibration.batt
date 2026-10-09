@@ -28,6 +28,7 @@ open import Hom
 open import Segal
 open import Composition
 open import Functoriality
+open import Iso
 
 --
 -- Cartesian arrows
@@ -118,3 +119,56 @@ cocart-cell-lift {X} {A} sX sA p (f , c) = (f 𝕀0 , post-r 𝕀 {X} {A} p f , 
 
 is-cocartesian-fibration ∷ {X A ∷ U} (sX : is-segal-r X) (sA : is-segal-r A) (p ∷ X → A) → U
 is-cocartesian-fibration {X} {A} sX sA p = is-equiv (cocart-cell-lift {X} {A} sX sA p)
+
+--
+-- Isomorphisms are (co)cartesian
+--
+-- For an isomorphism f, the first projection of the fibre product is an equivalence: its fibres
+-- are fibres of composition with the isomorphism p f, which are contractible. Its composite with
+-- the gap map is composition with f, which is an equivalence, hence so is the gap map.
+--
+
+-- left cancellation of equivalences (2-out-of-3)
+abstract is-equiv-cancel-l ∷ {A B C : U} (g : B → C) (f : A → B) → is-equiv g → is-equiv (g ∘ f) → is-equiv f
+is-equiv-cancel-l {A} {B} {C} g f eg egf =
+  let r : C → B = map-retraction g (is-equiv-ret g eg) in
+  let rr : (b : B) → r (g b) ≡ b = snd _ (is-equiv-ret g eg) in
+  let s : C → B = map-section g (is-equiv-sec g eg) in
+  let ss : (c : C) → g (s c) ≡ c = snd _ (is-equiv-sec g eg) in
+  let gr : (c : C) → g (r c) ≡ c = λ c .
+    trans (cong (λ c' . g (r c')) (sym (ss c))) (trans (cong g (rr (s c))) (ss c)) in
+  let er : is-equiv r = ((g , rr) , (g , gr)) in
+  is-equiv-htpy {A} {B} {r ∘ (g ∘ f)} {f} (λ a . rr (f a)) (is-equiv-circ r (g ∘ f) er egf)
+
+-- the type of preimages, with the path in the other direction, is contractible
+abstract is-contr-fib-sym ∷ {A B : U} (f : A → B) → is-equiv f → (y : B) → is-contr (Σ (a : A) . y ≡ f a)
+is-contr-fib-sym {A} {B} f e y =
+  let s : (Σ (a : A) . y ≡ f a) → fib f y = fun (a , q) → (a , sym q) in
+  let r : fib f y → Σ (a : A) . y ≡ f a = fun (a , q) → (a , sym q) in
+  let rs : (w : Σ (a : A) . y ≡ f a) → r (s w) ≡ w = fun (a , q) →
+    cong {y ≡ f a} {Σ (a' : A) . y ≡ f a'} (λ q' . (a , q')) (sym-sym q) in
+  is-contr-retract s (r , rs) (is-contr-fib f e y)
+
+abstract is-cocartesian-iso ∷ {X A ∷ U} (sX : is-segal-r X) (sA : is-segal-r A) (p ∷ X → A) {x y : X} (f : hom X x y) →
+  is-iso-hom {X} sX {x} {y} f → is-cocartesian {X} {A} sX sA p {x} {y} f
+is-cocartesian-iso {X} {A} sX sA p {x} {y} f i y' =
+  let pf : hom A (p x) (p y) = hom-map {X} {A} p {x} {y} f in
+  let P : hom X x y' → U = λ h . Σ (k : hom A (p y) (p y')) . hom-map {X} {A} p {x} {y'} h ≡ comp-hom-r A sA {p x} {p y} {p y'} pf k in
+  let π : cocart-pb {X} {A} sA p {x} {y} f y' → hom X x y' = fst P in
+  let eπ : is-equiv π =
+    is-equiv-fst-contr P (λ h . is-contr-fib-sym (λ k . comp-hom-r A sA {p x} {p y} {p y'} pf k)
+      (is-equiv-comp-iso-l {A} sA {p x} {p y} pf (is-iso-hom-map {X} {A} sX sA p {x} {y} f i) (p y'))
+      (hom-map {X} {A} p {x} {y'} h)) in
+  is-equiv-cancel-l π (cocart-gap {X} {A} sX sA p {x} {y} f y') eπ (is-equiv-comp-iso-l {X} sX {x} {y} f i y')
+
+abstract is-cartesian-iso ∷ {X A ∷ U} (sX : is-segal-r X) (sA : is-segal-r A) (p ∷ X → A) {x y : X} (f : hom X x y) →
+  is-iso-hom {X} sX {x} {y} f → is-cartesian {X} {A} sX sA p {x} {y} f
+is-cartesian-iso {X} {A} sX sA p {x} {y} f i x' =
+  let pf : hom A (p x) (p y) = hom-map {X} {A} p {x} {y} f in
+  let P : hom X x' y → U = λ h . Σ (k : hom A (p x') (p x)) . hom-map {X} {A} p {x'} {y} h ≡ comp-hom-r A sA {p x'} {p x} {p y} k pf in
+  let π : cart-pb {X} {A} sA p {x} {y} f x' → hom X x' y = fst P in
+  let eπ : is-equiv π =
+    is-equiv-fst-contr P (λ h . is-contr-fib-sym (λ k . comp-hom-r A sA {p x'} {p x} {p y} k pf)
+      (is-equiv-comp-iso-r {A} sA {p x} {p y} pf (is-iso-hom-map {X} {A} sX sA p {x} {y} f i) (p x'))
+      (hom-map {X} {A} p {x'} {y} h)) in
+  is-equiv-cancel-l π (cart-gap {X} {A} sX sA p {x} {y} f x') eπ (is-equiv-comp-iso-r {X} sX {x} {y} f i x')

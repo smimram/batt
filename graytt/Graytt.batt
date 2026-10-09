@@ -15,3 +15,4 @@ open import Fibration
 open import Coslice
 open import Composable
 open import Associativity
+open import Iso
