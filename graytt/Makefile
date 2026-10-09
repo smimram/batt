@@ -1,4 +1,4 @@
 all: test
 
 test:
-	@dune exec batt -- -I ../stdlib Graytt.batt
+	@dune exec batt -- -I ../stdlib GrayTT.batt
