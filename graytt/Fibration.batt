@@ -70,6 +70,13 @@ cocart-gap {X} {A} sX sA p {x} {y} f y' g =
 is-cocartesian ∷ {X A ∷ U} (sX : is-segal-r X) (sA : is-segal-r A) (p ∷ X → A) {x y : X} → hom X x y → U
 is-cocartesian {X} {A} sX sA p {x} {y} f = (y' : X) → is-equiv (cocart-gap {X} {A} sX sA p {x} {y} f y')
 
+-- being cocartesian is a proposition
+abstract is-prop-is-cocartesian ∷ {X A ∷ U} (sX : is-segal-r X) (sA : is-segal-r A) (p ∷ X → A) {x y : X} (f : hom X x y) →
+  is-prop (is-cocartesian {X} {A} sX sA p {x} {y} f)
+is-prop-is-cocartesian {X} {A} sX sA p {x} {y} f =
+  is-prop-Π (λ y' . is-equiv (cocart-gap {X} {A} sX sA p {x} {y} f y'))
+    (λ y' . is-prop-is-equiv (cocart-gap {X} {A} sX sA p {x} {y} f y'))
+
 --
 -- Cartesian fibrations
 --
@@ -87,7 +94,7 @@ cell-hom {X} f = (f , refl , refl)
 
 -- cartesian 1-cells
 cart-cell ∷ {X A ∷ U} (sX : is-segal-r X) (sA : is-segal-r A) (p ∷ X → A) → U
-cart-cell {X} {A} sX sA p = Σ (f : 𝕀 →ᵣ X) . is-cartesian {X} {A} sX sA p {f 𝕀0} {f 𝕀1} (cell-hom {X} f)
+cart-cell {X} {A} sX sA p = Σ (f : arrᵣ X) . is-cartesian {X} {A} sX sA p {f 𝕀0} {f 𝕀1} (cell-hom {X} f)
 
 -- the target of a cartesian 1-cell together with its image
 cart-cell-lift ∷ {X A ∷ U} (sX : is-segal-r X) (sA : is-segal-r A) (p ∷ X → A) →
@@ -110,14 +117,14 @@ is-cartesian-fibration {X} {A} sX sA p = is-equiv (cart-cell-lift {X} {A} sX sA 
 
 -- cocartesian 1-cells
 cocart-cell ∷ {X A ∷ U} (sX : is-segal-r X) (sA : is-segal-r A) (p ∷ X → A) → U
-cocart-cell {X} {A} sX sA p = Σ (f : 𝕀 →ᵣ X) . is-cocartesian {X} {A} sX sA p {f 𝕀0} {f 𝕀1} (cell-hom {X} f)
+cocart-cell {X} {A} sX sA p = Σ (f : arrᵣ X) . is-cocartesian {X} {A} sX sA p {srcᵣ f} {tgtᵣ f} (cell-hom {X} f)
 
 -- the source of a cocartesian 1-cell together with its image
 cocart-cell-lift ∷ {X A ∷ U} (sX : is-segal-r X) (sA : is-segal-r A) (p ∷ X → A) →
-  cocart-cell {X} {A} sX sA p → pullback {X} {𝕀 →ᵣ A} {A} p (λ u . u 𝕀0)
+  cocart-cell {X} {A} sX sA p → pullback {X} {arrᵣ A} {A} p (λ u . srcᵣ u)
 cocart-cell-lift {X} {A} sX sA p (f , c) = (f 𝕀0 , post-r {𝕀} {X} {A} p f , refl)
 
-is-cocartesian-fibration ∷ {X A ∷ U} (sX : is-segal-r X) (sA : is-segal-r A) (p ∷ X → A) → U
+abstract is-cocartesian-fibration ∷ {X A ∷ U} (sX : is-segal-r X) (sA : is-segal-r A) (p ∷ X → A) → U
 is-cocartesian-fibration {X} {A} sX sA p = is-equiv (cocart-cell-lift {X} {A} sX sA p)
 
 --
