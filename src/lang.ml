@@ -1015,7 +1015,6 @@ let check_decls_toplevel decls =
       add "succ" (V.Pi (Explicit, Normal, IndType (`Nat, []), ("_", IndType (`Nat, []), []))) (V.eval [] @@ Abs (Explicit, "n", IndTerm (`Succ, [Var "n"])));
       (* Lists. *)
       let list a = T.IndType (`List, [a]) in
-      add "List" (V.eval [] @@ Pi (Explicit, Normal, "_", Type 0, Type 0)) (V.eval [] @@ Abs (Explicit, "A", list (Var "A")));
       add "cons"
         (V.eval [] @@ Pi (Implicit, Normal, "A", Type 0, Pi (Explicit, Normal, "_", Var "A", Pi (Explicit, Normal, "_", list (Var "A"), list (Var "A")))))
         (V.eval [] @@ Abs (Implicit, "A", T.abss ["x"; "l"] (IndTerm (`Cons, [Var "x"; Var "l"]))));
