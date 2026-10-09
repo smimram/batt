@@ -1,2 +1,120 @@
-pullback :: {A B X :: U} (f : A → X) (g : B → X) → U
+--
+-- Pullbacks (fibre products)
+--
+-- The fibre product of f : A → X and g : B → X is pullback f g = Σ (a : A) . Σ (b : B) . f a ≡ g b,
+-- for arbitrary (not necessarily crisp) types, so that it applies e.g. to hom types between
+-- non-crisp points.
+--
+
+open import Product
+open import Function
+open import Equality
+open import Equivalence
+
+pullback ∷ {A B X : U} (f : A → X) (g : B → X) → U
 pullback {A} {B} f g = Σ (a : A) . Σ (b : B) . f a ≡ g b
+
+--
+-- Paths in a fibre product
+--
+
+-- two points with the same second component are equal when their first components are, along a
+-- path α whose image relates their identifications
+pb-path ∷ {H B C : U} (F : H → C) (G : B → C) {h1 h2 : H} (α : h1 ≡ h2) (k : B) (e1 : F h1 ≡ G k) (e2 : F h2 ≡ G k) →
+  e1 ≡ trans (cong F α) e2 → (h1 , k , e1) ≡{pullback {H} {B} {C} F G} (h2 , k , e2)
+pb-path {H} {B} {C} F G {h1} refl k e1 e2 E = cong {F h1 ≡ G k} {pullback {H} {B} {C} F G} (λ e . (h1 , k , e)) (trans E (trans-refl-l e2))
+
+--
+-- Pasting fibre products
+--
+-- Given a : H → C, b : L → C, c : K → L and d : K → C with a homotopy R : b ∘ c ~ d, the fibre
+-- product of the projection H ×_C L → L with c pastes with H ×_C L into the fibre product
+-- H ×_C K of a and d:
+--
+--   pb-paste : (H ×_C L) ×_L K ≃ H ×_C K,   ((h , l , e1) , (k , e2)) ↦ (h , k , e1 · b e2 · R k)
+--
+-- The left-hand side is presented as a Σ-type over H ×_C L of the family pb-Q (pb-pasted), so that it can be
+-- obtained by base change of a family (see is-equiv-Σ-base in Equivalence.batt).
+--
+
+-- the fibre of H ×_C L ×_L K over a point of H ×_C L
+pb-Q ∷ {H L K C : U} (a : H → C) (b : L → C) (c : K → L) → (pullback {H} {L} {C} a b) → U
+pb-Q {H} {L} {K} {C} a b c (h , r) = Σ (k : K) . fst (λ l . a h ≡ b l) r ≡ c k
+
+-- the domain of the pasting map, (H ×_C L) ×_L K
+pb-pasted ∷ {H L K C : U} (a : H → C) (b : L → C) (c : K → L) → U
+pb-pasted {H} {L} {K} {C} a b c = Σ (t : pullback {H} {L} {C} a b) . pb-Q a b c t
+
+-- the pasting map, by successive pattern matching
+pb-paste-r ∷ {H L K C : U} (a : H → C) (b : L → C) (c : K → L) (d : K → C) (R : (k : K) → b (c k) ≡ d k) (h : H) (l : L) (e1 : a h ≡ b l) →
+  (Σ (k : K) . l ≡ c k) → pullback {H} {K} {C} a d
+pb-paste-r {H} {L} {K} {C} a b c d R h l e1 (k , e2) = (h , k , trans e1 (trans (cong b e2) (R k)))
+
+pb-paste-h ∷ {H L K C : U} (a : H → C) (b : L → C) (c : K → L) (d : K → C) (R : (k : K) → b (c k) ≡ d k) (h : H) (r : Σ (l : L) . a h ≡ b l) →
+  pb-Q a b c (h , r) → pullback {H} {K} {C} a d
+pb-paste-h {H} {L} {K} {C} a b c d R h (l , e1) = pb-paste-r a b c d R h l e1
+
+pb-paste-t ∷ {H L K C : U} (a : H → C) (b : L → C) (c : K → L) (d : K → C) (R : (k : K) → b (c k) ≡ d k) (t : pullback {H} {L} {C} a b) →
+  pb-Q a b c t → pullback {H} {K} {C} a d
+pb-paste-t {H} {L} {K} {C} a b c d R (h , r) = pb-paste-h a b c d R h r
+
+pb-paste ∷ {H L K C : U} (a : H → C) (b : L → C) (c : K → L) (d : K → C) (R : (k : K) → b (c k) ≡ d k) →
+  (pb-pasted {H} {L} {K} {C} a b c) → pullback {H} {K} {C} a d
+pb-paste {H} {L} {K} {C} a b c d R (t , q) = pb-paste-t a b c d R t q
+
+-- its inverse: l is c k, with the identification e · R k⁻¹
+pb-unpaste-r ∷ {H L K C : U} (a : H → C) (b : L → C) (c : K → L) (d : K → C) (R : (k : K) → b (c k) ≡ d k) (h : H) →
+  (Σ (k : K) . a h ≡ d k) → pb-pasted {H} {L} {K} {C} a b c
+pb-unpaste-r {H} {L} {K} {C} a b c d R h (k , e) = ((h , c k , trans e (sym (R k))) , (k , refl))
+
+pb-unpaste ∷ {H L K C : U} (a : H → C) (b : L → C) (c : K → L) (d : K → C) (R : (k : K) → b (c k) ≡ d k) →
+  (pullback {H} {K} {C} a d) → pb-pasted {H} {L} {K} {C} a b c
+pb-unpaste {H} {L} {K} {C} a b c d R (h , r) = pb-unpaste-r a b c d R h r
+
+-- path algebra for the two round trips
+trans-sym-trans-r ∷ {T : U} {x y z : T} (r : y ≡ z) (e : x ≡ z) → trans (trans e (sym r)) (trans refl r) ≡ e
+trans-sym-trans-r {T} {x} {y} refl e = refl
+
+trans-trans-sym ∷ {T : U} {x y : T} (e : x ≡ y) {z : T} (r : y ≡ z) → trans (trans e (trans refl r)) (sym r) ≡ e
+trans-trans-sym {T} {x} {y} e refl = refl
+
+-- first round trip
+pb-paste-sec-r ∷ {H L K C : U} (a : H → C) (b : L → C) (c : K → L) (d : K → C) (R : (k : K) → b (c k) ≡ d k) (h : H) (w : Σ (k : K) . a h ≡ d k) →
+  pb-paste a b c d R (pb-unpaste-r a b c d R h w) ≡ (h , w)
+pb-paste-sec-r {H} {L} {K} {C} a b c d R h (k , e) =
+  cong {a h ≡ d k} {pullback {H} {K} {C} a d} (λ e' . (h , k , e')) (trans-sym-trans-r (R k) e)
+
+pb-paste-sec ∷ {H L K C : U} (a : H → C) (b : L → C) (c : K → L) (d : K → C) (R : (k : K) → b (c k) ≡ d k) (w : pullback {H} {K} {C} a d) →
+  pb-paste a b c d R (pb-unpaste a b c d R w) ≡ w
+pb-paste-sec {H} {L} {K} {C} a b c d R (h , w) = pb-paste-sec-r a b c d R h w
+
+-- the second round trip, by induction on the path l ≡ c k
+pb-paste-ret-aux ∷ {H L K C : U} (a : H → C) (b : L → C) (c : K → L) (d : K → C) (R : (k : K) → b (c k) ≡ d k) (h : H) (k : K) {l : L} (e2 : c k ≡ l) (e1 : a h ≡ b l) →
+  pb-unpaste a b c d R (pb-paste a b c d R ((h , l , e1) , (k , sym e2))) ≡{pb-pasted {H} {L} {K} {C} a b c} ((h , l , e1) , (k , sym e2))
+pb-paste-ret-aux {H} {L} {K} {C} a b c d R h k refl e1 =
+  cong {a h ≡ b (c k)} {pb-pasted {H} {L} {K} {C} a b c} (λ e . ((h , c k , e) , (k , refl))) (trans-trans-sym e1 (R k))
+
+pb-paste-ret-r ∷ {H L K C : U} (a : H → C) (b : L → C) (c : K → L) (d : K → C) (R : (k : K) → b (c k) ≡ d k) (h : H) (l : L) (e1 : a h ≡ b l)
+  (q : Σ (k : K) . l ≡ c k) →
+  pb-unpaste a b c d R (pb-paste a b c d R ((h , l , e1) , q)) ≡{pb-pasted {H} {L} {K} {C} a b c} ((h , l , e1) , q)
+pb-paste-ret-r {H} {L} {K} {C} a b c d R h l e1 (k , e2) =
+  let T : U = pb-pasted {H} {L} {K} {C} a b c in
+  trans (cong {l ≡ c k} {T} (λ e . pb-unpaste a b c d R (pb-paste a b c d R ((h , l , e1) , (k , e)))) (sym (sym-sym e2)))
+    (trans (pb-paste-ret-aux a b c d R h k (sym e2) e1)
+      (cong {l ≡ c k} {T} (λ e . ((h , l , e1) , (k , e))) (sym-sym e2)))
+
+pb-paste-ret-h ∷ {H L K C : U} (a : H → C) (b : L → C) (c : K → L) (d : K → C) (R : (k : K) → b (c k) ≡ d k) (h : H) (r : Σ (l : L) . a h ≡ b l)
+  (q : pb-Q a b c (h , r)) →
+  pb-unpaste a b c d R (pb-paste a b c d R ((h , r) , q)) ≡{pb-pasted {H} {L} {K} {C} a b c} ((h , r) , q)
+pb-paste-ret-h {H} {L} {K} {C} a b c d R h (l , e1) = pb-paste-ret-r a b c d R h l e1
+
+pb-paste-ret-t ∷ {H L K C : U} (a : H → C) (b : L → C) (c : K → L) (d : K → C) (R : (k : K) → b (c k) ≡ d k) (t : pullback {H} {L} {C} a b)
+  (q : pb-Q a b c t) →
+  pb-unpaste a b c d R (pb-paste a b c d R (t , q)) ≡{pb-pasted {H} {L} {K} {C} a b c} (t , q)
+pb-paste-ret-t {H} {L} {K} {C} a b c d R (h , r) = pb-paste-ret-h a b c d R h r
+
+abstract is-equiv-pb-paste ∷ {H L K C : U} (a : H → C) (b : L → C) (c : K → L) (d : K → C) (R : (k : K) → b (c k) ≡ d k) →
+  is-equiv (pb-paste a b c d R)
+is-equiv-pb-paste {H} {L} {K} {C} a b c d R =
+  ((pb-unpaste a b c d R , pb-paste-sec a b c d R) ,
+   (pb-unpaste a b c d R , fun (t , q) → pb-paste-ret-t a b c d R t q))
