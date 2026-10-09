@@ -1,0 +1,2 @@
+nil-cons : nil ≡ cons 0 nil
+nil-cons = refl
