@@ -36,13 +36,13 @@ segal-restr-r ∷ (a ∷ ℕ → ℕ) (d ∷ ℕ) (n ∷ ℕ) (b ∷ ℕ → ℕ
 segal-restr-r a d n b e X g =
   -- a crisp name for ι, so that the oplax application shares no free variable with its function
   let ι ∷ thick-spine a d n b e → thick-simplex a d n b e = thick-incl a d n b e in
-  pre-r (thick-spine a d n b e) g ι
+  pre-r {thick-spine a d n b e} g ι
 
 segal-restr-l ∷ (a ∷ ℕ → ℕ) (d ∷ ℕ) (n ∷ ℕ) (b ∷ ℕ → ℕ) (e ∷ ℕ) (X ∷ U) → (thick-simplex a d n b e →ₗ X) → (thick-spine a d n b e →ₗ X)
 segal-restr-l a d n b e X g =
   -- a crisp name for ι, so that the lax application shares no free variable with its function
   let ι ∷ thick-spine a d n b e → thick-simplex a d n b e = thick-incl a d n b e in
-  pre-l (thick-spine a d n b e) g ι
+  pre-l {thick-spine a d n b e} g ι
 
 --
 -- The four Segal conditions
@@ -77,18 +77,18 @@ is-segal-l X = (a ∷ ℕ → ℕ) (d ∷ ℕ) (n ∷ ℕ) (b ∷ ℕ → ℕ) (
 spine-restr-r ∷ (n ∷ ℕ) (X ∷ U) → (simplex n →ᵣ X) → (spine n →ᵣ X)
 spine-restr-r n X Ψ =
   let ι ∷ spine n → simplex n = spine→simplex n in
-  pre-r (spine n) {simplex n} {X} Ψ ι
+  pre-r {spine n} {simplex n} {X} Ψ ι
 
 abstract is-segal-r-unthick ∷ (X ∷ U) → is-segal-r X → (n ∷ ℕ) → is-equiv (spine-restr-r n X)
 is-segal-r-unthick X s n =
   let u ∷ thick-simplex no-grid 0 n no-grid 0 → simplex n = thicken-unit {simplex n} in
   let c ∷ spine n → thick-spine no-grid 0 n no-grid 0 = thicken-counit {spine n} in
   is-equiv-circ {simplex n →ᵣ X} {thick-spine no-grid 0 n no-grid 0 →ᵣ X} {spine n →ᵣ X}
-    (λ ψ . pre-r (spine n) {thick-spine no-grid 0 n no-grid 0} {X} ψ c)
-    (λ Ψ . segal-restr-r no-grid 0 n no-grid 0 X (pre-r (thick-simplex no-grid 0 n no-grid 0) {simplex n} {X} Ψ u))
+    (λ ψ . pre-r {spine n} {thick-spine no-grid 0 n no-grid 0} {X} ψ c)
+    (λ Ψ . segal-restr-r no-grid 0 n no-grid 0 X (pre-r {thick-simplex no-grid 0 n no-grid 0} {simplex n} {X} Ψ u))
     (pre-r-equiv (spine n) (thick-spine no-grid 0 n no-grid 0) c (is-equiv-thicken-counit {spine n}) X)
     (is-equiv-circ {simplex n →ᵣ X} {thick-simplex no-grid 0 n no-grid 0 →ᵣ X} {thick-spine no-grid 0 n no-grid 0 →ᵣ X}
       (segal-restr-r no-grid 0 n no-grid 0 X)
-      (λ Ψ . pre-r (thick-simplex no-grid 0 n no-grid 0) {simplex n} {X} Ψ u)
+      (λ Ψ . pre-r {thick-simplex no-grid 0 n no-grid 0} {simplex n} {X} Ψ u)
       (s no-grid 0 n no-grid 0)
       (pre-r-equiv (thick-simplex no-grid 0 n no-grid 0) (simplex n) u (is-equiv-thicken-unit {simplex n}) X))

@@ -18,11 +18,11 @@ open import Composable
 --
 
 simplex-3-hom ∷ {X ∷ U} (e ∷ 𝕀 → simplex 3) (Θ : simplex 3 →ᵣ X) → hom X (Θ (e 𝕀0)) (Θ (e 𝕀1))
-simplex-3-hom {X} e Θ = (pre-r 𝕀 {simplex 3} {X} Θ e , refl , refl)
+simplex-3-hom {X} e Θ = (pre-r {𝕀} {simplex 3} {X} Θ e , refl , refl)
 
 -- the faces of a 3-simplex
 simplex-3-face ∷ {X ∷ U} (d ∷ simplex 2 → simplex 3) (Θ : simplex 3 →ᵣ X) → (simplex 2 →ᵣ X)
-simplex-3-face {X} d Θ = pre-r (simplex 2) {simplex 3} {X} Θ d
+simplex-3-face {X} d Θ = pre-r {simplex 2} {simplex 3} {X} Θ d
 
 --
 -- Associativity for the edges of a 3-simplex
@@ -49,8 +49,8 @@ assoc-simplex-3 X s Θ =
 -- the triple given by three crisp paths in Δ³ and paths between the images of their endpoints
 tri-shape ∷ {X ∷ U} (Θ : simplex 3 →ᵣ X) (ku kv kw ∷ 𝕀 → simplex 3) → Θ (ku 𝕀1) ≡ Θ (kv 𝕀0) → Θ (kv 𝕀1) ≡ Θ (kw 𝕀0) → triples X
 tri-shape {X} Θ ku kv kw α β =
-  (Θ (ku 𝕀0) , Θ (kv 𝕀0) , (pre-r 𝕀 {simplex 3} {X} Θ ku , refl , α) , Θ (kw 𝕀0) , Θ (kw 𝕀1) ,
-   (pre-r 𝕀 {simplex 3} {X} Θ kv , refl , β) , (pre-r 𝕀 {simplex 3} {X} Θ kw , refl , refl))
+  (Θ (ku 𝕀0) , Θ (kv 𝕀0) , (pre-r {𝕀} {simplex 3} {X} Θ ku , refl , α) , Θ (kw 𝕀0) , Θ (kw 𝕀1) ,
+   (pre-r {𝕀} {simplex 3} {X} Θ kv , refl , β) , (pre-r {𝕀} {simplex 3} {X} Θ kw , refl , refl))
 
 -- the triple of edges of a 3-simplex
 edges-tri ∷ {X ∷ U} (Θ : simplex 3 →ᵣ X) → triples X

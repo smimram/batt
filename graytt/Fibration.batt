@@ -92,7 +92,7 @@ cart-cell {X} {A} sX sA p = Σ (f : 𝕀 →ᵣ X) . is-cartesian {X} {A} sX sA 
 -- the target of a cartesian 1-cell together with its image
 cart-cell-lift ∷ {X A ∷ U} (sX : is-segal-r X) (sA : is-segal-r A) (p ∷ X → A) →
   cart-cell {X} {A} sX sA p → pullback {X} {𝕀 →ᵣ A} {A} p (λ u . u 𝕀1)
-cart-cell-lift {X} {A} sX sA p (f , c) = (f 𝕀1 , post-r 𝕀 {X} {A} p f , refl)
+cart-cell-lift {X} {A} sX sA p (f , c) = (f 𝕀1 , post-r {𝕀} {X} {A} p f , refl)
 
 is-cartesian-fibration ∷ {X A ∷ U} (sX : is-segal-r X) (sA : is-segal-r A) (p ∷ X → A) → U
 is-cartesian-fibration {X} {A} sX sA p = is-equiv (cart-cell-lift {X} {A} sX sA p)
@@ -115,7 +115,7 @@ cocart-cell {X} {A} sX sA p = Σ (f : 𝕀 →ᵣ X) . is-cocartesian {X} {A} sX
 -- the source of a cocartesian 1-cell together with its image
 cocart-cell-lift ∷ {X A ∷ U} (sX : is-segal-r X) (sA : is-segal-r A) (p ∷ X → A) →
   cocart-cell {X} {A} sX sA p → pullback {X} {𝕀 →ᵣ A} {A} p (λ u . u 𝕀0)
-cocart-cell-lift {X} {A} sX sA p (f , c) = (f 𝕀0 , post-r 𝕀 {X} {A} p f , refl)
+cocart-cell-lift {X} {A} sX sA p (f , c) = (f 𝕀0 , post-r {𝕀} {X} {A} p f , refl)
 
 is-cocartesian-fibration ∷ {X A ∷ U} (sX : is-segal-r X) (sA : is-segal-r A) (p ∷ X → A) → U
 is-cocartesian-fibration {X} {A} sX sA p = is-equiv (cocart-cell-lift {X} {A} sX sA p)

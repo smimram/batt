@@ -112,7 +112,7 @@ coc3-tri {X} c =
 
 -- an oplax map out of the 2-spine, seen on the copy of the 2-spine, has the same pair of edges
 abstract pair-of3-proj ∷ {X ∷ U} (Φ : spine 2 →ᵣ X) →
-  pair-of3 {X} (pre-r sp3-EB {spine 2} {X} Φ sp3-proj) ≡ coc-pair {X} (wedge-restr-r (spine 2) sp-EA sp-EB sp-i sp-j sp-a1 sp-b0 sp-γ X Φ)
+  pair-of3 {X} (pre-r {sp3-EB} {spine 2} {X} Φ sp3-proj) ≡ coc-pair {X} (wedge-restr-r (spine 2) sp-EA sp-EB sp-i sp-j sp-a1 sp-b0 sp-γ X Φ)
 pair-of3-proj {X} Φ =
   cong {Φ (sp-i sp-a1) ≡ Φ (sp-j sp-b0)} {pairs X}
     (λ e . (Φ (sp-i sp-a0) , Φ (sp-j sp-b0) , Φ (sp-j sp-b1) , ((λ t . Φ (sp-i (sp-eA t))) , refl , e) , ((λ t . Φ (sp-j (sp-eB t))) , refl , refl)))
@@ -125,10 +125,10 @@ sp3-coordA (c , a) = cc3-1 c
 
 tri-section ∷ (X ∷ U) {x y z t : X} (u : hom X x y) (v : hom X y z) (w : hom X z t) → spine-3-cocone-r X
 tri-section X {x} {y} {z} {t} u v w =
-  let P : pair-of3 {X} (pre-r sp3-EB {spine 2} {X} (pair-section X {y} {z} {t} v w) sp3-proj) ≡ (y , z , t , v , w) =
+  let P : pair-of3 {X} (pre-r {sp3-EB} {spine 2} {X} (pair-section X {y} {z} {t} v w) sp3-proj) ≡ (y , z , t , v , w) =
     trans (pair-of3-proj {X} (pair-section X {y} {z} {t} v w)) (pair-section-path X {y} {z} {t} v w) in
-  (pre-r sp3-EA {𝕀} {X} (hom-cell {X} {x} {y} u) sp3-coordA ,
-    pre-r sp3-EB {spine 2} {X} (pair-section X {y} {z} {t} v w) sp3-proj ,
+  (pre-r {sp3-EA} {𝕀} {X} (hom-cell {X} {x} {y} u) sp3-coordA ,
+    pre-r {sp3-EB} {spine 2} {X} (pair-section X {y} {z} {t} v w) sp3-proj ,
     trans (hom-tgt {X} {x} {y} u) (sym (cong (fst (pair-from X)) P)))
 
 -- trans (trans p (sym q)) q ≡ p
@@ -144,11 +144,11 @@ tri-src-J {X} f {x} e0 {y} e1 r =
 abstract tri-section-path ∷ (X ∷ U) {x y z t : X} (u : hom X x y) (v : hom X y z) (w : hom X z t) →
   coc3-tri {X} (tri-section X {x} {y} {z} {t} u v w) ≡ (x , y , u , z , t , v , w)
 tri-section-path X {x} {y} {z} {t} (f , e) v w =
-  let P : pair-of3 {X} (pre-r sp3-EB {spine 2} {X} (pair-section X {y} {z} {t} v w) sp3-proj) ≡ (y , z , t , v , w) =
+  let P : pair-of3 {X} (pre-r {sp3-EB} {spine 2} {X} (pair-section X {y} {z} {t} v w) sp3-proj) ≡ (y , z , t , v , w) =
     trans (pair-of3-proj {X} (pair-section X {y} {z} {t} v w)) (pair-section-path X {y} {z} {t} v w) in
   let k : (e : (f 𝕀0 ≡ x) × (f 𝕀1 ≡ y)) → coc3-tri {X} (tri-section X {x} {y} {z} {t} (f , e) v w) ≡ (x , y , (f , e) , z , t , v , w) =
     fun (e0 , e1) →
-      trans (tri-cons-path {X} f {pair-of3 {X} (pre-r sp3-EB {spine 2} {X} (pair-section X {y} {z} {t} v w) sp3-proj)} {(y , z , t , v , w)} P
+      trans (tri-cons-path {X} f {pair-of3 {X} (pre-r {sp3-EB} {spine 2} {X} (pair-section X {y} {z} {t} v w) sp3-proj)} {(y , z , t , v , w)} P
               (trans e1 (sym (cong (fst (pair-from X)) P))))
         (trans (cong {f 𝕀1 ≡ y} {triples X} (λ q . (f 𝕀0 , y , (f , refl , q) , z , t , v , w))
                 (trans-sym-cancel-r e1 (cong (fst (pair-from X)) P)))

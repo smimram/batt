@@ -24,12 +24,12 @@ open import Spine-up
 fst-cell ∷ {X ∷ U} → (spine 2 →ᵣ X) → (𝕀 →ᵣ X)
 fst-cell {X} φ =
   let e ∷ 𝕀 → spine 2 = spine-edge-1 in
-  pre-r 𝕀 φ e
+  pre-r {𝕀} φ e
 
 snd-cell ∷ {X ∷ U} → (spine 2 →ᵣ X) → (𝕀 →ᵣ X)
 snd-cell {X} φ =
   let e ∷ 𝕀 → spine 2 = spine-edge-2 in
-  pre-r 𝕀 φ e
+  pre-r {𝕀} φ e
 
 --
 -- Filler and composite
@@ -58,20 +58,20 @@ thick-filler-r-restr X s ψ =
 thick-pair-r ∷ {X ∷ U} → (spine 2 →ᵣ X) → (thick-spine no-grid 0 2 no-grid 0 →ᵣ X)
 thick-pair-r {X} φ =
   let u ∷ thick-spine no-grid 0 2 no-grid 0 → spine 2 = thicken-unit {spine 2} in
-  pre-r (thick-spine no-grid 0 2 no-grid 0) φ u
+  pre-r {thick-spine no-grid 0 2 no-grid 0} φ u
 
 -- the 2-simplex filling a composable pair: the Segal extension along Λ² ↪ Δ², transported
 -- through the unit laws ⊤ ⊗ (− ⊗ ⊤) of the (trivial) thickening
 comp-filler-r ∷ (X ∷ U) → is-segal-r X → (spine 2 →ᵣ X) → (simplex 2 →ᵣ X)
 comp-filler-r X s φ =
   let c ∷ simplex 2 → thick-simplex no-grid 0 2 no-grid 0 = thicken-counit {simplex 2} in
-  pre-r (simplex 2) (thick-filler-r X s (thick-pair-r {X} φ)) c
+  pre-r {simplex 2} (thick-filler-r X s (thick-pair-r {X} φ)) c
 
 -- the composite of a composable pair: the long edge of its filler
 comp-r ∷ (X ∷ U) → is-segal-r X → (spine 2 →ᵣ X) → (𝕀 →ᵣ X)
 comp-r X s φ =
   let δ ∷ 𝕀 → simplex 2 = long-edge in
-  pre-r 𝕀 (comp-filler-r X s φ) δ
+  pre-r {𝕀} (comp-filler-r X s φ) δ
 
 --
 -- Boundary of the composite: it goes from the source of the first cell to the target of the
@@ -108,7 +108,7 @@ comp-r-tgt X s φ =
 abstract comp-filler-r-restr ∷ (X ∷ U) (s : is-segal-r X) (φ : spine 2 →ᵣ X) → spine-restr-r 2 X (comp-filler-r X s φ) ≡ φ
 comp-filler-r-restr X s φ =
   let c ∷ spine 2 → thick-spine no-grid 0 2 no-grid 0 = thicken-counit {spine 2} in
-  cong {thick-spine no-grid 0 2 no-grid 0 →ᵣ X} {spine 2 →ᵣ X} (λ ψ . pre-r (spine 2) {thick-spine no-grid 0 2 no-grid 0} {X} ψ c)
+  cong {thick-spine no-grid 0 2 no-grid 0 →ᵣ X} {spine 2 →ᵣ X} (λ ψ . pre-r {spine 2} {thick-spine no-grid 0 2 no-grid 0} {X} ψ c)
     (thick-filler-r-restr X s (thick-pair-r {X} φ))
 
 abstract comp-filler-r-unique ∷ (X ∷ U) (s : is-segal-r X) (φ : spine 2 →ᵣ X) (Ψ : simplex 2 →ᵣ X) →
@@ -118,10 +118,10 @@ comp-filler-r-unique X s φ Ψ H =
     (trans (comp-filler-r-restr X s φ) (sym H))
 
 abstract comp-r-unique ∷ (X ∷ U) (s : is-segal-r X) (φ : spine 2 →ᵣ X) (Ψ : simplex 2 →ᵣ X) →
-  spine-restr-r 2 X Ψ ≡ φ → comp-r X s φ ≡ pre-r 𝕀 {simplex 2} {X} Ψ long-edge
+  spine-restr-r 2 X Ψ ≡ φ → comp-r X s φ ≡ pre-r {𝕀} {simplex 2} {X} Ψ long-edge
 comp-r-unique X s φ Ψ H =
   let δ ∷ 𝕀 → simplex 2 = long-edge in
-  cong {simplex 2 →ᵣ X} {𝕀 →ᵣ X} (λ F . pre-r 𝕀 {simplex 2} {X} F δ) (comp-filler-r-unique X s φ Ψ H)
+  cong {simplex 2 →ᵣ X} {𝕀 →ᵣ X} (λ F . pre-r {𝕀} {simplex 2} {X} F δ) (comp-filler-r-unique X s φ Ψ H)
 
 --
 -- Composition on hom types
@@ -155,8 +155,8 @@ hom-pair ∷ {X ∷ U} {x y z : X} → hom X x y → hom X y z → spine-cocone-
 hom-pair {X} {x} {y} {z} u v =
   let ca ∷ sp-EA → 𝕀 = sp-EA-coord in
   let cb ∷ sp-EB → 𝕀 = sp-EB-coord in
-  (pre-r sp-EA {𝕀} {X} (hom-cell {X} {x} {y} u) ca ,
-   pre-r sp-EB {𝕀} {X} (hom-cell {X} {y} {z} v) cb ,
+  (pre-r {sp-EA} {𝕀} {X} (hom-cell {X} {x} {y} u) ca ,
+   pre-r {sp-EB} {𝕀} {X} (hom-cell {X} {y} {z} v) cb ,
    trans (hom-tgt {X} {x} {y} u) (sym (hom-src {X} {y} {z} v)))
 
 -- the composable pair they define
@@ -194,7 +194,7 @@ long-edge-tgt =
 fill-hom ∷ (X ∷ U) {x y z : X} (u : hom X x y) (v : hom X y z) → hom-fill X {x} {y} {z} u v → hom X x z
 fill-hom X {x} {y} {z} u v (Ψ , P) =
   let δ ∷ 𝕀 → simplex 2 = long-edge in
-  (pre-r 𝕀 {simplex 2} {X} Ψ δ ,
+  (pre-r {𝕀} {simplex 2} {X} Ψ δ ,
    trans (ap-r {simplex 2} {X} long-edge-src Ψ)
      (trans (ev-r {sp-EA} {X} sp-a0 (cong (wr-f {sp-EA} {sp-EB} {sp-a1} {sp-b0} {X}) P)) (hom-src {X} {x} {y} u)) ,
    trans (ap-r {simplex 2} {X} long-edge-tgt Ψ)
@@ -231,17 +231,17 @@ fill-hom-unique X s {x} {y} {z} u v F =
 simplex-2-hom01 ∷ {X ∷ U} (Ψ : simplex 2 →ᵣ X) → hom X (Ψ (simplex-2-e01 𝕀0)) (Ψ (simplex-2-e01 𝕀1))
 simplex-2-hom01 {X} Ψ =
   let e ∷ 𝕀 → simplex 2 = simplex-2-e01 in
-  (pre-r 𝕀 {simplex 2} {X} Ψ e , refl , refl)
+  (pre-r {𝕀} {simplex 2} {X} Ψ e , refl , refl)
 
 simplex-2-hom12 ∷ {X ∷ U} (Ψ : simplex 2 →ᵣ X) → hom X (Ψ (simplex-2-e12 𝕀0)) (Ψ (simplex-2-e12 𝕀1))
 simplex-2-hom12 {X} Ψ =
   let e ∷ 𝕀 → simplex 2 = simplex-2-e12 in
-  (pre-r 𝕀 {simplex 2} {X} Ψ e , refl , refl)
+  (pre-r {𝕀} {simplex 2} {X} Ψ e , refl , refl)
 
 simplex-2-hom02 ∷ {X ∷ U} (Ψ : simplex 2 →ᵣ X) → hom X (Ψ (long-edge 𝕀0)) (Ψ (long-edge 𝕀1))
 simplex-2-hom02 {X} Ψ =
   let e ∷ 𝕀 → simplex 2 = long-edge in
-  (pre-r 𝕀 {simplex 2} {X} Ψ e , refl , refl)
+  (pre-r {𝕀} {simplex 2} {X} Ψ e , refl , refl)
 
 -- on the two edges of the spine, the inclusion into the simplex is the edge of the simplex
 spine-edge-A-pt ∷ (a : sp-EA) → spine→simplex 2 (sp-i a) ≡ simplex-2-e01 (sp-EA-coord a)
@@ -282,12 +282,12 @@ simplex-coc-edges {X} Ψ =
   let PA ∷ (λ a . spine→simplex 2 (sp-i a)) ≡{sp-EA → simplex 2} (λ a . simplex-2-e01 (sp-EA-coord a)) = spine-edge-A-path in
   let PB ∷ (λ b . spine→simplex 2 (sp-j b)) ≡{sp-EB → simplex 2} (λ b . simplex-2-e12 (sp-EB-coord b)) = spine-edge-B-path in
   wedge-cocone-r-path sp-EA sp-EB sp-a1 sp-b0 X
-    (pre-r sp-EA {simplex 2} {X} Ψ (λ a . spine→simplex 2 (sp-i a)))
-    (pre-r sp-EB {simplex 2} {X} Ψ (λ b . spine→simplex 2 (sp-j b)))
+    (pre-r {sp-EA} {simplex 2} {X} Ψ (λ a . spine→simplex 2 (sp-i a)))
+    (pre-r {sp-EB} {simplex 2} {X} Ψ (λ b . spine→simplex 2 (sp-j b)))
     (ap-r {spine 2} {X} {sp-i sp-a1} {sp-j sp-b0} sp-γ (spine-restr-r 2 X Ψ))
-    (pre-r sp-EA {simplex 2} {X} Ψ (λ a . simplex-2-e01 (sp-EA-coord a)))
+    (pre-r {sp-EA} {simplex 2} {X} Ψ (λ a . simplex-2-e01 (sp-EA-coord a)))
     (pre-r-path sp-EA {simplex 2} {X} {λ a . spine→simplex 2 (sp-i a)} {λ a . simplex-2-e01 (sp-EA-coord a)} PA Ψ)
-    (pre-r sp-EB {simplex 2} {X} Ψ (λ b . simplex-2-e12 (sp-EB-coord b)))
+    (pre-r {sp-EB} {simplex 2} {X} Ψ (λ b . simplex-2-e12 (sp-EB-coord b)))
     (pre-r-path sp-EB {simplex 2} {X} {λ b . spine→simplex 2 (sp-j b)} {λ b . simplex-2-e12 (sp-EB-coord b)} PB Ψ)
     refl
     (trans
@@ -330,7 +330,7 @@ fill-hom-simplex-2 {X} Ψ =
       (trans (sym (ap-r-trans {simplex 2} {X} long-edge-tgt (happly {sp-EB} {λ _ . simplex 2} PB sp-b1) Ψ))
         (ap-r-set (is-set-simplex 1) (trans long-edge-tgt (happly {sp-EB} {λ _ . simplex 2} PB sp-b1)) refl Ψ)) in
   cong {(Ψ (long-edge 𝕀0) ≡ Ψ (long-edge 𝕀0)) × (Ψ (long-edge 𝕀1) ≡ Ψ (long-edge 𝕀1))} {hom X (Ψ (long-edge 𝕀0)) (Ψ (long-edge 𝕀1))}
-    (λ w . (pre-r 𝕀 {simplex 2} {X} Ψ long-edge , w))
+    (λ w . (pre-r {𝕀} {simplex 2} {X} Ψ long-edge , w))
     (cong2 {Ψ (long-edge 𝕀0) ≡ Ψ (long-edge 𝕀0)} {Ψ (long-edge 𝕀1) ≡ Ψ (long-edge 𝕀1)} {(Ψ (long-edge 𝕀0) ≡ Ψ (long-edge 𝕀0)) × (Ψ (long-edge 𝕀1) ≡ Ψ (long-edge 𝕀1))}
       pair src tgt)
 

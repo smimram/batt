@@ -164,15 +164,15 @@ ev-r-const ∷ {S X ∷ U} (y ∷ S) {z z' : X} (p : z ≡ z') →
 ev-r-const {S} {X} y {z} refl = refl
 
 -- a crisp path of maps k ≡ k' gives a path between the precompositions of an oplax (lax) map
-pre-r-path ∷ (A ∷ U) {B X ∷ U} {k k' ∷ A → B} (p ∷ k ≡ k') (φ : B →ᵣ X) → pre-r A {B} {X} φ k ≡ pre-r A {B} {X} φ k'
+pre-r-path ∷ (A ∷ U) {B X ∷ U} {k k' ∷ A → B} (p ∷ k ≡ k') (φ : B →ᵣ X) → pre-r {A} {B} {X} φ k ≡ pre-r {A} {B} {X} φ k'
 pre-r-path A {B} {X} {k} refl φ = refl
 
-pre-l-path ∷ (A ∷ U) {B X ∷ U} {k k' ∷ A → B} (p ∷ k ≡ k') (φ : B →ₗ X) → pre-l A {B} {X} φ k ≡ pre-l A {B} {X} φ k'
+pre-l-path ∷ (A ∷ U) {B X ∷ U} {k k' ∷ A → B} (p ∷ k ≡ k') (φ : B →ₗ X) → pre-l {A} {B} {X} φ k ≡ pre-l {A} {B} {X} φ k'
 pre-l-path A {B} {X} {k} refl φ = refl
 
 -- evaluated at a crisp point, it is the image of the pointwise path
 ev-r-pre-r-path ∷ (A ∷ U) {B X ∷ U} {k k' ∷ A → B} (p ∷ k ≡ k') (y ∷ A) (φ : B →ᵣ X) →
-  ev-r {A} {X} y {pre-r A {B} {X} φ k} {pre-r A {B} {X} φ k'} (pre-r-path A {B} {X} {k} {k'} p φ)
+  ev-r {A} {X} y {pre-r {A} {B} {X} φ k} {pre-r {A} {B} {X} φ k'} (pre-r-path A {B} {X} {k} {k'} p φ)
     ≡ ap-r {B} {X} {k y} {k' y} (happly {A} {λ _ . B} {k} {k'} p y) φ
 ev-r-pre-r-path A {B} {X} {k} refl y φ = refl
 
@@ -187,7 +187,7 @@ ap-r-trans {S} {X} {y0} {y1} p refl φ = refl
 
 -- ap-r of a precomposition is ap-r of the image path
 ap-r-pre-r ∷ (A ∷ U) {B X ∷ U} {y0 y1 ∷ A} (c ∷ y0 ≡ y1) (k ∷ A → B) (φ : B →ᵣ X) →
-  ap-r {A} {X} {y0} {y1} c (pre-r A {B} {X} φ k) ≡ ap-r {B} {X} {k y0} {k y1} (cong k c) φ
+  ap-r {A} {X} {y0} {y1} c (pre-r {A} {B} {X} φ k) ≡ ap-r {B} {X} {k y0} {k y1} (cong k c) φ
 ap-r-pre-r A {B} {X} {y0} refl k φ = refl
 
 -- the lax mirrors of the four lemmas above

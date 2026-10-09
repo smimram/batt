@@ -16,16 +16,16 @@ circ g f a = g (f a)
 -- For ordinary functions the two coincide; they differ for →ᵣ and →ₗ below.
 
 -- postcomposition
-post ∷ (A : U) {B C : U} → (B → C) → (A → B) → (A → C)
-post A g f a = g (f a)
+post ∷ {A B C : U} → (B → C) → (A → B) → (A → C)
+post g f a = g (f a)
 
 -- precomposition
 pre ∷ (A : U) {B C : U} → (B → C) → (A → B) → (A → C)
 pre A g f a = g (f a)
 
 -- constant
-const ∷ (A : U) → {B : U} → (b : B) → A → B
-const A b x = b
+const ∷ {A : U} → {B : U} → (b : B) → A → B
+const b _ = b
 
 -- fibers
 fib ∷ {A B : U} → (A → B) → B → U
@@ -37,30 +37,30 @@ fib {A} f y = Σ (x : A) . f x ≡ y
 
 -- one direction only swaps
 right-strong-swap ∷ {A B C ∷ U} → (A →ᵣ B → C) → (B → A →ᵣ C)
-right-strong-swap {A} {B} {C} f b a = f a b
+right-strong-swap f b a = f a b
 
 left-strong-swap ∷ {A B C ∷ U} → (A →ₗ B → C) → (B → A →ₗ C)
-left-strong-swap {A} {B} {C} f b a = f a b
+left-strong-swap f b a = f a b
 
 -- reversible swaps
 right-left-swap ∷ {A B C ∷ U} → (A →ᵣ B →ₗ C) → (B →ₗ A →ᵣ C)
-right-left-swap {A} {B} {C} f b a = f a b
+right-left-swap f b a = f a b
 
 left-right-swap ∷ {A B C ∷ U} → (A →ₗ B →ᵣ C) → (B →ᵣ A →ₗ C)
-left-right-swap {A} {B} {C} f b a = f a b
+left-right-swap f b a = f a b
 
 -- r-postcomposition: post-r A g f = g ∘ f
-post-r ∷ (A ∷ U) {B C ∷ U} → (B → C) → (A →ᵣ B) → (A →ᵣ C)
-post-r A {B} {C} g f = λ a . g (f a)
+post-r ∷ {A B C ∷ U} → (B → C) → (A →ᵣ B) → (A →ᵣ C)
+post-r g f a = g (f a)
 
 -- l-postcomposition: post-l A g f = g ∘ f
-post-l ∷ (A ∷ U) {B C ∷ U} → (B → C) → (A →ₗ B) → (A →ₗ C)
-post-l A {B} {C} g f = λ a . g (f a)
+post-l ∷ {A B C ∷ U} → (B → C) → (A →ₗ B) → (A →ₗ C)
+post-l g f a = g (f a)
 
 -- r-precomposition: pre-r A g f = g ∘ f.
-pre-r ∷ (A ∷ U) {B C ∷ U} → (B →ᵣ C) → (A → B) →ᵣ (A →ᵣ C)
-pre-r A {B} {C} g f = λ a . g (f a)
+pre-r ∷ {A B C ∷ U} → (B →ᵣ C) → (A → B) →ᵣ (A →ᵣ C)
+pre-r g f a = g (f a)
 
 -- l-precomposition: pre-l A g f = g ∘ f
-pre-l ∷ (A ∷ U) {B C ∷ U} → (B →ₗ C) → (A → B) →ₗ (A →ₗ C)
-pre-l A {B} {C} g f = λ a . g (f a)
+pre-l ∷ {A B C ∷ U} → (B →ₗ C) → (A → B) →ₗ (A →ₗ C)
+pre-l g f a = g (f a)

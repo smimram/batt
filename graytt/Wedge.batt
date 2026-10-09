@@ -113,7 +113,7 @@ wedge-cocone-r-path-fg A B a1 b0 X f g q f' Pf =
 wedge-restr-r ∷ (S A B ∷ U) (i ∷ A → S) (j ∷ B → S) (a1 ∷ A) (b0 ∷ B) (γ ∷ i a1 ≡ j b0) (X ∷ U) →
   (S →ᵣ X) → wedge-cocone-r A B a1 b0 X
 wedge-restr-r S A B i j a1 b0 γ X φ =
-  (pre-r A {S} {X} φ i , pre-r B {S} {X} φ j , ap-r {S} {X} {i a1} {j b0} γ φ)
+  (pre-r {A} {S} {X} φ i , pre-r {B} {S} {X} φ j , ap-r {S} {X} {i a1} {j b0} γ φ)
 
 -- the universal oplax cocone, as a cartesian cocone with values in Q →ₗ X
 wedge-u-glue-fun-r ∷ (A B ∷ U) (a1 ∷ A) (b0 ∷ B) (X ∷ U) →
@@ -327,7 +327,7 @@ wedge-cocone-l-path A B a1 b0 X f g q f' Pf =
 wedge-restr-l ∷ (S A B ∷ U) (i ∷ A → S) (j ∷ B → S) (a1 ∷ A) (b0 ∷ B) (γ ∷ i a1 ≡ j b0) (X ∷ U) →
   (S →ₗ X) → wedge-cocone-l A B a1 b0 X
 wedge-restr-l S A B i j a1 b0 γ X φ =
-  (pre-l A {S} {X} φ i , pre-l B {S} {X} φ j , ap-l {S} {X} {i a1} {j b0} γ φ)
+  (pre-l {A} {S} {X} φ i , pre-l {B} {S} {X} φ j , ap-l {S} {X} {i a1} {j b0} γ φ)
 
 -- the universal lax cocone, as a cartesian cocone with values in Q →ᵣ X
 wedge-u-glue-fun-l ∷ (A B ∷ U) (a1 ∷ A) (b0 ∷ B) (X ∷ U) →
