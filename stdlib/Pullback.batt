@@ -1,0 +1,2 @@
+pullback :: {A B X :: U} (f : A → X) (g : B → X) → U
+pullback {A} {B} f g = Σ (a : A) . Σ (b : B) . f a ≡ g b

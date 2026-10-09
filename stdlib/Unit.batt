@@ -9,6 +9,24 @@ terminal ∷ (A : U) → A → ⊤
 terminal A x = tt
 
 ---
+--- Functions out of the unit type
+---
+
+open import Funext
+
+unit→-equiv ∷ {A ∷ U} → (⊤ → A) ≃ A
+unit→-equiv {A} = iso→equiv {⊤ → A} {A} (λ f . f tt) (λ a _ . a) (λ a . refl) (λ f . funext-nd (λ _ . f tt) f (λ tt . refl))
+
+terminal-equiv ∷ {A : U} → (A → ⊤) ≃ ⊤
+terminal-equiv {A} = iso→equiv {A → ⊤} {⊤} (λ _ . tt) (λ _ _ . tt) (λ tt . refl) (λ f . funext-nd (λ _ . tt) f (λ a . unit-ind (λ y . tt ≡ y) refl (f a)))
+
+terminal-equiv-r ∷ {A ∷ U} → (A ⇁ ⊤) ≃ ⊤
+terminal-equiv-r {A} = iso→equiv {A ⇁ ⊤} {⊤} (λ _ . tt) (λ _ _ . tt) (λ tt . refl) (λ f . snd _ (snd _ (funext-r A ⊤ (λ a . (tt , f a , unit-ind (λ y . tt ≡ y) refl (f a))))))
+
+terminal-equiv-l ∷ {A ∷ U} → (A →ₗ ⊤) ≃ ⊤
+terminal-equiv-l {A} = iso→equiv {A →ₗ ⊤} {⊤} (λ _ . tt) (λ _ _ . tt) (λ tt . refl) (λ f . snd _ (snd _ (funext-l A ⊤ (λ a . (tt , f a , unit-ind (λ y . tt ≡ y) refl (f a))))))
+
+---
 --- The unit type is a proposition
 ---
 
@@ -19,3 +37,8 @@ is-contr-unit = (tt , λ tt . refl)
 
 is-prop-unit ∷ is-prop ⊤
 is-prop-unit = is-contr→is-prop is-contr-unit
+
+open import Set
+
+is-set-unit ∷ is-set ⊤
+is-set-unit = is-prop→is-set is-prop-unit
