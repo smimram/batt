@@ -34,40 +34,40 @@ open import Functoriality
 --
 
 -- the fibre product hom X x' y ×_{hom A (p x') (p y)} hom A (p x') (p x), over p and (p f) ∘ -
-cart-pb ∷ (X A ∷ U) (p ∷ X → A) (sA : is-segal-r A) {x y : X} (f : hom X x y) (x' : X) → U
-cart-pb X A p sA {x} {y} f x' =
+cart-pb ∷ {X A ∷ U} (sA : is-segal-r A) (p ∷ X → A) {x y : X} (f : hom X x y) (x' : X) → U
+cart-pb {X} {A} sA p {x} {y} f x' =
   Σ (h : hom X x' y) . Σ (k : hom A (p x') (p x)) .
     hom-map {X} {A} p {x'} {y} h ≡ comp-hom-r A sA {p x'} {p x} {p y} k (hom-map {X} {A} p {x} {y} f)
 
 -- the gap map g ↦ (f ∘ g , p g , functoriality of p on (g , f))
-cart-gap ∷ (X A ∷ U) (p ∷ X → A) (sX : is-segal-r X) (sA : is-segal-r A) {x y : X} (f : hom X x y) (x' : X) →
-  hom X x' x → cart-pb X A p sA {x} {y} f x'
-cart-gap X A p sX sA {x} {y} f x' g =
+cart-gap ∷ {X A ∷ U} (sX : is-segal-r X) (sA : is-segal-r A) (p ∷ X → A) {x y : X} (f : hom X x y) (x' : X) →
+  hom X x' x → cart-pb {X} {A} sA p {x} {y} f x'
+cart-gap {X} {A} sX sA p {x} {y} f x' g =
   (comp-hom-r X sX {x'} {x} {y} g f , hom-map {X} {A} p {x'} {x} g , hom-map-comp X A p sX sA {x'} {x} {y} g f)
 
 -- f is p-cartesian when its gap maps are equivalences
-is-cartesian ∷ (X A ∷ U) (p ∷ X → A) (sX : is-segal-r X) (sA : is-segal-r A) {x y : X} → hom X x y → U
-is-cartesian X A p sX sA {x} {y} f = (x' : X) → is-equiv (cart-gap X A p sX sA {x} {y} f x')
+is-cartesian ∷ {X A ∷ U} (sX : is-segal-r X) (sA : is-segal-r A) (p ∷ X → A) {x y : X} → hom X x y → U
+is-cartesian {X} {A} sX sA p {x} {y} f = (x' : X) → is-equiv (cart-gap {X} {A} sX sA p {x} {y} f x')
 
 --
 -- Cocartesian arrows
 --
 
 -- the fibre product hom X x y' ×_{hom A (p x) (p y')} hom A (p y) (p y'), over p and - ∘ (p f)
-cocart-pb ∷ (X A ∷ U) (p ∷ X → A) (sA : is-segal-r A) {x y : X} (f : hom X x y) (y' : X) → U
-cocart-pb X A p sA {x} {y} f y' =
+cocart-pb ∷ {X A ∷ U} (sA : is-segal-r A) (p ∷ X → A) {x y : X} (f : hom X x y) (y' : X) → U
+cocart-pb {X} {A} sA p {x} {y} f y' =
   Σ (h : hom X x y') . Σ (k : hom A (p y) (p y')) .
     hom-map {X} {A} p {x} {y'} h ≡ comp-hom-r A sA {p x} {p y} {p y'} (hom-map {X} {A} p {x} {y} f) k
 
 -- the gap map g ↦ (g ∘ f , p g , functoriality of p on (f , g))
-cocart-gap ∷ (X A ∷ U) (p ∷ X → A) (sX : is-segal-r X) (sA : is-segal-r A) {x y : X} (f : hom X x y) (y' : X) →
-  hom X y y' → cocart-pb X A p sA {x} {y} f y'
-cocart-gap X A p sX sA {x} {y} f y' g =
+cocart-gap ∷ {X A ∷ U} (sX : is-segal-r X) (sA : is-segal-r A) (p ∷ X → A) {x y : X} (f : hom X x y) (y' : X) →
+  hom X y y' → cocart-pb {X} {A} sA p {x} {y} f y'
+cocart-gap {X} {A} sX sA p {x} {y} f y' g =
   (comp-hom-r X sX {x} {y} {y'} f g , hom-map {X} {A} p {y} {y'} g , hom-map-comp X A p sX sA {x} {y} {y'} f g)
 
 -- f is p-cocartesian when its gap maps are equivalences
-is-cocartesian ∷ (X A ∷ U) (p ∷ X → A) (sX : is-segal-r X) (sA : is-segal-r A) {x y : X} → hom X x y → U
-is-cocartesian X A p sX sA {x} {y} f = (y' : X) → is-equiv (cocart-gap X A p sX sA {x} {y} f y')
+is-cocartesian ∷ {X A ∷ U} (sX : is-segal-r X) (sA : is-segal-r A) (p ∷ X → A) {x y : X} → hom X x y → U
+is-cocartesian {X} {A} sX sA p {x} {y} f = (y' : X) → is-equiv (cocart-gap {X} {A} sX sA p {x} {y} f y')
 
 --
 -- Cartesian fibrations
@@ -85,16 +85,16 @@ cell-hom ∷ {X ∷ U} (f : 𝕀 →ᵣ X) → hom X (f 𝕀0) (f 𝕀1)
 cell-hom {X} f = (f , refl , refl)
 
 -- cartesian 1-cells
-cart-cell ∷ (X A ∷ U) (p ∷ X → A) (sX : is-segal-r X) (sA : is-segal-r A) → U
-cart-cell X A p sX sA = Σ (f : 𝕀 →ᵣ X) . is-cartesian X A p sX sA {f 𝕀0} {f 𝕀1} (cell-hom {X} f)
+cart-cell ∷ {X A ∷ U} (sX : is-segal-r X) (sA : is-segal-r A) (p ∷ X → A) → U
+cart-cell {X} {A} sX sA p = Σ (f : 𝕀 →ᵣ X) . is-cartesian {X} {A} sX sA p {f 𝕀0} {f 𝕀1} (cell-hom {X} f)
 
 -- the target of a cartesian 1-cell together with its image
-cart-cell-lift ∷ (X A ∷ U) (p ∷ X → A) (sX : is-segal-r X) (sA : is-segal-r A) →
-  cart-cell X A p sX sA → pullback {X} {𝕀 →ᵣ A} {A} p (λ u . u 𝕀1)
-cart-cell-lift X A p sX sA (f , c) = (f 𝕀1 , post-r 𝕀 {X} {A} p f , refl)
+cart-cell-lift ∷ {X A ∷ U} (sX : is-segal-r X) (sA : is-segal-r A) (p ∷ X → A) →
+  cart-cell {X} {A} sX sA p → pullback {X} {𝕀 →ᵣ A} {A} p (λ u . u 𝕀1)
+cart-cell-lift {X} {A} sX sA p (f , c) = (f 𝕀1 , post-r 𝕀 {X} {A} p f , refl)
 
-is-cartesian-fibration ∷ (X A ∷ U) (p ∷ X → A) (sX : is-segal-r X) (sA : is-segal-r A) → U
-is-cartesian-fibration X A p sX sA = is-equiv (cart-cell-lift X A p sX sA)
+is-cartesian-fibration ∷ {X A ∷ U} (sX : is-segal-r X) (sA : is-segal-r A) (p ∷ X → A) → U
+is-cartesian-fibration {X} {A} sX sA p = is-equiv (cart-cell-lift {X} {A} sX sA p)
 
 --
 -- Cocartesian fibrations
@@ -108,13 +108,13 @@ is-cartesian-fibration X A p sX sA = is-equiv (cart-cell-lift X A p sX sA)
 --
 
 -- cocartesian 1-cells
-cocart-cell ∷ (X A ∷ U) (p ∷ X → A) (sX : is-segal-r X) (sA : is-segal-r A) → U
-cocart-cell X A p sX sA = Σ (f : 𝕀 →ᵣ X) . is-cocartesian X A p sX sA {f 𝕀0} {f 𝕀1} (cell-hom {X} f)
+cocart-cell ∷ {X A ∷ U} (sX : is-segal-r X) (sA : is-segal-r A) (p ∷ X → A) → U
+cocart-cell {X} {A} sX sA p = Σ (f : 𝕀 →ᵣ X) . is-cocartesian {X} {A} sX sA p {f 𝕀0} {f 𝕀1} (cell-hom {X} f)
 
 -- the source of a cocartesian 1-cell together with its image
-cocart-cell-lift ∷ (X A ∷ U) (p ∷ X → A) (sX : is-segal-r X) (sA : is-segal-r A) →
-  cocart-cell X A p sX sA → pullback {X} {𝕀 →ᵣ A} {A} p (λ u . u 𝕀0)
-cocart-cell-lift X A p sX sA (f , c) = (f 𝕀0 , post-r 𝕀 {X} {A} p f , refl)
+cocart-cell-lift ∷ {X A ∷ U} (sX : is-segal-r X) (sA : is-segal-r A) (p ∷ X → A) →
+  cocart-cell {X} {A} sX sA p → pullback {X} {𝕀 →ᵣ A} {A} p (λ u . u 𝕀0)
+cocart-cell-lift {X} {A} sX sA p (f , c) = (f 𝕀0 , post-r 𝕀 {X} {A} p f , refl)
 
-is-cocartesian-fibration ∷ (X A ∷ U) (p ∷ X → A) (sX : is-segal-r X) (sA : is-segal-r A) → U
-is-cocartesian-fibration X A p sX sA = is-equiv (cocart-cell-lift X A p sX sA)
+is-cocartesian-fibration ∷ {X A ∷ U} (sX : is-segal-r X) (sA : is-segal-r A) (p ∷ X → A) → U
+is-cocartesian-fibration {X} {A} sX sA p = is-equiv (cocart-cell-lift {X} {A} sX sA p)
