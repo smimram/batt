@@ -2,17 +2,26 @@
 -- Functoriality of maps on hom types
 --
 -- A map p ∷ X → A acts on homs (hom-map), and this action commutes with composition in
--- oplax-Segal types (hom-map-comp): the image by p of a filler of (u , v) is a filler of
--- (p u , p v), whose long edge is the image of the long edge; by contractibility of fillers
--- (fill-hom-unique), it computes the composite.
+-- oplax-Segal types (hom-map-comp).
+--
+-- For the two first edges of a 2-simplex Ψ, the composite is the long edge (comp-simplex-2), and
+-- the image by p of the long edge of Ψ is the long edge of p ∘ Ψ: this gives the commutation
+-- (hom-map-comp-simplex). Since 2-simplices are composable pairs (is-equiv-edges-2,
+-- Simplex-edges.batt), this extends to all composable pairs, by transport along the section; and
+-- by contractibility of the fibres, on the edges of any 2-simplex the result is the commutation
+-- given by that 2-simplex (hom-map-comp-edges).
+--
+-- The commutation is coherent with associativity (hom-map-comp-assoc): p sends the associator of
+-- X to the associator of A, up to the commutations.
 --
 
 open import Stdlib
 open import Hom
 open import Segal
-open import Spine-up
-open import Wedge
 open import Composition
+open import Composable
+open import Simplex-edges
+open import Associativity
 
 --
 -- Action of a map on homs
@@ -22,146 +31,186 @@ hom-map ∷ {X A ∷ U} (p ∷ X → A) {x y : X} → hom X x y → hom A (p x) 
 hom-map {X} {A} p {x} {y} u =
   (post-r {𝕀} {X} {A} p (hom-cell {X} {x} {y} u) , cong p (hom-src {X} {x} {y} u) , cong p (hom-tgt {X} {x} {y} u))
 
--- image of an oplax cocone on the two edges of the spine
-post-coc ∷ {X A ∷ U} (p ∷ X → A) → spine-cocone-r X → spine-cocone-r A
-post-coc {X} {A} p c =
-  (post-r {sp-EA} {X} {A} p (wr-f {sp-EA} {sp-EB} {sp-a1} {sp-b0} {X} c) ,
-   post-r {sp-EB} {X} {A} p (wr-g {sp-EA} {sp-EB} {sp-a1} {sp-b0} {X} c) ,
-   cong p (wr-q {sp-EA} {sp-EB} {sp-a1} {sp-b0} {X} c))
+--
+-- Commutation with composition
+--
 
--- the image of an oplax map along a crisp path
-ap-r-post ∷ {S X A ∷ U} (p ∷ X → A) {y0 y1 ∷ S} (γ ∷ y0 ≡ y1) (φ : S →ᵣ X) →
-  ap-r {S} {A} {y0} {y1} γ (post-r {S} {X} {A} p φ) ≡ cong p (ap-r {S} {X} {y0} {y1} γ φ)
-ap-r-post {S} {X} {A} p {y0} refl φ = refl
+-- the commutation of p with the composition of a composable pair
+pair-stmt ∷ (X A ∷ U) (p ∷ X → A) (sX : is-segal-r X) (sA : is-segal-r A) → pairs X → U
+pair-stmt X A p sX sA (y , a) =
+  let h : (z : X) (b : Σ (t : X) . hom X y z × hom X z t) → U = fun z (t , c) →
+    let k : (c : hom X y z × hom X z t) → U = fun (v , w) →
+      hom-map {X} {A} p {y} {t} (comp-hom-r X sX {y} {z} {t} v w)
+        ≡ comp-hom-r A sA {p y} {p z} {p t} (hom-map {X} {A} p {y} {z} v) (hom-map {X} {A} p {z} {t} w) in
+    k c in
+  h (fst (λ z . Σ (t : X) . hom X y z × hom X z t) a) (snd (λ z . Σ (t : X) . hom X y z × hom X z t) a)
 
--- paths of cocones which only move the glue do not move the maps
-coc-glue-path-f ∷ {X ∷ U} (F : sp-EA →ᵣ X) (G : sp-EB →ᵣ X) {q q' : F sp-a1 ≡ G sp-b0} (α : q ≡ q') →
-  cong (wr-f {sp-EA} {sp-EB} {sp-a1} {sp-b0} {X}) (cong {F sp-a1 ≡ G sp-b0} {spine-cocone-r X} (λ z . (F , G , z)) α) ≡ refl
-coc-glue-path-f {X} F G {q} refl = refl
+-- on the edges of a 2-simplex: both composites are the long edge
+hom-map-comp-simplex ∷ (X A ∷ U) (p ∷ X → A) (sX : is-segal-r X) (sA : is-segal-r A) (Ψ : simplex 2 →ᵣ X) →
+  pair-stmt X A p sX sA (edges-2 {X} Ψ)
+hom-map-comp-simplex X A p sX sA Ψ =
+  trans (cong (hom-map {X} {A} p {Ψ (simplex-2-e01 𝕀0)} {Ψ (simplex-2-e12 𝕀1)}) (comp-simplex-2 X sX Ψ))
+    (sym (comp-simplex-2 A sA (post-r {simplex 2} {X} {A} p Ψ)))
 
-coc-glue-path-g ∷ {X ∷ U} (F : sp-EA →ᵣ X) (G : sp-EB →ᵣ X) {q q' : F sp-a1 ≡ G sp-b0} (α : q ≡ q') →
-  cong (wr-g {sp-EA} {sp-EB} {sp-a1} {sp-b0} {X}) (cong {F sp-a1 ≡ G sp-b0} {spine-cocone-r X} (λ z . (F , G , z)) α) ≡ refl
-coc-glue-path-g {X} F G {q} refl = refl
-
--- the image of a path of cocones, evaluated at a vertex
-post-coc-ev-f ∷ {X A ∷ U} (p ∷ X → A) (a ∷ sp-EA) {c c' : spine-cocone-r X} (P : c ≡ c') →
-  ev-r {sp-EA} {A} a (cong (wr-f {sp-EA} {sp-EB} {sp-a1} {sp-b0} {A}) (cong (post-coc {X} {A} p) P))
-    ≡ cong p (ev-r {sp-EA} {X} a (cong (wr-f {sp-EA} {sp-EB} {sp-a1} {sp-b0} {X}) P))
-post-coc-ev-f {X} {A} p a {c} refl = refl
-
-post-coc-ev-g ∷ {X A ∷ U} (p ∷ X → A) (b ∷ sp-EB) {c c' : spine-cocone-r X} (P : c ≡ c') →
-  ev-r {sp-EB} {A} b (cong (wr-g {sp-EA} {sp-EB} {sp-a1} {sp-b0} {A}) (cong (post-coc {X} {A} p) P))
-    ≡ cong p (ev-r {sp-EB} {X} b (cong (wr-g {sp-EA} {sp-EB} {sp-a1} {sp-b0} {X}) P))
-post-coc-ev-g {X} {A} p b {c} refl = refl
-
--- restricting the image of a 2-simplex is taking the image of its restriction
-post-simplex-coc ∷ (X A ∷ U) (p ∷ X → A) (Ψ : simplex 2 →ᵣ X) →
-  simplex-coc-r A (post-r {simplex 2} {X} {A} p Ψ) ≡ post-coc {X} {A} p (simplex-coc-r X Ψ)
-post-simplex-coc X A p Ψ =
-  let φ : spine 2 →ᵣ X = spine-restr-r 2 X Ψ in
-  cong {post-r {spine 2} {X} {A} p φ (sp-i sp-a1) ≡ post-r {spine 2} {X} {A} p φ (sp-j sp-b0)} {spine-cocone-r A}
-    (λ z . (post-r {sp-EA} {X} {A} p (pre-r {sp-EA} {spine 2} {X} φ sp-i) , post-r {sp-EB} {X} {A} p (pre-r {sp-EB} {spine 2} {X} φ sp-j) , z))
-    (ap-r-post {spine 2} {X} {A} p {sp-i sp-a1} {sp-j sp-b0} sp-γ φ)
-
--- the image of the cocone of two homs is the cocone of their images
-post-hom-pair ∷ (X A ∷ U) (p ∷ X → A) {x y z : X} (u : hom X x y) (v : hom X y z) →
-  post-coc {X} {A} p (hom-pair {X} {x} {y} {z} u v) ≡ hom-pair {A} {p x} {p y} {p z} (hom-map {X} {A} p {x} {y} u) (hom-map {X} {A} p {y} {z} v)
-post-hom-pair X A p {x} {y} {z} u v =
-  let ca ∷ sp-EA → 𝕀 = sp-EA-coord in
-  let cb ∷ sp-EB → 𝕀 = sp-EB-coord in
-  let tu : hom-cell {X} {x} {y} u 𝕀1 ≡ y = hom-tgt {X} {x} {y} u in
-  let sv : hom-cell {X} {y} {z} v 𝕀0 ≡ y = hom-src {X} {y} {z} v in
-  cong {p (hom-cell {X} {x} {y} u 𝕀1) ≡ p (hom-cell {X} {y} {z} v 𝕀0)} {spine-cocone-r A}
-    (λ w . (post-r {sp-EA} {X} {A} p (pre-r {sp-EA} {𝕀} {X} (hom-cell {X} {x} {y} u) ca) ,
-            post-r {sp-EB} {X} {A} p (pre-r {sp-EB} {𝕀} {X} (hom-cell {X} {y} {z} v) cb) , w))
-    (trans (cong-trans p tu (sym sv)) (cong {p y ≡ p (hom-cell {X} {y} {z} v 𝕀0)} {p (hom-cell {X} {x} {y} u 𝕀1) ≡ p (hom-cell {X} {y} {z} v 𝕀0)} (λ e . trans (cong p tu) e) (cong-sym p sv)))
-
--- the image of a path of cocones from the restriction of a filler of (u , v)
-map-fill-path ∷ (X A ∷ U) (p ∷ X → A) {x y z : X} (u : hom X x y) (v : hom X y z) (Ψ : simplex 2 →ᵣ X) →
-  simplex-coc-r X Ψ ≡ hom-pair {X} {x} {y} {z} u v →
-  simplex-coc-r A (post-r {simplex 2} {X} {A} p Ψ) ≡ hom-pair {A} {p x} {p y} {p z} (hom-map {X} {A} p {x} {y} u) (hom-map {X} {A} p {y} {z} v)
-map-fill-path X A p {x} {y} {z} u v Ψ P =
-  trans (post-simplex-coc X A p Ψ) (trans (cong (post-coc {X} {A} p) P) (post-hom-pair X A p {x} {y} {z} u v))
-
--- the image of a filler of (u , v) is a filler of (p u , p v)
-map-fill ∷ (X A ∷ U) (p ∷ X → A) {x y z : X} (u : hom X x y) (v : hom X y z) →
-  hom-fill X {x} {y} {z} u v → hom-fill A {p x} {p y} {p z} (hom-map {X} {A} p {x} {y} u) (hom-map {X} {A} p {y} {z} v)
-map-fill X A p {x} {y} {z} u v (Ψ , P) =
-  (post-r {simplex 2} {X} {A} p Ψ , map-fill-path X A p {x} {y} {z} u v Ψ P)
-
--- on the maps of the cocones, the path of map-fill is the image of the path of the filler
-abstract map-fill-f ∷ (X A ∷ U) (p ∷ X → A) {x y z : X} (u : hom X x y) (v : hom X y z) (Ψ : simplex 2 →ᵣ X)
-  (P : simplex-coc-r X Ψ ≡ hom-pair {X} {x} {y} {z} u v) →
-  cong (wr-f {sp-EA} {sp-EB} {sp-a1} {sp-b0} {A}) (map-fill-path X A p {x} {y} {z} u v Ψ P)
-    ≡ cong (wr-f {sp-EA} {sp-EB} {sp-a1} {sp-b0} {A}) (cong (post-coc {X} {A} p) P)
-map-fill-f X A p {x} {y} {z} u v Ψ P =
-  let wf : spine-cocone-r A → (sp-EA →ᵣ A) = wr-f {sp-EA} {sp-EB} {sp-a1} {sp-b0} {A} in
-  let N : simplex-coc-r A (post-r {simplex 2} {X} {A} p Ψ) ≡ post-coc {X} {A} p (simplex-coc-r X Ψ) = post-simplex-coc X A p Ψ in
-  let C : post-coc {X} {A} p (simplex-coc-r X Ψ) ≡ post-coc {X} {A} p (hom-pair {X} {x} {y} {z} u v) = cong (post-coc {X} {A} p) P in
-  let H : post-coc {X} {A} p (hom-pair {X} {x} {y} {z} u v) ≡ hom-pair {A} {p x} {p y} {p z} (hom-map {X} {A} p {x} {y} u) (hom-map {X} {A} p {y} {z} v) =
-    post-hom-pair X A p {x} {y} {z} u v in
-  let Fa : sp-EA →ᵣ A = wf (simplex-coc-r A (post-r {simplex 2} {X} {A} p Ψ)) in
-  let Fb : sp-EA →ᵣ A = wf (hom-pair {A} {p x} {p y} {p z} (hom-map {X} {A} p {x} {y} u) (hom-map {X} {A} p {y} {z} v)) in
-  trans (cong-trans wf N (trans C H))
-    (trans (cong {Fa ≡ Fa} {Fa ≡ Fb} (λ e . trans e (cong wf (trans C H))) (coc-glue-path-f _ _ _))
-      (trans (trans-refl-l (cong wf (trans C H)))
-        (trans (cong-trans wf C H) (cong {Fb ≡ Fb} {Fa ≡ Fb} (λ e . trans (cong wf C) e) (coc-glue-path-f _ _ _)))))
-
-abstract map-fill-g ∷ (X A ∷ U) (p ∷ X → A) {x y z : X} (u : hom X x y) (v : hom X y z) (Ψ : simplex 2 →ᵣ X)
-  (P : simplex-coc-r X Ψ ≡ hom-pair {X} {x} {y} {z} u v) →
-  cong (wr-g {sp-EA} {sp-EB} {sp-a1} {sp-b0} {A}) (map-fill-path X A p {x} {y} {z} u v Ψ P)
-    ≡ cong (wr-g {sp-EA} {sp-EB} {sp-a1} {sp-b0} {A}) (cong (post-coc {X} {A} p) P)
-map-fill-g X A p {x} {y} {z} u v Ψ P =
-  let wg : spine-cocone-r A → (sp-EB →ᵣ A) = wr-g {sp-EA} {sp-EB} {sp-a1} {sp-b0} {A} in
-  let N : simplex-coc-r A (post-r {simplex 2} {X} {A} p Ψ) ≡ post-coc {X} {A} p (simplex-coc-r X Ψ) = post-simplex-coc X A p Ψ in
-  let C : post-coc {X} {A} p (simplex-coc-r X Ψ) ≡ post-coc {X} {A} p (hom-pair {X} {x} {y} {z} u v) = cong (post-coc {X} {A} p) P in
-  let H : post-coc {X} {A} p (hom-pair {X} {x} {y} {z} u v) ≡ hom-pair {A} {p x} {p y} {p z} (hom-map {X} {A} p {x} {y} u) (hom-map {X} {A} p {y} {z} v) =
-    post-hom-pair X A p {x} {y} {z} u v in
-  let Fa : sp-EB →ᵣ A = wg (simplex-coc-r A (post-r {simplex 2} {X} {A} p Ψ)) in
-  let Fb : sp-EB →ᵣ A = wg (hom-pair {A} {p x} {p y} {p z} (hom-map {X} {A} p {x} {y} u) (hom-map {X} {A} p {y} {z} v)) in
-  trans (cong-trans wg N (trans C H))
-    (trans (cong {Fa ≡ Fa} {Fa ≡ Fb} (λ e . trans e (cong wg (trans C H))) (coc-glue-path-g _ _ _))
-      (trans (trans-refl-l (cong wg (trans C H)))
-        (trans (cong-trans wg C H) (cong {Fb ≡ Fb} {Fa ≡ Fb} (λ e . trans (cong wg C) e) (coc-glue-path-g _ _ _)))))
-
--- the hom read off the image of a filler is the image of the hom read off the filler
-abstract map-fill-hom ∷ (X A ∷ U) (p ∷ X → A) {x y z : X} (u : hom X x y) (v : hom X y z) (F : hom-fill X {x} {y} {z} u v) →
-  fill-hom A {p x} {p y} {p z} (hom-map {X} {A} p {x} {y} u) (hom-map {X} {A} p {y} {z} v) (map-fill X A p {x} {y} {z} u v F)
-    ≡ hom-map {X} {A} p {x} {z} (fill-hom X {x} {y} {z} u v F)
-map-fill-hom X A p {x} {y} {z} u v (Ψ , P) =
-  let δ ∷ 𝕀 → simplex 2 = long-edge in
-  let a0 : Ψ (long-edge 𝕀0) ≡ Ψ (spine→simplex 2 (sp-i sp-a0)) = ap-r {simplex 2} {X} long-edge-src Ψ in
-  let b0 : Ψ (spine→simplex 2 (sp-i sp-a0)) ≡ hom-cell {X} {x} {y} u 𝕀0 =
-    ev-r {sp-EA} {X} sp-a0 (cong (wr-f {sp-EA} {sp-EB} {sp-a1} {sp-b0} {X}) P) in
-  let su : hom-cell {X} {x} {y} u 𝕀0 ≡ x = hom-src {X} {x} {y} u in
-  let a1 : Ψ (long-edge 𝕀1) ≡ Ψ (spine→simplex 2 (sp-j sp-b1)) = ap-r {simplex 2} {X} long-edge-tgt Ψ in
-  let b1 : Ψ (spine→simplex 2 (sp-j sp-b1)) ≡ hom-cell {X} {y} {z} v 𝕀1 =
-    ev-r {sp-EB} {X} sp-b1 (cong (wr-g {sp-EA} {sp-EB} {sp-a1} {sp-b0} {X}) P) in
-  let tv : hom-cell {X} {y} {z} v 𝕀1 ≡ z = hom-tgt {X} {y} {z} v in
-  let S : trans (ap-r {simplex 2} {A} long-edge-src (post-r {simplex 2} {X} {A} p Ψ))
-            (trans (ev-r {sp-EA} {A} sp-a0 (cong (wr-f {sp-EA} {sp-EB} {sp-a1} {sp-b0} {A}) (map-fill-path X A p {x} {y} {z} u v Ψ P))) (cong p su))
-          ≡ cong p (trans a0 (trans b0 su)) =
-    trans (cong2 {p (Ψ (long-edge 𝕀0)) ≡ p (Ψ (spine→simplex 2 (sp-i sp-a0)))} {p (Ψ (spine→simplex 2 (sp-i sp-a0))) ≡ p x} {p (Ψ (long-edge 𝕀0)) ≡ p x} (λ α β . trans α β) (ap-r-post {simplex 2} {X} {A} p long-edge-src Ψ)
-             (cong {p (Ψ (spine→simplex 2 (sp-i sp-a0))) ≡ p (hom-cell {X} {x} {y} u 𝕀0)} {p (Ψ (spine→simplex 2 (sp-i sp-a0))) ≡ p x} (λ β . trans β (cong p su))
-               (trans (cong (ev-r {sp-EA} {A} sp-a0) (map-fill-f X A p {x} {y} {z} u v Ψ P)) (post-coc-ev-f {X} {A} p sp-a0 P))))
-      (sym (trans (cong-trans p a0 (trans b0 su)) (cong {p (Ψ (spine→simplex 2 (sp-i sp-a0))) ≡ p x} {p (Ψ (long-edge 𝕀0)) ≡ p x} (λ e . trans (cong p a0) e) (cong-trans p b0 su)))) in
-  let T : trans (ap-r {simplex 2} {A} long-edge-tgt (post-r {simplex 2} {X} {A} p Ψ))
-            (trans (ev-r {sp-EB} {A} sp-b1 (cong (wr-g {sp-EA} {sp-EB} {sp-a1} {sp-b0} {A}) (map-fill-path X A p {x} {y} {z} u v Ψ P))) (cong p tv))
-          ≡ cong p (trans a1 (trans b1 tv)) =
-    trans (cong2 {p (Ψ (long-edge 𝕀1)) ≡ p (Ψ (spine→simplex 2 (sp-j sp-b1)))} {p (Ψ (spine→simplex 2 (sp-j sp-b1))) ≡ p z} {p (Ψ (long-edge 𝕀1)) ≡ p z} (λ α β . trans α β) (ap-r-post {simplex 2} {X} {A} p long-edge-tgt Ψ)
-             (cong {p (Ψ (spine→simplex 2 (sp-j sp-b1))) ≡ p (hom-cell {X} {y} {z} v 𝕀1)} {p (Ψ (spine→simplex 2 (sp-j sp-b1))) ≡ p z} (λ β . trans β (cong p tv))
-               (trans (cong (ev-r {sp-EB} {A} sp-b1) (map-fill-g X A p {x} {y} {z} u v Ψ P)) (post-coc-ev-g {X} {A} p sp-b1 P))))
-      (sym (trans (cong-trans p a1 (trans b1 tv)) (cong {p (Ψ (spine→simplex 2 (sp-j sp-b1))) ≡ p z} {p (Ψ (long-edge 𝕀1)) ≡ p z} (λ e . trans (cong p a1) e) (cong-trans p b1 tv)))) in
-  cong {(p (Ψ (long-edge 𝕀0)) ≡ p x) × (p (Ψ (long-edge 𝕀1)) ≡ p z)} {hom A (p x) (p z)}
-    (λ w . (post-r {𝕀} {X} {A} p (pre-r {𝕀} {simplex 2} {X} Ψ δ) , w))
-    (cong2 {p (Ψ (long-edge 𝕀0)) ≡ p x} {p (Ψ (long-edge 𝕀1)) ≡ p z} {(p (Ψ (long-edge 𝕀0)) ≡ p x) × (p (Ψ (long-edge 𝕀1)) ≡ p z)} pair S T)
-
--- the action of p on homs preserves composition
-abstract hom-map-comp ∷ (X A ∷ U) (p ∷ X → A) (sX : is-segal-r X) (sA : is-segal-r A) {x y z : X} (u : hom X x y) (v : hom X y z) →
+-- for an arbitrary composable pair, by transport along the section of the edges
+hom-map-comp-def ∷ (X A ∷ U) (p ∷ X → A) (sX : is-segal-r X) (sA : is-segal-r A) {x y z : X} (u : hom X x y) (v : hom X y z) →
   hom-map {X} {A} p {x} {z} (comp-hom-r X sX {x} {y} {z} u v)
     ≡ comp-hom-r A sA {p x} {p y} {p z} (hom-map {X} {A} p {x} {y} u) (hom-map {X} {A} p {y} {z} v)
-hom-map-comp X A p sX sA {x} {y} {z} u v =
-  let F : hom-fill X {x} {y} {z} u v = comp-fill X sX {x} {y} {z} u v in
-  sym (trans (fill-hom-unique A sA {p x} {p y} {p z} (hom-map {X} {A} p {x} {y} u) (hom-map {X} {A} p {y} {z} v) (map-fill X A p {x} {y} {z} u v F))
-         (map-fill-hom X A p {x} {y} {z} u v F))
+hom-map-comp-def X A p sX sA {x} {y} {z} u v =
+  let s : section (edges-2 {X}) = is-equiv-sec (edges-2 {X}) (is-equiv-edges-2 X sX) in
+  let r : pairs X = (x , y , z , u , v) in
+  subst (pair-stmt X A p sX sA) (snd (is-section (edges-2 {X})) s r)
+    (hom-map-comp-simplex X A p sX sA (map-section (edges-2 {X}) s r))
 
+-- frozen (see assoc-simplex-3): it does not unfold, but is equal to its definition
+abstract hom-map-comp-freeze ∷ (X A ∷ U) (p ∷ X → A) (sX : is-segal-r X) (sA : is-segal-r A) {x y z : X} (u : hom X x y) (v : hom X y z) →
+  Σ (e : hom-map {X} {A} p {x} {z} (comp-hom-r X sX {x} {y} {z} u v)
+    ≡ comp-hom-r A sA {p x} {p y} {p z} (hom-map {X} {A} p {x} {y} u) (hom-map {X} {A} p {y} {z} v)) . e ≡ hom-map-comp-def X A p sX sA {x} {y} {z} u v
+hom-map-comp-freeze X A p sX sA {x} {y} {z} u v = (hom-map-comp-def X A p sX sA {x} {y} {z} u v , refl)
+
+hom-map-comp ∷ (X A ∷ U) (p ∷ X → A) (sX : is-segal-r X) (sA : is-segal-r A) {x y z : X} (u : hom X x y) (v : hom X y z) →
+  hom-map {X} {A} p {x} {z} (comp-hom-r X sX {x} {y} {z} u v)
+    ≡ comp-hom-r A sA {p x} {p y} {p z} (hom-map {X} {A} p {x} {y} u) (hom-map {X} {A} p {y} {z} v)
+hom-map-comp X A p sX sA {x} {y} {z} u v = fst _ (hom-map-comp-freeze X A p sX sA {x} {y} {z} u v)
+
+-- on the edges of a 2-simplex, it is the commutation given by that 2-simplex
+abstract hom-map-comp-edges ∷ (X A ∷ U) (p ∷ X → A) (sX : is-segal-r X) (sA : is-segal-r A) (Ψ : simplex 2 →ᵣ X) →
+  hom-map-comp X A p sX sA {Ψ (simplex-2-e01 𝕀0)} {Ψ (simplex-2-e12 𝕀0)} {Ψ (simplex-2-e12 𝕀1)} (simplex-2-hom01 {X} Ψ) (simplex-2-hom12 {X} Ψ)
+    ≡ hom-map-comp-simplex X A p sX sA Ψ
+hom-map-comp-edges X A p sX sA Ψ =
+  let s : section (edges-2 {X}) = is-equiv-sec (edges-2 {X}) (is-equiv-edges-2 X sX) in
+  trans (snd _ (hom-map-comp-freeze X A p sX sA {Ψ (simplex-2-e01 𝕀0)} {Ψ (simplex-2-e12 𝕀0)} {Ψ (simplex-2-e12 𝕀1)} (simplex-2-hom01 {X} Ψ) (simplex-2-hom12 {X} Ψ)))
+  (transfer-equiv (edges-2 {X}) (is-equiv-edges-2 X sX) (pair-stmt X A p sX sA) (hom-map-comp-simplex X A p sX sA) Ψ
+    (map-section (edges-2 {X}) s (edges-2 {X} Ψ)) (snd (is-section (edges-2 {X})) s (edges-2 {X} Ψ)))
+
+--
+-- Coherence with associativity
+--
+-- p sends the associator of X to the associator of A, up to the commutations of p with
+-- composition. On the edges of a 3-simplex Θ, the associators are given by the four faces of Θ
+-- and of p ∘ Θ (assoc-simplex-3), and the commutations on the faces by hom-map-comp-edges, so
+-- that the coherence is path algebra (coh-alg). It extends to all composable triples since
+-- 3-simplices are composable triples (is-equiv-edges-tri, Simplex-edges.batt).
+--
+
+-- naturality of a homotopy P2 ∘ L ~ L' ∘ P1, along the images of a path
+htpy-nat-cong ∷ {H K H' K' : U} (P1 : H → H') (P2 : K → K') (L : H → K) (L' : H' → K') (F : (h : H) → P2 (L h) ≡ L' (P1 h))
+  {h h' : H} (α : h ≡ h') → trans (cong P2 (cong L α)) (F h') ≡ trans (F h) (cong L' (cong P1 α))
+htpy-nat-cong {H} {K} {H'} {K'} P1 P2 L L' F {h} refl = trans-refl-l (F h)
+
+-- the path algebra of the coherence of associativity
+coh-alg ∷ {T : U} {p1 p2 p3 p4 p5 p6 p7 r1 q1 q2 q3 : T}
+  (A1 : p1 ≡ p2) (A2 : p2 ≡ p3) (A3 : p4 ≡ p3) (A4 : p4 ≡ p5) (F1 : p5 ≡ p6) (G1 : p6 ≡ p7)
+  (F2 : p4 ≡ r1) (B4 : r1 ≡ p6) (C2 : r1 ≡ p3) (E0 : r1 ≡ p7)
+  (F3 : p2 ≡ q2) (C1 : q2 ≡ p3) (F4 : p1 ≡ q1) (B1 : q1 ≡ q2) (G2 : q1 ≡ q3) (D3 : q3 ≡ q2) →
+  trans A4 F1 ≡ trans F2 B4 → F2 ≡ trans A3 (sym C2) → trans B4 G1 ≡ E0 → A2 ≡ trans F3 C1 →
+  trans A1 F3 ≡ trans F4 B1 → B1 ≡ trans G2 D3 →
+  trans (trans A1 (trans A2 (trans (sym A3) A4))) (trans F1 G1) ≡ trans F4 (trans G2 (trans D3 (trans C1 (trans (sym C2) E0))))
+coh-alg {T} {p1} {p2} {p3} {p4} {p5} {p6} {p7} {r1} {q1} {q2} {q3} A1 A2 A3 A4 F1 G1 F2 B4 C2 E0 F3 C1 F4 B1 G2 D3 h1 h2 h3 h4 h5 h6 =
+  let Z : q2 ≡ p7 = trans C1 (trans (sym C2) E0) in
+  -- A4 · (F1 · G1) = F2 · E0
+  let X1 : trans A4 (trans F1 G1) ≡ trans F2 E0 =
+    trans (sym (assoc A4 F1 G1))
+      (trans (cong {p4 ≡ p6} {p4 ≡ p7} (λ e . trans e G1) h1)
+        (trans (assoc F2 B4 G1) (cong {r1 ≡ p7} {p4 ≡ p7} (λ e . trans F2 e) h3))) in
+  -- (A3⁻¹ · A4) · (F1 · G1) = C2⁻¹ · E0
+  let Y : trans (trans (sym A3) A4) (trans F1 G1) ≡ trans (sym C2) E0 =
+    trans (assoc (sym A3) A4 (trans F1 G1))
+      (trans (cong {p4 ≡ p7} {p3 ≡ p7} (λ e . trans (sym A3) e) X1)
+        (trans (cong {p4 ≡ r1} {p3 ≡ p7} (λ e . trans (sym A3) (trans e E0)) h2)
+          (trans (cong {p4 ≡ p7} {p3 ≡ p7} (λ e . trans (sym A3) e) (assoc A3 (sym C2) E0))
+            (trans-sym-trans A3 (trans (sym C2) E0))))) in
+  -- (A2 · (A3⁻¹ · A4)) · (F1 · G1) = F3 · Z
+  let W : trans (trans A2 (trans (sym A3) A4)) (trans F1 G1) ≡ trans F3 Z =
+    trans (assoc A2 (trans (sym A3) A4) (trans F1 G1))
+      (trans (cong {p3 ≡ p7} {p2 ≡ p7} (λ e . trans A2 e) Y)
+        (trans (cong {p2 ≡ p3} {p2 ≡ p7} (λ e . trans e (trans (sym C2) E0)) h4)
+          (assoc F3 C1 (trans (sym C2) E0)))) in
+  trans (assoc A1 (trans A2 (trans (sym A3) A4)) (trans F1 G1))
+    (trans (cong {p2 ≡ p7} {p1 ≡ p7} (λ e . trans A1 e) W)
+      (trans (sym (assoc A1 F3 Z))
+        (trans (cong {p1 ≡ q2} {p1 ≡ p7} (λ e . trans e Z) h5)
+          (trans (assoc F4 B1 Z)
+            (trans (cong {q1 ≡ q2} {p1 ≡ p7} (λ e . trans F4 (trans e Z)) h6)
+              (cong {q1 ≡ p7} {p1 ≡ p7} (λ e . trans F4 e) (assoc G2 D3 Z)))))))
+
+-- the coherence for a composable triple
+assoc-coh-stmt ∷ (X A ∷ U) (p ∷ X → A) (sX : is-segal-r X) (sA : is-segal-r A) {x y z t : X} (u : hom X x y) (v : hom X y z) (w : hom X z t) → U
+assoc-coh-stmt X A p sX sA {x} {y} {z} {t} u v w =
+  trans (cong (hom-map {X} {A} p {x} {t}) (comp-hom-r-assoc X sX {x} {y} {z} {t} u v w))
+    (trans (hom-map-comp X A p sX sA {x} {y} {t} u (comp-hom-r X sX {y} {z} {t} v w))
+      (cong (λ m . comp-hom-r A sA {p x} {p y} {p t} (hom-map {X} {A} p {x} {y} u) m) (hom-map-comp X A p sX sA {y} {z} {t} v w)))
+  ≡ trans (hom-map-comp X A p sX sA {x} {z} {t} (comp-hom-r X sX {x} {y} {z} u v) w)
+      (trans (cong (λ m . comp-hom-r A sA {p x} {p z} {p t} m (hom-map {X} {A} p {z} {t} w)) (hom-map-comp X A p sX sA {x} {y} {z} u v))
+        (comp-hom-r-assoc A sA {p x} {p y} {p z} {p t}
+          (hom-map {X} {A} p {x} {y} u) (hom-map {X} {A} p {y} {z} v) (hom-map {X} {A} p {z} {t} w)))
+
+-- the coherence, for a composable triple given with the four faces of a 3-simplex: its edges a, b
+-- and c, the composites of its faces (in X and in A), the commutations of p on the faces, and
+-- the associators given by the faces
+abstract assoc-coh-faces ∷ (X A ∷ U) (p ∷ X → A) (sX : is-segal-r X) (sA : is-segal-r A) {x0 x1 x2 x3 : X}
+  (u : hom X x0 x1) (v : hom X x1 x2) (w : hom X x2 x3) (a : (hom X x0 x2)) (b : (hom X x1 x3)) (c : (hom X x0 x3))
+  (c3 : (comp-hom-r X sX {x0} {x1} {x2} u v) ≡ a) (c1 : (comp-hom-r X sX {x0} {x2} {x3} a w) ≡ c) (c2 : (comp-hom-r X sX {x0} {x1} {x3} u b) ≡ c) (c0 : (comp-hom-r X sX {x1} {x2} {x3} v w) ≡ b)
+  (c3' : (comp-hom-r A sA {p x0} {p x1} {p x2} ((hom-map {X} {A} p {x0} {x1}) u) ((hom-map {X} {A} p {x1} {x2}) v)) ≡ ((hom-map {X} {A} p {x0} {x2}) a)) (c1' : (comp-hom-r A sA {p x0} {p x2} {p x3} ((hom-map {X} {A} p {x0} {x2}) a) ((hom-map {X} {A} p {x2} {x3}) w)) ≡ ((hom-map {X} {A} p {x0} {x3}) c)) (c2' : (comp-hom-r A sA {p x0} {p x1} {p x3} ((hom-map {X} {A} p {x0} {x1}) u) ((hom-map {X} {A} p {x1} {x3}) b)) ≡ ((hom-map {X} {A} p {x0} {x3}) c)) (c0' : (comp-hom-r A sA {p x1} {p x2} {p x3} ((hom-map {X} {A} p {x1} {x2}) v) ((hom-map {X} {A} p {x2} {x3}) w)) ≡ ((hom-map {X} {A} p {x1} {x3}) b))
+  (E3 : (hom-map-comp X A p sX sA {x0} {x1} {x2} u v) ≡ trans (cong (hom-map {X} {A} p {x0} {x2}) c3) (sym c3')) (E1 : (hom-map-comp X A p sX sA {x0} {x2} {x3} a w) ≡ trans (cong (hom-map {X} {A} p {x0} {x3}) c1) (sym c1'))
+  (E2 : (hom-map-comp X A p sX sA {x0} {x1} {x3} u b) ≡ trans (cong (hom-map {X} {A} p {x0} {x3}) c2) (sym c2')) (E0 : (hom-map-comp X A p sX sA {x1} {x2} {x3} v w) ≡ trans (cong (hom-map {X} {A} p {x1} {x3}) c0) (sym c0'))
+  (AX : (comp-hom-r-assoc X sX {x0} {x1} {x2} {x3} u v w) ≡ (trans (cong {(hom X x0 x2)} {(hom X x0 x3)} (λ h . (comp-hom-r X sX {x0} {x2} {x3} h w)) c3) (trans c1 (trans (sym c2) (cong {(hom X x1 x3)} {(hom X x0 x3)} (λ h . (comp-hom-r X sX {x0} {x1} {x3} u h)) (sym c0))))))
+  (AA : (comp-hom-r-assoc A sA {p x0} {p x1} {p x2} {p x3} ((hom-map {X} {A} p {x0} {x1}) u) ((hom-map {X} {A} p {x1} {x2}) v) ((hom-map {X} {A} p {x2} {x3}) w)) ≡ (trans (cong {(hom A (p x0) (p x2))} {(hom A (p x0) (p x3))} (λ m . (comp-hom-r A sA {p x0} {p x2} {p x3} m ((hom-map {X} {A} p {x2} {x3}) w))) c3') (trans c1' (trans (sym c2') (cong {(hom A (p x1) (p x3))} {(hom A (p x0) (p x3))} (λ m . (comp-hom-r A sA {p x0} {p x1} {p x3} ((hom-map {X} {A} p {x0} {x1}) u) m)) (sym c0')))))) →
+  assoc-coh-stmt X A p sX sA {x0} {x1} {x2} {x3} u v w
+assoc-coh-faces X A p sX sA {x0} {x1} {x2} {x3} u v w a b c c3 c1 c2 c0 c3' c1' c2' c0' E3 E1 E2 E0 AX AA =
+  trans (cong {(comp-hom-r X sX {x0} {x2} {x3} (comp-hom-r X sX {x0} {x1} {x2} u v) w) ≡ (comp-hom-r X sX {x0} {x1} {x3} u (comp-hom-r X sX {x1} {x2} {x3} v w))} {(hom-map {X} {A} p {x0} {x3}) (comp-hom-r X sX {x0} {x2} {x3} (comp-hom-r X sX {x0} {x1} {x2} u v) w) ≡ (comp-hom-r A sA {p x0} {p x1} {p x3} ((hom-map {X} {A} p {x0} {x1}) u) (comp-hom-r A sA {p x1} {p x2} {p x3} ((hom-map {X} {A} p {x1} {x2}) v) ((hom-map {X} {A} p {x2} {x3}) w)))} (λ q . trans (cong (hom-map {X} {A} p {x0} {x3}) q) (trans (hom-map-comp X A p sX sA {x0} {x1} {x3} u (comp-hom-r X sX {x1} {x2} {x3} v w)) (cong (λ m . (comp-hom-r A sA {p x0} {p x1} {p x3} ((hom-map {X} {A} p {x0} {x1}) u) m)) (hom-map-comp X A p sX sA {x1} {x2} {x3} v w)))) AX)
+    (trans (cong {(hom-map {X} {A} p {x0} {x3}) (comp-hom-r X sX {x0} {x2} {x3} (comp-hom-r X sX {x0} {x1} {x2} u v) w) ≡ (hom-map {X} {A} p {x0} {x3}) (comp-hom-r X sX {x0} {x1} {x3} u (comp-hom-r X sX {x1} {x2} {x3} v w))} {(hom-map {X} {A} p {x0} {x3}) (comp-hom-r X sX {x0} {x2} {x3} (comp-hom-r X sX {x0} {x1} {x2} u v) w) ≡ (comp-hom-r A sA {p x0} {p x1} {p x3} ((hom-map {X} {A} p {x0} {x1}) u) (comp-hom-r A sA {p x1} {p x2} {p x3} ((hom-map {X} {A} p {x1} {x2}) v) ((hom-map {X} {A} p {x2} {x3}) w)))} (λ q . trans q (trans (hom-map-comp X A p sX sA {x0} {x1} {x3} u (comp-hom-r X sX {x1} {x2} {x3} v w)) (cong (λ m . (comp-hom-r A sA {p x0} {p x1} {p x3} ((hom-map {X} {A} p {x0} {x1}) u) m)) (hom-map-comp X A p sX sA {x1} {x2} {x3} v w)))) (trans (cong-trans4 (hom-map {X} {A} p {x0} {x3}) (cong {(hom X x0 x2)} {(hom X x0 x3)} (λ h . (comp-hom-r X sX {x0} {x2} {x3} h w)) c3) c1 (sym c2) (cong {(hom X x1 x3)} {(hom X x0 x3)} (λ h . (comp-hom-r X sX {x0} {x1} {x3} u h)) (sym c0)))
+      (cong {((hom-map {X} {A} p {x0} {x3}) c) ≡ (hom-map {X} {A} p {x0} {x3}) (comp-hom-r X sX {x0} {x1} {x3} u b)} {(hom-map {X} {A} p {x0} {x3}) (comp-hom-r X sX {x0} {x2} {x3} (comp-hom-r X sX {x0} {x1} {x2} u v) w) ≡ (hom-map {X} {A} p {x0} {x3}) (comp-hom-r X sX {x0} {x1} {x3} u (comp-hom-r X sX {x1} {x2} {x3} v w))}
+        (λ e . trans (cong (hom-map {X} {A} p {x0} {x3}) (cong {(hom X x0 x2)} {(hom X x0 x3)} (λ h . (comp-hom-r X sX {x0} {x2} {x3} h w)) c3)) (trans (cong (hom-map {X} {A} p {x0} {x3}) c1) (trans e (cong (hom-map {X} {A} p {x0} {x3}) (cong {(hom X x1 x3)} {(hom X x0 x3)} (λ h . (comp-hom-r X sX {x0} {x1} {x3} u h)) (sym c0)))))) (cong-sym (hom-map {X} {A} p {x0} {x3}) c2))))
+      (trans (coh-alg (cong (hom-map {X} {A} p {x0} {x3}) (cong {(hom X x0 x2)} {(hom X x0 x3)} (λ h . (comp-hom-r X sX {x0} {x2} {x3} h w)) c3)) (cong (hom-map {X} {A} p {x0} {x3}) c1) (cong (hom-map {X} {A} p {x0} {x3}) c2) (cong (hom-map {X} {A} p {x0} {x3}) (cong {(hom X x1 x3)} {(hom X x0 x3)} (λ h . (comp-hom-r X sX {x0} {x1} {x3} u h)) (sym c0))) (hom-map-comp X A p sX sA {x0} {x1} {x3} u (comp-hom-r X sX {x1} {x2} {x3} v w)) (cong (λ m . (comp-hom-r A sA {p x0} {p x1} {p x3} ((hom-map {X} {A} p {x0} {x1}) u) m)) (hom-map-comp X A p sX sA {x1} {x2} {x3} v w))
+      (hom-map-comp X A p sX sA {x0} {x1} {x3} u b) (cong (λ m . (comp-hom-r A sA {p x0} {p x1} {p x3} ((hom-map {X} {A} p {x0} {x1}) u) m)) (cong (hom-map {X} {A} p {x1} {x3}) (sym c0))) c2' (cong (λ m . (comp-hom-r A sA {p x0} {p x1} {p x3} ((hom-map {X} {A} p {x0} {x1}) u) m)) (sym c0'))
+      (hom-map-comp X A p sX sA {x0} {x2} {x3} a w) c1' (hom-map-comp X A p sX sA {x0} {x2} {x3} (comp-hom-r X sX {x0} {x1} {x2} u v) w) (cong (λ m . (comp-hom-r A sA {p x0} {p x2} {p x3} m ((hom-map {X} {A} p {x2} {x3}) w))) (cong (hom-map {X} {A} p {x0} {x2}) c3)) (cong (λ m . (comp-hom-r A sA {p x0} {p x2} {p x3} m ((hom-map {X} {A} p {x2} {x3}) w))) (hom-map-comp X A p sX sA {x0} {x1} {x2} u v)) (cong (λ m . (comp-hom-r A sA {p x0} {p x2} {p x3} m ((hom-map {X} {A} p {x2} {x3}) w))) c3')
+      (htpy-nat-cong (hom-map {X} {A} p {x1} {x3}) (hom-map {X} {A} p {x0} {x3}) (λ h . (comp-hom-r X sX {x0} {x1} {x3} u h)) (λ m . (comp-hom-r A sA {p x0} {p x1} {p x3} ((hom-map {X} {A} p {x0} {x1}) u) m)) (λ h . (hom-map-comp X A p sX sA {x0} {x1} {x3} u h)) (sym c0))
+      E2
+      (trans (sym (cong-trans (λ m . (comp-hom-r A sA {p x0} {p x1} {p x3} ((hom-map {X} {A} p {x0} {x1}) u) m)) (cong (hom-map {X} {A} p {x1} {x3}) (sym c0)) (hom-map-comp X A p sX sA {x1} {x2} {x3} v w)))
+      (cong {(hom-map {X} {A} p {x1} {x3}) b ≡ (comp-hom-r A sA {p x1} {p x2} {p x3} ((hom-map {X} {A} p {x1} {x2}) v) ((hom-map {X} {A} p {x2} {x3}) w))} {(comp-hom-r A sA {p x0} {p x1} {p x3} ((hom-map {X} {A} p {x0} {x1}) u) ((hom-map {X} {A} p {x1} {x3}) b)) ≡ (comp-hom-r A sA {p x0} {p x1} {p x3} ((hom-map {X} {A} p {x0} {x1}) u) (comp-hom-r A sA {p x1} {p x2} {p x3} ((hom-map {X} {A} p {x1} {x2}) v) ((hom-map {X} {A} p {x2} {x3}) w)))} (cong (λ m . (comp-hom-r A sA {p x0} {p x1} {p x3} ((hom-map {X} {A} p {x0} {x1}) u) m))) (trans (cong {(hom-map {X} {A} p {x1} {x3}) (comp-hom-r X sX {x1} {x2} {x3} v w) ≡ (comp-hom-r A sA {p x1} {p x2} {p x3} ((hom-map {X} {A} p {x1} {x2}) v) ((hom-map {X} {A} p {x2} {x3}) w))} {(hom-map {X} {A} p {x1} {x3}) b ≡ (comp-hom-r A sA {p x1} {p x2} {p x3} ((hom-map {X} {A} p {x1} {x2}) v) ((hom-map {X} {A} p {x2} {x3}) w))} (λ e . trans (cong (hom-map {X} {A} p {x1} {x3}) (sym c0)) e) E0)
+      (trans (cong {(hom-map {X} {A} p {x1} {x3}) b ≡ (hom-map {X} {A} p {x1} {x3}) (comp-hom-r X sX {x1} {x2} {x3} v w)} {(hom-map {X} {A} p {x1} {x3}) b ≡ (comp-hom-r A sA {p x1} {p x2} {p x3} ((hom-map {X} {A} p {x1} {x2}) v) ((hom-map {X} {A} p {x2} {x3}) w))} (λ e . trans e (trans (cong (hom-map {X} {A} p {x1} {x3}) c0) (sym c0'))) (cong-sym (hom-map {X} {A} p {x1} {x3}) c0))
+        (trans-sym-trans (cong (hom-map {X} {A} p {x1} {x3}) c0) (sym c0'))))))
+      (trans (sym (trans-sym-cancel-r (cong (hom-map {X} {A} p {x0} {x3}) c1) c1')) (cong {(hom-map {X} {A} p {x0} {x3}) (comp-hom-r X sX {x0} {x2} {x3} a w) ≡ (comp-hom-r A sA {p x0} {p x2} {p x3} ((hom-map {X} {A} p {x0} {x2}) a) ((hom-map {X} {A} p {x2} {x3}) w))} {(hom-map {X} {A} p {x0} {x3}) (comp-hom-r X sX {x0} {x2} {x3} a w) ≡ ((hom-map {X} {A} p {x0} {x3}) c)} (λ e . trans e c1') (sym E1)))
+      (htpy-nat-cong (hom-map {X} {A} p {x0} {x2}) (hom-map {X} {A} p {x0} {x3}) (λ h . (comp-hom-r X sX {x0} {x2} {x3} h w)) (λ m . (comp-hom-r A sA {p x0} {p x2} {p x3} m ((hom-map {X} {A} p {x2} {x3}) w))) (λ h . (hom-map-comp X A p sX sA {x0} {x2} {x3} h w)) c3)
+      (trans (cong {(hom-map {X} {A} p {x0} {x2}) (comp-hom-r X sX {x0} {x1} {x2} u v) ≡ ((hom-map {X} {A} p {x0} {x2}) a)} {(comp-hom-r A sA {p x0} {p x2} {p x3} ((hom-map {X} {A} p {x0} {x2}) (comp-hom-r X sX {x0} {x1} {x2} u v)) ((hom-map {X} {A} p {x2} {x3}) w)) ≡ (comp-hom-r A sA {p x0} {p x2} {p x3} ((hom-map {X} {A} p {x0} {x2}) a) ((hom-map {X} {A} p {x2} {x3}) w))} (cong (λ m . (comp-hom-r A sA {p x0} {p x2} {p x3} m ((hom-map {X} {A} p {x2} {x3}) w)))) (trans (sym (trans-sym-cancel-r (cong (hom-map {X} {A} p {x0} {x2}) c3) c3')) (cong {(hom-map {X} {A} p {x0} {x2}) (comp-hom-r X sX {x0} {x1} {x2} u v) ≡ (comp-hom-r A sA {p x0} {p x1} {p x2} ((hom-map {X} {A} p {x0} {x1}) u) ((hom-map {X} {A} p {x1} {x2}) v))} {(hom-map {X} {A} p {x0} {x2}) (comp-hom-r X sX {x0} {x1} {x2} u v) ≡ ((hom-map {X} {A} p {x0} {x2}) a)} (λ e . trans e c3') (sym E3)))) (cong-trans (λ m . (comp-hom-r A sA {p x0} {p x2} {p x3} m ((hom-map {X} {A} p {x2} {x3}) w))) (hom-map-comp X A p sX sA {x0} {x1} {x2} u v) c3')))
+        (cong {(comp-hom-r A sA {p x0} {p x2} {p x3} (comp-hom-r A sA {p x0} {p x1} {p x2} ((hom-map {X} {A} p {x0} {x1}) u) ((hom-map {X} {A} p {x1} {x2}) v)) ((hom-map {X} {A} p {x2} {x3}) w)) ≡ (comp-hom-r A sA {p x0} {p x1} {p x3} ((hom-map {X} {A} p {x0} {x1}) u) (comp-hom-r A sA {p x1} {p x2} {p x3} ((hom-map {X} {A} p {x1} {x2}) v) ((hom-map {X} {A} p {x2} {x3}) w)))} {(hom-map {X} {A} p {x0} {x3}) (comp-hom-r X sX {x0} {x2} {x3} (comp-hom-r X sX {x0} {x1} {x2} u v) w) ≡ (comp-hom-r A sA {p x0} {p x1} {p x3} ((hom-map {X} {A} p {x0} {x1}) u) (comp-hom-r A sA {p x1} {p x2} {p x3} ((hom-map {X} {A} p {x1} {x2}) v) ((hom-map {X} {A} p {x2} {x3}) w)))} (λ q . trans (hom-map-comp X A p sX sA {x0} {x2} {x3} (comp-hom-r X sX {x0} {x1} {x2} u v) w) (trans (cong (λ m . (comp-hom-r A sA {p x0} {p x2} {p x3} m ((hom-map {X} {A} p {x2} {x3}) w))) (hom-map-comp X A p sX sA {x0} {x1} {x2} u v)) q)) (sym AA))))
+
+-- on the edges of a 3-simplex Θ: the faces of Θ and of p ∘ Θ
+abstract assoc-coh-simplex ∷ (X A ∷ U) (p ∷ X → A) (sX : is-segal-r X) (sA : is-segal-r A) (Θ : simplex 3 →ᵣ X) →
+  assoc-coh-stmt X A p sX sA {Θ (simplex-3-e01 𝕀0)} {Θ (simplex-3-e12 𝕀0)} {Θ (simplex-3-e23 𝕀0)} {Θ (simplex-3-e23 𝕀1)} (simplex-3-hom {X} simplex-3-e01 Θ) (simplex-3-hom {X} simplex-3-e12 Θ) (simplex-3-hom {X} simplex-3-e23 Θ)
+assoc-coh-simplex X A p sX sA Θ =
+  assoc-coh-faces X A p sX sA {Θ (simplex-3-e01 𝕀0)} {Θ (simplex-3-e12 𝕀0)} {Θ (simplex-3-e23 𝕀0)} {Θ (simplex-3-e23 𝕀1)} (simplex-3-hom {X} simplex-3-e01 Θ) (simplex-3-hom {X} simplex-3-e12 Θ) (simplex-3-hom {X} simplex-3-e23 Θ)
+    (simplex-3-hom {X} simplex-3-e02 Θ) (simplex-3-hom {X} simplex-3-e13 Θ) (simplex-3-hom {X} simplex-3-e03 Θ)
+    (comp-simplex-2 X sX (simplex-3-face {X} simplex-3-d3 Θ)) (comp-simplex-2 X sX (simplex-3-face {X} simplex-3-d1 Θ)) (comp-simplex-2 X sX (simplex-3-face {X} simplex-3-d2 Θ)) (comp-simplex-2 X sX (simplex-3-face {X} simplex-3-d0 Θ))
+    (comp-simplex-2 A sA (simplex-3-face {A} simplex-3-d3 (post-r {simplex 3} {X} {A} p Θ))) (comp-simplex-2 A sA (simplex-3-face {A} simplex-3-d1 (post-r {simplex 3} {X} {A} p Θ))) (comp-simplex-2 A sA (simplex-3-face {A} simplex-3-d2 (post-r {simplex 3} {X} {A} p Θ))) (comp-simplex-2 A sA (simplex-3-face {A} simplex-3-d0 (post-r {simplex 3} {X} {A} p Θ)))
+    (hom-map-comp-edges X A p sX sA (simplex-3-face {X} simplex-3-d3 Θ)) (hom-map-comp-edges X A p sX sA (simplex-3-face {X} simplex-3-d1 Θ))
+    (hom-map-comp-edges X A p sX sA (simplex-3-face {X} simplex-3-d2 Θ)) (hom-map-comp-edges X A p sX sA (simplex-3-face {X} simplex-3-d0 Θ))
+    (trans (comp-hom-r-assoc-eq X sX {Θ (simplex-3-e01 𝕀0)} {Θ (simplex-3-e12 𝕀0)} {Θ (simplex-3-e23 𝕀0)} {Θ (simplex-3-e23 𝕀1)} (simplex-3-hom {X} simplex-3-e01 Θ) (simplex-3-hom {X} simplex-3-e12 Θ) (simplex-3-hom {X} simplex-3-e23 Θ))
+      (trans (transfer-equiv (edges-tri {X}) (is-equiv-edges-tri X sX) (tri-assoc X sX) (assoc-simplex-3 X sX) Θ
+               (assoc-filler X sX {Θ (simplex-3-e01 𝕀0)} {Θ (simplex-3-e12 𝕀0)} {Θ (simplex-3-e23 𝕀0)} {Θ (simplex-3-e23 𝕀1)} (simplex-3-hom {X} simplex-3-e01 Θ) (simplex-3-hom {X} simplex-3-e12 Θ) (simplex-3-hom {X} simplex-3-e23 Θ)) (assoc-filler-edges X sX {Θ (simplex-3-e01 𝕀0)} {Θ (simplex-3-e12 𝕀0)} {Θ (simplex-3-e23 𝕀0)} {Θ (simplex-3-e23 𝕀1)} (simplex-3-hom {X} simplex-3-e01 Θ) (simplex-3-hom {X} simplex-3-e12 Θ) (simplex-3-hom {X} simplex-3-e23 Θ)))
+        (assoc-simplex-3-eq X sX Θ)))
+    (trans (comp-hom-r-assoc-eq A sA {p (Θ (simplex-3-e01 𝕀0))} {p (Θ (simplex-3-e12 𝕀0))} {p (Θ (simplex-3-e23 𝕀0))} {p (Θ (simplex-3-e23 𝕀1))} (simplex-3-hom {A} simplex-3-e01 (post-r {simplex 3} {X} {A} p Θ)) (simplex-3-hom {A} simplex-3-e12 (post-r {simplex 3} {X} {A} p Θ)) (simplex-3-hom {A} simplex-3-e23 (post-r {simplex 3} {X} {A} p Θ)))
+      (trans (transfer-equiv (edges-tri {A}) (is-equiv-edges-tri A sA) (tri-assoc A sA) (assoc-simplex-3 A sA) (post-r {simplex 3} {X} {A} p Θ)
+               (assoc-filler A sA {p (Θ (simplex-3-e01 𝕀0))} {p (Θ (simplex-3-e12 𝕀0))} {p (Θ (simplex-3-e23 𝕀0))} {p (Θ (simplex-3-e23 𝕀1))} (simplex-3-hom {A} simplex-3-e01 (post-r {simplex 3} {X} {A} p Θ)) (simplex-3-hom {A} simplex-3-e12 (post-r {simplex 3} {X} {A} p Θ)) (simplex-3-hom {A} simplex-3-e23 (post-r {simplex 3} {X} {A} p Θ))) (assoc-filler-edges A sA {p (Θ (simplex-3-e01 𝕀0))} {p (Θ (simplex-3-e12 𝕀0))} {p (Θ (simplex-3-e23 𝕀0))} {p (Θ (simplex-3-e23 𝕀1))} (simplex-3-hom {A} simplex-3-e01 (post-r {simplex 3} {X} {A} p Θ)) (simplex-3-hom {A} simplex-3-e12 (post-r {simplex 3} {X} {A} p Θ)) (simplex-3-hom {A} simplex-3-e23 (post-r {simplex 3} {X} {A} p Θ))))
+        (assoc-simplex-3-eq A sA (post-r {simplex 3} {X} {A} p Θ))))
+
+-- the coherence, as a family over composable triples
+assoc-coh-tri ∷ (X A ∷ U) (p ∷ X → A) (sX : is-segal-r X) (sA : is-segal-r A) → triples X → U
+assoc-coh-tri X A p sX sA (x , a) =
+  let h : (y : X) (b : hom X x y × pair-from X y) → U = fun y (u , c) →
+    let h' : (z : X) (d : Σ (t : X) . hom X y z × hom X z t) → U = fun z (t , e) →
+      let h'' : (e : hom X y z × hom X z t) → U = fun (v , w) → assoc-coh-stmt X A p sX sA {x} {y} {z} {t} u v w in
+      h'' e
+    in
+    h' (fst (λ z . Σ (t : X) . hom X y z × hom X z t) c) (snd (λ z . Σ (t : X) . hom X y z × hom X z t) c)
+  in
+  h (fst (λ y . hom X x y × pair-from X y) a) (snd (λ y . hom X x y × pair-from X y) a)
+
+-- the functoriality of p on homs is coherent with associativity: transport the coherence on the
+-- edges of the 3-simplex filling the triple
+abstract hom-map-comp-assoc ∷ (X A ∷ U) (p ∷ X → A) (sX : is-segal-r X) (sA : is-segal-r A) {x y z t : X}
+  (u : hom X x y) (v : hom X y z) (w : hom X z t) → assoc-coh-stmt X A p sX sA {x} {y} {z} {t} u v w
+hom-map-comp-assoc X A p sX sA {x} {y} {z} {t} u v w =
+  subst {triples X} (assoc-coh-tri X A p sX sA) (assoc-filler-edges X sX {x} {y} {z} {t} u v w)
+    (assoc-coh-simplex X A p sX sA (assoc-filler X sX {x} {y} {z} {t} u v w))

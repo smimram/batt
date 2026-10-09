@@ -311,3 +311,27 @@ path-rot {T} {a0} {a1} {a2} {a3} A B C {d1} D {d2} E F =
         (λ d' C'' D' h . trans (sym (trans-sym-trans A (trans B C''))) (cong {a0 ≡ d'} {a1 ≡ d'} (λ w . trans (sym A) w) h))
         E' C' D)
     F C E
+
+-- the total map of a fiberwise map
+tot ∷ {A : U} {P Q : A → U} (f : (a : A) → P a → Q a) → (Σ (a : A) . P a) → Σ (a : A) . Q a
+tot {A} {P} {Q} f (a , x) = (a , f a x)
+
+-- a fiberwise equivalence induces an equivalence of total spaces
+abstract is-equiv-tot ∷ {A : U} {P Q : A → U} (f : (a : A) → P a → Q a) → ((a : A) → is-equiv (f a)) → is-equiv (tot {A} {P} {Q} f)
+is-equiv-tot {A} {P} {Q} f e =
+  let s : (Σ (a : A) . Q a) → Σ (a : A) . P a = fun (a , y) → (a , map-section (f a) (is-equiv-sec (f a) (e a)) y) in
+  let ss : (w : Σ (a : A) . Q a) → tot {A} {P} {Q} f (s w) ≡ w = fun (a , y) →
+    cong {Q a} {Σ (a : A) . Q a} (λ z . (a , z)) (snd _ (is-equiv-sec (f a) (e a)) y) in
+  let r : (Σ (a : A) . Q a) → Σ (a : A) . P a = fun (a , y) → (a , map-retraction (f a) (is-equiv-ret (f a) (e a)) y) in
+  let rr : (w : Σ (a : A) . P a) → r (tot {A} {P} {Q} f w) ≡ w = fun (a , x) →
+    cong {P a} {Σ (a : A) . P a} (λ z . (a , z)) (snd _ (is-equiv-ret (f a) (e a)) x) in
+  ((s , ss) , (r , rr))
+
+-- a construction on the codomain of an equivalence e, obtained by transporting a construction g
+-- on its domain along a section, agrees with g: the fibres of e are contractible
+abstract transfer-equiv ∷ {S T : U} (e : S → T) → is-equiv e → (F : T → U) (g : (s : S) → F (e s)) (s s' : S) (E : e s' ≡ e s) →
+  subst F E (g s') ≡ g s
+transfer-equiv {S} {T} e ee F g s s' E =
+  let c : is-contr (fib e (e s)) = is-contr-fib e ee (e s) in
+  let G : fib e (e s) → F (e s) = fun (x , q) → subst F q (g x) in
+  cong G (is-contr-eq c (s' , E) (s , refl))
