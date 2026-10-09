@@ -1,0 +1,75 @@
+--
+-- Isomorphisms in oplax-Segal types
+--
+-- A hom f : hom X x y is an isomorphism when it has a two-sided inverse g : hom X y x
+-- (composition is written diagrammatically: comp f g is g ∘ f). Then
+--
+--   is-equiv-comp-iso-l : composing on the left with f, hom X y y' → hom X x y', is an equivalence
+--   is-equiv-comp-iso-r : composing on the right with f, hom X x' x → hom X x' y, is an equivalence
+--
+-- with inverses given by composition with g (by associativity and unitality), and
+--
+--   is-iso-hom-map : maps send isomorphisms to isomorphisms (by functoriality on homs).
+--
+
+open import Stdlib
+open import Hom
+open import Segal
+open import Composition
+open import Unitality
+open import Associativity
+open import Functoriality
+
+-- two-sided inverses
+is-iso-hom ∷ {X ∷ U} (s : is-segal-r X) {x y : X} (f : hom X x y) → U
+is-iso-hom {X} s {x} {y} f =
+  Σ (g : hom X y x) . (comp-hom-r X s {x} {y} {x} f g ≡ id-hom {X} x) × (comp-hom-r X s {y} {x} {y} g f ≡ id-hom {X} y)
+
+--
+-- Composition with an isomorphism is an equivalence
+--
+
+abstract is-equiv-comp-iso-l ∷ {X ∷ U} (s : is-segal-r X) {x y : X} (f : hom X x y) → is-iso-hom {X} s {x} {y} f → (y' : X) →
+  is-equiv (λ g . comp-hom-r X s {x} {y} {y'} f g)
+is-equiv-comp-iso-l {X} s {x} {y} f (g , e) y' =
+  let fg : comp-hom-r X s {x} {y} {x} f g ≡ id-hom {X} x = prod-fst e in
+  let gf : comp-hom-r X s {y} {x} {y} g f ≡ id-hom {X} y = prod-snd e in
+  let inv : hom X x y' → hom X y y' = λ h . comp-hom-r X s {y} {x} {y'} g h in
+  let sec : (h : hom X x y') → comp-hom-r X s {x} {y} {y'} f (inv h) ≡ h = λ h .
+    trans (sym (comp-hom-r-assoc X s {x} {y} {x} {y'} f g h))
+      (trans (cong {hom X x x} {hom X x y'} (λ k . comp-hom-r X s {x} {x} {y'} k h) fg) (comp-hom-r-lunit X s {x} {y'} h)) in
+  let ret : (k : hom X y y') → inv (comp-hom-r X s {x} {y} {y'} f k) ≡ k = λ k .
+    trans (sym (comp-hom-r-assoc X s {y} {x} {y} {y'} g f k))
+      (trans (cong {hom X y y} {hom X y y'} (λ l . comp-hom-r X s {y} {y} {y'} l k) gf) (comp-hom-r-lunit X s {y} {y'} k)) in
+  ((inv , sec) , (inv , ret))
+
+abstract is-equiv-comp-iso-r ∷ {X ∷ U} (s : is-segal-r X) {x y : X} (f : hom X x y) → is-iso-hom {X} s {x} {y} f → (x' : X) →
+  is-equiv (λ g . comp-hom-r X s {x'} {x} {y} g f)
+is-equiv-comp-iso-r {X} s {x} {y} f (g , e) x' =
+  let fg : comp-hom-r X s {x} {y} {x} f g ≡ id-hom {X} x = prod-fst e in
+  let gf : comp-hom-r X s {y} {x} {y} g f ≡ id-hom {X} y = prod-snd e in
+  let inv : hom X x' y → hom X x' x = λ h . comp-hom-r X s {x'} {y} {x} h g in
+  let sec : (h : hom X x' y) → comp-hom-r X s {x'} {x} {y} (inv h) f ≡ h = λ h .
+    trans (comp-hom-r-assoc X s {x'} {y} {x} {y} h g f)
+      (trans (cong {hom X y y} {hom X x' y} (λ k . comp-hom-r X s {x'} {y} {y} h k) gf) (comp-hom-r-runit X s {x'} {y} h)) in
+  let ret : (k : hom X x' x) → inv (comp-hom-r X s {x'} {x} {y} k f) ≡ k = λ k .
+    trans (comp-hom-r-assoc X s {x'} {x} {y} {x} k f g)
+      (trans (cong {hom X x x} {hom X x' x} (λ l . comp-hom-r X s {x'} {x} {x} k l) fg) (comp-hom-r-runit X s {x'} {x} k)) in
+  ((inv , sec) , (inv , ret))
+
+--
+-- Maps preserve isomorphisms
+--
+
+-- the image of an identity is an identity
+hom-map-id ∷ {X A ∷ U} (p ∷ X → A) (x : X) → hom-map {X} {A} p {x} {x} (id-hom {X} x) ≡ id-hom {A} (p x)
+hom-map-id {X} {A} p x = refl
+
+is-iso-hom-map ∷ {X A ∷ U} (sX : is-segal-r X) (sA : is-segal-r A) (p ∷ X → A) {x y : X} (f : hom X x y) →
+  is-iso-hom {X} sX {x} {y} f → is-iso-hom {A} sA {p x} {p y} (hom-map {X} {A} p {x} {y} f)
+is-iso-hom-map {X} {A} sX sA p {x} {y} f (g , e) =
+  let fg : comp-hom-r X sX {x} {y} {x} f g ≡ id-hom {X} x = prod-fst e in
+  let gf : comp-hom-r X sX {y} {x} {y} g f ≡ id-hom {X} y = prod-snd e in
+  (hom-map {X} {A} p {y} {x} g ,
+   trans (sym (hom-map-comp X A p sX sA {x} {y} {x} f g)) (cong (hom-map {X} {A} p {x} {x}) fg) ,
+   trans (sym (hom-map-comp X A p sX sA {y} {x} {y} g f)) (cong (hom-map {X} {A} p {y} {y}) gf))
