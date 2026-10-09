@@ -6,3 +6,21 @@ arrowₗ A = 𝕀 →ₗ A
 
 arrowᵣ ∷ (A ∷ U) → U
 arrowᵣ A = 𝕀 →ᵣ A
+
+dom ∷ {A : U} → arrow A → A
+dom f = f 𝕀0
+
+cod ∷ {A : U} → arrow A → A
+cod f = f 𝕀1
+
+domₗ ∷ {A ∷ U} → arrowₗ A → A
+domₗ f = f 𝕀0
+
+codₗ ∷ {A ∷ U} → arrowₗ A → A
+codₗ f = f 𝕀1
+
+domᵣ ∷ {A ∷ U} → arrowᵣ A → A
+domᵣ f = f 𝕀0
+
+codᵣ ∷ {A ∷ U} → arrowᵣ A → A
+codᵣ f = f 𝕀1
