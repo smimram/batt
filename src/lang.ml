@@ -1013,29 +1013,12 @@ let check_decls_toplevel decls =
       add "true" bool (V.IndTerm (`Bool true, []));
       (* The successor function (constructors are always fully applied, so we eta-expand). *)
       add "succ" (V.Pi (Explicit, Normal, IndType (`Nat, []), ("_", IndType (`Nat, []), []))) (V.eval [] @@ Abs (Explicit, "n", IndTerm (`Succ, [Var "n"])));
-      (* Induction on natural numbers: {C : ℕ → Type} → C 0 → ((n : ℕ) → C n → C (succ n)) → (n : ℕ) → C n. *)
-      add "Nat-ind"
-        (V.eval [] @@
-           Pi (Implicit, Normal, "C", Pi (Explicit, Normal, "_", IndType (`Nat, []), Type 0),
-               Pi (Explicit, Normal, "_", T.app (Var "C") (IndTerm (`Zero, [])),
-                   Pi (Explicit, Normal, "_", Pi (Explicit, Normal, "n", IndType (`Nat, []), Pi (Explicit, Normal, "_", T.app (Var "C") (Var "n"), T.app (Var "C") (IndTerm (`Succ, [Var "n"])))),
-                       Pi (Explicit, Normal, "n", IndType (`Nat, []), T.app (Var "C") (Var "n"))))))
-        (V.eval [] @@ Abs (Implicit, "C", T.abss ["z"; "s"; "n"] (T.app (IndType_ind (`Nat, [Var "z"; Var "s"])) (Var "n"))));
       (* Lists. *)
       let list a = T.IndType (`List, [a]) in
       add "List" (V.eval [] @@ Pi (Explicit, Normal, "_", Type 0, Type 0)) (V.eval [] @@ Abs (Explicit, "A", list (Var "A")));
       add "cons"
         (V.eval [] @@ Pi (Implicit, Normal, "A", Type 0, Pi (Explicit, Normal, "_", Var "A", Pi (Explicit, Normal, "_", list (Var "A"), list (Var "A")))))
         (V.eval [] @@ Abs (Implicit, "A", T.abss ["x"; "l"] (IndTerm (`Cons, [Var "x"; Var "l"]))));
-      (* Induction on lists: {A : Type} {C : List A → Type} → C nil → ((x : A) (l : List A) → C l → C (cons x l)) → (l : List A) → C l. *)
-      add "List-ind"
-        (V.eval [] @@
-           Pi (Implicit, Normal, "A", Type 0,
-               Pi (Implicit, Normal, "C", Pi (Explicit, Normal, "_", list (Var "A"), Type 0),
-                   Pi (Explicit, Normal, "_", T.app (Var "C") (IndTerm (`Nil, [])),
-                       Pi (Explicit, Normal, "_", Pi (Explicit, Normal, "x", Var "A", Pi (Explicit, Normal, "l", list (Var "A"), Pi (Explicit, Normal, "_", T.app (Var "C") (Var "l"), T.app (Var "C") (IndTerm (`Cons, [Var "x"; Var "l"]))))),
-                           Pi (Explicit, Normal, "l", list (Var "A"), T.app (Var "C") (Var "l")))))))
-        (V.eval [] @@ Abs (Implicit, "A", Abs (Implicit, "C", T.abss ["n"; "c"; "l"] (T.app (IndType_ind (`List, [Var "n"; Var "c"])) (Var "l")))));
     );
   ignore @@ check_decls 0 !env !ctx decls
 
