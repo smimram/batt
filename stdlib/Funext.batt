@@ -316,3 +316,30 @@ pre-l-equiv A B f e X =
     funext-nd (λ a . r (f a)) (λ a . a) (snd (is-retraction f) (is-equiv-ret f e)) in
   (((λ ψ . pre-l {B} {A} {X} ψ r) , (λ ψ . pre-l-path A {A} {X} {λ a . r (f a)} {λ a . a} rf ψ)) ,
    ((λ ψ . pre-l {B} {A} {X} ψ s) , (λ φ . pre-l-path B {B} {X} {λ b . f (s b)} {λ b . b} fs φ)))
+
+---
+--- Being an equivalence is a proposition
+---
+
+-- the type of maps g with a homotopy g ~ id is contractible
+abstract is-contr-htpy-id ∷ (A : U) → is-contr (Σ (g : A → A) . (x : A) → g x ≡ x)
+is-contr-htpy-id A =
+  let T : U = Σ (g : A → A) . (x : A) → g x ≡ x in
+  let S : U = (x : A) → Σ (y : A) . y ≡ x in
+  let s : T → S = λ (g , h) . λ x . (g x , h x) in
+  let r : S → T = λ u . ((λ x . fst (λ y . y ≡ x) (u x)) , (λ x . snd (λ y . y ≡ x) (u x))) in
+  let rs : (w : T) → r (s w) ≡ w = λ (g , h) . refl in
+  is-contr-retract s (r , rs) (is-contr-Π (λ x . Σ (y : A) . y ≡ x) (λ x . is-contr-sing' x))
+
+abstract is-contr-is-equiv-eq ∷ {A B : U} (P : A ≡ B) → is-contr (is-equiv (map-equiv (equiv-eq P)))
+is-contr-is-equiv-eq {A} refl = is-contr-prod (is-contr-htpy-id A) (is-contr-htpy-id A)
+
+abstract is-contr-is-equiv ∷ {A B : U} (f : A → B) → is-equiv f → is-contr (is-equiv f)
+is-contr-is-equiv {A} {B} f e =
+  let k : section (equiv-eq {A} {B}) → is-contr (is-equiv f) = fun (ua , uae) →
+    subst {A → B} (fun g → is-contr (is-equiv g)) (cong map-equiv (uae (f , e))) (is-contr-is-equiv-eq (ua (f , e)))
+  in
+  k (is-equiv-sec equiv-eq (univalence A B))
+
+abstract is-prop-is-equiv ∷ {A B : U} (f : A → B) → is-prop (is-equiv f)
+is-prop-is-equiv f e e' = is-contr→is-prop (is-contr-is-equiv f e) e e'
