@@ -17,6 +17,7 @@ open import Funext
 open import Equivalence
 open import Nat
 open import Interval
+open import Arrow
 open import Cube
 open import Path
 open import Union

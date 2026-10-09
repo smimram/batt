@@ -1,0 +1,8 @@
+arrow ∷ U → U
+arrow A = 𝕀 → A
+
+arrow-l ∷ (A ∷ U) → U
+arrow-l A = 𝕀 →ₗ A
+
+arrow-r ∷ (A ∷ U) → U
+arrow-r A = 𝕀 →ᵣ A
