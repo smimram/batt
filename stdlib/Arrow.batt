@@ -1,26 +1,26 @@
-arrow ∷ U → U
-arrow A = 𝕀 → A
+arr ∷ U → U
+arr A = 𝕀 → A
 
-arrowₗ ∷ (A ∷ U) → U
-arrowₗ A = 𝕀 →ₗ A
+arrₗ ∷ (A ∷ U) → U
+arrₗ A = 𝕀 →ₗ A
 
-arrowᵣ ∷ (A ∷ U) → U
-arrowᵣ A = 𝕀 →ᵣ A
+arrᵣ ∷ (A ∷ U) → U
+arrᵣ A = 𝕀 →ᵣ A
 
-dom ∷ {A : U} → arrow A → A
-dom f = f 𝕀0
+src ∷ {A : U} → arr A → A
+src f = f 𝕀0
 
-cod ∷ {A : U} → arrow A → A
-cod f = f 𝕀1
+tgt ∷ {A : U} → arr A → A
+tgt f = f 𝕀1
 
-domₗ ∷ {A ∷ U} → arrowₗ A → A
-domₗ f = f 𝕀0
+srcₗ ∷ {A ∷ U} → arrₗ A → A
+srcₗ f = f 𝕀0
 
-codₗ ∷ {A ∷ U} → arrowₗ A → A
-codₗ f = f 𝕀1
+tgtₗ ∷ {A ∷ U} → arrₗ A → A
+tgtₗ f = f 𝕀1
 
-domᵣ ∷ {A ∷ U} → arrowᵣ A → A
-domᵣ f = f 𝕀0
+srcᵣ ∷ {A ∷ U} → arrᵣ A → A
+srcᵣ f = f 𝕀0
 
-codᵣ ∷ {A ∷ U} → arrowᵣ A → A
-codᵣ f = f 𝕀1
+tgtᵣ ∷ {A ∷ U} → arrᵣ A → A
+tgtᵣ f = f 𝕀1
