@@ -125,7 +125,7 @@ wedge-u-glue-fun-r A B a1 b0 X =
 wedge-u-glue-r ∷ (A B ∷ U) (a1 ∷ A) (b0 ∷ B) (X ∷ U) →
   (λ w . wr-f w a1) ≡{wedge-cocone-r A B a1 b0 X →ₗ X} (λ w . wr-g w b0)
 wedge-u-glue-r A B a1 b0 X =
-  cong {wedge-cocone-r A B a1 b0 X → X} {wedge-cocone-r A B a1 b0 X →ₗ X} (pi-to-arr-left (wedge-cocone-r A B a1 b0 X) X)
+  cong {wedge-cocone-r A B a1 b0 X → X} {wedge-cocone-r A B a1 b0 X →ₗ X} (arr→l {wedge-cocone-r A B a1 b0 X} {X})
     (wedge-u-glue-fun-r A B a1 b0 X)
 
 wedge-u-r ∷ (A B ∷ U) (a1 ∷ A) (b0 ∷ B) (X ∷ U) → wedge-cocone A B a1 b0 (wedge-cocone-r A B a1 b0 X →ₗ X)
@@ -248,8 +248,8 @@ wedge-glue-pre-r S A B i j a1 b0 γ X =
 abstract wedge-ψ-u-r ∷ (S A B ∷ U) (i ∷ A → S) (j ∷ B → S) (a1 ∷ A) (b0 ∷ B) (γ ∷ i a1 ≡ j b0) (X ∷ U) →
   wedge-post (wedge-ψ-r S A B i j a1 b0 γ X) (wedge-u-r A B a1 b0 X) ≡ wedge-restr S A B i j a1 b0 γ ((S →ᵣ X) →ₗ X) (wedge-ev-r S X)
 wedge-ψ-u-r S A B i j a1 b0 γ X =
-  let κQ ∷ (wedge-cocone-r A B a1 b0 X → X) → (wedge-cocone-r A B a1 b0 X →ₗ X) = pi-to-arr-left (wedge-cocone-r A B a1 b0 X) X in
-  let κF ∷ ((S →ᵣ X) → X) → ((S →ᵣ X) →ₗ X) = pi-to-arr-left (S →ᵣ X) X in
+  let κQ ∷ (wedge-cocone-r A B a1 b0 X → X) → (wedge-cocone-r A B a1 b0 X →ₗ X) = arr→l {wedge-cocone-r A B a1 b0 X} {X} in
+  let κF ∷ ((S →ᵣ X) → X) → ((S →ᵣ X) →ₗ X) = arr→l {S →ᵣ X} {X} in
   let pre ∷ (wedge-cocone-r A B a1 b0 X → X) → ((S →ᵣ X) → X) = λ m . λ φ . m (wedge-restr-r S A B i j a1 b0 γ X φ) in
   cong {wedge-ev-r S X (i a1) ≡ wedge-ev-r S X (j b0)} {wedge-cocone A B a1 b0 ((S →ᵣ X) →ₗ X)}
     (λ z . ((λ a . wedge-ev-r S X (i a)) , (λ b . wedge-ev-r S X (j b)) , z))
@@ -339,7 +339,7 @@ wedge-u-glue-fun-l A B a1 b0 X =
 wedge-u-glue-l ∷ (A B ∷ U) (a1 ∷ A) (b0 ∷ B) (X ∷ U) →
   (λ w . wl-f w a1) ≡{wedge-cocone-l A B a1 b0 X →ᵣ X} (λ w . wl-g w b0)
 wedge-u-glue-l A B a1 b0 X =
-  cong {wedge-cocone-l A B a1 b0 X → X} {wedge-cocone-l A B a1 b0 X →ᵣ X} (pi-to-arr-right (wedge-cocone-l A B a1 b0 X) X)
+  cong {wedge-cocone-l A B a1 b0 X → X} {wedge-cocone-l A B a1 b0 X →ᵣ X} (arr→r {wedge-cocone-l A B a1 b0 X} {X})
     (wedge-u-glue-fun-l A B a1 b0 X)
 
 wedge-u-l ∷ (A B ∷ U) (a1 ∷ A) (b0 ∷ B) (X ∷ U) → wedge-cocone A B a1 b0 (wedge-cocone-l A B a1 b0 X →ᵣ X)
@@ -462,8 +462,8 @@ wedge-glue-pre-l S A B i j a1 b0 γ X =
 abstract wedge-ψ-u-l ∷ (S A B ∷ U) (i ∷ A → S) (j ∷ B → S) (a1 ∷ A) (b0 ∷ B) (γ ∷ i a1 ≡ j b0) (X ∷ U) →
   wedge-post (wedge-ψ-l S A B i j a1 b0 γ X) (wedge-u-l A B a1 b0 X) ≡ wedge-restr S A B i j a1 b0 γ ((S →ₗ X) →ᵣ X) (wedge-ev-l S X)
 wedge-ψ-u-l S A B i j a1 b0 γ X =
-  let κQ ∷ (wedge-cocone-l A B a1 b0 X → X) → (wedge-cocone-l A B a1 b0 X →ᵣ X) = pi-to-arr-right (wedge-cocone-l A B a1 b0 X) X in
-  let κF ∷ ((S →ₗ X) → X) → ((S →ₗ X) →ᵣ X) = pi-to-arr-right (S →ₗ X) X in
+  let κQ ∷ (wedge-cocone-l A B a1 b0 X → X) → (wedge-cocone-l A B a1 b0 X →ᵣ X) = arr→r {wedge-cocone-l A B a1 b0 X} {X} in
+  let κF ∷ ((S →ₗ X) → X) → ((S →ₗ X) →ᵣ X) = arr→r {S →ₗ X} {X} in
   let pre ∷ (wedge-cocone-l A B a1 b0 X → X) → ((S →ₗ X) → X) = λ m . λ φ . m (wedge-restr-l S A B i j a1 b0 γ X φ) in
   cong {wedge-ev-l S X (i a1) ≡ wedge-ev-l S X (j b0)} {wedge-cocone A B a1 b0 ((S →ₗ X) →ᵣ X)}
     (λ z . ((λ a . wedge-ev-l S X (i a)) , (λ b . wedge-ev-l S X (j b)) , z))
