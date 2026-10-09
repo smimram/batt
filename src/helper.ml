@@ -30,6 +30,7 @@ let abs_pattern ~pos x t =
       | `Refl -> J t
       | `Bool _ -> failwith @@ Printf.sprintf "%s: boolean pattern not allowed here" (Pos.to_string pos)
       | `Nat _ -> failwith @@ Printf.sprintf "%s: natural number pattern not allowed here" (Pos.to_string pos)
+      | `List _ -> failwith @@ Printf.sprintf "%s: list pattern not allowed here" (Pos.to_string pos)
     )
 
 let rec abss_pattern ~pos l t =
@@ -66,7 +67,7 @@ let rec compile_clauses ~pos rows =
              match p with
              | `Bool b' -> if b = b' then Some (l, t) else None
              | `Var (Explicit, "_") -> Some (l, t)
-             | `Var (Explicit, x) -> Some (l, mk ~pos @@ Let (Crisp, x, IndType `Bool, IndTerm (`Bool b, []), t))
+             | `Var (Explicit, x) -> Some (l, mk ~pos @@ Let (Crisp, x, IndType (`Bool, []), IndTerm (`Bool b, []), t))
              | _ -> error "unsupported pattern in boolean matching"
           ) (List.combine heads rows)
       in
@@ -85,17 +86,42 @@ let rec compile_clauses ~pos rows =
              | `Nat (Some x) ->
                if zero then None
                else if x = n || x = "_" then Some (l, t)
-               else Some (l, mk ~pos @@ Let (Normal, x, IndType `Nat, Var n, t))
+               else Some (l, mk ~pos @@ Let (Normal, x, IndType (`Nat, []), Var n, t))
              | `Var (Explicit, "_") -> Some (l, t)
              | `Var (Explicit, x) ->
                let v = if zero then IndTerm (`Zero, []) else IndTerm (`Succ, [Var n]) in
-               Some (l, mk ~pos @@ Let (Normal, x, IndType `Nat, v, t))
+               Some (l, mk ~pos @@ Let (Normal, x, IndType (`Nat, []), v, t))
              | _ -> error "unsupported pattern in natural number matching"
           ) (List.combine heads rows)
       in
       let tz = compile_clauses ~pos (branch true) in
       let ts = abss ~pos [n; "rec"] (compile_clauses ~pos (branch false)) in
       mk ~pos @@ IndType_ind (`Nat, [tz; ts])
+    else if List.exists (function `List _ -> true | _ -> false) heads then
+      (* Case analysis on lists: in the cons case, the result of the recursive call on the tail is bound to rec. *)
+      let name f default =
+        List.find_map (function `List (Some xl) when f xl <> "_" -> Some (f xl) | _ -> None) heads
+        |> Option.value ~default
+      in
+      let x = name fst "_x" in
+      let tl = name snd "_l" in
+      let alias y z t = if y = z || y = "_" then t else mk ~pos @@ Let (Normal, y, Meta (`Fresh None), Var z, t) in
+      let branch nil =
+        List.filter_map
+          (fun (p, (l, t)) ->
+             match p with
+             | `List None -> if nil then Some (l, t) else None
+             | `List (Some (x', tl')) -> if nil then None else Some (l, alias x' x (alias tl' tl t))
+             | `Var (Explicit, "_") -> Some (l, t)
+             | `Var (Explicit, y) ->
+               let v = if nil then IndTerm (`Nil, []) else IndTerm (`Cons, [Var x; Var tl]) in
+               Some (l, mk ~pos @@ Let (Normal, y, IndType (`List, [Meta (`Fresh None)]), v, t))
+             | _ -> error "unsupported pattern in list matching"
+          ) (List.combine heads rows)
+      in
+      let tn = compile_clauses ~pos (branch true) in
+      let tc = abss ~pos [x; tl; "rec"] (compile_clauses ~pos (branch false)) in
+      mk ~pos @@ IndType_ind (`List, [tn; tc])
     else if List.for_all (function `Var _ -> true | _ -> false) heads then
       let icit = match List.hd heads with `Var (i, _) -> i | _ -> assert false in
       let names = List.filter_map (function `Var (i, x) -> if i <> icit then error "implicit and explicit arguments mixed in clauses" else if x = "_" then None else Some x | _ -> assert false) heads in
@@ -113,7 +139,7 @@ type item =
   | Clause of Pos.t * string * pattern list * t (** defining clause *)
   | Decls of decls (** other declarations *)
 
-and pattern = [`Var of icit * string | `Unit | `Pair of string * string | `Tens of string * string | `Flatten of string | `Refl | `Bool of bool | `Nat of string option]
+and pattern = [`Var of icit * string | `Unit | `Pair of string * string | `Tens of string * string | `Flatten of string | `Refl | `Bool of bool | `Nat of string option | `List of (string * string) option]
 
 (** Group signatures with their defining clauses. *)
 let rec group_decls = function

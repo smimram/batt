@@ -25,6 +25,7 @@ let meta ~pos = mk ~pos @@ Meta (`Fresh (Some pos))
 %token IDEQ REFL
 %token<string> INFIX0 INFIX1
 %token NAT ZERO SUCC
+%token NIL CONS
 %token I I0 I1 Iv Iw
 %token<string> IDENT
 %token OPEN
@@ -67,8 +68,8 @@ atom:
   | TYPE %prec below_INT { mk ~pos:$loc @@ Type 0 }
   | LARGETYPE { mk ~pos:$loc @@ Type 1 }
   | TYPE n=INT { mk ~pos:$loc @@ Type n }
-  | EMPTY { mk ~pos:$loc @@ IndType `Empty }
-  | UNIT { mk ~pos:$loc @@ IndType `Unit }
+  | EMPTY { mk ~pos:$loc @@ IndType (`Empty, []) }
+  | UNIT { mk ~pos:$loc @@ IndType (`Unit, []) }
   | TT { mk ~pos:$loc @@ IndTerm (`Unit, []) }
   | FALSE { mk ~pos:$loc @@ IndTerm (`Bool false, []) }
   | TRUE { mk ~pos:$loc @@ IndTerm (`Bool true, []) }
@@ -76,10 +77,12 @@ atom:
   | REFL { mk ~pos:$loc @@ Refl (meta ~pos:$loc) }
   | HOLE { mk ~pos:$loc @@ Hole $loc }
   | META { meta ~pos:$loc }
-  | NAT { mk ~pos:$loc @@ IndType `Nat }
+  | NAT { mk ~pos:$loc @@ IndType (`Nat, []) }
   | ZERO { mk ~pos:$loc @@ IndTerm (`Zero, []) }
   | n=INT { nat ~pos:$loc n }
   | SUCC { mk ~pos:$loc @@ Var "succ" }
+  | NIL { mk ~pos:$loc @@ IndTerm (`Nil, []) }
+  | CONS { mk ~pos:$loc @@ Var "cons" }
   | I { mk ~pos:$loc @@ I }
   | I0 { mk ~pos:$loc @@ I0 }
   | I1 { mk ~pos:$loc @@ I1 }
@@ -134,6 +137,8 @@ pattern:
   | ZERO { `Nat None }
   | n=INT { if n <> 0 then failwith (Printf.sprintf "%s: only 0 is allowed as a numeral pattern" (Pos.to_string $loc)); `Nat None }
   | LPAR SUCC x=identm RPAR { `Nat (Some x) }
+  | NIL { `List None }
+  | LPAR CONS x=identm l=identm RPAR { `List (Some (x, l)) }
 
 identm:
   | IDENT { $1 }

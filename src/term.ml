@@ -1,7 +1,7 @@
 type var = string
 
 (** Basic inductive types. *)
-type inductive_type = [`Empty | `Unit | `Bool | `Nat]
+type inductive_type = [`Empty | `Unit | `Bool | `Nat | `List]
 [@@deriving show]
 
 let string_of_inductive_type = function
@@ -9,9 +9,10 @@ let string_of_inductive_type = function
   | `Unit -> "Unit"
   | `Bool -> "Bool"
   | `Nat -> "Nat"
+  | `List -> "List"
 
 (** Basic inductive terms. *)
-type inductive_term = [`Unit | `Bool of bool | `Zero | `Succ]
+type inductive_term = [`Unit | `Bool of bool | `Zero | `Succ | `Nil | `Cons]
 [@@deriving show]
 
 (** Side for lax arrows. *)
@@ -42,7 +43,7 @@ type crispness = Normal | Crisp
 (** A term. *)
 type t =
   | Type of int (** universe level *)
-  | IndType of inductive_type
+  | IndType of inductive_type * t list (** inductive type with its parameters *)
   | IndType_ind of inductive_type * t list
   | IndTerm of inductive_term * t list (* Constructors are always applied to arguments (use an eta-expansion if needed) *)
   | Pi of icit * crispness * string * t * t (** pi-type *)
@@ -122,9 +123,9 @@ module FV = struct
     let list l = List.fold_left (fun fv t -> union fv (term t)) empty l in
     match t with
     | Type _ -> empty
-    | IndType _ -> empty
+    | IndType (_, l) -> list l
     | IndType_ind (_, l) -> list l
-    | IndTerm _ -> empty
+    | IndTerm (_, l) -> list l
     | Pi (_, _, x, a, b)
     | Sigma (x, a, b) -> union (term a) (remove x (term b))
     | Abs (_, x, t) -> remove x (term t)
@@ -183,7 +184,8 @@ let rec to_string ?(vars=[]) ?(ren=[]) t =
   match t with
   | Type 0 -> "Type"
   | Type n -> Printf.sprintf "Type %d" n
-  | IndType ind -> string_of_inductive_type ind
+  | IndType (ind, []) -> string_of_inductive_type ind
+  | IndType (ind, args) -> Printf.sprintf "(%s %s)" (string_of_inductive_type ind) (String.concat " " @@ List.map to_string args)
   | IndType_ind (ind, args) -> Printf.sprintf "%s_ind(%s)" (string_of_inductive_type ind) (String.concat "," @@ List.map to_string args)
   | IndTerm (`Unit, []) -> "tt"
   | IndTerm (`Bool b, []) ->  string_of_bool b
@@ -200,6 +202,8 @@ let rec to_string ?(vars=[]) ?(ren=[]) t =
       | Some k -> string_of_int k
       | None -> Printf.sprintf "succ(%s)" @@ to_string n
     )
+  | IndTerm (`Nil, []) -> "nil"
+  | IndTerm (`Cons, [x; l]) -> Printf.sprintf "(cons %s %s)" (to_string x) (to_string l)
   | IndTerm _ -> assert false
   | Pi (i, c, x, a, t) ->
     let x, t = bind x t in

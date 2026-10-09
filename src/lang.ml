@@ -297,7 +297,7 @@ let unify ~pos k (t:value) (u:value) =
           let b = rename (lift r) @@ V.capp b (V.var r.dom) in
           Sigma (x, a, b)
         | Type n -> Type n
-        | IndType i -> IndType i
+        | IndType (i, l) -> IndType (i, List.map (rename r) l)
         | IndTerm (t, l) -> IndTerm (t, List.map (rename r) l)
         | IndType_ind (i, t, l) -> spine l @@ IndType_ind (i, List.map (rename r) t)
         | Pair (t, u) -> Pair (rename r t, rename r u)
@@ -362,8 +362,9 @@ let unify ~pos k (t:value) (u:value) =
     match V.force t, V.force u with
     | Type l, Type l' ->
       if l <> l' then raise Unification
-    | IndType i, IndType i' ->
-      if i <> i' then raise Unification
+    | IndType (i, l), IndType (i', l') ->
+      if i <> i' then raise Unification;
+      spine k l l'
     | IndTerm (t, l), IndTerm (t', l') ->
       if t <> t' then raise Unification;
       spine k l l'
@@ -604,37 +605,59 @@ let rec check k env ctx (t:term) (a:value) : term =
     Tens_ind (x, y, t)
   | IndType_ind (`Empty, []), Pi (Explicit, _, a, _)
   | IndType_ind (`Empty, []), Arr (_, a, _) ->
-    unify k env t a (IndType `Empty);
+    unify k env t a (IndType (`Empty, []));
     IndType_ind (`Empty, [])
   | IndType_ind (`Unit, [t]), Pi (Explicit, _, a, b) ->
-    unify k env t a (IndType `Unit);
+    unify k env t a (IndType (`Unit, []));
     let t = check k env ctx t (V.capp b (IndTerm (`Unit, []))) in
     IndType_ind (`Unit, [t])
   | IndType_ind (`Unit, [t]), Arr (_, a, b) ->
-    unify k env t a (IndType `Unit);
+    unify k env t a (IndType (`Unit, []));
     let t = check k env ctx t b in
     IndType_ind (`Unit, [t])    
   | IndType_ind (`Bool, [tf;tt]), Pi (Explicit, _, a, b) ->
-    unify k env t a (IndType `Bool);
+    unify k env t a (IndType (`Bool, []));
     let tf = check k env ctx tf (V.capp b (IndTerm (`Bool false, []))) in
     let tt = check k env ctx tt (V.capp b (IndTerm (`Bool true, []))) in
     IndType_ind (`Bool, [tf;tt])
   | IndType_ind (`Bool, [tf;tt]), Arr (_, a, b) ->
-    unify k env t a (IndType `Bool);
+    unify k env t a (IndType (`Bool, []));
     let tf = check k env ctx tf b in
     let tt = check k env ctx tt b in
     IndType_ind (`Bool, [tf;tt])
   | IndType_ind (`Nat, [tz;ts]), Pi (Explicit, c, a, b) ->
-    unify k env t a (IndType `Nat);
+    unify k env t a (IndType (`Nat, []));
     let tz = check k env ctx tz (V.capp b (IndTerm (`Zero, []))) in
     (* The type (n : ℕ) → C n → C (succ n) of the step. *)
     let s =
       let env = ["C", V.Abs b] in
-      V.eval env @@ T.Pi (Explicit, c, "n", IndType `Nat, T.Pi (Explicit, c, "_", T.app (Var "C") (Var "n"), T.app (Var "C") (IndTerm (`Succ, [Var "n"]))))
+      V.eval env @@ T.Pi (Explicit, c, "n", IndType (`Nat, []), T.Pi (Explicit, c, "_", T.app (Var "C") (Var "n"), T.app (Var "C") (IndTerm (`Succ, [Var "n"]))))
     in
     let ts = check k env ctx ts s in
     IndType_ind (`Nat, [tz;ts])
   | IndType_ind (`Nat, _), Arr _ -> error ~t "induction on natural numbers is not supported for lax arrows"
+  | IndType_ind (`List, [tn;tc]), Pi (Explicit, c, a, b) ->
+    (* The type of the elements. *)
+    let ea =
+      match V.force a with
+      | IndType (`List, [ea]) -> ea
+      | _ ->
+        let ea = V.eval env @@ fresh_meta env in
+        unify k env t a (IndType (`List, [ea]));
+        ea
+    in
+    let tn = check k env ctx tn (V.capp b (IndTerm (`Nil, []))) in
+    (* The type (x : A) → (l : List A) → C l → C (cons x l) of the step. *)
+    let s =
+      let env = ["C", V.Abs b; "A", ea] in
+      V.eval env @@
+      T.Pi (Explicit, c, "x", Var "A",
+            T.Pi (Explicit, c, "l", IndType (`List, [Var "A"]),
+                  T.Pi (Explicit, c, "_", T.app (Var "C") (Var "l"), T.app (Var "C") (IndTerm (`Cons, [Var "x"; Var "l"])))))
+    in
+    let tc = check k env ctx tc s in
+    IndType_ind (`List, [tn;tc])
+  | IndType_ind (`List, _), Arr _ -> error ~t "induction on lists is not supported for lax arrows"
   | Flatten t, Flat a ->
     let t = check k env (Context.crisp ctx) t a in
     Flatten t
@@ -734,13 +757,24 @@ and infer k env ctx (t:term) : term * value =
   (* let cenv, benv = ctx in *)
   match t with
   | Type n -> Type n, Type (n + 1)
-  | IndType ind -> IndType ind, Type 0
-  | IndTerm (`Unit, []) -> IndTerm (`Unit, []), IndType `Unit
-  | IndTerm (`Bool b, []) -> IndTerm (`Bool b, []), IndType `Bool
-  | IndTerm (`Zero, []) -> IndTerm (`Zero, []), IndType `Nat
+  | IndType (`List, [a]) ->
+    let a, l = check_type k env ctx a in
+    IndType (`List, [a]), Type l
+  | IndType (ind, []) -> IndType (ind, []), Type 0
+  | IndType _ -> error ~t "inductive type applied to the wrong number of arguments"
+  | IndTerm (`Unit, []) -> IndTerm (`Unit, []), IndType (`Unit, [])
+  | IndTerm (`Bool b, []) -> IndTerm (`Bool b, []), IndType (`Bool, [])
+  | IndTerm (`Zero, []) -> IndTerm (`Zero, []), IndType (`Nat, [])
   | IndTerm (`Succ, [n]) ->
-    let n = check k env ctx n (IndType `Nat) in
-    IndTerm (`Succ, [n]), IndType `Nat
+    let n = check k env ctx n (IndType (`Nat, [])) in
+    IndTerm (`Succ, [n]), IndType (`Nat, [])
+  | IndTerm (`Nil, []) ->
+    let a = V.eval env @@ fresh_meta env in
+    IndTerm (`Nil, []), IndType (`List, [a])
+  | IndTerm (`Cons, [x; l]) ->
+    let x, a = infer k env ctx x in
+    let l = check k env ctx l (IndType (`List, [a])) in
+    IndTerm (`Cons, [x; l]), IndType (`List, [a])
   | IndTerm _ -> error ~t "constructor applied to the wrong number of arguments"
   | Pi (i, Crisp, x, a, b) ->
     let a, la = check_type k env (Context.crisp ctx) a in
@@ -969,24 +1003,39 @@ let check_decls_toplevel decls =
       (* add "Type" type1 type0; *)
       (* add "U" type1 type0; *)
       add "TYPE" (V.Type 2) (V.Type 1);
-      let empty = V.IndType `Empty in
+      let empty = V.IndType (`Empty, []) in
       add "empty" type0 empty;
-      let unit = V.IndType `Unit in
+      let unit = V.IndType (`Unit, []) in
       add "unit" type0 unit;
-      let bool = V.IndType `Bool in
+      let bool = V.IndType (`Bool, []) in
       add "bool" type0 bool;
       add "false" bool (V.IndTerm (`Bool false, []));
       add "true" bool (V.IndTerm (`Bool true, []));
       (* The successor function (constructors are always fully applied, so we eta-expand). *)
-      add "succ" (V.Pi (Explicit, Normal, IndType `Nat, ("_", IndType `Nat, []))) (V.eval [] @@ Abs (Explicit, "n", IndTerm (`Succ, [Var "n"])));
+      add "succ" (V.Pi (Explicit, Normal, IndType (`Nat, []), ("_", IndType (`Nat, []), []))) (V.eval [] @@ Abs (Explicit, "n", IndTerm (`Succ, [Var "n"])));
       (* Induction on natural numbers: {C : ℕ → Type} → C 0 → ((n : ℕ) → C n → C (succ n)) → (n : ℕ) → C n. *)
       add "Nat-ind"
         (V.eval [] @@
-           Pi (Implicit, Normal, "C", Pi (Explicit, Normal, "_", IndType `Nat, Type 0),
+           Pi (Implicit, Normal, "C", Pi (Explicit, Normal, "_", IndType (`Nat, []), Type 0),
                Pi (Explicit, Normal, "_", T.app (Var "C") (IndTerm (`Zero, [])),
-                   Pi (Explicit, Normal, "_", Pi (Explicit, Normal, "n", IndType `Nat, Pi (Explicit, Normal, "_", T.app (Var "C") (Var "n"), T.app (Var "C") (IndTerm (`Succ, [Var "n"])))),
-                       Pi (Explicit, Normal, "n", IndType `Nat, T.app (Var "C") (Var "n"))))))
+                   Pi (Explicit, Normal, "_", Pi (Explicit, Normal, "n", IndType (`Nat, []), Pi (Explicit, Normal, "_", T.app (Var "C") (Var "n"), T.app (Var "C") (IndTerm (`Succ, [Var "n"])))),
+                       Pi (Explicit, Normal, "n", IndType (`Nat, []), T.app (Var "C") (Var "n"))))))
         (V.eval [] @@ Abs (Implicit, "C", T.abss ["z"; "s"; "n"] (T.app (IndType_ind (`Nat, [Var "z"; Var "s"])) (Var "n"))));
+      (* Lists. *)
+      let list a = T.IndType (`List, [a]) in
+      add "List" (V.eval [] @@ Pi (Explicit, Normal, "_", Type 0, Type 0)) (V.eval [] @@ Abs (Explicit, "A", list (Var "A")));
+      add "cons"
+        (V.eval [] @@ Pi (Implicit, Normal, "A", Type 0, Pi (Explicit, Normal, "_", Var "A", Pi (Explicit, Normal, "_", list (Var "A"), list (Var "A")))))
+        (V.eval [] @@ Abs (Implicit, "A", T.abss ["x"; "l"] (IndTerm (`Cons, [Var "x"; Var "l"]))));
+      (* Induction on lists: {A : Type} {C : List A → Type} → C nil → ((x : A) (l : List A) → C l → C (cons x l)) → (l : List A) → C l. *)
+      add "List-ind"
+        (V.eval [] @@
+           Pi (Implicit, Normal, "A", Type 0,
+               Pi (Implicit, Normal, "C", Pi (Explicit, Normal, "_", list (Var "A"), Type 0),
+                   Pi (Explicit, Normal, "_", T.app (Var "C") (IndTerm (`Nil, [])),
+                       Pi (Explicit, Normal, "_", Pi (Explicit, Normal, "x", Var "A", Pi (Explicit, Normal, "l", list (Var "A"), Pi (Explicit, Normal, "_", T.app (Var "C") (Var "l"), T.app (Var "C") (IndTerm (`Cons, [Var "x"; Var "l"]))))),
+                           Pi (Explicit, Normal, "l", list (Var "A"), T.app (Var "C") (Var "l")))))))
+        (V.eval [] @@ Abs (Implicit, "A", Abs (Implicit, "C", T.abss ["n"; "c"; "l"] (T.app (IndType_ind (`List, [Var "n"; Var "c"])) (Var "l")))));
     );
   ignore @@ check_decls 0 !env !ctx decls
 

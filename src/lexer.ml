@@ -48,6 +48,8 @@ let rec token lexbuf =
   | Utf8 "ℕ" | "Nat" -> NAT
   | "zero" -> ZERO
   | "succ" -> SUCC
+  | "nil" -> NIL
+  | "cons" -> CONS
   | Utf8 "𝕀0" | "II0" -> I0
   | Utf8 "𝕀1" | "II1" -> I1
   | Utf8 "𝕀∨" | "IIv" -> Iv
