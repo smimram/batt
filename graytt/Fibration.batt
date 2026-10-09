@@ -225,19 +225,8 @@ cancel-Φ-gap {X} {A} sX sA p {x} {y} {z} f g z' w =
     comp-hom-r-assoc X sX {x} {y} {z} {z'} f g w in
   let D : a (comp-hom-r X sX {x} {z} {z'} (comp-hom-r X sX {x} {y} {z} f g) w) ≡ d (hom-map {X} {A} p {z} {z'} w) =
     hom-map-comp X A p sX sA {x} {z} {z'} (comp-hom-r X sX {x} {y} {z} f g) w in
-  pb-path a d (sym α) (hom-map {X} {A} p {z} {z'} w)
-    (trans (hom-map-comp X A p sX sA {x} {y} {z'} f (comp-hom-r X sX {y} {z} {z'} g w))
-      (trans (cong (λ m . comp-hom-r A sA {p x} {p y} {p z'} (hom-map {X} {A} p {x} {y} f) m) (hom-map-comp X A p sX sA {y} {z} {z'} g w))
-        (cancel-R {X} {A} sX sA p {x} {y} {z} f g z' (hom-map {X} {A} p {z} {z'} w))))
-    D
-    (trans (path-rot (cong a α)
-             (hom-map-comp X A p sX sA {x} {y} {z'} f (comp-hom-r X sX {y} {z} {z'} g w))
-             (cong (λ m . comp-hom-r A sA {p x} {p y} {p z'} (hom-map {X} {A} p {x} {y} f) m) (hom-map-comp X A p sX sA {y} {z} {z'} g w))
-             D
-             (cong (λ m . comp-hom-r A sA {p x} {p z} {p z'} m (hom-map {X} {A} p {z} {z'} w)) (hom-map-comp X A p sX sA {x} {y} {z} f g))
-             (comp-hom-r-assoc A sA {p x} {p y} {p z} {p z'}
-               (hom-map {X} {A} p {x} {y} f) (hom-map {X} {A} p {y} {z} g) (hom-map {X} {A} p {z} {z'} w))
-             (hom-map-comp-assoc X A p sX sA {x} {y} {z} {z'} f g w))
+  pb-path a d (sym α) (hom-map {X} {A} p {z} {z'} w) _ D
+    (trans (path-rot (cong a α) _ _ D _ _ (hom-map-comp-assoc X A p sX sA {x} {y} {z} {z'} f g w))
       (cong {a (comp-hom-r X sX {x} {y} {z'} f (comp-hom-r X sX {y} {z} {z'} g w)) ≡ a (comp-hom-r X sX {x} {z} {z'} (comp-hom-r X sX {x} {y} {z} f g) w)}
             {a (comp-hom-r X sX {x} {y} {z'} f (comp-hom-r X sX {y} {z} {z'} g w)) ≡ d (hom-map {X} {A} p {z} {z'} w)}
             (λ q . trans q D) (sym (cong-sym a α))))
