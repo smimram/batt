@@ -70,7 +70,7 @@ wr-q ∷ {A B ∷ U} {a1 ∷ A} {b0 ∷ B} {X ∷ U} (w : wedge-cocone-r A B a1 
 wr-q {A} {B} {a1} {b0} {X} (f , r) = snd {B →ᵣ X} (λ g . f a1 ≡ g b0) r
 
 -- a path of oplax cocones from paths of the two maps and a coherence of the glue
-abstract wedge-cocone-r-path ∷ (A B ∷ U) (a1 ∷ A) (b0 ∷ B) (X ∷ U) (f : A →ᵣ X) (g : B →ᵣ X) (q : f a1 ≡ g b0)
+wedge-cocone-r-path ∷ (A B ∷ U) (a1 ∷ A) (b0 ∷ B) (X ∷ U) (f : A →ᵣ X) (g : B →ᵣ X) (q : f a1 ≡ g b0)
   (f' : A →ᵣ X) (Pf : f ≡ f') (g' : B →ᵣ X) (Pg : g ≡ g') (q' : f' a1 ≡ g' b0) →
   trans q (ev-r {B} {X} b0 {g} {g'} Pg) ≡ trans (ev-r {A} {X} a1 {f} {f'} Pf) q' →
   (f , g , q) ≡{wedge-cocone-r A B a1 b0 X} (f' , g' , q')
@@ -82,6 +82,30 @@ wedge-cocone-r-path A B a1 b0 X f g q f' Pf =
         trans q (ev-r {B} {X} b0 {g} {g'} Pg) ≡ trans (ev-r {A} {X} a1 {f} {f} refl) q' →
         (f , g , q) ≡{wedge-cocone-r A B a1 b0 X} (f , g' , q'))
       (λ q' θ . cong {f a1 ≡ g b0} {wedge-cocone-r A B a1 b0 X} (λ z . (f , g , z)) (trans θ (trans-refl-l q')))
+      Pg)
+    Pf
+
+-- on the two maps, that path of cocones is the given pair of paths
+wedge-cocone-r-path-fg ∷ (A B ∷ U) (a1 ∷ A) (b0 ∷ B) (X ∷ U) (f : A →ᵣ X) (g : B →ᵣ X) (q : f a1 ≡ g b0)
+  (f' : A →ᵣ X) (Pf : f ≡ f') (g' : B →ᵣ X) (Pg : g ≡ g') (q' : f' a1 ≡ g' b0)
+  (θ : trans q (ev-r {B} {X} b0 {g} {g'} Pg) ≡ trans (ev-r {A} {X} a1 {f} {f'} Pf) q') →
+  (cong (wr-f {A} {B} {a1} {b0} {X}) (wedge-cocone-r-path A B a1 b0 X f g q f' Pf g' Pg q' θ) ≡ Pf) ×
+  (cong (wr-g {A} {B} {a1} {b0} {X}) (wedge-cocone-r-path A B a1 b0 X f g q f' Pf g' Pg q' θ) ≡ Pg)
+wedge-cocone-r-path-fg A B a1 b0 X f g q f' Pf =
+  J f (λ f' Pf . (g' : B →ᵣ X) (Pg : g ≡ g') (q' : f' a1 ≡ g' b0)
+        (θ : trans q (ev-r {B} {X} b0 {g} {g'} Pg) ≡ trans (ev-r {A} {X} a1 {f} {f'} Pf) q') →
+        (cong (wr-f {A} {B} {a1} {b0} {X}) (wedge-cocone-r-path A B a1 b0 X f g q f' Pf g' Pg q' θ) ≡ Pf) ×
+        (cong (wr-g {A} {B} {a1} {b0} {X}) (wedge-cocone-r-path A B a1 b0 X f g q f' Pf g' Pg q' θ) ≡ Pg))
+    (λ g' Pg . J g (λ g' Pg . (q' : f a1 ≡ g' b0)
+        (θ : trans q (ev-r {B} {X} b0 {g} {g'} Pg) ≡ trans (ev-r {A} {X} a1 {f} {f} refl) q') →
+        (cong (wr-f {A} {B} {a1} {b0} {X}) (wedge-cocone-r-path A B a1 b0 X f g q f refl g' Pg q' θ) ≡ refl) ×
+        (cong (wr-g {A} {B} {a1} {b0} {X}) (wedge-cocone-r-path A B a1 b0 X f g q f refl g' Pg q' θ) ≡ Pg))
+      (λ q' θ .
+        let τ : q ≡ q' = trans θ (trans-refl-l q') in
+        (trans (sym (cong-comp {f a1 ≡ g b0} {wedge-cocone-r A B a1 b0 X} {A →ᵣ X} (wr-f {A} {B} {a1} {b0} {X}) (λ z . (f , g , z)) τ))
+           (cong-cst {f a1 ≡ g b0} {A →ᵣ X} f τ) ,
+         trans (sym (cong-comp {f a1 ≡ g b0} {wedge-cocone-r A B a1 b0 X} {B →ᵣ X} (wr-g {A} {B} {a1} {b0} {X}) (λ z . (f , g , z)) τ))
+           (cong-cst {f a1 ≡ g b0} {B →ᵣ X} g τ)))
       Pg)
     Pf
 
