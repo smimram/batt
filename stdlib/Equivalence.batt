@@ -227,3 +227,41 @@ fund-id {X} P x0 p0 c x =
     fun x p → J x0 (fun x p → inv x (subst P p p0) ≡ p)
       (cong {(x0 , p0) ≡{Σ (x : X) . P x} (x0 , p0)} {x0 ≡ x0} (fun q → cong (fst P) q) (is-contr-eq-refl c (x0 , p0))) p in
   ((inv x , fun y → sec (x , y) (is-contr-eq c (x0 , p0) (x , y))) , (inv x , ret x))
+
+---
+--- 2-out-of-3 and conjugation
+---
+
+-- left and right cancellation (2-out-of-3)
+abstract is-equiv-cancel-l ∷ {A B C : U} (g : B → C) (f : A → B) → is-equiv g → is-equiv (g ∘ f) → is-equiv f
+is-equiv-cancel-l {A} {B} {C} g f eg egf =
+  let r : C → B = map-retraction g (is-equiv-ret g eg) in
+  let rr : (b : B) → r (g b) ≡ b = snd _ (is-equiv-ret g eg) in
+  let s : C → B = map-section g (is-equiv-sec g eg) in
+  let ss : (c : C) → g (s c) ≡ c = snd _ (is-equiv-sec g eg) in
+  let gr : (c : C) → g (r c) ≡ c = λ c .
+    trans (cong (λ c' . g (r c')) (sym (ss c))) (trans (cong g (rr (s c))) (ss c)) in
+  let er : is-equiv r = ((g , rr) , (g , gr)) in
+  is-equiv-htpy {A} {B} {r ∘ (g ∘ f)} {f} (λ a . rr (f a)) (is-equiv-circ r (g ∘ f) er egf)
+
+abstract is-equiv-cancel-r ∷ {A B C : U} (g : B → C) (f : A → B) → is-equiv f → is-equiv (g ∘ f) → is-equiv g
+is-equiv-cancel-r {A} {B} {C} g f ef egf =
+  let r : B → A = map-retraction f (is-equiv-ret f ef) in
+  let rr : (a : A) → r (f a) ≡ a = snd _ (is-equiv-ret f ef) in
+  let s : B → A = map-section f (is-equiv-sec f ef) in
+  let ss : (b : B) → f (s b) ≡ b = snd _ (is-equiv-sec f ef) in
+  let sf : (a : A) → s (f a) ≡ a = λ a .
+    trans (sym (rr (s (f a)))) (trans (cong r (ss (f a))) (rr a)) in
+  let es : is-equiv s = ((f , sf) , (f , ss)) in
+  is-equiv-htpy {B} {C} {(g ∘ f) ∘ s} {g} (λ b . cong g (ss b)) (is-equiv-circ (g ∘ f) s egf es)
+
+-- conjugation: if g ∘ α = β ∘ f (pointwise) with α and β equivalences, f and g are equivalent
+abstract is-equiv-conj ∷ {A B C D : U} (f : A → B) (g : C → D) (α : A → C) (β : B → D) →
+  ((a : A) → g (α a) ≡ β (f a)) → is-equiv α → is-equiv β → is-equiv f → is-equiv g
+is-equiv-conj {A} {B} {C} {D} f g α β H eα eβ ef =
+  is-equiv-cancel-r g α eα (is-equiv-htpy {A} {D} {β ∘ f} {g ∘ α} (λ a . sym (H a)) (is-equiv-circ β f eβ ef))
+
+abstract is-equiv-conj' ∷ {A B C D : U} (f : A → B) (g : C → D) (α : A → C) (β : B → D) →
+  ((a : A) → g (α a) ≡ β (f a)) → is-equiv α → is-equiv β → is-equiv g → is-equiv f
+is-equiv-conj' {A} {B} {C} {D} f g α β H eα eβ eg =
+  is-equiv-cancel-l β f eβ (is-equiv-htpy {A} {D} {g ∘ α} {β ∘ f} H (is-equiv-circ g α eg eα))

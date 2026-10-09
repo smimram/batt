@@ -128,18 +128,6 @@ is-cocartesian-fibration {X} {A} sX sA p = is-equiv (cocart-cell-lift {X} {A} sX
 -- the gap map is composition with f, which is an equivalence, hence so is the gap map.
 --
 
--- left cancellation of equivalences (2-out-of-3)
-abstract is-equiv-cancel-l ∷ {A B C : U} (g : B → C) (f : A → B) → is-equiv g → is-equiv (g ∘ f) → is-equiv f
-is-equiv-cancel-l {A} {B} {C} g f eg egf =
-  let r : C → B = map-retraction g (is-equiv-ret g eg) in
-  let rr : (b : B) → r (g b) ≡ b = snd _ (is-equiv-ret g eg) in
-  let s : C → B = map-section g (is-equiv-sec g eg) in
-  let ss : (c : C) → g (s c) ≡ c = snd _ (is-equiv-sec g eg) in
-  let gr : (c : C) → g (r c) ≡ c = λ c .
-    trans (cong (λ c' . g (r c')) (sym (ss c))) (trans (cong g (rr (s c))) (ss c)) in
-  let er : is-equiv r = ((g , rr) , (g , gr)) in
-  is-equiv-htpy {A} {B} {r ∘ (g ∘ f)} {f} (λ a . rr (f a)) (is-equiv-circ r (g ∘ f) er egf)
-
 -- the type of preimages, with the path in the other direction, is contractible
 abstract is-contr-fib-sym ∷ {A B : U} (f : A → B) → is-equiv f → (y : B) → is-contr (Σ (a : A) . y ≡ f a)
 is-contr-fib-sym {A} {B} f e y =
