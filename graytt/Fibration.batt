@@ -9,9 +9,9 @@
 --
 -- is an equivalence, i.e. the square
 --
---   hom X x' x ──f∘─→ hom X x' y
---       │p               │p
---       ↓                ↓
+--   hom X x' x ───────f∘─→ hom X x' y
+--       │p                     │p
+--       ↓                      ↓
 --   hom A (p x') (p x) ──(p f)∘─→ hom A (p x') (p y)
 --
 -- is a pullback. Dually, f is p-cocartesian when, for every y' : X, the gap map
