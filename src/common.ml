@@ -13,7 +13,7 @@ let builtins = ref true
 let de_bruijn = ref false
 
 let print fmt =
-  Printf.ksprintf !print_string fmt
+  Printf.ksprintf (fun s -> !print_string s; flush stdout) fmt
 
 let debug fmt =
   if !show_debug then
@@ -27,19 +27,22 @@ let important fmt =
   Printf.ksprintf (fun s ->
       !print_string (Terminal.color ~bold:true `Blue);
       !print_string s;
-      !print_string (Terminal.color `Black)
+      !print_string (Terminal.color `Black);
+      flush stdout
     ) fmt
 
 let warning fmt =
   Printf.ksprintf (fun s ->
       !print_string (Terminal.color ~bold:true `Purple);
       !print_string s;
-      !print_string (Terminal.color `Black)
+      !print_string (Terminal.color `Black);
+      flush stdout
     ) fmt
 
 let error fmt =
   Printf.ksprintf (fun s ->
       !print_string (Terminal.color ~bold:true `Red);
       !print_string s;
-      !print_string (Terminal.color `Black)
+      !print_string (Terminal.color `Black);
+      flush stdout
     ) fmt
