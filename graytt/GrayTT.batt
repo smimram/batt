@@ -16,3 +16,4 @@ open import Coslice
 open import Composable
 open import Associativity
 open import Iso
+open import Connection
