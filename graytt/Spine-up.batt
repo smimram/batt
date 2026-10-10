@@ -124,7 +124,7 @@ spine-cart-up Y =
     (𝕀1 , 𝕀0 , tt) refl (refl , spine-1-pt 𝕀0) spine-2-meet-contr
 
 abstract spine-oplax-up ∷ (X ∷ U) →
-  is-equiv (wedge-restr-r (spine 2)
+  is-equiv (wedge→cocone-r (spine 2)
     spine-2-edge-1 spine-2-edge-2
     spine-2-edge-1-incl spine-2-edge-2-incl
     spine-2-edge-1-end spine-2-edge-2-start
@@ -139,7 +139,7 @@ spine-oplax-up X =
     spine-cart-up X
 
 abstract spine-lax-up ∷ (X ∷ U) →
-  is-equiv (wedge-restr-l (spine 2)
+  is-equiv (wedge→cocone-l (spine 2)
     spine-2-edge-1 spine-2-edge-2
     spine-2-edge-1-incl spine-2-edge-2-incl
     spine-2-edge-1-end spine-2-edge-2-start
@@ -157,40 +157,43 @@ spine-lax-up X =
 -- oplax cocones on the two edges (the domain of the inverse used in Composition.batt)
 --
 
-spine-cocone-r ∷ (X ∷ U) → U
-spine-cocone-r X = wedge-cocone-r spine-2-edge-1 spine-2-edge-2 spine-2-edge-1-end spine-2-edge-2-start X
+spine-2-cocone-r ∷ (X ∷ U) → U
+spine-2-cocone-r X = wedge-cocone-r spine-2-edge-1 spine-2-edge-2 spine-2-edge-1-end spine-2-edge-2-start X
 
 --
 -- abbreviations of the wedge combinators, for the 2-spine
 --
 
 -- restricting an oplax map out of the spine to a cocone on its edges, and back
-spine-2→cocone-r ∷ (X ∷ U) → (spine 2 →ᵣ X) → spine-cocone-r X
-spine-2→cocone-r X = wedge-restr-r (spine 2) spine-2-edge-1 spine-2-edge-2 spine-2-edge-1-incl
+spine-2→cocone-r ∷ (X ∷ U) → (spine 2 →ᵣ X) → spine-2-cocone-r X
+spine-2→cocone-r X = wedge→cocone-r (spine 2) spine-2-edge-1 spine-2-edge-2 spine-2-edge-1-incl
   spine-2-edge-2-incl spine-2-edge-1-end spine-2-edge-2-start spine-2-glue X
 
-cocone→spine-2-r ∷ (X ∷ U) → spine-cocone-r X → (spine 2 →ᵣ X)
-cocone→spine-2-r X = wedge-σ-r (spine 2) spine-2-edge-1 spine-2-edge-2 spine-2-edge-1-incl
+cocone→spine-2-r ∷ (X ∷ U) → spine-2-cocone-r X → (spine 2 →ᵣ X)
+cocone→spine-2-r X = cocone→wedge-r (spine 2) spine-2-edge-1 spine-2-edge-2 spine-2-edge-1-incl
   spine-2-edge-2-incl spine-2-edge-1-end spine-2-edge-2-start spine-2-glue spine-cart-up X
 
-spine-2→cocone-r-sec ∷ (X ∷ U) (w : spine-cocone-r X) → spine-2→cocone-r X (cocone→spine-2-r X w) ≡ w
-spine-2→cocone-r-sec X w = wedge-σ-sec-r (spine 2) spine-2-edge-1 spine-2-edge-2 spine-2-edge-1-incl
+spine-2→cocone-r-sec ∷ (X ∷ U) (w : spine-2-cocone-r X) → spine-2→cocone-r X (cocone→spine-2-r X w) ≡ w
+spine-2→cocone-r-sec X w = wedge→cocone-r-sec (spine 2) spine-2-edge-1 spine-2-edge-2 spine-2-edge-1-incl
   spine-2-edge-2-incl spine-2-edge-1-end spine-2-edge-2-start spine-2-glue spine-cart-up X w
 
 spine-2→cocone-r-retr ∷ (X ∷ U) (φ : spine 2 →ᵣ X) → cocone→spine-2-r X (spine-2→cocone-r X φ) ≡ φ
-spine-2→cocone-r-retr X φ = wedge-σ-ret-r (spine 2) spine-2-edge-1 spine-2-edge-2 spine-2-edge-1-incl
+spine-2→cocone-r-retr X φ = wedge→cocone-r-retr (spine 2) spine-2-edge-1 spine-2-edge-2 spine-2-edge-1-incl
   spine-2-edge-2-incl spine-2-edge-1-end spine-2-edge-2-start spine-2-glue spine-cart-up X φ
 
 -- the components of a cocone: the maps on the two edges, and the glue
-spine-2-cocone-edge-1 ∷ {X ∷ U} → spine-cocone-r X → (spine-2-edge-1 →ᵣ X)
-spine-2-cocone-edge-1 {X} w = wr-f {spine-2-edge-1} {spine-2-edge-2} {spine-2-edge-1-end} {spine-2-edge-2-start} {X} w
+spine-2-cocone-edge-1 ∷ {X ∷ U} → spine-2-cocone-r X → (spine-2-edge-1 →ᵣ X)
+spine-2-cocone-edge-1 {X} w = wedge-cocone-r-fst {spine-2-edge-1} {spine-2-edge-2} {spine-2-edge-1-end}
+  {spine-2-edge-2-start} {X} w
 
-spine-2-cocone-edge-2 ∷ {X ∷ U} → spine-cocone-r X → (spine-2-edge-2 →ᵣ X)
-spine-2-cocone-edge-2 {X} w = wr-g {spine-2-edge-1} {spine-2-edge-2} {spine-2-edge-1-end} {spine-2-edge-2-start} {X} w
+spine-2-cocone-edge-2 ∷ {X ∷ U} → spine-2-cocone-r X → (spine-2-edge-2 →ᵣ X)
+spine-2-cocone-edge-2 {X} w = wedge-cocone-r-snd {spine-2-edge-1} {spine-2-edge-2} {spine-2-edge-1-end}
+  {spine-2-edge-2-start} {X} w
 
-spine-2-cocone-glue ∷ {X ∷ U} (w : spine-cocone-r X) →
+spine-2-cocone-glue ∷ {X ∷ U} (w : spine-2-cocone-r X) →
   spine-2-cocone-edge-1 {X} w spine-2-edge-1-end ≡ spine-2-cocone-edge-2 {X} w spine-2-edge-2-start
-spine-2-cocone-glue {X} w = wr-q {spine-2-edge-1} {spine-2-edge-2} {spine-2-edge-1-end} {spine-2-edge-2-start} {X} w
+spine-2-cocone-glue {X} w = wedge-cocone-r-glue {spine-2-edge-1} {spine-2-edge-2} {spine-2-edge-1-end}
+  {spine-2-edge-2-start} {X} w
 
 -- paths of cocones
 spine-2-cocone-path ∷
@@ -199,10 +202,10 @@ spine-2-cocone-path ∷
     (q' : f' spine-2-edge-1-end ≡ g' spine-2-edge-2-start)
   → trans q (ev-r {spine-2-edge-2} {X} spine-2-edge-2-start {g} {g'} Pg) ≡ trans
     (ev-r {spine-2-edge-1} {X} spine-2-edge-1-end {f} {f'} Pf) q'
-  → (f , g , q) ≡{spine-cocone-r X} (f' , g' , q')
+  → (f , g , q) ≡{spine-2-cocone-r X} (f' , g' , q')
 spine-2-cocone-path = wedge-cocone-r-path spine-2-edge-1 spine-2-edge-2 spine-2-edge-1-end spine-2-edge-2-start
 
-spine-2-cocone-path-fg ∷
+spine-2-cocone-path-maps ∷
   (X ∷ U) (f : spine-2-edge-1 →ᵣ X) (g : spine-2-edge-2 →ᵣ X) (q : f spine-2-edge-1-end ≡ g spine-2-edge-2-start)
   (f' : spine-2-edge-1 →ᵣ X) (Pf : f ≡ f') (g' : spine-2-edge-2 →ᵣ X) (Pg : g ≡ g')
     (q' : f' spine-2-edge-1-end ≡ g' spine-2-edge-2-start)
@@ -210,7 +213,7 @@ spine-2-cocone-path-fg ∷
       (ev-r {spine-2-edge-1} {X} spine-2-edge-1-end {f} {f'} Pf) q')
   → (cong (spine-2-cocone-edge-1 {X}) (spine-2-cocone-path X f g q f' Pf g' Pg q' θ) ≡ Pf)
     × (cong (spine-2-cocone-edge-2 {X}) (spine-2-cocone-path X f g q f' Pf g' Pg q' θ) ≡ Pg)
-spine-2-cocone-path-fg = wedge-cocone-r-path-fg spine-2-edge-1 spine-2-edge-2 spine-2-edge-1-end spine-2-edge-2-start
+spine-2-cocone-path-maps = wedge-cocone-r-path-maps spine-2-edge-1 spine-2-edge-2 spine-2-edge-1-end spine-2-edge-2-start
 
 --
 -- The 3-spine as a wedge of an edge and a 2-spine
@@ -309,7 +312,7 @@ spine-3-cart-up Y =
     (𝕀1 , 𝕀0 , 𝕀0 , tt) refl spine-3-on-tail-vertex spine-3-meet-contr
 
 abstract spine-3-oplax-up ∷ (X ∷ U) →
-  is-equiv (wedge-restr-r (spine 3)
+  is-equiv (wedge→cocone-r (spine 3)
     spine-3-edge-1 spine-3-tail
     spine-3-edge-1-incl spine-3-tail-incl
     spine-3-edge-1-end spine-3-tail-start
@@ -331,23 +334,23 @@ spine-3-cocone-r X = wedge-cocone-r spine-3-edge-1 spine-3-tail spine-3-edge-1-e
 --
 
 spine-3→cocone-r ∷ (X ∷ U) → (spine 3 →ᵣ X) → spine-3-cocone-r X
-spine-3→cocone-r X = wedge-restr-r (spine 3) spine-3-edge-1 spine-3-tail spine-3-edge-1-incl
+spine-3→cocone-r X = wedge→cocone-r (spine 3) spine-3-edge-1 spine-3-tail spine-3-edge-1-incl
   spine-3-tail-incl spine-3-edge-1-end spine-3-tail-start spine-3-glue X
 
 cocone→spine-3-r ∷ (X ∷ U) → spine-3-cocone-r X → (spine 3 →ᵣ X)
-cocone→spine-3-r X = wedge-σ-r (spine 3) spine-3-edge-1 spine-3-tail spine-3-edge-1-incl spine-3-tail-incl
+cocone→spine-3-r X = cocone→wedge-r (spine 3) spine-3-edge-1 spine-3-tail spine-3-edge-1-incl spine-3-tail-incl
   spine-3-edge-1-end spine-3-tail-start spine-3-glue spine-3-cart-up X
 
 spine-3→cocone-r-sec ∷ (X ∷ U) (w : spine-3-cocone-r X) → spine-3→cocone-r X (cocone→spine-3-r X w) ≡ w
-spine-3→cocone-r-sec X w = wedge-σ-sec-r (spine 3) spine-3-edge-1 spine-3-tail spine-3-edge-1-incl
+spine-3→cocone-r-sec X w = wedge→cocone-r-sec (spine 3) spine-3-edge-1 spine-3-tail spine-3-edge-1-incl
   spine-3-tail-incl spine-3-edge-1-end spine-3-tail-start spine-3-glue spine-3-cart-up X w
 
 spine-3-cocone-edge-1 ∷ {X ∷ U} → spine-3-cocone-r X → (spine-3-edge-1 →ᵣ X)
-spine-3-cocone-edge-1 {X} w = wr-f {spine-3-edge-1} {spine-3-tail} {spine-3-edge-1-end} {spine-3-tail-start} {X} w
+spine-3-cocone-edge-1 {X} w = wedge-cocone-r-fst {spine-3-edge-1} {spine-3-tail} {spine-3-edge-1-end} {spine-3-tail-start} {X} w
 
 spine-3-cocone-tail ∷ {X ∷ U} → spine-3-cocone-r X → (spine-3-tail →ᵣ X)
-spine-3-cocone-tail {X} w = wr-g {spine-3-edge-1} {spine-3-tail} {spine-3-edge-1-end} {spine-3-tail-start} {X} w
+spine-3-cocone-tail {X} w = wedge-cocone-r-snd {spine-3-edge-1} {spine-3-tail} {spine-3-edge-1-end} {spine-3-tail-start} {X} w
 
 spine-3-cocone-glue ∷ {X ∷ U} (w : spine-3-cocone-r X) →
   spine-3-cocone-edge-1 {X} w spine-3-edge-1-end ≡ spine-3-cocone-tail {X} w spine-3-tail-start
-spine-3-cocone-glue {X} w = wr-q {spine-3-edge-1} {spine-3-tail} {spine-3-edge-1-end} {spine-3-tail-start} {X} w
+spine-3-cocone-glue {X} w = wedge-cocone-r-glue {spine-3-edge-1} {spine-3-tail} {spine-3-edge-1-end} {spine-3-tail-start} {X} w

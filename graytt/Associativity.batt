@@ -151,7 +151,7 @@ spine-3-edge-3-in-simplex-path = funext-htpy {𝕀} {λ _ . simplex 3} spine-3-e
 
 -- the triple read off the restriction of a 3-simplex to the 3-spine is its triple of edges
 abstract spine-restr-edges-tri ∷ {X ∷ U} (Θ : simplex 3 →ᵣ X) →
-  coc3-tri {X} (spine-3→cocone-r X (spine-restr-r 3 X Θ)) ≡ edges-tri {X} Θ
+  spine-3-cocone→triple {X} (spine-3→cocone-r X (spine-restr-r 3 X Θ)) ≡ edges-tri {X} Θ
 spine-restr-edges-tri {X} Θ =
   trans
     (cong2 {Θ (spine-3-edge-1-in-simplex 𝕀1) ≡ Θ (spine-3-edge-2-in-simplex 𝕀0)}
@@ -194,9 +194,9 @@ assoc-filler-edges X s {x} {y} {z} {t} u v w =
   let Θs : spine 3 →ᵣ X =
     cocone→spine-3-r X (tri-section X {x} {y} {z} {t} u v w) in
   trans (sym (spine-restr-edges-tri {X} (assoc-filler X s {x} {y} {z} {t} u v w)))
-    (trans (cong {spine 3 →ᵣ X} {triples X} (λ φ . coc3-tri {X} (spine-3→cocone-r X φ))
+    (trans (cong {spine 3 →ᵣ X} {triples X} (λ φ . spine-3-cocone→triple {X} (spine-3→cocone-r X φ))
              (snd (is-section (spine-restr-r 3 X)) (is-equiv-sec (spine-restr-r 3 X) (is-segal-r-unthick X s 3)) Θs))
-      (trans (cong {spine-3-cocone-r X} {triples X} (coc3-tri {X})
+      (trans (cong {spine-3-cocone-r X} {triples X} (spine-3-cocone→triple {X})
                (spine-3→cocone-r-sec X (tri-section X {x} {y} {z} {t} u v w)))
         (tri-section-path X {x} {y} {z} {t} u v w)))
 

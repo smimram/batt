@@ -155,7 +155,7 @@ degen-r-glue-snd X u =
 
 -- on cocones: the first edge is u, the second edge is constant at u 1 ≡ y, the glue is trivial
 runit-coc ∷ (X ∷ U) {x y : X} (u : hom X x y) →
-  spine-2→cocone-r X (degen-r X simplex-2-fst (hom-cell {X} {x} {y} u)) ≡ hom-pair {X} {x} {y} {y} u (id-hom {X} y)
+  spine-2→cocone-r X (degen-r X simplex-2-fst (hom-cell {X} {x} {y} u)) ≡ homs→spine-2-cocone {X} {x} {y} {y} u (id-hom {X} y)
 runit-coc X {x} {y} u =
   spine-2-cocone-path X
     (pre-r {spine-2-edge-1} {𝕀} {X} (hom-cell {X} {x} {y} u) (λ a . simplex-2-fst (spine→simplex 2 (spine-2-edge-1-incl a))))
@@ -202,16 +202,17 @@ runit-coc X {x} {y} u =
 
 -- hence the degenerate simplex restricts to the composable pair (u , id y)
 abstract runit-fill ∷ (X ∷ U) {x y : X} (u : hom X x y) →
-  degen-r X simplex-2-fst (hom-cell {X} {x} {y} u) ≡ hom-spine X {x} {y} {y} u (id-hom {X} y)
+  degen-r X simplex-2-fst (hom-cell {X} {x} {y} u) ≡ homs→spine-2 X {x} {y} {y} u (id-hom {X} y)
 runit-fill X {x} {y} u =
   trans (sym (spine-2→cocone-r-retr X (degen-r X simplex-2-fst (hom-cell {X} {x} {y} u))))
-    (cong {spine-cocone-r X} {spine 2 →ᵣ X} (cocone→spine-2-r X) (runit-coc X {x} {y} u))
+    (cong {spine-2-cocone-r X} {spine 2 →ᵣ X} (cocone→spine-2-r X) (runit-coc X {x} {y} u))
 
 -- right unitality: the composite of u and id y is u
 abstract comp-hom-r-runit-cell ∷ (X ∷ U) (s : is-segal-r X) {x y : X} (u : hom X x y) →
   hom-cell {X} {x} {y} (comp-hom-r X s {x} {y} {y} u (id-hom {X} y)) ≡ hom-cell {X} {x} {y} u
 comp-hom-r-runit-cell X s {x} {y} u =
-  comp-r-unique X s (hom-spine X {x} {y} {y} u (id-hom {X} y)) (pre-r {simplex 2} {𝕀} {X} (hom-cell {X} {x} {y} u) simplex-2-fst)
+  comp-r-unique X s (homs→spine-2 X {x} {y} {y} u (id-hom {X} y))
+    (pre-r {simplex 2} {𝕀} {X} (hom-cell {X} {x} {y} u) simplex-2-fst)
     (runit-fill X {x} {y} u)
 
 --
@@ -219,7 +220,7 @@ comp-hom-r-runit-cell X s {x} {y} u =
 --
 
 lunit-coc ∷ (X ∷ U) {x y : X} (u : hom X x y) →
-  spine-2→cocone-r X (degen-r X simplex-2-snd (hom-cell {X} {x} {y} u)) ≡ hom-pair {X} {x} {x} {y} (id-hom {X} x) u
+  spine-2→cocone-r X (degen-r X simplex-2-snd (hom-cell {X} {x} {y} u)) ≡ homs→spine-2-cocone {X} {x} {x} {y} (id-hom {X} x) u
 lunit-coc X {x} {y} u =
   spine-2-cocone-path X
     (pre-r {spine-2-edge-1} {𝕀} {X} (hom-cell {X} {x} {y} u) (λ a . simplex-2-snd (spine→simplex 2 (spine-2-edge-1-incl a))))
@@ -269,16 +270,17 @@ lunit-coc X {x} {y} u =
         (trans-sym-r (hom-src {X} {x} {y} u)))))
 
 abstract lunit-fill ∷ (X ∷ U) {x y : X} (u : hom X x y) →
-  degen-r X simplex-2-snd (hom-cell {X} {x} {y} u) ≡ hom-spine X {x} {x} {y} (id-hom {X} x) u
+  degen-r X simplex-2-snd (hom-cell {X} {x} {y} u) ≡ homs→spine-2 X {x} {x} {y} (id-hom {X} x) u
 lunit-fill X {x} {y} u =
   trans (sym (spine-2→cocone-r-retr X (degen-r X simplex-2-snd (hom-cell {X} {x} {y} u))))
-    (cong {spine-cocone-r X} {spine 2 →ᵣ X} (cocone→spine-2-r X) (lunit-coc X {x} {y} u))
+    (cong {spine-2-cocone-r X} {spine 2 →ᵣ X} (cocone→spine-2-r X) (lunit-coc X {x} {y} u))
 
 -- left unitality: the composite of id x and u is u
 abstract comp-hom-r-lunit-cell ∷ (X ∷ U) (s : is-segal-r X) {x y : X} (u : hom X x y) →
   hom-cell (comp-hom-r X s (id-hom x) u) ≡ hom-cell u
 comp-hom-r-lunit-cell X s {x} {y} u =
-  comp-r-unique X s (hom-spine X {x} {x} {y} (id-hom {X} x) u) (pre-r {simplex 2} {𝕀} {X} (hom-cell {X} {x} {y} u) simplex-2-snd)
+  comp-r-unique X s (homs→spine-2 X {x} {x} {y} (id-hom {X} x) u)
+    (pre-r {simplex 2} {𝕀} {X} (hom-cell {X} {x} {y} u) simplex-2-snd)
     (lunit-fill X {x} {y} u)
 
 --
@@ -328,7 +330,7 @@ runit-src X {x} {y} f e0 e1 =
   let rf : cong (spine-2-cocone-edge-1 {X}) (runit-coc X {x} {y} (f , e0 , e1))
         ≡ pre-r-path spine-2-edge-1 {𝕀} {X} {λ a . simplex-2-fst (spine→simplex 2 (spine-2-edge-1-incl a))}
           {spine-2-edge-1→𝕀} simplex-2-fst-on-edge-1-path f =
-    prod-fst (spine-2-cocone-path-fg X _ _ _ _ _ _ _ _ _) in
+    prod-fst (spine-2-cocone-path-maps X _ _ _ _ _ _ _ _ _) in
   let H ∷ happly {spine-2-edge-1} {λ _ . 𝕀} {λ a . simplex-2-fst (spine→simplex 2 (spine-2-edge-1-incl a))}
     {spine-2-edge-1→𝕀} simplex-2-fst-on-edge-1-path spine-2-edge-1-start ≡ refl =
     happly {spine-2-edge-1} {λ a . simplex-2-fst (spine→simplex 2 (spine-2-edge-1-incl a)) ≡ spine-2-edge-1→𝕀 a}
@@ -360,7 +362,7 @@ runit-tgt X {x} {y} f e0 e1 =
       {λ b . 𝕀1} simplex-2-fst-on-edge-2-path f in
   let P2 : (λ b . f 𝕀1) ≡{spine-2-edge-2 →ᵣ X} (λ b . y) = cong {X} {spine-2-edge-2 →ᵣ X} (λ v . λ b . v) e1 in
   let rg : cong (spine-2-cocone-edge-2 {X}) (runit-coc X {x} {y} (f , e0 , e1)) ≡ trans P1 P2 =
-    prod-snd (spine-2-cocone-path-fg X _ _ _ _ _ _ _ _ _) in
+    prod-snd (spine-2-cocone-path-maps X _ _ _ _ _ _ _ _ _) in
   let H ∷ happly {spine-2-edge-2} {λ _ . 𝕀} {λ b . simplex-2-fst (spine→simplex 2 (spine-2-edge-2-incl b))}
     {λ b . 𝕀1} simplex-2-fst-on-edge-2-path spine-2-edge-2-end ≡ refl =
     happly {spine-2-edge-2} {λ b . simplex-2-fst (spine→simplex 2 (spine-2-edge-2-incl b)) ≡ 𝕀1}
@@ -411,7 +413,7 @@ lunit-src X {x} {y} f e0 e1 =
       {λ a . 𝕀0} simplex-2-snd-on-edge-1-path f in
   let P2 : (λ a . f 𝕀0) ≡{spine-2-edge-1 →ᵣ X} (λ a . x) = cong {X} {spine-2-edge-1 →ᵣ X} (λ v . λ a . v) e0 in
   let rf : cong (spine-2-cocone-edge-1 {X}) (lunit-coc X {x} {y} (f , e0 , e1)) ≡ trans P1 P2 =
-    prod-fst (spine-2-cocone-path-fg X _ _ _ _ _ _ _ _ _) in
+    prod-fst (spine-2-cocone-path-maps X _ _ _ _ _ _ _ _ _) in
   let H ∷ happly {spine-2-edge-1} {λ _ . 𝕀} {λ a . simplex-2-snd (spine→simplex 2 (spine-2-edge-1-incl a))}
     {λ a . 𝕀0} simplex-2-snd-on-edge-1-path spine-2-edge-1-start ≡ refl =
     happly {spine-2-edge-1} {λ a . simplex-2-snd (spine→simplex 2 (spine-2-edge-1-incl a)) ≡ 𝕀0}
@@ -441,7 +443,7 @@ lunit-tgt X {x} {y} f e0 e1 =
   let rg : cong (spine-2-cocone-edge-2 {X}) (lunit-coc X {x} {y} (f , e0 , e1))
         ≡ pre-r-path spine-2-edge-2 {𝕀} {X} {λ b . simplex-2-snd (spine→simplex 2 (spine-2-edge-2-incl b))}
           {spine-2-edge-2→𝕀} simplex-2-snd-on-edge-2-path f =
-    prod-snd (spine-2-cocone-path-fg X _ _ _ _ _ _ _ _ _) in
+    prod-snd (spine-2-cocone-path-maps X _ _ _ _ _ _ _ _ _) in
   let H ∷ happly {spine-2-edge-2} {λ _ . 𝕀} {λ b . simplex-2-snd (spine→simplex 2 (spine-2-edge-2-incl b))}
     {spine-2-edge-2→𝕀} simplex-2-snd-on-edge-2-path spine-2-edge-2-end ≡ refl =
     happly {spine-2-edge-2} {λ b . simplex-2-snd (spine→simplex 2 (spine-2-edge-2-incl b)) ≡ spine-2-edge-2→𝕀 b}

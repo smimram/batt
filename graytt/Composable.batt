@@ -49,8 +49,8 @@ tri-family X S (x , r) =
 𝕀→spine-2-edge-2 t = ((𝕀1 , t , tt) , (refl , spine-1-pt t))
 
 -- the pair of edges of an oplax cocone on the 2-spine
-coc-pair ∷ {X ∷ U} → spine-cocone-r X → pairs X
-coc-pair {X} c =
+spine-2-cocone→pair ∷ {X ∷ U} → spine-2-cocone-r X → pairs X
+spine-2-cocone→pair {X} c =
   (spine-2-cocone-edge-1 {X} c spine-2-edge-1-start ,
     spine-2-cocone-edge-2 {X} c spine-2-edge-2-start ,
     spine-2-cocone-edge-2 {X} c spine-2-edge-2-end ,
@@ -74,38 +74,39 @@ pair-path-J {X} g h {y} e0 {t} e2 {z} e1' e1 =
       e2)
     e0
 
-abstract coc-pair-hom-pair ∷ {X ∷ U} {y z t : X} (v : hom X y z) (w : hom X z t) →
-  coc-pair {X} (hom-pair {X} {y} {z} {t} v w) ≡ (y , z , t , v , w)
-coc-pair-hom-pair {X} {y} {z} {t} (g , ev) (h , ew) =
+abstract spine-2-cocone→pair-homs ∷ {X ∷ U} {y z t : X} (v : hom X y z) (w : hom X z t) →
+  spine-2-cocone→pair {X} (homs→spine-2-cocone {X} {y} {z} {t} v w) ≡ (y , z , t , v , w)
+spine-2-cocone→pair-homs {X} {y} {z} {t} (g , ev) (h , ew) =
   let k : (ev : (g 𝕀0 ≡ y) × (g 𝕀1 ≡ z)) (ew : (h 𝕀0 ≡ z) × (h 𝕀1 ≡ t)) →
-      coc-pair {X} (hom-pair {X} {y} {z} {t} (g , ev) (h , ew)) ≡ (y , z , t , (g , ev) , (h , ew)) =
+      spine-2-cocone→pair {X} (homs→spine-2-cocone {X} {y} {z} {t} (g , ev) (h , ew)) ≡ (y , z , t , (g , ev) , (h , ew)) =
     fun (e0 , e1) (e1' , e2) → pair-path-J {X} g h {y} e0 {t} e2 {z} e1' e1
   in
   k ev ew
 
 -- every composable pair is the pair of edges of an oplax map out of the 2-spine
 pair-section ∷ (X ∷ U) {y z t : X} (v : hom X y z) (w : hom X z t) → (spine 2 →ᵣ X)
-pair-section X {y} {z} {t} v w = hom-spine X {y} {z} {t} v w
+pair-section X {y} {z} {t} v w = homs→spine-2 X {y} {z} {t} v w
 
 abstract pair-section-path ∷ (X ∷ U) {y z t : X} (v : hom X y z) (w : hom X z t) →
-  coc-pair {X} (spine-2→cocone-r X (pair-section X {y} {z} {t} v w)) ≡ (y , z , t , v , w)
+  spine-2-cocone→pair {X} (spine-2→cocone-r X (pair-section X {y} {z} {t} v w)) ≡ (y , z , t , v , w)
 pair-section-path X {y} {z} {t} v w =
-  trans (cong {spine-cocone-r X} {pairs X} (coc-pair {X})
-          (spine-2→cocone-r-sec X (hom-pair {X} {y} {z} {t} v w)))
-    (coc-pair-hom-pair {X} {y} {z} {t} v w)
+  trans (cong {spine-2-cocone-r X} {pairs X} (spine-2-cocone→pair {X})
+          (spine-2→cocone-r-sec X (homs→spine-2-cocone {X} {y} {z} {t} v w)))
+    (spine-2-cocone→pair-homs {X} {y} {z} {t} v w)
 
 --
 -- Triples out of the 3-spine
 --
 
 -- prepending a 1-cell to a composable pair
-tri-cons ∷ {X ∷ U} (f : 𝕀 →ᵣ X) (r : pairs X) → f 𝕀1 ≡ fst (pair-from X) r → triples X
-tri-cons {X} f r q = (f 𝕀0 , fst (pair-from X) r , (f , refl , q) , snd (pair-from X) r)
+cell-pair→triple ∷ {X ∷ U} (f : 𝕀 →ᵣ X) (r : pairs X) → f 𝕀1 ≡ fst (pair-from X) r → triples X
+cell-pair→triple {X} f r q = (f 𝕀0 , fst (pair-from X) r , (f , refl , q) , snd (pair-from X) r)
 
-tri-cons-path ∷ {X ∷ U} (f : 𝕀 →ᵣ X) {r r' : pairs X} (P : r ≡ r') (q : f 𝕀1 ≡ fst (pair-from X) r) →
-  tri-cons {X} f r q ≡ tri-cons {X} f r' (trans q (cong (fst (pair-from X)) P))
-tri-cons-path {X} f {r} {r'} P =
-  J r (λ r' P . (q : f 𝕀1 ≡ fst (pair-from X) r) → tri-cons {X} f r q ≡ tri-cons {X} f r' (trans q (cong (fst (pair-from X)) P)))
+cell-pair→triple-path ∷ {X ∷ U} (f : 𝕀 →ᵣ X) {r r' : pairs X} (P : r ≡ r') (q : f 𝕀1 ≡ fst (pair-from X) r) →
+  cell-pair→triple {X} f r q ≡ cell-pair→triple {X} f r' (trans q (cong (fst (pair-from X)) P))
+cell-pair→triple-path {X} f {r} {r'} P =
+  J r (λ r' P . (q : f 𝕀1 ≡ fst (pair-from X) r) → cell-pair→triple {X} f r q ≡ cell-pair→triple {X} f r'
+      (trans q (cong (fst (pair-from X)) P)))
     (λ q . refl) P
 
 -- the edges of the pieces of the 3-spine: the first edge, and the two edges of the copy of the
@@ -131,15 +132,16 @@ spine-3-tail-pair {X} g =
     ((λ t . g (𝕀→spine-3-tail-edge-2 t)) , refl , refl))
 
 -- the triple of edges of an oplax cocone on the 3-spine
-coc3-tri ∷ {X ∷ U} → spine-3-cocone-r X → triples X
-coc3-tri {X} c =
-  tri-cons {X} (λ t . spine-3-cocone-edge-1 {X} c (𝕀→spine-3-edge-1 t))
+spine-3-cocone→triple ∷ {X ∷ U} → spine-3-cocone-r X → triples X
+spine-3-cocone→triple {X} c =
+  cell-pair→triple {X} (λ t . spine-3-cocone-edge-1 {X} c (𝕀→spine-3-edge-1 t))
     (spine-3-tail-pair {X} (spine-3-cocone-tail {X} c))
       (spine-3-cocone-glue {X} c)
 
 -- an oplax map out of the 2-spine, seen on the copy of the 2-spine, has the same pair of edges
 abstract spine-3-tail-pair-proj ∷ {X ∷ U} (Φ : spine 2 →ᵣ X) →
-  spine-3-tail-pair {X} (pre-r {spine-3-tail} {spine 2} {X} Φ spine-3-tail→spine-2) ≡ coc-pair {X} (spine-2→cocone-r X Φ)
+  spine-3-tail-pair {X} (pre-r {spine-3-tail} {spine 2} {X} Φ spine-3-tail→spine-2) ≡ spine-2-cocone→pair {X}
+    (spine-2→cocone-r X Φ)
 spine-3-tail-pair-proj {X} Φ =
   cong {Φ (spine-2-edge-1-incl spine-2-edge-1-end) ≡ Φ (spine-2-edge-2-incl spine-2-edge-2-start)} {pairs X}
     (λ e . (Φ (spine-2-edge-1-incl spine-2-edge-1-start) , Φ (spine-2-edge-2-incl spine-2-edge-2-start) , Φ
@@ -174,15 +176,15 @@ tri-src-J {X} f {x} e0 {y} e1 r =
   J (f 𝕀0) (λ x e0 . (f 𝕀0 , y , (f , refl , e1) , r) ≡{triples X} (x , y , (f , e0 , e1) , r)) refl e0
 
 abstract tri-section-path ∷ (X ∷ U) {x y z t : X} (u : hom X x y) (v : hom X y z) (w : hom X z t) →
-  coc3-tri {X} (tri-section X {x} {y} {z} {t} u v w) ≡ (x , y , u , z , t , v , w)
+  spine-3-cocone→triple {X} (tri-section X {x} {y} {z} {t} u v w) ≡ (x , y , u , z , t , v , w)
 tri-section-path X {x} {y} {z} {t} (f , e) v w =
   let P : spine-3-tail-pair {X} (pre-r {spine-3-tail} {spine 2} {X} (pair-section X {y} {z} {t} v w)
       spine-3-tail→spine-2) ≡ (y , z , t , v , w) =
     trans (spine-3-tail-pair-proj {X} (pair-section X {y} {z} {t} v w)) (pair-section-path X {y} {z} {t} v w) in
-  let k : (e : (f 𝕀0 ≡ x) × (f 𝕀1 ≡ y)) → coc3-tri {X} (tri-section X {x} {y} {z} {t} (f , e) v w) ≡
+  let k : (e : (f 𝕀0 ≡ x) × (f 𝕀1 ≡ y)) → spine-3-cocone→triple {X} (tri-section X {x} {y} {z} {t} (f , e) v w) ≡
     (x , y , (f , e) , z , t , v , w) =
     fun (e0 , e1) →
-      trans (tri-cons-path {X} f {spine-3-tail-pair {X}
+      trans (cell-pair→triple-path {X} f {spine-3-tail-pair {X}
             (pre-r {spine-3-tail} {spine 2} {X} (pair-section X {y} {z} {t} v w) spine-3-tail→spine-2)}
           {(y , z , t , v , w)} P
               (trans e1 (sym (cong (fst (pair-from X)) P))))
