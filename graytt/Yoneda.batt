@@ -1,0 +1,27 @@
+--
+-- The Yoneda lemma
+--
+-- For a Segal type A, a : A and a covariant family F over A (i.e. fst : Σ A F → A is a
+-- cocartesian fibration), we have maps
+--
+--   evid φ := φ a id                    : ((x : A) → hom A a x → F x) → F a
+--   yon u  := λ x f . f_* u             : F a → ((x : A) → hom A a x → F x)
+--
+-- where f_* u is the pushforward of u along f, i.e. the target of the cocartesian lift of f at u.
+--
+
+open import Stdlib
+open import Hom
+open import Segal
+open import Covariant
+
+--
+-- The Yoneda maps
+--
+
+evid ∷ {A ∷ U} (F ∷ A → U) {a : A} → ((x : A) → hom A a x → F x) → F a
+evid {A} F {a} φ = φ a (id-hom {A} a)
+
+yon ∷ {A ∷ U} (F ∷ A → U) (sA : is-segal-r A) (sF : is-segal-r (Σ (x : A) . F x)) (c : is-covariant {A} F sA sF)
+  {a : A} → F a → (x : A) → hom A a x → F x
+yon {A} F sA sF c {a} u x f = push {A} F sA sF c {a} {x} f u

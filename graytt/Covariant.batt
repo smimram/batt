@@ -1,0 +1,56 @@
+--
+-- Covariant families
+--
+-- A family F over a Segal type A is covariant when fst : Σ A F → A is a cocartesian fibration.
+-- An arrow f : a → x of A can then be pushed forward: f_* u : F x, for u : F a, is the target of
+-- the cocartesian lift of f at u.
+--
+
+open import Stdlib
+open import Hom
+open import Segal
+open import Fibration
+
+is-covariant ∷ {A ∷ U} (F ∷ A → U) (sA : is-segal-r A) (sF : is-segal-r (Σ (x : A) . F x)) → U
+is-covariant {A} F sA sF = is-cocartesian-fibration {Σ (x : A) . F x} {A} sF sA (fst F)
+
+-- the source of the lift and the arrow to lift, as an element of the pullback
+cocart-lift-data ∷ {A ∷ U} (F ∷ A → U) {a x : A} (f : hom A a x) (u : F a) →
+  pullback {Σ (x : A) . F x} {arrᵣ A} {A} (fst F) (λ g . srcᵣ g)
+cocart-lift-data {A} F {a} {x} f u = ((a , u) , hom-cell {A} {a} {x} f , sym (hom-src {A} {a} {x} f))
+
+-- the cocartesian lift of f at u
+cocart-lift ∷ {A ∷ U} (F ∷ A → U) (sA : is-segal-r A) (sF : is-segal-r (Σ (x : A) . F x)) (c : is-covariant {A} F sA sF)
+  {a x : A} (f : hom A a x) (u : F a) → cocart-cell {Σ (x : A) . F x} {A} sF sA (fst F)
+cocart-lift {A} F sA sF c {a} {x} f u =
+  map-section (cocart-cell-lift {Σ (x : A) . F x} {A} sF sA (fst F))
+    (is-equiv-sec (cocart-cell-lift {Σ (x : A) . F x} {A} sF sA (fst F)) c) (cocart-lift-data {A} F {a} {x} f u)
+
+-- the image of the cocartesian lift of f at u lies over f
+cocart-lift-over ∷ {A ∷ U} (F ∷ A → U) (sA : is-segal-r A) (sF : is-segal-r (Σ (x : A) . F x)) (c : is-covariant {A} F sA sF)
+  {a x : A} (f : hom A a x) (u : F a) →
+  cocart-cell-lift {Σ (x : A) . F x} {A} sF sA (fst F) (cocart-lift {A} F sA sF c {a} {x} f u) ≡ cocart-lift-data {A} F {a} {x} f u
+cocart-lift-over {A} F sA sF c {a} {x} f u =
+  snd _ (is-equiv-sec (cocart-cell-lift {Σ (x : A) . F x} {A} sF sA (fst F)) c) (cocart-lift-data {A} F {a} {x} f u)
+
+-- the target of the image of a cocartesian 1-cell is the image of its target
+cocart-cell-lift-tgt ∷ {A ∷ U} (F ∷ A → U) (sA : is-segal-r A) (sF : is-segal-r (Σ (x : A) . F x))
+  (w : cocart-cell {Σ (x : A) . F x} {A} sF sA (fst F)) →
+  fst F (tgtᵣ (fst _ w)) ≡ tgtᵣ (fst _ (snd _ (cocart-cell-lift {Σ (x : A) . F x} {A} sF sA (fst F) w)))
+cocart-cell-lift-tgt {A} F sA sF (g , e) = refl
+
+-- the target of the cocartesian lift lies over x
+cocart-lift-tgt ∷ {A ∷ U} (F ∷ A → U) (sA : is-segal-r A) (sF : is-segal-r (Σ (x : A) . F x)) (c : is-covariant {A} F sA sF)
+  {a x : A} (f : hom A a x) (u : F a) →
+  fst F (tgtᵣ (fst _ (cocart-lift {A} F sA sF c {a} {x} f u))) ≡ x
+cocart-lift-tgt {A} F sA sF c {a} {x} f u =
+  let P ∷ U = pullback {Σ (x : A) . F x} {arrᵣ A} {A} (fst F) (λ g . srcᵣ g) in
+  let t : P → A = λ w . tgtᵣ (fst _ (snd _ w)) in
+  trans (cocart-cell-lift-tgt {A} F sA sF (cocart-lift {A} F sA sF c {a} {x} f u))
+    (trans (cong {P} {A} t (cocart-lift-over {A} F sA sF c {a} {x} f u)) (hom-tgt {A} {a} {x} f))
+
+-- pushforward of u along f
+push ∷ {A ∷ U} (F ∷ A → U) (sA : is-segal-r A) (sF : is-segal-r (Σ (x : A) . F x)) (c : is-covariant {A} F sA sF)
+  {a x : A} (f : hom A a x) (u : F a) → F x
+push {A} F sA sF c {a} {x} f u =
+  subst F (cocart-lift-tgt {A} F sA sF c {a} {x} f u) (snd F (tgtᵣ (fst _ (cocart-lift {A} F sA sF c {a} {x} f u))))

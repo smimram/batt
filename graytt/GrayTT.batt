@@ -18,3 +18,5 @@ open import Associativity
 open import Simplex-edges
 open import Iso
 open import Connection
+open import Covariant
+open import Yoneda
