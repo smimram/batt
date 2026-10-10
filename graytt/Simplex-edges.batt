@@ -17,31 +17,34 @@
 -- of the 2-spine). Those glued 1-cells are then turned into homs (cells→pair, cells→triple):
 -- this is an equivalence since the endpoints of the homs can be contracted away.
 --
--- Naming conventions (partly inherited from Spine-up.batt and Composable.batt):
+-- Naming conventions (shared with Spine-up.batt, Composable.batt and Composition.batt):
 --
---   sp- / sp3-         the 2-spine Sp₂ ⊆ 𝕀² / the 3-spine Sp₃ ⊆ 𝕀³
---   A / B              the two pieces of a spine seen as a wedge: A is the first edge, B is the
---                      second edge (for Sp₂) or the copy {1} × Sp₂ of the 2-spine (for Sp₃)
---   sp-A, sp-B         the predicates on the cube cutting out the pieces
---   sp-EA, sp-EB       the pieces themselves, as subtypes Σ (c : cube) . sp-A c of the cube
---   sp-i, sp-j         the inclusions of the pieces into the spine
---   sp-a1, sp-b0       the common vertex, on the first and on the second piece (sp-γ: the glue)
---   sp-eA, sp-eB       the parametrizations 𝕀 → EA, 𝕀 → EB of the edges (lowercase e: edge);
---                      sp3-eB1 and sp3-eB2 are the two edges of the second piece of Sp₃
---   sp-EA-coord, …     the coordinate EA → 𝕀 along a piece, inverse to sp-eA
---   sp-cellA, …        restriction of an oplax map on a piece to its edge (precomposition with sp-eA)
---   sp3-incl/proj      the equivalence between Sp₂ and the second piece of Sp₃ (sp3-restrB:
---                      restriction along sp3-incl)
---   F, G, q            the components of a cocone: the maps on the pieces A and B, and the glue
---   f, g               1-cells 𝕀 →ᵣ X; r: a composable pair; τ: a composable triple
---   u, v, w            consecutive homs; ku, kv, kw: the crisp paths in the simplex drawing them;
---                      Hu, Hv: paths ku ≡ ku', kv ≡ kv'; gu: the glue ku 𝕀1 ≡ kv 𝕀0 in the
---                      simplex; α, β: the corresponding glues in X
---   Ψ, Θ               a 2-simplex, a 3-simplex in X
---   a→b                a map from a to b (cells→pair, coc→cells, …); a→b-sec and a→b-retr are the
---                      proofs that it has a section and a retraction
---   -factor            the factorization of a map through the equivalences above
---   -aux               the auxiliary lemma on unfolded arguments
+--   spine-2, spine-3           the 2-spine Sp₂ ⊆ 𝕀² and the 3-spine Sp₃ ⊆ 𝕀³, each seen as a wedge of
+--                              two pieces glued at a vertex
+--   spine-2-edge-1/2           the two pieces of Sp₂: its edges {x₂ = 0} and {x₁ = 1}, as subtypes
+--                              of the cube (cut out by the predicates spine-2-on-edge-1/2)
+--   spine-3-edge-1             the first piece of Sp₃: its first edge {(x₂ , x₃) = 0}
+--   spine-3-tail               the second piece of Sp₃: the copy {1} × Sp₂ of the 2-spine, whose
+--                              edges are the edges 2 and 3 of Sp₃ (spine-3-tail-edge-1/2)
+--   -incl                      the inclusion of a piece into the spine
+--   -start, -end               the endpoints of an edge; -glue: the path identifying the end of
+--                              the first piece with the start of the second one in the spine
+--   𝕀→spine-2-edge-1, …        the parametrization of an edge by 𝕀
+--   spine-2-edge-1→𝕀, …        the coordinate along an edge, inverse to its parametrization
+--   spine-2→spine-3-tail, …    the equivalence between Sp₂ and the tail of Sp₃
+--   restrict-…                 the restriction of an oplax map on a piece to its parametrization
+--   -in-simplex                an edge of a spine, included in the corresponding simplex
+--   F, G, q                    the components of a cocone: the maps on the two pieces, and the glue
+--   f, g                       1-cells 𝕀 →ᵣ X; r: a composable pair; τ: a composable triple
+--   u, v, w                    consecutive homs; path-u, path-v, path-w: the crisp paths in the
+--                              simplex drawing them; htpy-u, htpy-v: homotopies path-u ≡ path-u',
+--                              path-v ≡ path-v'; glue-uv: the glue path-u 𝕀1 ≡ path-v 𝕀0 in the
+--                              simplex; α, β: the corresponding glues in X
+--   Ψ, Θ                       a 2-simplex, a 3-simplex in X
+--   a→b                        a map from a to b (cells→pair, coc→cells, …); a→b-sec and a→b-retr
+--                              are the proofs that it has a section and a retraction
+--   -factor                    the factorization of a map through the equivalences above
+--   -aux                       the auxiliary lemma on unfolded arguments
 --
 
 open import Stdlib
@@ -56,97 +59,109 @@ open import Associativity
 --
 -- The pieces of the spines are intervals
 --
--- The coordinate along a piece (sp-EA-coord, …) is a retraction of its parametrization by 𝕀
--- (sp-eA, …) by definition; we show that it is also a section.
+-- The coordinate along a piece (spine-2-edge-1→𝕀, …) is a retraction of its parametrization by 𝕀
+-- (𝕀→spine-2-edge-1, …) by definition; we show that it is also a section.
 --
 
 -- the first piece of the 2-spine: the points (c1 , 0)
-sp-eA-coord-aux ∷ (c1 : 𝕀) (xs : cart-cube 1) (w : sp-A (c1 , xs)) → sp-eA c1 ≡{sp-EA} ((c1 , xs) , w)
-sp-eA-coord-aux c1 xs w =
-  subtype-path sp-A is-prop-sp-A {(c1 , 𝕀0 , tt)} {(c1 , xs)} (cong {cart-cube 1} {cart-cube 2} (λ z . (c1 , z)) (sym w)) refl w
+𝕀→spine-2-edge-1-sec-aux ∷ (c1 : 𝕀) (xs : cart-cube 1) (w : spine-2-on-edge-1 (c1 , xs)) → 𝕀→spine-2-edge-1
+  c1 ≡{spine-2-edge-1} ((c1 , xs) , w)
+𝕀→spine-2-edge-1-sec-aux c1 xs w =
+  subtype-path spine-2-on-edge-1 is-prop-spine-2-on-edge-1 {(c1 , 𝕀0 , tt)} {(c1 , xs)}
+    (cong {cart-cube 1} {cart-cube 2} (λ z . (c1 , z)) (sym w)) refl w
 
-sp-eA-coord ∷ (a : sp-EA) → sp-eA (sp-EA-coord a) ≡ a
-sp-eA-coord (c , w) =
-  let h : (c : cart-cube 2) (w : sp-A c) → sp-eA (sp-EA-coord (c , w)) ≡ (c , w) = fun (c1 , xs) w → sp-eA-coord-aux c1 xs w in
+𝕀→spine-2-edge-1-sec ∷ (a : spine-2-edge-1) → 𝕀→spine-2-edge-1 (spine-2-edge-1→𝕀 a) ≡ a
+𝕀→spine-2-edge-1-sec (c , w) =
+  let h : (c : cart-cube 2) (w : spine-2-on-edge-1 c) → 𝕀→spine-2-edge-1 (spine-2-edge-1→𝕀 (c , w)) ≡ (c , w)
+    = fun (c1 , xs) w → 𝕀→spine-2-edge-1-sec-aux c1 xs w in
   h c w
 
-is-equiv-sp-eA ∷ is-equiv sp-eA
-is-equiv-sp-eA = ((sp-EA-coord , sp-eA-coord) , (sp-EA-coord , λ t . refl))
+is-equiv-𝕀→spine-2-edge-1 ∷ is-equiv 𝕀→spine-2-edge-1
+is-equiv-𝕀→spine-2-edge-1 = ((spine-2-edge-1→𝕀 , 𝕀→spine-2-edge-1-sec) , (spine-2-edge-1→𝕀 , λ t . refl))
 
 -- the second piece of the 2-spine: the points (1 , x2)
-sp-eB-coord-aux ∷ (c1 x2 : 𝕀) (u : ⊤) (w : sp-B (c1 , x2 , u)) → sp-eB x2 ≡{sp-EB} ((c1 , x2 , u) , w)
-sp-eB-coord-aux c1 x2 u w =
-  subtype-path sp-B is-prop-sp-B {(𝕀1 , x2 , tt)} {(c1 , x2 , u)}
+𝕀→spine-2-edge-2-sec-aux ∷ (c1 x2 : 𝕀) (u : ⊤) (w : spine-2-on-edge-2 (c1 , x2 , u)) → 𝕀→spine-2-edge-2 x2
+  ≡{spine-2-edge-2} ((c1 , x2 , u) , w)
+𝕀→spine-2-edge-2-sec-aux c1 x2 u w =
+  subtype-path spine-2-on-edge-2 is-prop-spine-2-on-edge-2 {(𝕀1 , x2 , tt)} {(c1 , x2 , u)}
     (cong2 {𝕀} {cart-cube 1} {cart-cube 2} pair (sym (prod-fst {c1 ≡ 𝕀1} {is-in-spine 1 (x2 , u)} w))
       (cong {⊤} {cart-cube 1} (λ v . (x2 , v)) (prop-path is-prop-unit tt u)))
     (refl , spine-1-pt x2) w
 
-sp-eB-coord ∷ (b : sp-EB) → sp-eB (sp-EB-coord b) ≡ b
-sp-eB-coord (c , w) =
-  let h : (c1 : 𝕀) (xs : cart-cube 1) (w : sp-B (c1 , xs)) → sp-eB (sp-EB-coord ((c1 , xs) , w)) ≡ ((c1 , xs) , w) =
-    fun c1 (x2 , u) w → sp-eB-coord-aux c1 x2 u w in
-  let k : (c : cart-cube 2) (w : sp-B c) → sp-eB (sp-EB-coord (c , w)) ≡ (c , w) = fun (c1 , xs) w → h c1 xs w in
+𝕀→spine-2-edge-2-sec ∷ (b : spine-2-edge-2) → 𝕀→spine-2-edge-2 (spine-2-edge-2→𝕀 b) ≡ b
+𝕀→spine-2-edge-2-sec (c , w) =
+  let h : (c1 : 𝕀) (xs : cart-cube 1) (w : spine-2-on-edge-2 (c1 , xs)) → 𝕀→spine-2-edge-2
+    (spine-2-edge-2→𝕀 ((c1 , xs) , w)) ≡ ((c1 , xs) , w) =
+    fun c1 (x2 , u) w → 𝕀→spine-2-edge-2-sec-aux c1 x2 u w in
+  let k : (c : cart-cube 2) (w : spine-2-on-edge-2 c) → 𝕀→spine-2-edge-2 (spine-2-edge-2→𝕀 (c , w)) ≡ (c , w)
+    = fun (c1 , xs) w → h c1 xs w in
   k c w
 
-is-equiv-sp-eB ∷ is-equiv sp-eB
-is-equiv-sp-eB = ((sp-EB-coord , sp-eB-coord) , (sp-EB-coord , λ t . refl))
+is-equiv-𝕀→spine-2-edge-2 ∷ is-equiv 𝕀→spine-2-edge-2
+is-equiv-𝕀→spine-2-edge-2 = ((spine-2-edge-2→𝕀 , 𝕀→spine-2-edge-2-sec) , (spine-2-edge-2→𝕀 , λ t . refl))
 
 -- the first piece of the 3-spine: the points (c1 , 0 , 0)
-sp3-eA-coord-aux ∷ (c1 : 𝕀) (xs : cart-cube 2) (w : sp3-A (c1 , xs)) → sp3-eA c1 ≡{sp3-EA} ((c1 , xs) , w)
-sp3-eA-coord-aux c1 xs w =
-  subtype-path sp3-A is-prop-sp3-A {(c1 , 𝕀0 , 𝕀0 , tt)} {(c1 , xs)} (cong {cart-cube 2} {cart-cube 3} (λ z . (c1 , z)) (sym w)) refl w
+𝕀→spine-3-edge-1-sec-aux ∷ (c1 : 𝕀) (xs : cart-cube 2) (w : spine-3-on-edge-1 (c1 , xs)) → 𝕀→spine-3-edge-1
+  c1 ≡{spine-3-edge-1} ((c1 , xs) , w)
+𝕀→spine-3-edge-1-sec-aux c1 xs w =
+  subtype-path spine-3-on-edge-1 is-prop-spine-3-on-edge-1 {(c1 , 𝕀0 , 𝕀0 , tt)} {(c1 , xs)}
+    (cong {cart-cube 2} {cart-cube 3} (λ z . (c1 , z)) (sym w)) refl w
 
-sp3-eA-coord ∷ (a : sp3-EA) → sp3-eA (sp3-EA-coord a) ≡ a
-sp3-eA-coord (c , w) =
-  let h : (c : cart-cube 3) (w : sp3-A c) → sp3-eA (sp3-EA-coord (c , w)) ≡ (c , w) = fun (c1 , xs) w → sp3-eA-coord-aux c1 xs w in
+𝕀→spine-3-edge-1-sec ∷ (a : spine-3-edge-1) → 𝕀→spine-3-edge-1 (spine-3-edge-1→𝕀 a) ≡ a
+𝕀→spine-3-edge-1-sec (c , w) =
+  let h : (c : cart-cube 3) (w : spine-3-on-edge-1 c) → 𝕀→spine-3-edge-1 (spine-3-edge-1→𝕀 (c , w)) ≡ (c , w)
+    = fun (c1 , xs) w → 𝕀→spine-3-edge-1-sec-aux c1 xs w in
   h c w
 
-is-equiv-sp3-eA ∷ is-equiv sp3-eA
-is-equiv-sp3-eA = ((sp3-EA-coord , sp3-eA-coord) , (sp3-EA-coord , λ t . refl))
+is-equiv-𝕀→spine-3-edge-1 ∷ is-equiv 𝕀→spine-3-edge-1
+is-equiv-𝕀→spine-3-edge-1 = ((spine-3-edge-1→𝕀 , 𝕀→spine-3-edge-1-sec) , (spine-3-edge-1→𝕀 , λ t . refl))
 
 -- the second piece of the 3-spine, {1} × Sp₂, is a copy of the 2-spine
-sp3-incl-proj-aux ∷ (c1 : 𝕀) (xs : cart-cube 2) (w : sp3-B (c1 , xs)) → sp3-incl (sp3-proj ((c1 , xs) , w)) ≡{sp3-EB} ((c1 , xs) , w)
-sp3-incl-proj-aux c1 xs w =
-  subtype-path sp3-B is-prop-sp3-B {(𝕀1 , xs)} {(c1 , xs)}
+spine-2→spine-3-tail-sec-aux ∷ (c1 : 𝕀) (xs : cart-cube 2) (w : spine-3-on-tail (c1 , xs)) →
+  spine-2→spine-3-tail (spine-3-tail→spine-2 ((c1 , xs) , w)) ≡{spine-3-tail} ((c1 , xs) , w)
+spine-2→spine-3-tail-sec-aux c1 xs w =
+  subtype-path spine-3-on-tail is-prop-spine-3-on-tail {(𝕀1 , xs)} {(c1 , xs)}
     (cong {𝕀} {cart-cube 3} (λ z . (z , xs)) (sym (prod-fst {c1 ≡ 𝕀1} {is-in-spine 2 xs} w)))
     (refl , prod-snd {c1 ≡ 𝕀1} {is-in-spine 2 xs} w) w
 
-sp3-incl-proj ∷ (b : sp3-EB) → sp3-incl (sp3-proj b) ≡ b
-sp3-incl-proj (c , w) =
-  let h : (c : cart-cube 3) (w : sp3-B c) → sp3-incl (sp3-proj (c , w)) ≡ (c , w) = fun (c1 , xs) w → sp3-incl-proj-aux c1 xs w in
+spine-2→spine-3-tail-sec ∷ (b : spine-3-tail) → spine-2→spine-3-tail (spine-3-tail→spine-2 b) ≡ b
+spine-2→spine-3-tail-sec (c , w) =
+  let h : (c : cart-cube 3) (w : spine-3-on-tail c) → spine-2→spine-3-tail (spine-3-tail→spine-2 (c , w)) ≡
+    (c , w) = fun (c1 , xs) w → spine-2→spine-3-tail-sec-aux c1 xs w in
   h c w
 
-sp3-proj-incl ∷ (s : spine 2) → sp3-proj (sp3-incl s) ≡ s
-sp3-proj-incl (xs , w) = refl
+spine-2→spine-3-tail-retr ∷ (s : spine 2) → spine-3-tail→spine-2 (spine-2→spine-3-tail s) ≡ s
+spine-2→spine-3-tail-retr (xs , w) = refl
 
-is-equiv-sp3-incl ∷ is-equiv sp3-incl
-is-equiv-sp3-incl = ((sp3-proj , sp3-incl-proj) , (sp3-proj , sp3-proj-incl))
+is-equiv-spine-2→spine-3-tail ∷ is-equiv spine-2→spine-3-tail
+is-equiv-spine-2→spine-3-tail = ((spine-3-tail→spine-2 , spine-2→spine-3-tail-sec) ,
+    (spine-3-tail→spine-2 , spine-2→spine-3-tail-retr))
 
 -- hence restricting an oplax map on a piece to its parametrization is an equivalence
 
-sp-cellA ∷ {X ∷ U} → (sp-EA →ᵣ X) → (𝕀 →ᵣ X)
-sp-cellA {X} F = pre-r {𝕀} {sp-EA} {X} F sp-eA
+restrict-spine-2-edge-1 ∷ {X ∷ U} → (spine-2-edge-1 →ᵣ X) → (𝕀 →ᵣ X)
+restrict-spine-2-edge-1 {X} F = pre-r {𝕀} {spine-2-edge-1} {X} F 𝕀→spine-2-edge-1
 
-sp-cellB ∷ {X ∷ U} → (sp-EB →ᵣ X) → (𝕀 →ᵣ X)
-sp-cellB {X} G = pre-r {𝕀} {sp-EB} {X} G sp-eB
+restrict-spine-2-edge-2 ∷ {X ∷ U} → (spine-2-edge-2 →ᵣ X) → (𝕀 →ᵣ X)
+restrict-spine-2-edge-2 {X} G = pre-r {𝕀} {spine-2-edge-2} {X} G 𝕀→spine-2-edge-2
 
-sp3-cellA ∷ {X ∷ U} → (sp3-EA →ᵣ X) → (𝕀 →ᵣ X)
-sp3-cellA {X} F = pre-r {𝕀} {sp3-EA} {X} F sp3-eA
+restrict-spine-3-edge-1 ∷ {X ∷ U} → (spine-3-edge-1 →ᵣ X) → (𝕀 →ᵣ X)
+restrict-spine-3-edge-1 {X} F = pre-r {𝕀} {spine-3-edge-1} {X} F 𝕀→spine-3-edge-1
 
-sp3-restrB ∷ {X ∷ U} → (sp3-EB →ᵣ X) → (spine 2 →ᵣ X)
-sp3-restrB {X} G = pre-r {spine 2} {sp3-EB} {X} G sp3-incl
+restrict-spine-3-tail ∷ {X ∷ U} → (spine-3-tail →ᵣ X) → (spine 2 →ᵣ X)
+restrict-spine-3-tail {X} G = pre-r {spine 2} {spine-3-tail} {X} G spine-2→spine-3-tail
 
-is-equiv-sp-cellA ∷ (X ∷ U) → is-equiv (sp-cellA {X})
-is-equiv-sp-cellA X = pre-r-equiv 𝕀 sp-EA sp-eA is-equiv-sp-eA X
+is-equiv-restrict-spine-2-edge-1 ∷ (X ∷ U) → is-equiv (restrict-spine-2-edge-1 {X})
+is-equiv-restrict-spine-2-edge-1 X = pre-r-equiv 𝕀 spine-2-edge-1 𝕀→spine-2-edge-1 is-equiv-𝕀→spine-2-edge-1 X
 
-is-equiv-sp-cellB ∷ (X ∷ U) → is-equiv (sp-cellB {X})
-is-equiv-sp-cellB X = pre-r-equiv 𝕀 sp-EB sp-eB is-equiv-sp-eB X
+is-equiv-restrict-spine-2-edge-2 ∷ (X ∷ U) → is-equiv (restrict-spine-2-edge-2 {X})
+is-equiv-restrict-spine-2-edge-2 X = pre-r-equiv 𝕀 spine-2-edge-2 𝕀→spine-2-edge-2 is-equiv-𝕀→spine-2-edge-2 X
 
-is-equiv-sp3-cellA ∷ (X ∷ U) → is-equiv (sp3-cellA {X})
-is-equiv-sp3-cellA X = pre-r-equiv 𝕀 sp3-EA sp3-eA is-equiv-sp3-eA X
+is-equiv-restrict-spine-3-edge-1 ∷ (X ∷ U) → is-equiv (restrict-spine-3-edge-1 {X})
+is-equiv-restrict-spine-3-edge-1 X = pre-r-equiv 𝕀 spine-3-edge-1 𝕀→spine-3-edge-1 is-equiv-𝕀→spine-3-edge-1 X
 
-is-equiv-sp3-restrB ∷ (X ∷ U) → is-equiv (sp3-restrB {X})
-is-equiv-sp3-restrB X = pre-r-equiv (spine 2) sp3-EB sp3-incl is-equiv-sp3-incl X
+is-equiv-restrict-spine-3-tail ∷ (X ∷ U) → is-equiv (restrict-spine-3-tail {X})
+is-equiv-restrict-spine-3-tail X = pre-r-equiv (spine 2) spine-3-tail spine-2→spine-3-tail is-equiv-spine-2→spine-3-tail X
 
 --
 -- Contracting the endpoints of composable pairs and triples
@@ -163,7 +178,8 @@ cell-pairs X = Σ (f : 𝕀 →ᵣ X) . Σ (g : 𝕀 →ᵣ X) . f 𝕀1 ≡ g �
 -- the corresponding pair of homs, with the glue as target path of the first one
 cells→pair ∷ {X ∷ U} → cell-pairs X → pairs X
 cells→pair {X} (f , r) =
-  let h : (r : Σ (g : 𝕀 →ᵣ X) . f 𝕀1 ≡ g 𝕀0) → pairs X = fun (g , q) → (f 𝕀0 , g 𝕀0 , g 𝕀1 , (f , refl , q) , (g , refl , refl)) in
+  let h : (r : Σ (g : 𝕀 →ᵣ X) . f 𝕀1 ≡ g 𝕀0) → pairs X = fun (g , q) →
+    (f 𝕀0 , g 𝕀0 , g 𝕀1 , (f , refl , q) , (g , refl , refl)) in
   h r
 
 -- forgetting the endpoints of a pair of homs
@@ -178,7 +194,8 @@ pair→cells {X} (y , a) =
 -- the endpoints are contracted by path induction (pair-path-J)
 cells→pair-sec ∷ {X ∷ U} (r : pairs X) → cells→pair {X} (pair→cells {X} r) ≡ r
 cells→pair-sec {X} (y , a) =
-  let h : (z : X) (b : Σ (t : X) . hom X y z × hom X z t) → cells→pair {X} (pair→cells {X} (y , z , b)) ≡ (y , z , b) = fun z (t , c) →
+  let h : (z : X) (b : Σ (t : X) . hom X y z × hom X z t) → cells→pair {X} (pair→cells {X} (y , z , b)) ≡
+    (y , z , b) = fun z (t , c) →
     let m : (g : 𝕀 →ᵣ X) (eg : (g 𝕀0 ≡ y) × (g 𝕀1 ≡ z)) (g' : 𝕀 →ᵣ X) (eh : (g' 𝕀0 ≡ z) × (g' 𝕀1 ≡ t)) →
         cells→pair {X} (pair→cells {X} (y , z , t , (g , eg) , (g' , eh))) ≡ (y , z , t , (g , eg) , (g' , eh)) =
       fun g (e0 , e1) g' (e1' , e2) → pair-path-J {X} g g' {y} e0 {t} e2 {z} e1' e1 in
@@ -215,14 +232,16 @@ triple→cells {X} (x , a) =
 -- the source is contracted by path induction (tri-src-J)
 cells→triple-sec ∷ {X ∷ U} (τ : triples X) → cells→triple {X} (triple→cells {X} τ) ≡ τ
 cells→triple-sec {X} (x , a) =
-  let h : (y : X) (b : hom X x y × pair-from X y) → cells→triple {X} (triple→cells {X} (x , y , b)) ≡ (x , y , b) = fun y (u , r) →
+  let h : (y : X) (b : hom X x y × pair-from X y) → cells→triple {X} (triple→cells {X} (x , y , b)) ≡
+    (x , y , b) = fun y (u , r) →
     let k : (u : hom X x y) → cells→triple {X} (triple→cells {X} (x , y , u , r)) ≡ (x , y , u , r) = fun (f , e) →
       let m : (e : (f 𝕀0 ≡ x) × (f 𝕀1 ≡ y)) → cells→triple {X} (triple→cells {X} (x , y , (f , e) , r)) ≡ (x , y , (f , e) , r) =
         fun (e0 , e1) → tri-src-J {X} f e0 e1 r in
       m e in
     k u in
   let h0 : (a : Σ (y : X) . hom X x y × pair-from X y) → cells→triple {X} (triple→cells {X} (x , a)) ≡ (x , a) = fun (y , b) →
-    let h1 : (b : hom X x y × pair-from X y) → cells→triple {X} (triple→cells {X} (x , y , b)) ≡ (x , y , b) = fun (u , r) → h y (u , r) in
+    let h1 : (b : hom X x y × pair-from X y) → cells→triple {X} (triple→cells {X} (x , y , b)) ≡ (x , y , b)
+      = fun (u , r) → h y (u , r) in
     h1 b in
   h0 a
 
@@ -249,24 +268,27 @@ is-equiv-cells→triple {X} = ((triple→cells {X} , cells→triple-sec {X}) , (
 -- on the 2-spine: the two pieces are intervals
 coc→cells ∷ {X ∷ U} → spine-cocone-r X → cell-pairs X
 coc→cells {X} c =
-  tot {𝕀 →ᵣ X} {λ f . Σ (G : sp-EB →ᵣ X) . f 𝕀1 ≡ G sp-b0} {λ f . Σ (g : 𝕀 →ᵣ X) . f 𝕀1 ≡ g 𝕀0}
-    (λ f . Σ-base (sp-cellB {X}) (λ g . f 𝕀1 ≡ g 𝕀0))
-    (Σ-base (sp-cellA {X}) (λ f . Σ (G : sp-EB →ᵣ X) . f 𝕀1 ≡ G sp-b0) c)
+  tot {𝕀 →ᵣ X} {λ f . Σ (G : spine-2-edge-2 →ᵣ X) . f 𝕀1 ≡ G spine-2-edge-2-start} {λ f . Σ (g : 𝕀 →ᵣ X) . f 𝕀1 ≡ g 𝕀0}
+    (λ f . Σ-base (restrict-spine-2-edge-2 {X}) (λ g . f 𝕀1 ≡ g 𝕀0))
+    (Σ-base (restrict-spine-2-edge-1 {X}) (λ f . Σ (G : spine-2-edge-2 →ᵣ X) . f 𝕀1 ≡ G spine-2-edge-2-start) c)
 
 abstract is-equiv-coc→cells ∷ {X ∷ U} → is-equiv (coc→cells {X})
 is-equiv-coc→cells {X} =
   is-equiv-circ
-    (tot {𝕀 →ᵣ X} {λ f . Σ (G : sp-EB →ᵣ X) . f 𝕀1 ≡ G sp-b0} {λ f . Σ (g : 𝕀 →ᵣ X) . f 𝕀1 ≡ g 𝕀0}
-      (λ f . Σ-base (sp-cellB {X}) (λ g . f 𝕀1 ≡ g 𝕀0)))
-    (Σ-base (sp-cellA {X}) (λ f . Σ (G : sp-EB →ᵣ X) . f 𝕀1 ≡ G sp-b0))
-    (is-equiv-tot {𝕀 →ᵣ X} {λ f . Σ (G : sp-EB →ᵣ X) . f 𝕀1 ≡ G sp-b0} {λ f . Σ (g : 𝕀 →ᵣ X) . f 𝕀1 ≡ g 𝕀0}
-      (λ f . Σ-base (sp-cellB {X}) (λ g . f 𝕀1 ≡ g 𝕀0))
-      (λ f . is-equiv-Σ-base (sp-cellB {X}) (is-equiv-sp-cellB X) (λ g . f 𝕀1 ≡ g 𝕀0)))
-    (is-equiv-Σ-base (sp-cellA {X}) (is-equiv-sp-cellA X) (λ f . Σ (G : sp-EB →ᵣ X) . f 𝕀1 ≡ G sp-b0))
+    (tot {𝕀 →ᵣ X} {λ f . Σ (G : spine-2-edge-2 →ᵣ X) . f 𝕀1 ≡ G spine-2-edge-2-start} {λ f . Σ (g : 𝕀 →ᵣ X) . f 𝕀1 ≡ g 𝕀0}
+      (λ f . Σ-base (restrict-spine-2-edge-2 {X}) (λ g . f 𝕀1 ≡ g 𝕀0)))
+    (Σ-base (restrict-spine-2-edge-1 {X}) (λ f . Σ (G : spine-2-edge-2 →ᵣ X) . f 𝕀1 ≡ G spine-2-edge-2-start))
+    (is-equiv-tot {𝕀 →ᵣ X} {λ f . Σ (G : spine-2-edge-2 →ᵣ X) . f 𝕀1 ≡ G spine-2-edge-2-start}
+        {λ f . Σ (g : 𝕀 →ᵣ X) . f 𝕀1 ≡ g 𝕀0}
+      (λ f . Σ-base (restrict-spine-2-edge-2 {X}) (λ g . f 𝕀1 ≡ g 𝕀0))
+      (λ f . is-equiv-Σ-base (restrict-spine-2-edge-2 {X}) (is-equiv-restrict-spine-2-edge-2 X) (λ g . f 𝕀1 ≡ g 𝕀0)))
+    (is-equiv-Σ-base (restrict-spine-2-edge-1 {X}) (is-equiv-restrict-spine-2-edge-1 X)
+        (λ f . Σ (G : spine-2-edge-2 →ᵣ X) . f 𝕀1 ≡ G spine-2-edge-2-start))
 
 coc-pair-factor ∷ {X ∷ U} (c : spine-cocone-r X) → cells→pair {X} (coc→cells {X} c) ≡ coc-pair {X} c
 coc-pair-factor {X} (F , r) =
-  let h : (r : Σ (G : sp-EB →ᵣ X) . F sp-a1 ≡ G sp-b0) → cells→pair {X} (coc→cells {X} (F , r)) ≡ coc-pair {X} (F , r) =
+  let h : (r : Σ (G : spine-2-edge-2 →ᵣ X) . F spine-2-edge-1-end ≡ G spine-2-edge-2-start) → cells→pair {X}
+    (coc→cells {X} (F , r)) ≡ coc-pair {X} (F , r) =
     fun (G , q) → refl in
   h r
 
@@ -276,41 +298,51 @@ is-equiv-coc-pair {X} =
     (is-equiv-circ (cells→pair {X}) (coc→cells {X}) (is-equiv-cells→pair {X}) (is-equiv-coc→cells {X}))
 
 -- on the second piece of the 3-spine: restrict to the copy of the 2-spine, then use the above
-pair-of3-factor ∷ {X ∷ U} (G : sp3-EB →ᵣ X) →
-  coc-pair {X} (wedge-restr-r (spine 2) sp-EA sp-EB sp-i sp-j sp-a1 sp-b0 sp-γ X (sp3-restrB {X} G)) ≡ pair-of3 {X} G
-pair-of3-factor {X} G =
-  cong {G (sp3-incl (sp-i sp-a1)) ≡ G (sp3-incl (sp-j sp-b0))} {pairs X}
-    (λ e . (G sp3-b0 , G (sp3-eB2 𝕀0) , G (sp3-eB2 𝕀1) , ((λ t . G (sp3-eB1 t)) , refl , e) , ((λ t . G (sp3-eB2 t)) , refl , refl)))
-    (ap-r-pre-r (spine 2) {sp3-EB} {X} {sp-i sp-a1} {sp-j sp-b0} sp-γ sp3-incl G)
+spine-3-tail-pair-factor ∷ {X ∷ U} (G : spine-3-tail →ᵣ X) →
+  coc-pair {X} (spine-2→cocone-r X (restrict-spine-3-tail {X} G)) ≡ spine-3-tail-pair {X} G
+spine-3-tail-pair-factor {X} G =
+  cong {G (spine-2→spine-3-tail (spine-2-edge-1-incl spine-2-edge-1-end)) ≡ G
+      (spine-2→spine-3-tail (spine-2-edge-2-incl spine-2-edge-2-start))} {pairs X}
+    (λ e . (G spine-3-tail-start , G (𝕀→spine-3-tail-edge-2 𝕀0) , G (𝕀→spine-3-tail-edge-2 𝕀1) ,
+          ((λ t . G (𝕀→spine-3-tail-edge-1 t)) , refl , e) ,
+          ((λ t . G (𝕀→spine-3-tail-edge-2 t)) , refl , refl)))
+    (ap-r-pre-r (spine 2) {spine-3-tail} {X} {spine-2-edge-1-incl spine-2-edge-1-end}
+        {spine-2-edge-2-incl spine-2-edge-2-start} spine-2-glue spine-2→spine-3-tail G)
 
-abstract is-equiv-pair-of3 ∷ {X ∷ U} → is-equiv (pair-of3 {X})
-is-equiv-pair-of3 {X} =
-  let wr : (spine 2 →ᵣ X) → spine-cocone-r X = wedge-restr-r (spine 2) sp-EA sp-EB sp-i sp-j sp-a1 sp-b0 sp-γ X in
-  is-equiv-htpy {sp3-EB →ᵣ X} {pairs X} {λ G . coc-pair {X} (wr (sp3-restrB {X} G))} {pair-of3 {X}} (pair-of3-factor {X})
-    (is-equiv-circ (coc-pair {X}) (λ G . wr (sp3-restrB {X} G)) (is-equiv-coc-pair {X})
-      (is-equiv-circ wr (sp3-restrB {X}) (spine-oplax-up X) (is-equiv-sp3-restrB X)))
+abstract is-equiv-spine-3-tail-pair ∷ {X ∷ U} → is-equiv (spine-3-tail-pair {X})
+is-equiv-spine-3-tail-pair {X} =
+  let wr : (spine 2 →ᵣ X) → spine-cocone-r X = spine-2→cocone-r X in
+  is-equiv-htpy {spine-3-tail →ᵣ X} {pairs X} {λ G . coc-pair {X} (wr (restrict-spine-3-tail {X} G))}
+    {spine-3-tail-pair {X}} (spine-3-tail-pair-factor {X})
+    (is-equiv-circ (coc-pair {X}) (λ G . wr (restrict-spine-3-tail {X} G)) (is-equiv-coc-pair {X})
+      (is-equiv-circ wr (restrict-spine-3-tail {X}) (spine-oplax-up X) (is-equiv-restrict-spine-3-tail X)))
 
 -- on the 3-spine: the first piece is an interval, the second one gives a composable pair
 coc3→cells ∷ {X ∷ U} → spine-3-cocone-r X → cell-triples X
 coc3→cells {X} c =
-  tot {𝕀 →ᵣ X} {λ f . Σ (G : sp3-EB →ᵣ X) . f 𝕀1 ≡ G sp3-b0} {λ f . Σ (r : pairs X) . f 𝕀1 ≡ fst (pair-from X) r}
-    (λ f . Σ-base (pair-of3 {X}) (λ r . f 𝕀1 ≡ fst (pair-from X) r))
-    (Σ-base (sp3-cellA {X}) (λ f . Σ (G : sp3-EB →ᵣ X) . f 𝕀1 ≡ G sp3-b0) c)
+  tot {𝕀 →ᵣ X} {λ f . Σ (G : spine-3-tail →ᵣ X) . f 𝕀1 ≡ G spine-3-tail-start}
+    {λ f . Σ (r : pairs X) . f 𝕀1 ≡ fst (pair-from X) r}
+    (λ f . Σ-base (spine-3-tail-pair {X}) (λ r . f 𝕀1 ≡ fst (pair-from X) r))
+    (Σ-base (restrict-spine-3-edge-1 {X}) (λ f . Σ (G : spine-3-tail →ᵣ X) . f 𝕀1 ≡ G spine-3-tail-start) c)
 
 abstract is-equiv-coc3→cells ∷ {X ∷ U} → is-equiv (coc3→cells {X})
 is-equiv-coc3→cells {X} =
   is-equiv-circ
-    (tot {𝕀 →ᵣ X} {λ f . Σ (G : sp3-EB →ᵣ X) . f 𝕀1 ≡ G sp3-b0} {λ f . Σ (r : pairs X) . f 𝕀1 ≡ fst (pair-from X) r}
-      (λ f . Σ-base (pair-of3 {X}) (λ r . f 𝕀1 ≡ fst (pair-from X) r)))
-    (Σ-base (sp3-cellA {X}) (λ f . Σ (G : sp3-EB →ᵣ X) . f 𝕀1 ≡ G sp3-b0))
-    (is-equiv-tot {𝕀 →ᵣ X} {λ f . Σ (G : sp3-EB →ᵣ X) . f 𝕀1 ≡ G sp3-b0} {λ f . Σ (r : pairs X) . f 𝕀1 ≡ fst (pair-from X) r}
-      (λ f . Σ-base (pair-of3 {X}) (λ r . f 𝕀1 ≡ fst (pair-from X) r))
-      (λ f . is-equiv-Σ-base (pair-of3 {X}) (is-equiv-pair-of3 {X}) (λ r . f 𝕀1 ≡ fst (pair-from X) r)))
-    (is-equiv-Σ-base (sp3-cellA {X}) (is-equiv-sp3-cellA X) (λ f . Σ (G : sp3-EB →ᵣ X) . f 𝕀1 ≡ G sp3-b0))
+    (tot {𝕀 →ᵣ X} {λ f . Σ (G : spine-3-tail →ᵣ X) . f 𝕀1 ≡ G spine-3-tail-start}
+        {λ f . Σ (r : pairs X) . f 𝕀1 ≡ fst (pair-from X) r}
+      (λ f . Σ-base (spine-3-tail-pair {X}) (λ r . f 𝕀1 ≡ fst (pair-from X) r)))
+    (Σ-base (restrict-spine-3-edge-1 {X}) (λ f . Σ (G : spine-3-tail →ᵣ X) . f 𝕀1 ≡ G spine-3-tail-start))
+    (is-equiv-tot {𝕀 →ᵣ X} {λ f . Σ (G : spine-3-tail →ᵣ X) . f 𝕀1 ≡ G spine-3-tail-start}
+        {λ f . Σ (r : pairs X) . f 𝕀1 ≡ fst (pair-from X) r}
+      (λ f . Σ-base (spine-3-tail-pair {X}) (λ r . f 𝕀1 ≡ fst (pair-from X) r))
+      (λ f . is-equiv-Σ-base (spine-3-tail-pair {X}) (is-equiv-spine-3-tail-pair {X}) (λ r . f 𝕀1 ≡ fst (pair-from X) r)))
+    (is-equiv-Σ-base (restrict-spine-3-edge-1 {X}) (is-equiv-restrict-spine-3-edge-1 X)
+        (λ f . Σ (G : spine-3-tail →ᵣ X) . f 𝕀1 ≡ G spine-3-tail-start))
 
 coc3-tri-factor ∷ {X ∷ U} (c : spine-3-cocone-r X) → cells→triple {X} (coc3→cells {X} c) ≡ coc3-tri {X} c
 coc3-tri-factor {X} (F , r) =
-  let h : (r : Σ (G : sp3-EB →ᵣ X) . F sp3-a1 ≡ G sp3-b0) → cells→triple {X} (coc3→cells {X} (F , r)) ≡ coc3-tri {X} (F , r) =
+  let h : (r : Σ (G : spine-3-tail →ᵣ X) . F spine-3-edge-1-end ≡ G spine-3-tail-start) → cells→triple {X}
+    (coc3→cells {X} (F , r)) ≡ coc3-tri {X} (F , r) =
     fun (G , q) → refl in
   h r
 
@@ -330,45 +362,54 @@ edges-2 {X} Ψ =
 
 -- the pair given by two crisp paths in Δ² and a path between the images of their endpoints
 -- (the analogue of tri-shape, Associativity.batt)
-pair-shape ∷ {X ∷ U} (Ψ : simplex 2 →ᵣ X) (ku kv ∷ 𝕀 → simplex 2) → Ψ (ku 𝕀1) ≡ Ψ (kv 𝕀0) → pairs X
-pair-shape {X} Ψ ku kv α =
-  (Ψ (ku 𝕀0) , Ψ (kv 𝕀0) , Ψ (kv 𝕀1) , (pre-r {𝕀} {simplex 2} {X} Ψ ku , refl , α) , (pre-r {𝕀} {simplex 2} {X} Ψ kv , refl , refl))
+pair-shape ∷ {X ∷ U} (Ψ : simplex 2 →ᵣ X) (path-u path-v ∷ 𝕀 → simplex 2) → Ψ (path-u 𝕀1) ≡ Ψ (path-v 𝕀0) → pairs X
+pair-shape {X} Ψ path-u path-v α =
+  (Ψ (path-u 𝕀0) , Ψ (path-v 𝕀0) , Ψ (path-v 𝕀1) , (pre-r {𝕀} {simplex 2} {X} Ψ path-u , refl , α) ,
+      (pre-r {𝕀} {simplex 2} {X} Ψ path-v , refl , refl))
 
 -- homotopic shape data give the same pair: by crisp path induction, then the glues are images of
 -- crisp paths in the set Δ²
-pair-shape-path ∷ {X ∷ U} (Ψ : simplex 2 →ᵣ X) (ku ∷ 𝕀 → simplex 2) {ku' ∷ 𝕀 → simplex 2} (Hu ∷ ku ≡ ku')
-  (kv ∷ 𝕀 → simplex 2) {kv' ∷ 𝕀 → simplex 2} (Hv ∷ kv ≡ kv') (gu ∷ ku 𝕀1 ≡ kv 𝕀0) (gu' ∷ ku' 𝕀1 ≡ kv' 𝕀0) →
-  pair-shape {X} Ψ ku kv (ap-r {simplex 2} {X} gu Ψ) ≡ pair-shape {X} Ψ ku' kv' (ap-r {simplex 2} {X} gu' Ψ)
-pair-shape-path {X} Ψ ku refl kv refl gu gu' =
-  cong {Ψ (ku 𝕀1) ≡ Ψ (kv 𝕀0)} {pairs X} (λ α . pair-shape {X} Ψ ku kv α) (ap-r-set (is-set-simplex 1) gu gu' Ψ)
+pair-shape-path ∷ {X ∷ U} (Ψ : simplex 2 →ᵣ X) (path-u ∷ 𝕀 → simplex 2) {path-u' ∷ 𝕀 → simplex 2} (htpy-u ∷ path-u ≡ path-u')
+  (path-v ∷ 𝕀 → simplex 2) {path-v' ∷ 𝕀 → simplex 2} (htpy-v ∷ path-v ≡ path-v')
+    (glue-uv ∷ path-u 𝕀1 ≡ path-v 𝕀0) (glue-uv' ∷ path-u' 𝕀1 ≡ path-v' 𝕀0) →
+  pair-shape {X} Ψ path-u path-v (ap-r {simplex 2} {X} glue-uv Ψ) ≡ pair-shape {X} Ψ path-u' path-v'
+    (ap-r {simplex 2} {X} glue-uv' Ψ)
+pair-shape-path {X} Ψ path-u refl path-v refl glue-uv glue-uv' =
+  cong {Ψ (path-u 𝕀1) ≡ Ψ (path-v 𝕀0)} {pairs X} (λ α . pair-shape {X} Ψ path-u path-v α)
+    (ap-r-set (is-set-simplex 1) glue-uv glue-uv' Ψ)
 
 -- the edges of the 2-spine, included in the 2-simplex
-sp-ku ∷ 𝕀 → simplex 2
-sp-ku t = spine→simplex 2 (sp-i (sp-eA t))
+spine-2-edge-1-in-simplex ∷ 𝕀 → simplex 2
+spine-2-edge-1-in-simplex t = spine→simplex 2 (spine-2-edge-1-incl (𝕀→spine-2-edge-1 t))
 
-sp-kv ∷ 𝕀 → simplex 2
-sp-kv t = spine→simplex 2 (sp-j (sp-eB t))
+spine-2-edge-2-in-simplex ∷ 𝕀 → simplex 2
+spine-2-edge-2-in-simplex t = spine→simplex 2 (spine-2-edge-2-incl (𝕀→spine-2-edge-2 t))
 
-sp-ku-path ∷ sp-ku ≡{𝕀 → simplex 2} simplex-2-e01
-sp-ku-path = funext-htpy {𝕀} {λ _ . simplex 2} sp-ku simplex-2-e01 (λ t . spine-edge-A-pt (sp-eA t))
+spine-2-edge-1-in-simplex-path ∷ spine-2-edge-1-in-simplex ≡{𝕀 → simplex 2} simplex-2-e01
+spine-2-edge-1-in-simplex-path = funext-htpy {𝕀} {λ _ . simplex 2} spine-2-edge-1-in-simplex simplex-2-e01
+  (λ t . spine-2-edge-1-in-simplex-pt (𝕀→spine-2-edge-1 t))
 
-sp-kv-path ∷ sp-kv ≡{𝕀 → simplex 2} simplex-2-e12
-sp-kv-path = funext-htpy {𝕀} {λ _ . simplex 2} sp-kv simplex-2-e12 (λ t . spine-edge-B-pt (sp-eB t))
+spine-2-edge-2-in-simplex-path ∷ spine-2-edge-2-in-simplex ≡{𝕀 → simplex 2} simplex-2-e12
+spine-2-edge-2-in-simplex-path = funext-htpy {𝕀} {λ _ . simplex 2} spine-2-edge-2-in-simplex simplex-2-e12
+  (λ t . spine-2-edge-2-in-simplex-pt (𝕀→spine-2-edge-2 t))
 
 -- the pair read off the restriction of a 2-simplex to the 2-spine is its pair of edges
 abstract spine-restr-edges-2 ∷ {X ∷ U} (Ψ : simplex 2 →ᵣ X) →
-  coc-pair {X} (wedge-restr-r (spine 2) sp-EA sp-EB sp-i sp-j sp-a1 sp-b0 sp-γ X (spine-restr-r 2 X Ψ)) ≡ edges-2 {X} Ψ
+  coc-pair {X} (spine-2→cocone-r X (spine-restr-r 2 X Ψ)) ≡ edges-2 {X} Ψ
 spine-restr-edges-2 {X} Ψ =
-  trans (cong {Ψ (sp-ku 𝕀1) ≡ Ψ (sp-kv 𝕀0)} {pairs X} (λ α . pair-shape {X} Ψ sp-ku sp-kv α)
-          (ap-r-pre-r (spine 2) {simplex 2} {X} {sp-i sp-a1} {sp-j sp-b0} sp-γ (spine→simplex 2) Ψ))
-    (pair-shape-path {X} Ψ sp-ku sp-ku-path sp-kv sp-kv-path (cong (spine→simplex 2) sp-γ) refl)
+  trans (cong {Ψ (spine-2-edge-1-in-simplex 𝕀1) ≡ Ψ (spine-2-edge-2-in-simplex 𝕀0)} {pairs X}
+      (λ α . pair-shape {X} Ψ spine-2-edge-1-in-simplex spine-2-edge-2-in-simplex α)
+          (ap-r-pre-r (spine 2) {simplex 2} {X} {spine-2-edge-1-incl spine-2-edge-1-end}
+              {spine-2-edge-2-incl spine-2-edge-2-start} spine-2-glue (spine→simplex 2) Ψ))
+    (pair-shape-path {X} Ψ spine-2-edge-1-in-simplex spine-2-edge-1-in-simplex-path spine-2-edge-2-in-simplex
+        spine-2-edge-2-in-simplex-path (cong (spine→simplex 2) spine-2-glue) refl)
 
 -- edges-2 is the composite of the Segal restriction, the restriction to the pieces of the spine
 -- and coc-pair, all of which are equivalences
 abstract is-equiv-edges-2 ∷ (X ∷ U) → is-segal-r X → is-equiv (edges-2 {X})
 is-equiv-edges-2 X s =
   let sr : (simplex 2 →ᵣ X) → (spine 2 →ᵣ X) = spine-restr-r 2 X in
-  let wr : (spine 2 →ᵣ X) → spine-cocone-r X = wedge-restr-r (spine 2) sp-EA sp-EB sp-i sp-j sp-a1 sp-b0 sp-γ X in
+  let wr : (spine 2 →ᵣ X) → spine-cocone-r X = spine-2→cocone-r X in
   is-equiv-htpy {simplex 2 →ᵣ X} {pairs X} {λ Ψ . coc-pair {X} (wr (sr Ψ))} {edges-2 {X}} (spine-restr-edges-2 {X})
     (is-equiv-circ (coc-pair {X}) (λ Ψ . wr (sr Ψ)) (is-equiv-coc-pair {X})
       (is-equiv-circ wr sr (spine-oplax-up X) (is-segal-r-unthick X s 2)))
@@ -381,7 +422,23 @@ is-equiv-edges-2 X s =
 abstract is-equiv-edges-tri ∷ (X ∷ U) → is-segal-r X → is-equiv (edges-tri {X})
 is-equiv-edges-tri X s =
   let sr : (simplex 3 →ᵣ X) → (spine 3 →ᵣ X) = spine-restr-r 3 X in
-  let wr : (spine 3 →ᵣ X) → spine-3-cocone-r X = wedge-restr-r (spine 3) sp3-EA sp3-EB sp3-i sp3-j sp3-a1 sp3-b0 sp3-γ X in
+  let wr : (spine 3 →ᵣ X) → spine-3-cocone-r X = spine-3→cocone-r X in
   is-equiv-htpy {simplex 3 →ᵣ X} {triples X} {λ Θ . coc3-tri {X} (wr (sr Θ))} {edges-tri {X}} (spine-restr-edges-tri {X})
     (is-equiv-circ (coc3-tri {X}) (λ Θ . wr (sr Θ)) (is-equiv-coc3-tri {X})
       (is-equiv-circ wr sr (spine-3-oplax-up X) (is-segal-r-unthick X s 3)))
+
+-- on the edges of a 3-simplex, the associator is the one given by its four faces
+-- (assoc-simplex-3-def, Associativity.batt): the fibres of edges-tri are contractible
+abstract comp-hom-r-assoc-edges ∷ (X ∷ U) (s : is-segal-r X) (Θ : simplex 3 →ᵣ X) →
+  comp-hom-r-assoc X s (simplex-3-hom {X} simplex-3-e01 Θ) (simplex-3-hom {X} simplex-3-e12 Θ) (simplex-3-hom {X} simplex-3-e23 Θ)
+    ≡ assoc-simplex-3-def X s Θ
+comp-hom-r-assoc-edges X s Θ =
+  trans (comp-hom-r-assoc-eq X s (simplex-3-hom {X} simplex-3-e01 Θ) (simplex-3-hom {X} simplex-3-e12 Θ)
+      (simplex-3-hom {X} simplex-3-e23 Θ))
+    (trans
+      (transfer-equiv (edges-tri {X}) (is-equiv-edges-tri X s) (tri-assoc X s) (assoc-simplex-3 X s) Θ
+        (assoc-filler X s (simplex-3-hom {X} simplex-3-e01 Θ) (simplex-3-hom {X} simplex-3-e12 Θ)
+            (simplex-3-hom {X} simplex-3-e23 Θ))
+        (assoc-filler-edges X s (simplex-3-hom {X} simplex-3-e01 Θ) (simplex-3-hom {X} simplex-3-e12 Θ)
+            (simplex-3-hom {X} simplex-3-e23 Θ)))
+      (assoc-simplex-3-eq X s Θ))

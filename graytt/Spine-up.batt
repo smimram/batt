@@ -16,7 +16,8 @@
 --     (wedge-oplax-up, wedge-lax-up, Wedge.batt).
 -- What is specific to the spine is only the contractibility of the intersection.
 --
--- The edges are the subtypes sp-EA = {x₂ = 0} and sp-EB = {x₁ = 1} of 𝕀², glued at the vertex.
+-- The edges are the subtypes spine-2-edge-1 = {x₂ = 0} and spine-2-edge-2 = {x₁ = 1} of 𝕀²,
+-- glued at the vertex.
 --
 
 open import Stdlib
@@ -27,29 +28,29 @@ open import Wedge
 --
 
 -- coordinates, with explicit implicit arguments
-cc1 ∷ cart-cube 2 → 𝕀
-cc1 c = prod-fst {𝕀} {cart-cube 1} c
+cube-2-x1 ∷ cart-cube 2 → 𝕀
+cube-2-x1 c = prod-fst {𝕀} {cart-cube 1} c
 
-ccxs ∷ cart-cube 2 → cart-cube 1
-ccxs c = prod-snd {𝕀} {cart-cube 1} c
+cube-2-tail ∷ cart-cube 2 → cart-cube 1
+cube-2-tail c = prod-snd {𝕀} {cart-cube 1} c
 
-cc2 ∷ cart-cube 2 → 𝕀
-cc2 c = prod-fst {𝕀} {⊤} (ccxs c)
+cube-2-x2 ∷ cart-cube 2 → 𝕀
+cube-2-x2 c = prod-fst {𝕀} {⊤} (cube-2-tail c)
 
 -- the two propositions whose disjunction defines the spine
-sp-A ∷ cart-cube 2 → U
-sp-A c = ccxs c ≡{cart-cube 1} zero-cube 1
+spine-2-on-edge-1 ∷ cart-cube 2 → U
+spine-2-on-edge-1 c = cube-2-tail c ≡{cart-cube 1} zero-cube 1
 
-sp-B ∷ cart-cube 2 → U
-sp-B c = (cc1 c ≡ 𝕀1) × is-in-spine 1 (ccxs c)
+spine-2-on-edge-2 ∷ cart-cube 2 → U
+spine-2-on-edge-2 c = (cube-2-x1 c ≡ 𝕀1) × is-in-spine 1 (cube-2-tail c)
 
-abstract is-prop-sp-A ∷ (c : cart-cube 2) → is-prop (sp-A c)
-is-prop-sp-A c = is-set-cart-cube 1 (ccxs c) (zero-cube 1)
+abstract is-prop-spine-2-on-edge-1 ∷ (c : cart-cube 2) → is-prop (spine-2-on-edge-1 c)
+is-prop-spine-2-on-edge-1 c = is-set-cart-cube 1 (cube-2-tail c) (zero-cube 1)
 
-abstract is-prop-sp-B ∷ (c : cart-cube 2) → is-prop (sp-B c)
-is-prop-sp-B c = is-prop-prod (is-set-𝕀 (cc1 c) 𝕀1) (is-prop-is-in-spine 1 (ccxs c))
+abstract is-prop-spine-2-on-edge-2 ∷ (c : cart-cube 2) → is-prop (spine-2-on-edge-2 c)
+is-prop-spine-2-on-edge-2 c = is-prop-prod (is-set-𝕀 (cube-2-x1 c) 𝕀1) (is-prop-is-in-spine 1 (cube-2-tail c))
 
-spine-is-union ∷ spine 2 ≡ union sp-A sp-B
+spine-is-union ∷ spine 2 ≡ union spine-2-on-edge-1 spine-2-on-edge-2
 spine-is-union = refl
 
 --
@@ -57,72 +58,159 @@ spine-is-union = refl
 --
 
 -- the two edges, as subtypes of 𝕀²
-sp-EA ∷ U
-sp-EA = Σ (c : cart-cube 2) . sp-A c
+spine-2-edge-1 ∷ U
+spine-2-edge-1 = Σ (c : cart-cube 2) . spine-2-on-edge-1 c
 
-sp-EB ∷ U
-sp-EB = Σ (c : cart-cube 2) . sp-B c
+spine-2-edge-2 ∷ U
+spine-2-edge-2 = Σ (c : cart-cube 2) . spine-2-on-edge-2 c
 
-sp-i ∷ sp-EA → spine 2
-sp-i = union-inl sp-A sp-B
+spine-2-edge-1-incl ∷ spine-2-edge-1 → spine 2
+spine-2-edge-1-incl = union-inl spine-2-on-edge-1 spine-2-on-edge-2
 
-sp-j ∷ sp-EB → spine 2
-sp-j = union-inr sp-A sp-B
+spine-2-edge-2-incl ∷ spine-2-edge-2 → spine 2
+spine-2-edge-2-incl = union-inr spine-2-on-edge-1 spine-2-on-edge-2
 
 -- the vertex (1 , 0), on each edge
-sp-a1 ∷ sp-EA
-sp-a1 = ((𝕀1 , 𝕀0 , tt) , refl)
+spine-2-edge-1-end ∷ spine-2-edge-1
+spine-2-edge-1-end = ((𝕀1 , 𝕀0 , tt) , refl)
 
-sp-b0 ∷ sp-EB
-sp-b0 = ((𝕀1 , 𝕀0 , tt) , (refl , spine-1-pt 𝕀0))
+spine-2-edge-2-start ∷ spine-2-edge-2
+spine-2-edge-2-start = ((𝕀1 , 𝕀0 , tt) , (refl , spine-1-pt 𝕀0))
 
 -- the outer vertices of the spine: 0 on the first edge, 2 on the second one
-sp-a0 ∷ sp-EA
-sp-a0 = ((𝕀0 , 𝕀0 , tt) , refl)
+spine-2-edge-1-start ∷ spine-2-edge-1
+spine-2-edge-1-start = ((𝕀0 , 𝕀0 , tt) , refl)
 
-sp-b1 ∷ sp-EB
-sp-b1 = ((𝕀1 , 𝕀1 , tt) , (refl , spine-1-pt 𝕀1))
+spine-2-edge-2-end ∷ spine-2-edge-2
+spine-2-edge-2-end = ((𝕀1 , 𝕀1 , tt) , (refl , spine-1-pt 𝕀1))
 
 -- the glue is the vertex path of Cube.batt
-sp-γ ∷ sp-i sp-a1 ≡{spine 2} sp-j sp-b0
-sp-γ = spine-glue
+spine-2-glue ∷ spine-2-edge-1-incl spine-2-edge-1-end ≡{spine 2} spine-2-edge-2-incl spine-2-edge-2-start
+spine-2-glue = spine-glue
 
 -- the intersection of the two edges is contractible, with centre the vertex
-abstract sp-κ2 ∷ (c1 : 𝕀) (xs : cart-cube 1) (w : sp-A (c1 , xs) × sp-B (c1 , xs)) →
-  ((𝕀1 , 𝕀0 , tt) , refl , (refl , spine-1-pt 𝕀0)) ≡{union-I sp-A sp-B} ((c1 , xs) , w)
-sp-κ2 c1 xs w =
-  subtype-path (λ c . sp-A c × sp-B c) (λ c . is-prop-prod (is-prop-sp-A c) (is-prop-sp-B c)) {(𝕀1 , 𝕀0 , tt)} {(c1 , xs)}
+abstract spine-2-meet-contr-aux2 ∷ (c1 : 𝕀) (xs : cart-cube 1) (w : spine-2-on-edge-1 (c1 , xs) × spine-2-on-edge-2 (c1 , xs)) →
+  ((𝕀1 , 𝕀0 , tt) , refl , (refl , spine-1-pt 𝕀0)) ≡{union-I spine-2-on-edge-1 spine-2-on-edge-2} ((c1 , xs) , w)
+spine-2-meet-contr-aux2 c1 xs w =
+  subtype-path (λ c . spine-2-on-edge-1 c × spine-2-on-edge-2 c)
+    (λ c . is-prop-prod (is-prop-spine-2-on-edge-1 c) (is-prop-spine-2-on-edge-2 c)) {(𝕀1 , 𝕀0 , tt)}
+    {(c1 , xs)}
     (cong2 {𝕀} {cart-cube 1} {cart-cube 2} pair
-      (sym (prod-fst {c1 ≡ 𝕀1} {is-in-spine 1 xs} (prod-snd {sp-A (c1 , xs)} {sp-B (c1 , xs)} w)))
-      (sym (prod-fst {sp-A (c1 , xs)} {sp-B (c1 , xs)} w)))
+      (sym (prod-fst {c1 ≡ 𝕀1} {is-in-spine 1 xs} (prod-snd {spine-2-on-edge-1 (c1 , xs)} {spine-2-on-edge-2 (c1 , xs)} w)))
+      (sym (prod-fst {spine-2-on-edge-1 (c1 , xs)} {spine-2-on-edge-2 (c1 , xs)} w)))
     (refl , (refl , spine-1-pt 𝕀0)) w
 
-abstract sp-κ1 ∷ (c : cart-cube 2) (w : sp-A c × sp-B c) → ((𝕀1 , 𝕀0 , tt) , refl , (refl , spine-1-pt 𝕀0)) ≡{union-I sp-A sp-B} (c , w)
-sp-κ1 (c1 , xs) w = sp-κ2 c1 xs w
+abstract spine-2-meet-contr-aux1 ∷ (c : cart-cube 2) (w : spine-2-on-edge-1 c × spine-2-on-edge-2 c) →
+  ((𝕀1 , 𝕀0 , tt) , refl , (refl , spine-1-pt 𝕀0)) ≡{union-I spine-2-on-edge-1 spine-2-on-edge-2} (c , w)
+spine-2-meet-contr-aux1 (c1 , xs) w = spine-2-meet-contr-aux2 c1 xs w
 
-abstract sp-κ ∷ (t : union-I sp-A sp-B) → ((𝕀1 , 𝕀0 , tt) , refl , (refl , spine-1-pt 𝕀0)) ≡{union-I sp-A sp-B} t
-sp-κ (c , w) = sp-κ1 c w
+abstract spine-2-meet-contr ∷ (t : union-I spine-2-on-edge-1 spine-2-on-edge-2) →
+  ((𝕀1 , 𝕀0 , tt) , refl , (refl , spine-1-pt 𝕀0)) ≡{union-I spine-2-on-edge-1 spine-2-on-edge-2} t
+spine-2-meet-contr (c , w) = spine-2-meet-contr-aux1 c w
 
 --
 -- the universal properties of the spine
 --
 
 -- abstract: only its type is used, and unfolding its proof inside unified terms is expensive
-abstract spine-cart-up ∷ wedge-cart-up (spine 2) sp-EA sp-EB sp-i sp-j sp-a1 sp-b0 sp-γ
-spine-cart-up Y = union-pt-up sp-A sp-B is-prop-sp-A is-prop-sp-B Y (𝕀1 , 𝕀0 , tt) refl (refl , spine-1-pt 𝕀0) sp-κ
+abstract spine-cart-up ∷
+  wedge-cart-up (spine 2)
+    spine-2-edge-1 spine-2-edge-2
+    spine-2-edge-1-incl spine-2-edge-2-incl
+    spine-2-edge-1-end spine-2-edge-2-start
+    spine-2-glue
+spine-cart-up Y =
+  union-pt-up spine-2-on-edge-1 spine-2-on-edge-2 is-prop-spine-2-on-edge-1 is-prop-spine-2-on-edge-2 Y
+    (𝕀1 , 𝕀0 , tt) refl (refl , spine-1-pt 𝕀0) spine-2-meet-contr
 
-abstract spine-oplax-up ∷ (X ∷ U) → is-equiv (wedge-restr-r (spine 2) sp-EA sp-EB sp-i sp-j sp-a1 sp-b0 sp-γ X)
-spine-oplax-up X = wedge-oplax-up (spine 2) sp-EA sp-EB sp-i sp-j sp-a1 sp-b0 sp-γ spine-cart-up X
+abstract spine-oplax-up ∷ (X ∷ U) →
+  is-equiv (wedge-restr-r (spine 2)
+    spine-2-edge-1 spine-2-edge-2
+    spine-2-edge-1-incl spine-2-edge-2-incl
+    spine-2-edge-1-end spine-2-edge-2-start
+    spine-2-glue
+    X)
+spine-oplax-up X =
+  wedge-oplax-up (spine 2)
+    spine-2-edge-1 spine-2-edge-2
+    spine-2-edge-1-incl spine-2-edge-2-incl
+    spine-2-edge-1-end spine-2-edge-2-start
+    spine-2-glue
+    spine-cart-up X
 
-abstract spine-lax-up ∷ (X ∷ U) → is-equiv (wedge-restr-l (spine 2) sp-EA sp-EB sp-i sp-j sp-a1 sp-b0 sp-γ X)
-spine-lax-up X = wedge-lax-up (spine 2) sp-EA sp-EB sp-i sp-j sp-a1 sp-b0 sp-γ spine-cart-up X
+abstract spine-lax-up ∷ (X ∷ U) →
+  is-equiv (wedge-restr-l (spine 2)
+    spine-2-edge-1 spine-2-edge-2
+    spine-2-edge-1-incl spine-2-edge-2-incl
+    spine-2-edge-1-end spine-2-edge-2-start
+    spine-2-glue
+    X)
+spine-lax-up X =
+  wedge-lax-up (spine 2)
+    spine-2-edge-1 spine-2-edge-2
+    spine-2-edge-1-incl spine-2-edge-2-incl
+    spine-2-edge-1-end spine-2-edge-2-start
+    spine-2-glue
+    spine-cart-up X
 
 --
 -- oplax cocones on the two edges (the domain of the inverse used in Composition.batt)
 --
 
 spine-cocone-r ∷ (X ∷ U) → U
-spine-cocone-r X = wedge-cocone-r sp-EA sp-EB sp-a1 sp-b0 X
+spine-cocone-r X = wedge-cocone-r spine-2-edge-1 spine-2-edge-2 spine-2-edge-1-end spine-2-edge-2-start X
+
+--
+-- abbreviations of the wedge combinators, for the 2-spine
+--
+
+-- restricting an oplax map out of the spine to a cocone on its edges, and back
+spine-2→cocone-r ∷ (X ∷ U) → (spine 2 →ᵣ X) → spine-cocone-r X
+spine-2→cocone-r X = wedge-restr-r (spine 2) spine-2-edge-1 spine-2-edge-2 spine-2-edge-1-incl
+  spine-2-edge-2-incl spine-2-edge-1-end spine-2-edge-2-start spine-2-glue X
+
+cocone→spine-2-r ∷ (X ∷ U) → spine-cocone-r X → (spine 2 →ᵣ X)
+cocone→spine-2-r X = wedge-σ-r (spine 2) spine-2-edge-1 spine-2-edge-2 spine-2-edge-1-incl
+  spine-2-edge-2-incl spine-2-edge-1-end spine-2-edge-2-start spine-2-glue spine-cart-up X
+
+spine-2→cocone-r-sec ∷ (X ∷ U) (w : spine-cocone-r X) → spine-2→cocone-r X (cocone→spine-2-r X w) ≡ w
+spine-2→cocone-r-sec X w = wedge-σ-sec-r (spine 2) spine-2-edge-1 spine-2-edge-2 spine-2-edge-1-incl
+  spine-2-edge-2-incl spine-2-edge-1-end spine-2-edge-2-start spine-2-glue spine-cart-up X w
+
+spine-2→cocone-r-retr ∷ (X ∷ U) (φ : spine 2 →ᵣ X) → cocone→spine-2-r X (spine-2→cocone-r X φ) ≡ φ
+spine-2→cocone-r-retr X φ = wedge-σ-ret-r (spine 2) spine-2-edge-1 spine-2-edge-2 spine-2-edge-1-incl
+  spine-2-edge-2-incl spine-2-edge-1-end spine-2-edge-2-start spine-2-glue spine-cart-up X φ
+
+-- the components of a cocone: the maps on the two edges, and the glue
+spine-2-cocone-edge-1 ∷ {X ∷ U} → spine-cocone-r X → (spine-2-edge-1 →ᵣ X)
+spine-2-cocone-edge-1 {X} w = wr-f {spine-2-edge-1} {spine-2-edge-2} {spine-2-edge-1-end} {spine-2-edge-2-start} {X} w
+
+spine-2-cocone-edge-2 ∷ {X ∷ U} → spine-cocone-r X → (spine-2-edge-2 →ᵣ X)
+spine-2-cocone-edge-2 {X} w = wr-g {spine-2-edge-1} {spine-2-edge-2} {spine-2-edge-1-end} {spine-2-edge-2-start} {X} w
+
+spine-2-cocone-glue ∷ {X ∷ U} (w : spine-cocone-r X) →
+  spine-2-cocone-edge-1 {X} w spine-2-edge-1-end ≡ spine-2-cocone-edge-2 {X} w spine-2-edge-2-start
+spine-2-cocone-glue {X} w = wr-q {spine-2-edge-1} {spine-2-edge-2} {spine-2-edge-1-end} {spine-2-edge-2-start} {X} w
+
+-- paths of cocones
+spine-2-cocone-path ∷
+  (X ∷ U) (f : spine-2-edge-1 →ᵣ X) (g : spine-2-edge-2 →ᵣ X) (q : f spine-2-edge-1-end ≡ g spine-2-edge-2-start)
+  (f' : spine-2-edge-1 →ᵣ X) (Pf : f ≡ f') (g' : spine-2-edge-2 →ᵣ X) (Pg : g ≡ g')
+    (q' : f' spine-2-edge-1-end ≡ g' spine-2-edge-2-start)
+  → trans q (ev-r {spine-2-edge-2} {X} spine-2-edge-2-start {g} {g'} Pg) ≡ trans
+    (ev-r {spine-2-edge-1} {X} spine-2-edge-1-end {f} {f'} Pf) q'
+  → (f , g , q) ≡{spine-cocone-r X} (f' , g' , q')
+spine-2-cocone-path = wedge-cocone-r-path spine-2-edge-1 spine-2-edge-2 spine-2-edge-1-end spine-2-edge-2-start
+
+spine-2-cocone-path-fg ∷
+  (X ∷ U) (f : spine-2-edge-1 →ᵣ X) (g : spine-2-edge-2 →ᵣ X) (q : f spine-2-edge-1-end ≡ g spine-2-edge-2-start)
+  (f' : spine-2-edge-1 →ᵣ X) (Pf : f ≡ f') (g' : spine-2-edge-2 →ᵣ X) (Pg : g ≡ g')
+    (q' : f' spine-2-edge-1-end ≡ g' spine-2-edge-2-start)
+  (θ : trans q (ev-r {spine-2-edge-2} {X} spine-2-edge-2-start {g} {g'} Pg) ≡ trans
+      (ev-r {spine-2-edge-1} {X} spine-2-edge-1-end {f} {f'} Pf) q')
+  → (cong (spine-2-cocone-edge-1 {X}) (spine-2-cocone-path X f g q f' Pf g' Pg q' θ) ≡ Pf)
+    × (cong (spine-2-cocone-edge-2 {X}) (spine-2-cocone-path X f g q f' Pf g' Pg q' θ) ≡ Pg)
+spine-2-cocone-path-fg = wedge-cocone-r-path-fg spine-2-edge-1 spine-2-edge-2 spine-2-edge-1-end spine-2-edge-2-start
 
 --
 -- The 3-spine as a wedge of an edge and a 2-spine
@@ -134,83 +222,132 @@ spine-cocone-r X = wedge-cocone-r sp-EA sp-EB sp-a1 sp-b0 X
 --
 
 -- coordinates
-cc3-1 ∷ cart-cube 3 → 𝕀
-cc3-1 c = prod-fst {𝕀} {cart-cube 2} c
+cube-3-x1 ∷ cart-cube 3 → 𝕀
+cube-3-x1 c = prod-fst {𝕀} {cart-cube 2} c
 
-cc3-xs ∷ cart-cube 3 → cart-cube 2
-cc3-xs c = prod-snd {𝕀} {cart-cube 2} c
+cube-3-tail ∷ cart-cube 3 → cart-cube 2
+cube-3-tail c = prod-snd {𝕀} {cart-cube 2} c
 
-sp3-A ∷ cart-cube 3 → U
-sp3-A c = cc3-xs c ≡{cart-cube 2} zero-cube 2
+spine-3-on-edge-1 ∷ cart-cube 3 → U
+spine-3-on-edge-1 c = cube-3-tail c ≡{cart-cube 2} zero-cube 2
 
-sp3-B ∷ cart-cube 3 → U
-sp3-B c = (cc3-1 c ≡ 𝕀1) × is-in-spine 2 (cc3-xs c)
+spine-3-on-tail ∷ cart-cube 3 → U
+spine-3-on-tail c = (cube-3-x1 c ≡ 𝕀1) × is-in-spine 2 (cube-3-tail c)
 
-is-prop-sp3-A ∷ (c : cart-cube 3) → is-prop (sp3-A c)
-is-prop-sp3-A c = is-set-cart-cube 2 (cc3-xs c) (zero-cube 2)
+is-prop-spine-3-on-edge-1 ∷ (c : cart-cube 3) → is-prop (spine-3-on-edge-1 c)
+is-prop-spine-3-on-edge-1 c = is-set-cart-cube 2 (cube-3-tail c) (zero-cube 2)
 
-is-prop-sp3-B ∷ (c : cart-cube 3) → is-prop (sp3-B c)
-is-prop-sp3-B c = is-prop-prod (is-set-𝕀 (cc3-1 c) 𝕀1) (is-prop-is-in-spine 2 (cc3-xs c))
+is-prop-spine-3-on-tail ∷ (c : cart-cube 3) → is-prop (spine-3-on-tail c)
+is-prop-spine-3-on-tail c = is-prop-prod (is-set-𝕀 (cube-3-x1 c) 𝕀1) (is-prop-is-in-spine 2 (cube-3-tail c))
 
-spine-3-is-union ∷ spine 3 ≡ union sp3-A sp3-B
+spine-3-is-union ∷ spine 3 ≡ union spine-3-on-edge-1 spine-3-on-tail
 spine-3-is-union = refl
 
 -- the two pieces: the first edge, and the copy {1} × Sp₂ of the 2-spine
-sp3-EA ∷ U
-sp3-EA = Σ (c : cart-cube 3) . sp3-A c
+spine-3-edge-1 ∷ U
+spine-3-edge-1 = Σ (c : cart-cube 3) . spine-3-on-edge-1 c
 
-sp3-EB ∷ U
-sp3-EB = Σ (c : cart-cube 3) . sp3-B c
+spine-3-tail ∷ U
+spine-3-tail = Σ (c : cart-cube 3) . spine-3-on-tail c
 
-sp3-i ∷ sp3-EA → spine 3
-sp3-i = union-inl sp3-A sp3-B
+spine-3-edge-1-incl ∷ spine-3-edge-1 → spine 3
+spine-3-edge-1-incl = union-inl spine-3-on-edge-1 spine-3-on-tail
 
-sp3-j ∷ sp3-EB → spine 3
-sp3-j = union-inr sp3-A sp3-B
+spine-3-tail-incl ∷ spine-3-tail → spine 3
+spine-3-tail-incl = union-inr spine-3-on-edge-1 spine-3-on-tail
 
 -- the 2-spine as the second piece, and back
-sp3-incl ∷ spine 2 → sp3-EB
-sp3-incl (xs , w) = ((𝕀1 , xs) , (refl , w))
+spine-2→spine-3-tail ∷ spine 2 → spine-3-tail
+spine-2→spine-3-tail (xs , w) = ((𝕀1 , xs) , (refl , w))
 
-sp3-proj ∷ sp3-EB → spine 2
-sp3-proj (c , w) = (cc3-xs c , prod-snd {cc3-1 c ≡ 𝕀1} {is-in-spine 2 (cc3-xs c)} w)
+spine-3-tail→spine-2 ∷ spine-3-tail → spine 2
+spine-3-tail→spine-2 (c , w) = (cube-3-tail c , prod-snd {cube-3-x1 c ≡ 𝕀1} {is-in-spine 2 (cube-3-tail c)} w)
 
 -- the vertex (1 , 0 , 0), on each piece; on the second one it is the vertex 0 of the 2-spine
-sp3-a1 ∷ sp3-EA
-sp3-a1 = ((𝕀1 , 𝕀0 , 𝕀0 , tt) , refl)
+spine-3-edge-1-end ∷ spine-3-edge-1
+spine-3-edge-1-end = ((𝕀1 , 𝕀0 , 𝕀0 , tt) , refl)
 
-sp3-b0 ∷ sp3-EB
-sp3-b0 = sp3-incl (sp-i sp-a0)
+spine-3-tail-start ∷ spine-3-tail
+spine-3-tail-start = spine-2→spine-3-tail (spine-2-edge-1-incl spine-2-edge-1-start)
 
-sp3-q0 ∷ sp3-B (𝕀1 , 𝕀0 , 𝕀0 , tt)
-sp3-q0 = snd sp3-B sp3-b0
+spine-3-on-tail-vertex ∷ spine-3-on-tail (𝕀1 , 𝕀0 , 𝕀0 , tt)
+spine-3-on-tail-vertex = snd spine-3-on-tail spine-3-tail-start
 
-sp3-γ ∷ sp3-i sp3-a1 ≡{spine 3} sp3-j sp3-b0
-sp3-γ = union-glue sp3-A sp3-B (𝕀1 , 𝕀0 , 𝕀0 , tt) refl sp3-q0
+spine-3-glue ∷ spine-3-edge-1-incl spine-3-edge-1-end ≡{spine 3} spine-3-tail-incl spine-3-tail-start
+spine-3-glue = union-glue spine-3-on-edge-1 spine-3-on-tail (𝕀1 , 𝕀0 , 𝕀0 , tt) refl spine-3-on-tail-vertex
 
 -- the intersection of the two pieces is contractible, with centre the vertex
-sp3-κ2 ∷ (c1 : 𝕀) (xs : cart-cube 2) (w : sp3-A (c1 , xs) × sp3-B (c1 , xs)) →
-  ((𝕀1 , 𝕀0 , 𝕀0 , tt) , refl , sp3-q0) ≡{union-I sp3-A sp3-B} ((c1 , xs) , w)
-sp3-κ2 c1 xs w =
-  subtype-path (λ c . sp3-A c × sp3-B c) (λ c . is-prop-prod (is-prop-sp3-A c) (is-prop-sp3-B c)) {(𝕀1 , 𝕀0 , 𝕀0 , tt)} {(c1 , xs)}
+spine-3-meet-contr-aux2 ∷ (c1 : 𝕀) (xs : cart-cube 2) (w : spine-3-on-edge-1 (c1 , xs) × spine-3-on-tail (c1 , xs)) →
+  ((𝕀1 , 𝕀0 , 𝕀0 , tt) , refl , spine-3-on-tail-vertex) ≡{union-I spine-3-on-edge-1 spine-3-on-tail} ((c1 , xs) , w)
+spine-3-meet-contr-aux2 c1 xs w =
+  subtype-path (λ c . spine-3-on-edge-1 c × spine-3-on-tail c)
+    (λ c . is-prop-prod (is-prop-spine-3-on-edge-1 c) (is-prop-spine-3-on-tail c)) {(𝕀1 , 𝕀0 , 𝕀0 , tt)}
+    {(c1 , xs)}
     (cong2 {𝕀} {cart-cube 2} {cart-cube 3} pair
-      (sym (prod-fst {c1 ≡ 𝕀1} {is-in-spine 2 xs} (prod-snd {sp3-A (c1 , xs)} {sp3-B (c1 , xs)} w)))
-      (sym (prod-fst {sp3-A (c1 , xs)} {sp3-B (c1 , xs)} w)))
-    (refl , sp3-q0) w
+      (sym (prod-fst {c1 ≡ 𝕀1} {is-in-spine 2 xs} (prod-snd {spine-3-on-edge-1 (c1 , xs)} {spine-3-on-tail (c1 , xs)} w)))
+      (sym (prod-fst {spine-3-on-edge-1 (c1 , xs)} {spine-3-on-tail (c1 , xs)} w)))
+    (refl , spine-3-on-tail-vertex) w
 
-sp3-κ1 ∷ (c : cart-cube 3) (w : sp3-A c × sp3-B c) → ((𝕀1 , 𝕀0 , 𝕀0 , tt) , refl , sp3-q0) ≡{union-I sp3-A sp3-B} (c , w)
-sp3-κ1 (c1 , xs) w = sp3-κ2 c1 xs w
+spine-3-meet-contr-aux1 ∷ (c : cart-cube 3) (w : spine-3-on-edge-1 c × spine-3-on-tail c) →
+  ((𝕀1 , 𝕀0 , 𝕀0 , tt) , refl , spine-3-on-tail-vertex) ≡{union-I spine-3-on-edge-1 spine-3-on-tail} (c , w)
+spine-3-meet-contr-aux1 (c1 , xs) w = spine-3-meet-contr-aux2 c1 xs w
 
-sp3-κ ∷ (t : union-I sp3-A sp3-B) → ((𝕀1 , 𝕀0 , 𝕀0 , tt) , refl , sp3-q0) ≡{union-I sp3-A sp3-B} t
-sp3-κ (c , w) = sp3-κ1 c w
+spine-3-meet-contr ∷ (t : union-I spine-3-on-edge-1 spine-3-on-tail) →
+  ((𝕀1 , 𝕀0 , 𝕀0 , tt) , refl , spine-3-on-tail-vertex) ≡{union-I spine-3-on-edge-1 spine-3-on-tail} t
+spine-3-meet-contr (c , w) = spine-3-meet-contr-aux1 c w
 
 -- the universal properties of the 3-spine
 -- abstract: only its type is used, and unfolding its proof inside unified terms is expensive
-abstract spine-3-cart-up ∷ wedge-cart-up (spine 3) sp3-EA sp3-EB sp3-i sp3-j sp3-a1 sp3-b0 sp3-γ
-spine-3-cart-up Y = union-pt-up sp3-A sp3-B is-prop-sp3-A is-prop-sp3-B Y (𝕀1 , 𝕀0 , 𝕀0 , tt) refl sp3-q0 sp3-κ
+abstract spine-3-cart-up ∷
+  wedge-cart-up (spine 3)
+    spine-3-edge-1 spine-3-tail
+    spine-3-edge-1-incl spine-3-tail-incl
+    spine-3-edge-1-end spine-3-tail-start
+    spine-3-glue
+spine-3-cart-up Y =
+  union-pt-up spine-3-on-edge-1 spine-3-on-tail is-prop-spine-3-on-edge-1 is-prop-spine-3-on-tail Y
+    (𝕀1 , 𝕀0 , 𝕀0 , tt) refl spine-3-on-tail-vertex spine-3-meet-contr
 
-abstract spine-3-oplax-up ∷ (X ∷ U) → is-equiv (wedge-restr-r (spine 3) sp3-EA sp3-EB sp3-i sp3-j sp3-a1 sp3-b0 sp3-γ X)
-spine-3-oplax-up X = wedge-oplax-up (spine 3) sp3-EA sp3-EB sp3-i sp3-j sp3-a1 sp3-b0 sp3-γ spine-3-cart-up X
+abstract spine-3-oplax-up ∷ (X ∷ U) →
+  is-equiv (wedge-restr-r (spine 3)
+    spine-3-edge-1 spine-3-tail
+    spine-3-edge-1-incl spine-3-tail-incl
+    spine-3-edge-1-end spine-3-tail-start
+    spine-3-glue
+    X)
+spine-3-oplax-up X =
+  wedge-oplax-up (spine 3)
+    spine-3-edge-1 spine-3-tail
+    spine-3-edge-1-incl spine-3-tail-incl
+    spine-3-edge-1-end spine-3-tail-start
+    spine-3-glue
+    spine-3-cart-up X
 
 spine-3-cocone-r ∷ (X ∷ U) → U
-spine-3-cocone-r X = wedge-cocone-r sp3-EA sp3-EB sp3-a1 sp3-b0 X
+spine-3-cocone-r X = wedge-cocone-r spine-3-edge-1 spine-3-tail spine-3-edge-1-end spine-3-tail-start X
+
+--
+-- abbreviations of the wedge combinators, for the 3-spine
+--
+
+spine-3→cocone-r ∷ (X ∷ U) → (spine 3 →ᵣ X) → spine-3-cocone-r X
+spine-3→cocone-r X = wedge-restr-r (spine 3) spine-3-edge-1 spine-3-tail spine-3-edge-1-incl
+  spine-3-tail-incl spine-3-edge-1-end spine-3-tail-start spine-3-glue X
+
+cocone→spine-3-r ∷ (X ∷ U) → spine-3-cocone-r X → (spine 3 →ᵣ X)
+cocone→spine-3-r X = wedge-σ-r (spine 3) spine-3-edge-1 spine-3-tail spine-3-edge-1-incl spine-3-tail-incl
+  spine-3-edge-1-end spine-3-tail-start spine-3-glue spine-3-cart-up X
+
+spine-3→cocone-r-sec ∷ (X ∷ U) (w : spine-3-cocone-r X) → spine-3→cocone-r X (cocone→spine-3-r X w) ≡ w
+spine-3→cocone-r-sec X w = wedge-σ-sec-r (spine 3) spine-3-edge-1 spine-3-tail spine-3-edge-1-incl
+  spine-3-tail-incl spine-3-edge-1-end spine-3-tail-start spine-3-glue spine-3-cart-up X w
+
+spine-3-cocone-edge-1 ∷ {X ∷ U} → spine-3-cocone-r X → (spine-3-edge-1 →ᵣ X)
+spine-3-cocone-edge-1 {X} w = wr-f {spine-3-edge-1} {spine-3-tail} {spine-3-edge-1-end} {spine-3-tail-start} {X} w
+
+spine-3-cocone-tail ∷ {X ∷ U} → spine-3-cocone-r X → (spine-3-tail →ᵣ X)
+spine-3-cocone-tail {X} w = wr-g {spine-3-edge-1} {spine-3-tail} {spine-3-edge-1-end} {spine-3-tail-start} {X} w
+
+spine-3-cocone-glue ∷ {X ∷ U} (w : spine-3-cocone-r X) →
+  spine-3-cocone-edge-1 {X} w spine-3-edge-1-end ≡ spine-3-cocone-tail {X} w spine-3-tail-start
+spine-3-cocone-glue {X} w = wr-q {spine-3-edge-1} {spine-3-tail} {spine-3-edge-1-end} {spine-3-tail-start} {X} w

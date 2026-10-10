@@ -124,7 +124,7 @@ cocart-cell-lift ∷ {X A ∷ U} (sX : is-segal-r X) (sA : is-segal-r A) (p ∷ 
   cocart-cell {X} {A} sX sA p → pullback {X} {arrᵣ A} {A} p (λ u . srcᵣ u)
 cocart-cell-lift {X} {A} sX sA p (f , c) = (f 𝕀0 , post-r {𝕀} {X} {A} p f , refl)
 
-abstract is-cocartesian-fibration ∷ {X A ∷ U} (sX : is-segal-r X) (sA : is-segal-r A) (p ∷ X → A) → U
+is-cocartesian-fibration ∷ {X A ∷ U} (sX : is-segal-r X) (sA : is-segal-r A) (p ∷ X → A) → U
 is-cocartesian-fibration {X} {A} sX sA p = is-equiv (cocart-cell-lift {X} {A} sX sA p)
 
 --
@@ -231,10 +231,17 @@ cancel-Φ-gap {X} {A} sX sA p {x} {y} {z} f g z' w =
             {a (comp-hom-r X sX {x} {y} {z'} f (comp-hom-r X sX {y} {z} {z'} g w)) ≡ d (hom-map {X} {A} p {z} {z'} w)}
             (λ q . trans q D) (sym (cong-sym a α))))
 
-abstract is-cocartesian-cancel ∷ {X A ∷ U} (sX : is-segal-r X) (sA : is-segal-r A) (p ∷ X → A) →
-  {x y z : X} (f : hom X x y) (g : hom X y z) → is-cocartesian {X} {A} sX sA p {x} {y} f →
-  (is-cocartesian {X} {A} sX sA p {y} {z} g → is-cocartesian {X} {A} sX sA p {x} {z} (comp-hom-r X sX {x} {y} {z} f g)) ×
-  (is-cocartesian {X} {A} sX sA p {x} {z} (comp-hom-r X sX {x} {y} {z} f g) → is-cocartesian {X} {A} sX sA p {y} {z} g)
+abstract is-cocartesian-cancel ∷ 
+  {X A ∷ U}
+  (sX : is-segal-r X)
+  (sA : is-segal-r A)
+  (p ∷ X → A)
+  → {x y z : X} (f : hom X x y) (g : hom X y z) 
+  → is-cocartesian {X} {A} sX sA p {x} {y} f
+  → (is-cocartesian {X} {A} sX sA p {y} {z} g 
+      → is-cocartesian {X} {A} sX sA p {x} {z} (comp-hom-r X sX {x} {y} {z} f g))
+  × (is-cocartesian {X} {A} sX sA p {x} {z} (comp-hom-r X sX {x} {y} {z} f g) 
+      → is-cocartesian {X} {A} sX sA p {y} {z} g)
 is-cocartesian-cancel {X} {A} sX sA p {x} {y} {z} f g cf =
   let Φ : (z' : X) → cocart-pb {X} {A} sA p {y} {z} g z' → cocart-pb {X} {A} sA p {x} {z} (comp-hom-r X sX {x} {y} {z} f g) z' =
     cancel-Φ {X} {A} sX sA p {x} {y} {z} f g in
@@ -242,11 +249,11 @@ is-cocartesian-cancel {X} {A} sX sA p {x} {y} {z} f g cf =
   let gfg : (z' : X) → hom X z z' → cocart-pb {X} {A} sA p {x} {z} (comp-hom-r X sX {x} {y} {z} f g) z' =
     cocart-gap {X} {A} sX sA p {x} {z} (comp-hom-r X sX {x} {y} {z} f g) in
   ((λ cg z' .
-     is-equiv-htpy {hom X z z'} {cocart-pb {X} {A} sA p {x} {z} (comp-hom-r X sX {x} {y} {z} f g) z'} {Φ z' ∘ gg z'} {gfg z'}
-       (cancel-Φ-gap {X} {A} sX sA p {x} {y} {z} f g z')
-       (is-equiv-circ (Φ z') (gg z') (is-equiv-cancel-Φ {X} {A} sX sA p {x} {y} {z} f g cf z') (cg z'))) ,
-   (λ cgf z' .
-     is-equiv-cancel-l (Φ z') (gg z') (is-equiv-cancel-Φ {X} {A} sX sA p {x} {y} {z} f g cf z')
-       (is-equiv-htpy {hom X z z'} {cocart-pb {X} {A} sA p {x} {z} (comp-hom-r X sX {x} {y} {z} f g) z'} {gfg z'} {Φ z' ∘ gg z'}
-         (λ w . sym (cancel-Φ-gap {X} {A} sX sA p {x} {y} {z} f g z' w))
-         (cgf z'))))
+    is-equiv-htpy {hom X z z'} {cocart-pb {X} {A} sA p {x} {z} (comp-hom-r X sX {x} {y} {z} f g) z'} {Φ z' ∘ gg z'} {gfg z'}
+      (cancel-Φ-gap {X} {A} sX sA p {x} {y} {z} f g z')
+      (is-equiv-circ (Φ z') (gg z') (is-equiv-cancel-Φ {X} {A} sX sA p {x} {y} {z} f g cf z') (cg z'))) ,
+  (λ cgf z' .
+    is-equiv-cancel-l (Φ z') (gg z') (is-equiv-cancel-Φ {X} {A} sX sA p {x} {y} {z} f g cf z')
+      (is-equiv-htpy {hom X z z'} {cocart-pb {X} {A} sA p {x} {z} (comp-hom-r X sX {x} {y} {z} f g) z'} {gfg z'} {Φ z' ∘ gg z'}
+        (λ w . sym (cancel-Φ-gap {X} {A} sX sA p {x} {y} {z} f g z' w))
+        (cgf z'))))
