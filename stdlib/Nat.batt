@@ -11,11 +11,11 @@ add ∷ ℕ → ℕ → ℕ
 add m zero = m
 add m (succ n) = succ rec
 
-abstract zero-add ∷ (n : ℕ) → add zero n ≡ n
+zero-add ∷ (n : ℕ) → add zero n ≡ n
 zero-add zero = refl
 zero-add (succ n) = cong succ rec
 
-abstract add-assoc ∷ (l m n : ℕ) → add (add l m) n ≡ add l (add m n)
+add-assoc ∷ (l m n : ℕ) → add (add l m) n ≡ add l (add m n)
 add-assoc l m zero = refl
 add-assoc l m (succ n) = cong succ rec
 
@@ -24,15 +24,15 @@ mul ∷ ℕ → ℕ → ℕ
 mul m zero = zero
 mul m (succ n) = add rec m
 
-abstract one-mul ∷ (n : ℕ) → mul 1 n ≡ n
+one-mul ∷ (n : ℕ) → mul 1 n ≡ n
 one-mul zero = refl
 one-mul (succ n) = cong succ rec
 
-abstract mul-add ∷ (l m n : ℕ) → mul l (add m n) ≡ add (mul l m) (mul l n)
+mul-add ∷ (l m n : ℕ) → mul l (add m n) ≡ add (mul l m) (mul l n)
 mul-add l m zero = refl
 mul-add l m (succ n) = trans (cong (λ x . add x l) rec) (add-assoc (mul l m) (mul l n) l)
 
-abstract mul-assoc ∷ (l m n : ℕ) → mul (mul l m) n ≡ mul l (mul m n)
+mul-assoc ∷ (l m n : ℕ) → mul (mul l m) n ≡ mul l (mul m n)
 mul-assoc l m zero = refl
 mul-assoc l m (succ n) = trans (cong (λ x . add x (mul l m)) rec) (sym (mul-add l (mul m n) m))
 

@@ -71,7 +71,7 @@ is-cocartesian ∷ {X A ∷ U} (sX : is-segal-r X) (sA : is-segal-r A) (p ∷ X 
 is-cocartesian {X} {A} sX sA p {x} {y} f = (y' : X) → is-equiv (cocart-gap {X} {A} sX sA p {x} {y} f y')
 
 -- being cocartesian is a proposition
-abstract is-prop-is-cocartesian ∷ {X A ∷ U} (sX : is-segal-r X) (sA : is-segal-r A) (p ∷ X → A) {x y : X} (f : hom X x y) →
+is-prop-is-cocartesian ∷ {X A ∷ U} (sX : is-segal-r X) (sA : is-segal-r A) (p ∷ X → A) {x y : X} (f : hom X x y) →
   is-prop (is-cocartesian {X} {A} sX sA p {x} {y} f)
 is-prop-is-cocartesian {X} {A} sX sA p {x} {y} f =
   is-prop-Π (λ y' . is-equiv (cocart-gap {X} {A} sX sA p {x} {y} f y'))
@@ -146,7 +146,7 @@ is-prop-is-cocartesian-fibration {X} {A} sX sA p = is-prop-is-equiv (cocart-cell
 --
 
 -- the type of preimages, with the path in the other direction, is contractible
-abstract is-contr-fib-sym ∷ {A B : U} (f : A → B) → is-equiv f → (y : B) → is-contr (Σ (a : A) . y ≡ f a)
+is-contr-fib-sym ∷ {A B : U} (f : A → B) → is-equiv f → (y : B) → is-contr (Σ (a : A) . y ≡ f a)
 is-contr-fib-sym {A} {B} f e y =
   let s : (Σ (a : A) . y ≡ f a) → fib f y = fun (a , q) → (a , sym q) in
   let r : fib f y → Σ (a : A) . y ≡ f a = fun (a , q) → (a , sym q) in
@@ -154,7 +154,7 @@ is-contr-fib-sym {A} {B} f e y =
     cong {y ≡ f a} {Σ (a' : A) . y ≡ f a'} (λ q' . (a , q')) (sym-sym q) in
   is-contr-retract s (r , rs) (is-contr-fib f e y)
 
-abstract is-cocartesian-iso ∷ {X A ∷ U} (sX : is-segal-r X) (sA : is-segal-r A) (p ∷ X → A) {x y : X} (f : hom X x y) →
+is-cocartesian-iso ∷ {X A ∷ U} (sX : is-segal-r X) (sA : is-segal-r A) (p ∷ X → A) {x y : X} (f : hom X x y) →
   is-iso-hom {X} sX {x} {y} f → is-cocartesian {X} {A} sX sA p {x} {y} f
 is-cocartesian-iso {X} {A} sX sA p {x} {y} f i y' =
   let pf : hom A (p x) (p y) = hom-map {X} {A} p {x} {y} f in
@@ -166,7 +166,7 @@ is-cocartesian-iso {X} {A} sX sA p {x} {y} f i y' =
       (hom-map {X} {A} p {x} {y'} h)) in
   is-equiv-cancel-l π (cocart-gap {X} {A} sX sA p {x} {y} f y') eπ (is-equiv-comp-iso-l {X} sX {x} {y} f i y')
 
-abstract is-cartesian-iso ∷ {X A ∷ U} (sX : is-segal-r X) (sA : is-segal-r A) (p ∷ X → A) {x y : X} (f : hom X x y) →
+is-cartesian-iso ∷ {X A ∷ U} (sX : is-segal-r X) (sA : is-segal-r A) (p ∷ X → A) {x y : X} (f : hom X x y) →
   is-iso-hom {X} sX {x} {y} f → is-cartesian {X} {A} sX sA p {x} {y} f
 is-cartesian-iso {X} {A} sX sA p {x} {y} f i x' =
   let pf : hom A (p x) (p y) = hom-map {X} {A} p {x} {y} f in

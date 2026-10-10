@@ -35,10 +35,10 @@ open import Prop
 is-contr-unit ∷ is-contr ⊤
 is-contr-unit = (tt , λ tt . refl)
 
-abstract is-prop-unit ∷ is-prop ⊤
+is-prop-unit ∷ is-prop ⊤
 is-prop-unit = is-contr→is-prop is-contr-unit
 
 open import Set
 
-abstract is-set-unit ∷ is-set ⊤
+is-set-unit ∷ is-set ⊤
 is-set-unit = is-prop→is-set is-prop-unit

@@ -43,10 +43,10 @@ sp-A c = ccxs c ≡{cart-cube 1} zero-cube 1
 sp-B ∷ cart-cube 2 → U
 sp-B c = (cc1 c ≡ 𝕀1) × is-in-spine 1 (ccxs c)
 
-abstract is-prop-sp-A ∷ (c : cart-cube 2) → is-prop (sp-A c)
+is-prop-sp-A ∷ (c : cart-cube 2) → is-prop (sp-A c)
 is-prop-sp-A c = is-set-cart-cube 1 (ccxs c) (zero-cube 1)
 
-abstract is-prop-sp-B ∷ (c : cart-cube 2) → is-prop (sp-B c)
+is-prop-sp-B ∷ (c : cart-cube 2) → is-prop (sp-B c)
 is-prop-sp-B c = is-prop-prod (is-set-𝕀 (cc1 c) 𝕀1) (is-prop-is-in-spine 1 (ccxs c))
 
 spine-is-union ∷ spine 2 ≡ union sp-A sp-B
@@ -88,7 +88,7 @@ sp-γ ∷ sp-i sp-a1 ≡{spine 2} sp-j sp-b0
 sp-γ = spine-glue
 
 -- the intersection of the two edges is contractible, with centre the vertex
-abstract sp-κ2 ∷ (c1 : 𝕀) (xs : cart-cube 1) (w : sp-A (c1 , xs) × sp-B (c1 , xs)) →
+sp-κ2 ∷ (c1 : 𝕀) (xs : cart-cube 1) (w : sp-A (c1 , xs) × sp-B (c1 , xs)) →
   ((𝕀1 , 𝕀0 , tt) , refl , (refl , spine-1-pt 𝕀0)) ≡{union-I sp-A sp-B} ((c1 , xs) , w)
 sp-κ2 c1 xs w =
   subtype-path (λ c . sp-A c × sp-B c) (λ c . is-prop-prod (is-prop-sp-A c) (is-prop-sp-B c)) {(𝕀1 , 𝕀0 , tt)} {(c1 , xs)}
@@ -97,24 +97,23 @@ sp-κ2 c1 xs w =
       (sym (prod-fst {sp-A (c1 , xs)} {sp-B (c1 , xs)} w)))
     (refl , (refl , spine-1-pt 𝕀0)) w
 
-abstract sp-κ1 ∷ (c : cart-cube 2) (w : sp-A c × sp-B c) → ((𝕀1 , 𝕀0 , tt) , refl , (refl , spine-1-pt 𝕀0)) ≡{union-I sp-A sp-B} (c , w)
+sp-κ1 ∷ (c : cart-cube 2) (w : sp-A c × sp-B c) → ((𝕀1 , 𝕀0 , tt) , refl , (refl , spine-1-pt 𝕀0)) ≡{union-I sp-A sp-B} (c , w)
 sp-κ1 (c1 , xs) w = sp-κ2 c1 xs w
 
-abstract sp-κ ∷ (t : union-I sp-A sp-B) → ((𝕀1 , 𝕀0 , tt) , refl , (refl , spine-1-pt 𝕀0)) ≡{union-I sp-A sp-B} t
+sp-κ ∷ (t : union-I sp-A sp-B) → ((𝕀1 , 𝕀0 , tt) , refl , (refl , spine-1-pt 𝕀0)) ≡{union-I sp-A sp-B} t
 sp-κ (c , w) = sp-κ1 c w
 
 --
 -- the universal properties of the spine
 --
 
--- abstract: only its type is used, and unfolding its proof inside unified terms is expensive
-abstract spine-cart-up ∷ wedge-cart-up (spine 2) sp-EA sp-EB sp-i sp-j sp-a1 sp-b0 sp-γ
+spine-cart-up ∷ wedge-cart-up (spine 2) sp-EA sp-EB sp-i sp-j sp-a1 sp-b0 sp-γ
 spine-cart-up Y = union-pt-up sp-A sp-B is-prop-sp-A is-prop-sp-B Y (𝕀1 , 𝕀0 , tt) refl (refl , spine-1-pt 𝕀0) sp-κ
 
-abstract spine-oplax-up ∷ (X ∷ U) → is-equiv (wedge-restr-r (spine 2) sp-EA sp-EB sp-i sp-j sp-a1 sp-b0 sp-γ X)
+spine-oplax-up ∷ (X ∷ U) → is-equiv (wedge-restr-r (spine 2) sp-EA sp-EB sp-i sp-j sp-a1 sp-b0 sp-γ X)
 spine-oplax-up X = wedge-oplax-up (spine 2) sp-EA sp-EB sp-i sp-j sp-a1 sp-b0 sp-γ spine-cart-up X
 
-abstract spine-lax-up ∷ (X ∷ U) → is-equiv (wedge-restr-l (spine 2) sp-EA sp-EB sp-i sp-j sp-a1 sp-b0 sp-γ X)
+spine-lax-up ∷ (X ∷ U) → is-equiv (wedge-restr-l (spine 2) sp-EA sp-EB sp-i sp-j sp-a1 sp-b0 sp-γ X)
 spine-lax-up X = wedge-lax-up (spine 2) sp-EA sp-EB sp-i sp-j sp-a1 sp-b0 sp-γ spine-cart-up X
 
 --
@@ -205,11 +204,10 @@ sp3-κ ∷ (t : union-I sp3-A sp3-B) → ((𝕀1 , 𝕀0 , 𝕀0 , tt) , refl , 
 sp3-κ (c , w) = sp3-κ1 c w
 
 -- the universal properties of the 3-spine
--- abstract: only its type is used, and unfolding its proof inside unified terms is expensive
-abstract spine-3-cart-up ∷ wedge-cart-up (spine 3) sp3-EA sp3-EB sp3-i sp3-j sp3-a1 sp3-b0 sp3-γ
+spine-3-cart-up ∷ wedge-cart-up (spine 3) sp3-EA sp3-EB sp3-i sp3-j sp3-a1 sp3-b0 sp3-γ
 spine-3-cart-up Y = union-pt-up sp3-A sp3-B is-prop-sp3-A is-prop-sp3-B Y (𝕀1 , 𝕀0 , 𝕀0 , tt) refl sp3-q0 sp3-κ
 
-abstract spine-3-oplax-up ∷ (X ∷ U) → is-equiv (wedge-restr-r (spine 3) sp3-EA sp3-EB sp3-i sp3-j sp3-a1 sp3-b0 sp3-γ X)
+spine-3-oplax-up ∷ (X ∷ U) → is-equiv (wedge-restr-r (spine 3) sp3-EA sp3-EB sp3-i sp3-j sp3-a1 sp3-b0 sp3-γ X)
 spine-3-oplax-up X = wedge-oplax-up (spine 3) sp3-EA sp3-EB sp3-i sp3-j sp3-a1 sp3-b0 sp3-γ spine-3-cart-up X
 
 spine-3-cocone-r ∷ (X ∷ U) → U

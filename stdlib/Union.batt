@@ -113,7 +113,7 @@ union-D {X} A B Y a b c x = Σ (u : union-D-base A Y a x) . union-D-fib A B Y a 
 --
 
 -- if A x holds: contract the value with its A-path, then each B-path is determined
-abstract union-D-contr-A ∷ {X : U} (A B : X → U) (pA : (x : X) → is-prop (A x)) (Y : U) (a : (Σ (x : X) . A x) → Y) (b : (Σ (x : X) . B x) → Y)
+union-D-contr-A ∷ {X : U} (A B : X → U) (pA : (x : X) → is-prop (A x)) (Y : U) (a : (Σ (x : X) . A x) → Y) (b : (Σ (x : X) . B x) → Y)
   (c : (x : X) (p : A x) (q : B x) → a (x , p) ≡ b (x , q)) (x : X) → A x → is-contr (union-D A B Y a b c x)
 union-D-contr-A {X} A B pA Y a b c x p0 =
   let κ : (p : A x) → p0 ≡ p = λ p . prop-path (pA x) p0 p in
@@ -144,7 +144,7 @@ union-D'-fib {X} A B Y a b c x (y , β) =
   Σ (α : (p : A x) → y ≡ a (x , p)) . (p : A x) (q : B x) → β q ≡ trans (α p) (c x p q)
 
 -- if B x holds: contract the value with its B-path, then each A-path is determined
-abstract union-D-contr-B ∷ {X : U} (A B : X → U) (pB : (x : X) → is-prop (B x)) (Y : U) (a : (Σ (x : X) . A x) → Y) (b : (Σ (x : X) . B x) → Y)
+union-D-contr-B ∷ {X : U} (A B : X → U) (pB : (x : X) → is-prop (B x)) (Y : U) (a : (Σ (x : X) . A x) → Y) (b : (Σ (x : X) . B x) → Y)
   (c : (x : X) (p : A x) (q : B x) → a (x , p) ≡ b (x , q)) (x : X) → B x → is-contr (union-D A B Y a b c x)
 union-D-contr-B {X} A B pB Y a b c x q0 =
   let κ : (q : B x) → q0 ≡ q = λ q . prop-path (pB x) q0 q in
@@ -173,7 +173,7 @@ union-D-contr-B {X} A B pB Y a b c x q0 =
   in
   is-contr-retract s (r , rs) (is-contr-Σ (union-D'-fib A B Y a b c x) base fib)
 
-abstract union-D-contr ∷ {X : U} (A B : X → U) (pA : (x : X) → is-prop (A x)) (pB : (x : X) → is-prop (B x)) (Y : U)
+union-D-contr ∷ {X : U} (A B : X → U) (pA : (x : X) → is-prop (A x)) (pB : (x : X) → is-prop (B x)) (Y : U)
   (a : (Σ (x : X) . A x) → Y) (b : (Σ (x : X) . B x) → Y) (c : (x : X) (p : A x) (q : B x) → a (x , p) ≡ b (x , q))
   (x : X) → or (A x) (B x) → is-contr (union-D A B Y a b c x)
 union-D-contr {X} A B pA pB Y a b c x w =
@@ -201,7 +201,7 @@ uD-β {X} A B Y a b c x (u , w) =
     fun (y , α) (β , γ) → β in
   h u w
 
-abstract uD-γ ∷ {X : U} (A B : X → U) (Y : U) (a : (Σ (x : X) . A x) → Y) (b : (Σ (x : X) . B x) → Y)
+uD-γ ∷ {X : U} (A B : X → U) (Y : U) (a : (Σ (x : X) . A x) → Y) (b : (Σ (x : X) . B x) → Y)
   (c : (x : X) (p : A x) (q : B x) → a (x , p) ≡ b (x , q)) (x : X) (z : union-D A B Y a b c x) (p : A x) (q : B x) →
   uD-β A B Y a b c x z q ≡ trans (uD-α A B Y a b c x z p) (c x p q)
 uD-γ {X} A B Y a b c x (u , w) =
@@ -210,8 +210,7 @@ uD-γ {X} A B Y a b c x (u , w) =
   h u w
 
 --
--- the extension of a cocone to the union (union-D-contr is abstract, so the centres of the descent
--- family do not unfold inside unified terms)
+-- the extension of a cocone to the union
 --
 
 union-ext3 ∷ {X : U} (A B : X → U) (pA : (x : X) → is-prop (A x)) (pB : (x : X) → is-prop (B x)) (Y : U) (a : (Σ (x : X) . A x) → Y) (b : (Σ (x : X) . B x) → Y)
@@ -228,7 +227,7 @@ union-ext {X} A B pA pB Y (a , r) =
 -- paths between cocones
 --
 
-abstract union-cocone-path-J ∷ {X : U} (A B : X → U) (Y : U)
+union-cocone-path-J ∷ {X : U} (A B : X → U) (Y : U)
   (a : (Σ (x : X) . A x) → Y) (b : (Σ (x : X) . B x) → Y) (c : (x : X) (p : A x) (q : B x) → a (x , p) ≡ b (x , q))
   (a' : (Σ (x : X) . A x) → Y) (Pa : a ≡ a') (b' : (Σ (x : X) . B x) → Y) (Pb : b ≡ b')
   (c' : (x : X) (p : A x) (q : B x) → a' (x , p) ≡ b' (x , q)) →
@@ -254,7 +253,7 @@ union-cocone-path-J {X} A B Y a b c a' Pa =
     Pa
 
 -- a path of cocones from pointwise homotopies of the two maps and a coherence on the intersection
-abstract union-cocone-path ∷ {X : U} (A B : X → U) (Y : U)
+union-cocone-path ∷ {X : U} (A B : X → U) (Y : U)
   (a : (Σ (x : X) . A x) → Y) (b : (Σ (x : X) . B x) → Y) (c : (x : X) (p : A x) (q : B x) → a (x , p) ≡ b (x , q))
   (a' : (Σ (x : X) . A x) → Y) (b' : (Σ (x : X) . B x) → Y) (c' : (x : X) (p : A x) (q : B x) → a' (x , p) ≡ b' (x , q))
   (α : (u : Σ (x : X) . A x) → a u ≡ a' u) (β : (v : Σ (x : X) . B x) → b v ≡ b' v) →
@@ -289,7 +288,7 @@ union-sec-β ∷ {X : U} (A B : X → U) (pA : (x : X) → is-prop (A x)) (pB : 
 union-sec-β {X} A B pA pB Y a b c (x , q) = uD-β A B Y a b c x (uZ A B pA pB Y a b c x (union-wr A B x q)) q
 
 -- a path in the descent family moves the B-path along the value
-abstract uD-β-path ∷ {X : U} (A B : X → U) (Y : U) (a : (Σ (x : X) . A x) → Y) (b : (Σ (x : X) . B x) → Y)
+uD-β-path ∷ {X : U} (A B : X → U) (Y : U) (a : (Σ (x : X) . A x) → Y) (b : (Σ (x : X) . B x) → Y)
   (c : (x : X) (p : A x) (q : B x) → a (x , p) ≡ b (x , q)) (x : X) (z z' : union-D A B Y a b c x) (ζ : z ≡ z') (q : B x) →
   trans (cong (uD-y A B Y a b c x) ζ) (uD-β A B Y a b c x z' q) ≡ uD-β A B Y a b c x z q
 uD-β-path {X} A B Y a b c x z z' ζ q =
@@ -300,7 +299,7 @@ uD-β-path {X} A B Y a b c x z z' ζ q =
 -- the extension sends the glue to c: the centres at (x , inl p) and (x , inr q) are related by a
 -- path in the descent family, which moves the B-path along the value; conclude by the
 -- coherence of the first centre
-abstract union-sec-θ ∷ {X : U} (A B : X → U) (pA : (x : X) → is-prop (A x)) (pB : (x : X) → is-prop (B x)) (Y : U) (a : (Σ (x : X) . A x) → Y) (b : (Σ (x : X) . B x) → Y)
+union-sec-θ ∷ {X : U} (A B : X → U) (pA : (x : X) → is-prop (A x)) (pB : (x : X) → is-prop (B x)) (Y : U) (a : (Σ (x : X) . A x) → Y) (b : (Σ (x : X) . B x) → Y)
   (c : (x : X) (p : A x) (q : B x) → a (x , p) ≡ b (x , q)) (x : X) (p : A x) (q : B x) →
   trans (cong (union-ext3 A B pA pB Y a b c) (union-glue A B x p q)) (union-sec-β A B pA pB Y a b c (x , q))
     ≡ trans (union-sec-α A B pA pB Y a b c (x , p)) (c x p q)
@@ -317,7 +316,7 @@ union-sec-θ {X} A B pA pB Y a b c x p q =
               (cong (uZ A B pA pB Y a b c x) (union-τ A B x (union-wl A B x p) (union-wr A B x q))) q)
            (uD-γ A B Y a b c x (uZ A B pA pB Y a b c x (union-wl A B x p)) p q))
 
-abstract union-sec3 ∷ {X : U} (A B : X → U) (pA : (x : X) → is-prop (A x)) (pB : (x : X) → is-prop (B x)) (Y : U) (a : (Σ (x : X) . A x) → Y) (b : (Σ (x : X) . B x) → Y)
+union-sec3 ∷ {X : U} (A B : X → U) (pA : (x : X) → is-prop (A x)) (pB : (x : X) → is-prop (B x)) (Y : U) (a : (Σ (x : X) . A x) → Y) (b : (Σ (x : X) . B x) → Y)
   (c : (x : X) (p : A x) (q : B x) → a (x , p) ≡ b (x , q)) → union-restr A B Y (union-ext3 A B pA pB Y a b c) ≡ (a , b , c)
 union-sec3 {X} A B pA pB Y a b c =
   union-cocone-path A B Y
@@ -325,12 +324,12 @@ union-sec3 {X} A B pA pB Y a b c =
     (λ x p q . cong (union-ext3 A B pA pB Y a b c) (union-glue A B x p q))
     a b c (union-sec-α A B pA pB Y a b c) (union-sec-β A B pA pB Y a b c) (union-sec-θ A B pA pB Y a b c)
 
-abstract union-sec2 ∷ {X : U} (A B : X → U) (pA : (x : X) → is-prop (A x)) (pB : (x : X) → is-prop (B x)) (Y : U) (a : (Σ (x : X) . A x) → Y)
+union-sec2 ∷ {X : U} (A B : X → U) (pA : (x : X) → is-prop (A x)) (pB : (x : X) → is-prop (B x)) (Y : U) (a : (Σ (x : X) . A x) → Y)
   (r : Σ (b : (Σ (x : X) . B x) → Y) . (x : X) (p : A x) (q : B x) → a (x , p) ≡ b (x , q)) →
   union-restr A B Y (union-ext A B pA pB Y (a , r)) ≡ (a , r)
 union-sec2 {X} A B pA pB Y a (b , c) = union-sec3 A B pA pB Y a b c
 
-abstract union-sec ∷ {X : U} (A B : X → U) (pA : (x : X) → is-prop (A x)) (pB : (x : X) → is-prop (B x)) (Y : U) (d : union-cocone A B Y) → union-restr A B Y (union-ext A B pA pB Y d) ≡ d
+union-sec ∷ {X : U} (A B : X → U) (pA : (x : X) → is-prop (A x)) (pB : (x : X) → is-prop (B x)) (Y : U) (d : union-cocone A B Y) → union-restr A B Y (union-ext A B pA pB Y d) ≡ d
 union-sec {X} A B pA pB Y (a , r) = union-sec2 A B pA pB Y a r
 
 --
@@ -354,7 +353,7 @@ union-ret-z {X} A B Y k x w =
           (cong-trans k (cong (union-ι A B x) (union-τ A B x w (union-wl A B x p)))
             (cong (union-ι A B x) (union-τ A B x (union-wl A B x p) (union-wr A B x q)))))))
 
-abstract union-ret-pw ∷ {X : U} (A B : X → U) (pA : (x : X) → is-prop (A x)) (pB : (x : X) → is-prop (B x)) (Y : U) (k : union A B → Y) (z : union A B) →
+union-ret-pw ∷ {X : U} (A B : X → U) (pA : (x : X) → is-prop (A x)) (pB : (x : X) → is-prop (B x)) (Y : U) (k : union A B → Y) (z : union A B) →
   union-ext A B pA pB Y (union-restr A B Y k) z ≡ k z
 union-ret-pw {X} A B pA pB Y k (x , w) =
   cong {union-D A B Y (λ u . k (union-inl A B u)) (λ v . k (union-inr A B v)) (λ x p q . cong k (union-glue A B x p q)) x} {Y}
@@ -363,14 +362,14 @@ union-ret-pw {X} A B pA pB Y k (x , w) =
       (center _ (union-D-contr A B pA pB Y (λ u . k (union-inl A B u)) (λ v . k (union-inr A B v)) (λ x p q . cong k (union-glue A B x p q)) x w))
       (union-ret-z A B Y k x w))
 
-abstract union-ret ∷ {X : U} (A B : X → U) (pA : (x : X) → is-prop (A x)) (pB : (x : X) → is-prop (B x)) (Y : U) (k : union A B → Y) → union-ext A B pA pB Y (union-restr A B Y k) ≡ k
+union-ret ∷ {X : U} (A B : X → U) (pA : (x : X) → is-prop (A x)) (pB : (x : X) → is-prop (B x)) (Y : U) (k : union A B → Y) → union-ext A B pA pB Y (union-restr A B Y k) ≡ k
 union-ret {X} A B pA pB Y k = funext-nd (union-ext A B pA pB Y (union-restr A B Y k)) k (union-ret-pw A B pA pB Y k)
 
 --
 -- the universal property of the union
 --
 
-abstract union-up ∷ {X : U} (A B : X → U) (pA : (x : X) → is-prop (A x)) (pB : (x : X) → is-prop (B x)) (Y : U) → is-equiv (union-restr A B Y)
+union-up ∷ {X : U} (A B : X → U) (pA : (x : X) → is-prop (A x)) (pB : (x : X) → is-prop (B x)) (Y : U) → is-equiv (union-restr A B Y)
 union-up {X} A B pA pB Y = ((union-ext A B pA pB Y , union-sec A B pA pB Y) , (union-ext A B pA pB Y , union-ret A B pA pB Y))
 
 ---
@@ -431,7 +430,7 @@ union-pt-inv {X} A B Y x0 p0 q0 κ (a , r) =
     (fst {(Σ (x : X) . B x) → Y} (λ b . a (x0 , p0) ≡ b (x0 , q0)) r)
     (snd {(Σ (x : X) . B x) → Y} (λ b . a (x0 , p0) ≡ b (x0 , q0)) r)
 
-abstract union-pt-sec3 ∷ {X : U} (A B : X → U) (Y : U) (x0 : X) (p0 : A x0) (q0 : B x0) (κ : (t : union-I A B) → (x0 , p0 , q0) ≡{union-I A B} t)
+union-pt-sec3 ∷ {X : U} (A B : X → U) (Y : U) (x0 : X) (p0 : A x0) (q0 : B x0) (κ : (t : union-I A B) → (x0 , p0 , q0) ≡{union-I A B} t)
   (a : (Σ (x : X) . A x) → Y) (b : (Σ (x : X) . B x) → Y) (e : a (x0 , p0) ≡ b (x0 , q0)) →
   union-ev-pt A B Y x0 p0 q0 (union-pt-inv3 A B Y x0 p0 q0 κ a b e) ≡ (a , b , e)
 union-pt-sec3 {X} A B Y x0 p0 q0 κ a b e =
@@ -439,7 +438,7 @@ union-pt-sec3 {X} A B Y x0 p0 q0 κ a b e =
     (cong {(x0 , p0 , q0) ≡{union-I A B} (x0 , p0 , q0)} {a (x0 , p0) ≡ b (x0 , q0)}
       (λ π . subst (union-glue-fam A B Y a b) π e) (trans-sym-l (κ (x0 , p0 , q0))))
 
-abstract union-pt-ret3 ∷ {X : U} (A B : X → U) (Y : U) (x0 : X) (p0 : A x0) (q0 : B x0) (κ : (t : union-I A B) → (x0 , p0 , q0) ≡{union-I A B} t)
+union-pt-ret3 ∷ {X : U} (A B : X → U) (Y : U) (x0 : X) (p0 : A x0) (q0 : B x0) (κ : (t : union-I A B) → (x0 , p0 , q0) ≡{union-I A B} t)
   (a : (Σ (x : X) . A x) → Y) (b : (Σ (x : X) . B x) → Y) (c : (x : X) (p : A x) (q : B x) → a (x , p) ≡ b (x , q)) →
   union-pt-inv3 A B Y x0 p0 q0 κ a b (c x0 p0 q0) ≡ (a , b , c)
 union-pt-ret3 {X} A B Y x0 p0 q0 κ a b c =
@@ -450,14 +449,14 @@ union-pt-ret3 {X} A B Y x0 p0 q0 κ a b c =
         funext (λ q . a (x , p) ≡ b (x , q)) (λ q . subst (union-glue-fam A B Y a b) (union-κ' A B x0 p0 q0 κ (x , p , q)) (c x0 p0 q0)) (c x p) (λ q .
           subst-section {union-I A B} (union-glue-fam A B Y a b) h {(x0 , p0 , q0)} {(x , p , q)} (union-κ' A B x0 p0 q0 κ (x , p , q))))))
 
-abstract union-pt-sec ∷ {X : U} (A B : X → U) (Y : U) (x0 : X) (p0 : A x0) (q0 : B x0) (κ : (t : union-I A B) → (x0 , p0 , q0) ≡{union-I A B} t)
+union-pt-sec ∷ {X : U} (A B : X → U) (Y : U) (x0 : X) (p0 : A x0) (q0 : B x0) (κ : (t : union-I A B) → (x0 , p0 , q0) ≡{union-I A B} t)
   (d : union-pt-cocone A B Y x0 p0 q0) → union-ev-pt A B Y x0 p0 q0 (union-pt-inv A B Y x0 p0 q0 κ d) ≡ d
 union-pt-sec {X} A B Y x0 p0 q0 κ (a , r) =
   let h : (r : Σ (b : (Σ (x : X) . B x) → Y) . a (x0 , p0) ≡ b (x0 , q0)) →
       union-ev-pt A B Y x0 p0 q0 (union-pt-inv A B Y x0 p0 q0 κ (a , r)) ≡ (a , r) = fun (b , e) → union-pt-sec3 A B Y x0 p0 q0 κ a b e in
   h r
 
-abstract union-pt-ret ∷ {X : U} (A B : X → U) (Y : U) (x0 : X) (p0 : A x0) (q0 : B x0) (κ : (t : union-I A B) → (x0 , p0 , q0) ≡{union-I A B} t)
+union-pt-ret ∷ {X : U} (A B : X → U) (Y : U) (x0 : X) (p0 : A x0) (q0 : B x0) (κ : (t : union-I A B) → (x0 , p0 , q0) ≡{union-I A B} t)
   (d : union-cocone A B Y) → union-pt-inv A B Y x0 p0 q0 κ (union-ev-pt A B Y x0 p0 q0 d) ≡ d
 union-pt-ret {X} A B Y x0 p0 q0 κ (a , r) =
   let h : (r : Σ (b : (Σ (x : X) . B x) → Y) . (x : X) (p : A x) (q : B x) → a (x , p) ≡ b (x , q)) →
@@ -465,13 +464,13 @@ union-pt-ret {X} A B Y x0 p0 q0 κ (a , r) =
   h r
 
 -- with a contractible intersection, cocones on the union are cocones over the centre
-abstract is-equiv-union-ev-pt ∷ {X : U} (A B : X → U) (Y : U) (x0 : X) (p0 : A x0) (q0 : B x0) (κ : (t : union-I A B) → (x0 , p0 , q0) ≡{union-I A B} t) →
+is-equiv-union-ev-pt ∷ {X : U} (A B : X → U) (Y : U) (x0 : X) (p0 : A x0) (q0 : B x0) (κ : (t : union-I A B) → (x0 , p0 , q0) ≡{union-I A B} t) →
   is-equiv (union-ev-pt A B Y x0 p0 q0)
 is-equiv-union-ev-pt {X} A B Y x0 p0 q0 κ =
   ((union-pt-inv A B Y x0 p0 q0 κ , union-pt-sec A B Y x0 p0 q0 κ) , (union-pt-inv A B Y x0 p0 q0 κ , union-pt-ret A B Y x0 p0 q0 κ))
 
 -- the universal property of a union with a contractible intersection, as a pushout over a point
-abstract union-pt-up ∷ {X : U} (A B : X → U) (pA : (x : X) → is-prop (A x)) (pB : (x : X) → is-prop (B x)) (Y : U)
+union-pt-up ∷ {X : U} (A B : X → U) (pA : (x : X) → is-prop (A x)) (pB : (x : X) → is-prop (B x)) (Y : U)
   (x0 : X) (p0 : A x0) (q0 : B x0) (κ : (t : union-I A B) → (x0 , p0 , q0) ≡{union-I A B} t) →
   is-equiv {union A B → Y} {union-pt-cocone A B Y x0 p0 q0} (λ k . union-ev-pt A B Y x0 p0 q0 (union-restr A B Y k))
 union-pt-up {X} A B pA pB Y x0 p0 q0 κ =

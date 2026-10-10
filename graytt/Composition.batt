@@ -36,7 +36,7 @@ snd-cell {X} φ =
 --
 
 -- the unthickened oplax Segal condition for Λ² ↪ Δ²
-abstract is-segal-r-2 ∷ (X ∷ U) → is-segal-r X → is-equiv (segal-restr-r nil 2 nil X)
+is-segal-r-2 ∷ (X ∷ U) → is-segal-r X → is-equiv (segal-restr-r nil 2 nil X)
 is-segal-r-2 X s = s nil 2 nil
 
 -- the section of restriction along Λ² ↪ Δ² given by the oplax Segal condition
@@ -48,7 +48,7 @@ thick-filler-r ∷ (X ∷ U) → is-segal-r X → (thick-spine nil 2 nil →ᵣ 
 thick-filler-r X s = map-section (segal-restr-r nil 2 nil X) (segal-section-r X s)
 
 -- it restricts back to the given pair
-abstract thick-filler-r-restr ∷ (X ∷ U) (s : is-segal-r X) (ψ : thick-spine nil 2 nil →ᵣ X) →
+thick-filler-r-restr ∷ (X ∷ U) (s : is-segal-r X) (ψ : thick-spine nil 2 nil →ᵣ X) →
   segal-restr-r nil 2 nil X (thick-filler-r X s ψ) ≡ ψ
 thick-filler-r-restr X s ψ =
   snd {(thick-spine nil 2 nil →ᵣ X) → (thick-simplex nil 2 nil →ᵣ X)}
@@ -79,7 +79,7 @@ comp-r X s φ =
 --
 
 -- on the image of the spine, the filler of φ agrees with φ
-abstract comp-filler-r-spine ∷ (X ∷ U) (s : is-segal-r X) (φ : spine 2 →ᵣ X) (v ∷ spine 2) {y ∷ simplex 2}
+comp-filler-r-spine ∷ (X ∷ U) (s : is-segal-r X) (φ : spine 2 →ᵣ X) (v ∷ spine 2) {y ∷ simplex 2}
   (r ∷ y ≡ spine→simplex 2 v) → comp-filler-r X s φ y ≡ φ v
 comp-filler-r-spine X s φ v {y} r =
   let c ∷ simplex 2 → thick-simplex nil 2 nil = thicken-counit {simplex 2} in
@@ -88,13 +88,13 @@ comp-filler-r-spine X s φ v {y} r =
   let Φ : thick-simplex nil 2 nil →ᵣ X = thick-filler-r X s (thick-pair-r {X} φ) in
   trans (ap-r r' Φ) (ev-r w (thick-filler-r-restr X s (thick-pair-r {X} φ)))
 
-abstract comp-r-src ∷ (X ∷ U) (s : is-segal-r X) (φ : spine 2 →ᵣ X) → comp-r X s φ 𝕀0 ≡ fst-cell {X} φ 𝕀0
+comp-r-src ∷ (X ∷ U) (s : is-segal-r X) (φ : spine 2 →ᵣ X) → comp-r X s φ 𝕀0 ≡ fst-cell {X} φ 𝕀0
 comp-r-src X s φ =
   comp-filler-r-spine X s φ (spine-edge-1 𝕀0)
     (sorted-path 1 (𝕀0 , 𝕀0 , tt) (refl , tt)
       (is-in-spine→is-sorted 1 (𝕀0 , 𝕀0 , tt) (snd (is-in-spine 2) (spine-edge-1 𝕀0))))
 
-abstract comp-r-tgt ∷ (X ∷ U) (s : is-segal-r X) (φ : spine 2 →ᵣ X) → comp-r X s φ 𝕀1 ≡ snd-cell {X} φ 𝕀1
+comp-r-tgt ∷ (X ∷ U) (s : is-segal-r X) (φ : spine 2 →ᵣ X) → comp-r X s φ 𝕀1 ≡ snd-cell {X} φ 𝕀1
 comp-r-tgt X s φ =
   comp-filler-r-spine X s φ (spine-edge-2 𝕀1)
     (sorted-path 1 (𝕀1 , 𝕀1 , tt) (refl , tt)
@@ -105,19 +105,19 @@ comp-r-tgt X s φ =
 -- long edge is the composite of φ (unthickened oplax Segal condition, Segal.batt)
 --
 
-abstract comp-filler-r-restr ∷ (X ∷ U) (s : is-segal-r X) (φ : spine 2 →ᵣ X) → spine-restr-r 2 X (comp-filler-r X s φ) ≡ φ
+comp-filler-r-restr ∷ (X ∷ U) (s : is-segal-r X) (φ : spine 2 →ᵣ X) → spine-restr-r 2 X (comp-filler-r X s φ) ≡ φ
 comp-filler-r-restr X s φ =
   let c ∷ spine 2 → thick-spine nil 2 nil = thicken-counit {spine 2} in
   cong {thick-spine nil 2 nil →ᵣ X} {spine 2 →ᵣ X} (λ ψ . pre-r {spine 2} {thick-spine nil 2 nil} {X} ψ c)
     (thick-filler-r-restr X s (thick-pair-r {X} φ))
 
-abstract comp-filler-r-unique ∷ (X ∷ U) (s : is-segal-r X) (φ : spine 2 →ᵣ X) (Ψ : simplex 2 →ᵣ X) →
+comp-filler-r-unique ∷ (X ∷ U) (s : is-segal-r X) (φ : spine 2 →ᵣ X) (Ψ : simplex 2 →ᵣ X) →
   spine-restr-r 2 X Ψ ≡ φ → comp-filler-r X s φ ≡ Ψ
 comp-filler-r-unique X s φ Ψ H =
   retraction-inj (spine-restr-r 2 X) (is-equiv-ret (spine-restr-r 2 X) (is-segal-r-unthick X s 2)) {comp-filler-r X s φ} {Ψ}
     (trans (comp-filler-r-restr X s φ) (sym H))
 
-abstract comp-r-unique ∷ (X ∷ U) (s : is-segal-r X) (φ : spine 2 →ᵣ X) (Ψ : simplex 2 →ᵣ X) →
+comp-r-unique ∷ (X ∷ U) (s : is-segal-r X) (φ : spine 2 →ᵣ X) (Ψ : simplex 2 →ᵣ X) →
   spine-restr-r 2 X Ψ ≡ φ → comp-r X s φ ≡ pre-r {𝕀} {simplex 2} {X} Ψ long-edge
 comp-r-unique X s φ Ψ H =
   let δ ∷ 𝕀 → simplex 2 = long-edge in
@@ -138,9 +138,6 @@ comp-r-unique X s φ Ψ H =
 -- contractible (simplex-coc-r is an equivalence when X is oplax-Segal), and the composite is
 -- fill-hom at the canonical filler (comp-fill). Any other filler gives the same hom, which is how
 -- the unit laws are proved on hom types (Unitality.batt).
---
--- The cartesian universal property of the spine (spine-cart-up) is abstract, so that statements
--- mentioning it do not unfold its proof.
 --
 
 -- the first coordinate on the first edge, the second one on the second edge
@@ -167,7 +164,7 @@ hom-spine X {x} {y} {z} u v = wedge-σ-r (spine 2) sp-EA sp-EB sp-i sp-j sp-a1 s
 simplex-coc-r ∷ (X ∷ U) → (simplex 2 →ᵣ X) → spine-cocone-r X
 simplex-coc-r X Ψ = wedge-restr-r (spine 2) sp-EA sp-EB sp-i sp-j sp-a1 sp-b0 sp-γ X (spine-restr-r 2 X Ψ)
 
-abstract is-equiv-simplex-coc-r ∷ (X ∷ U) → is-segal-r X → is-equiv (simplex-coc-r X)
+is-equiv-simplex-coc-r ∷ (X ∷ U) → is-segal-r X → is-equiv (simplex-coc-r X)
 is-equiv-simplex-coc-r X s =
   is-equiv-circ (wedge-restr-r (spine 2) sp-EA sp-EB sp-i sp-j sp-a1 sp-b0 sp-γ X) (spine-restr-r 2 X)
     (spine-oplax-up X) (is-segal-r-unthick X s 2)
@@ -176,7 +173,7 @@ is-equiv-simplex-coc-r X s =
 hom-fill ∷ (X ∷ U) {x y z : X} → hom X x y → hom X y z → U
 hom-fill X {x} {y} {z} u v = fib (simplex-coc-r X) (hom-pair {X} {x} {y} {z} u v)
 
-abstract is-contr-hom-fill ∷ (X ∷ U) (s : is-segal-r X) {x y z : X} (u : hom X x y) (v : hom X y z) → is-contr (hom-fill X {x} {y} {z} u v)
+is-contr-hom-fill ∷ (X ∷ U) (s : is-segal-r X) {x y z : X} (u : hom X x y) (v : hom X y z) → is-contr (hom-fill X {x} {y} {z} u v)
 is-contr-hom-fill X s {x} {y} {z} u v =
   is-contr-fib (simplex-coc-r X) (is-equiv-simplex-coc-r X s) (hom-pair {X} {x} {y} {z} u v)
 
@@ -213,7 +210,7 @@ comp-hom-r ∷ (X ∷ U) → is-segal-r X → {x y z : X} → hom X x y → hom 
 comp-hom-r X s {x} {y} {z} u v = fill-hom X {x} {y} {z} u v (comp-fill X s {x} {y} {z} u v)
 
 -- any two fillers give the same hom
-abstract fill-hom-unique ∷ (X ∷ U) (s : is-segal-r X) {x y z : X} (u : hom X x y) (v : hom X y z) (F : hom-fill X {x} {y} {z} u v) →
+fill-hom-unique ∷ (X ∷ U) (s : is-segal-r X) {x y z : X} (u : hom X x y) (v : hom X y z) (F : hom-fill X {x} {y} {z} u v) →
   comp-hom-r X s {x} {y} {z} u v ≡ fill-hom X {x} {y} {z} u v F
 fill-hom-unique X s {x} {y} {z} u v F =
   cong {hom-fill X {x} {y} {z} u v} {hom X x z} (fill-hom X {x} {y} {z} u v)
@@ -302,7 +299,7 @@ simplex-coc-edges {X} Ψ =
 
 -- the hom read off a 2-simplex is its long edge: the boundary paths are images of loops in the
 -- set Δ²
-abstract fill-hom-simplex-2 ∷ {X ∷ U} (Ψ : simplex 2 →ᵣ X) →
+fill-hom-simplex-2 ∷ {X ∷ U} (Ψ : simplex 2 →ᵣ X) →
   fill-hom X {Ψ (simplex-2-e01 𝕀0)} {Ψ (simplex-2-e01 𝕀1)} {Ψ (simplex-2-e12 𝕀1)} (simplex-2-hom01 {X} Ψ) (simplex-2-hom12 {X} Ψ)
     (Ψ , simplex-coc-edges {X} Ψ) ≡ simplex-2-hom02 {X} Ψ
 fill-hom-simplex-2 {X} Ψ =
@@ -335,7 +332,7 @@ fill-hom-simplex-2 {X} Ψ =
       pair src tgt)
 
 -- the composite of the two first edges of a 2-simplex is its long edge
-abstract comp-simplex-2 ∷ (X ∷ U) (s : is-segal-r X) (Ψ : simplex 2 →ᵣ X) →
+comp-simplex-2 ∷ (X ∷ U) (s : is-segal-r X) (Ψ : simplex 2 →ᵣ X) →
   comp-hom-r X s {Ψ (simplex-2-e01 𝕀0)} {Ψ (simplex-2-e01 𝕀1)} {Ψ (simplex-2-e12 𝕀1)} (simplex-2-hom01 {X} Ψ) (simplex-2-hom12 {X} Ψ) ≡ simplex-2-hom02 {X} Ψ
 comp-simplex-2 X s Ψ =
   trans (fill-hom-unique X s {Ψ (simplex-2-e01 𝕀0)} {Ψ (simplex-2-e01 𝕀1)} {Ψ (simplex-2-e12 𝕀1)} (simplex-2-hom01 {X} Ψ) (simplex-2-hom12 {X} Ψ)

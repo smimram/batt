@@ -11,7 +11,7 @@ type-Prop (A, p) = A
 
 open import Equality
 
-abstract is-contr→is-prop ∷ {A : U} → is-contr A → is-prop A
+is-contr→is-prop ∷ {A : U} → is-contr A → is-prop A
 is-contr→is-prop {A} (a , p) x y =
   let trans-sym : {z : A} (r : a ≡ z) → trans (sym r) r ≡ refl = J a (fun z r → trans (sym r) r ≡ refl) refl in
   let lem : {z : A} (q : x ≡ z) → trans (sym (p x)) (p z) ≡ q = J x (fun z q → trans (sym (p x)) (p z) ≡ q) (trans-sym (p x)) in
@@ -22,13 +22,13 @@ is-contr→is-prop {A} (a , p) x y =
 ---
 
 -- Prop
-abstract prop-from-paths ∷ {A : U} → ((x y : A) → x ≡ y) → is-prop A
+prop-from-paths ∷ {A : U} → ((x y : A) → x ≡ y) → is-prop A
 prop-from-paths {A} h x y =
   (trans (sym (h x x)) (h x y) , λ p . J x (λ y' p' . trans (sym (h x x)) (h x y') ≡ p') (trans-sym-l (h x x)) p)
 
 prop-path ∷ {A : U} → is-prop A → (x y : A) → x ≡ y
 prop-path {A} pA x y = center (x ≡ y) (pA x y)
 
-abstract is-prop-retract ∷ {A B : U} (s : A → B) (r : B → A) → ((x : A) → r (s x) ≡ x) → is-prop B → is-prop A
+is-prop-retract ∷ {A B : U} (s : A → B) (r : B → A) → ((x : A) → r (s x) ≡ x) → is-prop B → is-prop A
 is-prop-retract {A} {B} s r rs pB =
   prop-from-paths (λ x y . trans (sym (rs x)) (trans (cong r (prop-path pB (s x) (s y))) (rs y)))

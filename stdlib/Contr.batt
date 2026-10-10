@@ -24,7 +24,7 @@ is-contr-eq ∷ {A : U} → is-contr A → (x y : A) → x ≡ y
 is-contr-eq (a , p) x y = trans (sym (p x)) (p y)
 
 -- the canonical path between a point of a contractible type and itself is refl
-abstract is-contr-eq-refl ∷ {A : U} (c : is-contr A) (x : A) → is-contr-eq c x x ≡ refl
+is-contr-eq-refl ∷ {A : U} (c : is-contr A) (x : A) → is-contr-eq c x x ≡ refl
 is-contr-eq-refl (a , p) x = trans-sym-l (p x)
 
 ---

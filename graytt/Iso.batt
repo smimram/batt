@@ -29,7 +29,7 @@ is-iso-hom {X} s {x} {y} f =
 -- Composition with an isomorphism is an equivalence
 --
 
-abstract is-equiv-comp-iso-l ∷ {X ∷ U} (s : is-segal-r X) {x y : X} (f : hom X x y) → is-iso-hom {X} s {x} {y} f → (y' : X) →
+is-equiv-comp-iso-l ∷ {X ∷ U} (s : is-segal-r X) {x y : X} (f : hom X x y) → is-iso-hom {X} s {x} {y} f → (y' : X) →
   is-equiv (λ g . comp-hom-r X s {x} {y} {y'} f g)
 is-equiv-comp-iso-l {X} s {x} {y} f (g , e) y' =
   let fg : comp-hom-r X s {x} {y} {x} f g ≡ id-hom {X} x = prod-fst e in
@@ -43,7 +43,7 @@ is-equiv-comp-iso-l {X} s {x} {y} f (g , e) y' =
       (trans (cong {hom X y y} {hom X y y'} (λ l . comp-hom-r X s {y} {y} {y'} l k) gf) (comp-hom-r-lunit X s {y} {y'} k)) in
   ((inv , sec) , (inv , ret))
 
-abstract is-equiv-comp-iso-r ∷ {X ∷ U} (s : is-segal-r X) {x y : X} (f : hom X x y) → is-iso-hom {X} s {x} {y} f → (x' : X) →
+is-equiv-comp-iso-r ∷ {X ∷ U} (s : is-segal-r X) {x y : X} (f : hom X x y) → is-iso-hom {X} s {x} {y} f → (x' : X) →
   is-equiv (λ g . comp-hom-r X s {x'} {x} {y} g f)
 is-equiv-comp-iso-r {X} s {x} {y} f (g , e) x' =
   let fg : comp-hom-r X s {x} {y} {x} f g ≡ id-hom {X} x = prod-fst e in

@@ -66,6 +66,7 @@ type t =
   | Var' of int (** a variable given de Bruijn index *) (* TODO: it would be much better to have preterms (strings) and terms (de Bruijn) *)
   | Let of crispness * string * t * t * t
   | Opaque of abstract option (** an opaque constant ([None] for a fresh postulate) *)
+  | Global of string * int (** a global definition, unfolded on demand, with its name (only used for printing) and its identifier *)
   | Hole of Pos.t
   | Meta of [`Fresh of Pos.t option | `Generated of int] (** metavariable with given internal identifier *)
   | Import of string (** import a module *)
@@ -146,6 +147,7 @@ module FV = struct
     | Var' _ -> assert false
     | Let (_c, _x, a, t, u) -> union (term a) @@ union (term t) (term u)
     | Opaque _ -> empty
+    | Global _ -> empty
     | Hole _ -> empty
     | Meta _ -> empty
     | Import _ -> assert false
@@ -243,6 +245,7 @@ let rec to_string ?(vars=[]) ?(ren=[]) t =
   | Var' n -> Printf.sprintf "x-%d" n
   | Let (c,x,a,t,u) -> let x, u = bind x u in Printf.sprintf "let %s %s %s = %s in %s" x (colon c) (to_string a) (to_string t) u
   | Opaque n -> (match n with Some n -> string_of_opaque n | None -> "postulate")
+  | Global (x, _) -> x
   | Hole _ -> "?"
   | Meta (`Fresh _) -> "_"
 
