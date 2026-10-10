@@ -21,9 +21,9 @@ geq ∷ 𝕀 → 𝕀 → Type
 geq i j = i 𝕀∨ j ≡ i
 
 -- i ≥ j is an identity type in the set 𝕀
-abstract is-prop-geq ∷ (i j : 𝕀) → is-prop (i ≥ j)
+is-prop-geq ∷ (i j : 𝕀) → is-prop (i ≥ j)
 is-prop-geq i j = is-set-𝕀 (i 𝕀∨ j) i
 
 -- i ≤ j is an identity type in the set 𝕀
-abstract is-prop-leq ∷ (i j : 𝕀) → is-prop (i ≤ j)
+is-prop-leq ∷ (i j : 𝕀) → is-prop (i ≤ j)
 is-prop-leq i j = is-set-𝕀 (i 𝕀∨ j) j

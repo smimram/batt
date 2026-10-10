@@ -57,10 +57,10 @@ simplex-3→free-equiv ∷ simplex 3 → free-equiv
 simplex-3→free-equiv x = pushout-inr {simplex 1} {⊤} {free-equiv-02} (λ _ . tt) edge-13' (simplex-3→free-equiv-02 x)
 
 -- the two collapsed edges are constant in E
-abstract free-equiv-02-cst ∷ (x : simplex 1) → pushout-inl {simplex 1} {⊤} {simplex 3} (λ _ . tt) edge-02 tt ≡ simplex-3→free-equiv-02 (edge-02 x)
+free-equiv-02-cst ∷ (x : simplex 1) → pushout-inl {simplex 1} {⊤} {simplex 3} (λ _ . tt) edge-02 tt ≡ simplex-3→free-equiv-02 (edge-02 x)
 free-equiv-02-cst = pushout-eq {simplex 1} {⊤} {simplex 3} (λ _ . tt) edge-02
 
-abstract free-equiv-13-cst ∷ (x : simplex 1) → pushout-inl {simplex 1} {⊤} {free-equiv-02} (λ _ . tt) edge-13' tt ≡ simplex-3→free-equiv (edge-13 x)
+free-equiv-13-cst ∷ (x : simplex 1) → pushout-inl {simplex 1} {⊤} {free-equiv-02} (λ _ . tt) edge-13' tt ≡ simplex-3→free-equiv (edge-13 x)
 free-equiv-13-cst = pushout-eq {simplex 1} {⊤} {free-equiv-02} (λ _ . tt) edge-13'
 
 -- τ : E → 1

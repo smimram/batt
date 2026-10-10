@@ -28,7 +28,7 @@ simplex-3-face {X} d Θ = pre-r {simplex 2} {simplex 3} {X} Θ d
 -- Associativity for the edges of a 3-simplex
 --
 
-abstract assoc-simplex-3 ∷ (X ∷ U) (s : is-segal-r X) (Θ : simplex 3 →ᵣ X) →
+assoc-simplex-3 ∷ (X ∷ U) (s : is-segal-r X) (Θ : simplex 3 →ᵣ X) →
   comp-hom-r X s (comp-hom-r X s (simplex-3-hom {X} simplex-3-e01 Θ) (simplex-3-hom {X} simplex-3-e12 Θ)) (simplex-3-hom {X} simplex-3-e23 Θ)
     ≡ comp-hom-r X s (simplex-3-hom {X} simplex-3-e01 Θ) (comp-hom-r X s (simplex-3-hom {X} simplex-3-e12 Θ) (simplex-3-hom {X} simplex-3-e23 Θ))
 assoc-simplex-3 X s Θ =
@@ -90,7 +90,7 @@ sp3-kw-path = funext-htpy {𝕀} {λ _ . simplex 3} sp3-kw simplex-3-e23
   (λ t . simplex-path 2 {(𝕀1 , 𝕀1 , t , tt)} {(𝕀1 , 𝕀1 , t , tt)} refl (snd (is-sorted 2) (sp3-kw t)) (refl , (refl , tt)))
 
 -- the triple read off the restriction of a 3-simplex to the 3-spine is its triple of edges
-abstract spine-restr-edges-tri ∷ {X ∷ U} (Θ : simplex 3 →ᵣ X) →
+spine-restr-edges-tri ∷ {X ∷ U} (Θ : simplex 3 →ᵣ X) →
   coc3-tri {X} (wedge-restr-r (spine 3) sp3-EA sp3-EB sp3-i sp3-j sp3-a1 sp3-b0 sp3-γ X (spine-restr-r 3 X Θ)) ≡ edges-tri {X} Θ
 spine-restr-edges-tri {X} Θ =
   trans
@@ -130,7 +130,7 @@ assoc-filler X s {x} {y} {z} {t} u v w =
     (wedge-σ-r (spine 3) sp3-EA sp3-EB sp3-i sp3-j sp3-a1 sp3-b0 sp3-γ spine-3-cart-up X (tri-section X {x} {y} {z} {t} u v w))
 
 -- its triple of edges is the given triple
-abstract assoc-filler-edges ∷ (X ∷ U) (s : is-segal-r X) {x y z t : X} (u : hom X x y) (v : hom X y z) (w : hom X z t) →
+assoc-filler-edges ∷ (X ∷ U) (s : is-segal-r X) {x y z t : X} (u : hom X x y) (v : hom X y z) (w : hom X z t) →
   edges-tri {X} (assoc-filler X s {x} {y} {z} {t} u v w) ≡ (x , y , u , z , t , v , w)
 assoc-filler-edges X s {x} {y} {z} {t} u v w =
   let Θs : spine 3 →ᵣ X =
@@ -143,7 +143,7 @@ assoc-filler-edges X s {x} {y} {z} {t} u v w =
         (tri-section-path X {x} {y} {z} {t} u v w)))
 
 -- associativity of composition in an oplax-Segal type
-abstract comp-hom-r-assoc ∷ (X ∷ U) (s : is-segal-r X) {x y z t : X} (u : hom X x y) (v : hom X y z) (w : hom X z t) →
+comp-hom-r-assoc ∷ (X ∷ U) (s : is-segal-r X) {x y z t : X} (u : hom X x y) (v : hom X y z) (w : hom X z t) →
   comp-hom-r X s {x} {z} {t} (comp-hom-r X s {x} {y} {z} u v) w ≡ comp-hom-r X s {x} {y} {t} u (comp-hom-r X s {y} {z} {t} v w)
 comp-hom-r-assoc X s {x} {y} {z} {t} u v w =
   subst {triples X} (tri-assoc X s) (assoc-filler-edges X s {x} {y} {z} {t} u v w)

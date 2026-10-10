@@ -25,7 +25,7 @@ map-retraction ∷ {A B : U} (f : A → B) → retraction f → B → A
 map-retraction f r' = fst _ r'
 
 -- maps with a retraction are injective
-abstract retraction-inj ∷ {A B : U} (f : A → B) → retraction f → {x y : A} → f x ≡ f y → x ≡ y
+retraction-inj ∷ {A B : U} (f : A → B) → retraction f → {x y : A} → f x ≡ f y → x ≡ y
 retraction-inj f (r , rr) {x} {y} p = trans (sym (rr x)) (trans (cong r p) (rr y))
 
 ---
@@ -74,11 +74,11 @@ equiv-inv-r ∷ {A B : U} → equiv A B → B → A
 equiv-inv-r (f , e) = map-section f (is-equiv-sec f e)
 
 -- the left inverse is a retraction
-abstract equiv-ret ∷ {A B : U} (e : equiv A B) (x : A) → equiv-inv-l e (equiv-fun e x) ≡ x
+equiv-ret ∷ {A B : U} (e : equiv A B) (x : A) → equiv-inv-l e (equiv-fun e x) ≡ x
 equiv-ret (f , e) = snd _ (is-equiv-ret f e)
 
 -- the right inverse is a section
-abstract equiv-sec ∷ {A B : U} (e : equiv A B) (y : B) → equiv-fun e (equiv-inv-r e y) ≡ y
+equiv-sec ∷ {A B : U} (e : equiv A B) (y : B) → equiv-fun e (equiv-inv-r e y) ≡ y
 equiv-sec (f , e) = snd _ (is-equiv-sec f e)
 
 -- identity equivalence
@@ -158,7 +158,7 @@ trans-cancel-r ∷ {A : U} {x y : A} {p q : x ≡ y} {z : A} (r : y ≡ z) → t
 trans-cancel-r {A} {x} {y} {p} {q} refl e = e
 
 -- a homotopy g ∘ f ~ id commutes with g ∘ f
-abstract htpy-gf-coh ∷ {A B : U} (f : A → B) (g : B → A) (η : (x : A) → g (f x) ≡ x) (x : A) →
+htpy-gf-coh ∷ {A B : U} (f : A → B) (g : B → A) (η : (x : A) → g (f x) ≡ x) (x : A) →
   η (g (f x)) ≡ cong (λ a . g (f a)) (η x)
 htpy-gf-coh {A} {B} f g η x =
   trans-cancel-r (η x)
@@ -174,7 +174,7 @@ trans-sym-cancel ∷ {A : U} {x y : A} (E : x ≡ y) {z : A} (q : y ≡ z) (X : 
 trans-sym-cancel {A} {x} {y} E {z} q X h =
   trans (cong {x ≡ z} {y ≡ z} (λ w . trans (sym E) w) h) (trans (sym (assoc (sym E) E q)) (trans (cong {y ≡ y} {y ≡ z} (λ w . trans w q) (trans-sym-l E)) (trans-refl-l q)))
 
-abstract ha-coh ∷ {A B : U} (f : A → B) (g : B → A) (η : (x : A) → g (f x) ≡ x) (ε : (y : B) → f (g y) ≡ y) (x : A) →
+ha-coh ∷ {A B : U} (f : A → B) (g : B → A) (η : (x : A) → g (f x) ≡ x) (ε : (y : B) → f (g y) ≡ y) (x : A) →
   ha-sec f g η ε (f x) ≡ cong f (η x)
 ha-coh {A} {B} f g η ε x =
   trans-sym-cancel (ε (f (g (f x)))) (cong f (η x)) (trans (cong f (η (g (f x)))) (ε (f x)))
@@ -191,7 +191,7 @@ fib-path {A} {B} f {a} {x} e =
     (λ x q h . cong {f x ≡ f x} {fib f (f x)} (λ w . (x , w)) h) e
 
 -- quasi-inverses have contractible fibres
-abstract is-contr-fib-qinv ∷ {A B : U} (f : A → B) (g : B → A) (η : (x : A) → g (f x) ≡ x) (ε : (y : B) → f (g y) ≡ y) (y : B) →
+is-contr-fib-qinv ∷ {A B : U} (f : A → B) (g : B → A) (η : (x : A) → g (f x) ≡ x) (ε : (y : B) → f (g y) ≡ y) (y : B) →
   is-contr (fib f y)
 is-contr-fib-qinv {A} {B} f g η ε y =
   ((g y , ha-sec f g η ε y) ,
@@ -200,7 +200,7 @@ is-contr-fib-qinv {A} {B} f g η ε y =
        (fib-path f (η x) (ha-sec f g η ε (f x)) (ha-coh f g η ε x)) p)
 
 -- equivalences have contractible fibres
-abstract is-contr-fib ∷ {A B : U} (f : A → B) → is-equiv f → (y : B) → is-contr (fib f y)
+is-contr-fib ∷ {A B : U} (f : A → B) → is-equiv f → (y : B) → is-contr (fib f y)
 is-contr-fib {A} {B} f (sec , ret) y =
   let h : section f → retraction f → is-contr (fib f y) = fun (g , ε) (r , rf) →
     is-contr-fib-qinv f g (λ x . trans (sym (trans (sym (cong r (ε (f x)))) (rf (g (f x))))) (rf x)) ε y
@@ -216,7 +216,7 @@ fund-id-map ∷ {X : U} (P : X → U) (x0 : X) (p0 : P x0) (x : X) → x0 ≡ x 
 fund-id-map P x0 p0 x p = subst P p p0
 
 -- if the total space of P is contractible, transporting p0 is a fiberwise equivalence
-abstract fund-id ∷ {X : U} (P : X → U) (x0 : X) (p0 : P x0) → is-contr (Σ (x : X) . P x) → (x : X) → is-equiv (fund-id-map P x0 p0 x)
+fund-id ∷ {X : U} (P : X → U) (x0 : X) (p0 : P x0) → is-contr (Σ (x : X) . P x) → (x : X) → is-equiv (fund-id-map P x0 p0 x)
 fund-id {X} P x0 p0 c x =
   let inv : (x : X) → P x → x0 ≡ x = fun x y → cong (fst P) (is-contr-eq c (x0 , p0) (x , y)) in
   -- section: by induction on the path in the total space
@@ -233,7 +233,7 @@ fund-id {X} P x0 p0 c x =
 ---
 
 -- left and right cancellation (2-out-of-3)
-abstract is-equiv-cancel-l ∷ {A B C : U} (g : B → C) (f : A → B) → is-equiv g → is-equiv (g ∘ f) → is-equiv f
+is-equiv-cancel-l ∷ {A B C : U} (g : B → C) (f : A → B) → is-equiv g → is-equiv (g ∘ f) → is-equiv f
 is-equiv-cancel-l {A} {B} {C} g f eg egf =
   let r : C → B = map-retraction g (is-equiv-ret g eg) in
   let rr : (b : B) → r (g b) ≡ b = snd _ (is-equiv-ret g eg) in
@@ -244,7 +244,7 @@ is-equiv-cancel-l {A} {B} {C} g f eg egf =
   let er : is-equiv r = ((g , rr) , (g , gr)) in
   is-equiv-htpy {A} {B} {r ∘ (g ∘ f)} {f} (λ a . rr (f a)) (is-equiv-circ r (g ∘ f) er egf)
 
-abstract is-equiv-cancel-r ∷ {A B C : U} (g : B → C) (f : A → B) → is-equiv f → is-equiv (g ∘ f) → is-equiv g
+is-equiv-cancel-r ∷ {A B C : U} (g : B → C) (f : A → B) → is-equiv f → is-equiv (g ∘ f) → is-equiv g
 is-equiv-cancel-r {A} {B} {C} g f ef egf =
   let r : B → A = map-retraction f (is-equiv-ret f ef) in
   let rr : (a : A) → r (f a) ≡ a = snd _ (is-equiv-ret f ef) in
@@ -256,12 +256,12 @@ is-equiv-cancel-r {A} {B} {C} g f ef egf =
   is-equiv-htpy {B} {C} {(g ∘ f) ∘ s} {g} (λ b . cong g (ss b)) (is-equiv-circ (g ∘ f) s egf es)
 
 -- conjugation: if g ∘ α = β ∘ f (pointwise) with α and β equivalences, f and g are equivalent
-abstract is-equiv-conj ∷ {A B C D : U} (f : A → B) (g : C → D) (α : A → C) (β : B → D) →
+is-equiv-conj ∷ {A B C D : U} (f : A → B) (g : C → D) (α : A → C) (β : B → D) →
   ((a : A) → g (α a) ≡ β (f a)) → is-equiv α → is-equiv β → is-equiv f → is-equiv g
 is-equiv-conj {A} {B} {C} {D} f g α β H eα eβ ef =
   is-equiv-cancel-r g α eα (is-equiv-htpy {A} {D} {β ∘ f} {g ∘ α} (λ a . sym (H a)) (is-equiv-circ β f eβ ef))
 
-abstract is-equiv-conj' ∷ {A B C D : U} (f : A → B) (g : C → D) (α : A → C) (β : B → D) →
+is-equiv-conj' ∷ {A B C D : U} (f : A → B) (g : C → D) (α : A → C) (β : B → D) →
   ((a : A) → g (α a) ≡ β (f a)) → is-equiv α → is-equiv β → is-equiv g → is-equiv f
 is-equiv-conj' {A} {B} {C} {D} f g α β H eα eβ eg =
   is-equiv-cancel-l β f eβ (is-equiv-htpy {A} {D} {g ∘ α} {β ∘ f} H (is-equiv-circ g α eg eα))

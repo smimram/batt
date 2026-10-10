@@ -39,11 +39,21 @@ type t =
   | Var of level * spine (** a variable given by its de Bruijn level (0 is the outermost variable) *)
   | Hole of (Pos.t [@opaque]) * spine
   | Opaque of Term.abstract * spine
+  | Def of (global [@opaque]) * spine * (t Lazy.t [@opaque]) (** a global definition applied to a spine, along with its unfolding (computed on demand) *)
   | RecordType of (string * crispness * t) list
   | Record of (string * t) list
   | RecordField of string * spine
   | I | I0 | I1 | Iv of t * t | Iw of t * t
 [@@deriving show]
+
+(** A global definition. *)
+and global =
+  {
+    gid : int; (** unique identifier *)
+    gname : string; (** name, only used for printing *)
+    gvalue : t Lazy.t; (** value of the definition *)
+    ginline : bool; (** whether the definition is always unfolded (used for builtins) *)
+  }
 
 (** A closure. *)
 and closure = var * (term[@opaque]) * (environment[@opaque])
@@ -94,6 +104,23 @@ module Meta = struct
     Dynarray.get variables id
 end
 
+(** Global definitions. *)
+module Global = struct
+  type t = global
+
+  let definitions = Meta.Dynarray.create ()
+
+  (** Register a new global definition. *)
+  let fresh ?(inline=false) gname gvalue =
+    let g = { gid = Meta.Dynarray.length definitions; gname; gvalue; ginline = inline } in
+    Meta.Dynarray.add_last definitions g;
+    g
+
+  (** Get global definition with given id. *)
+  let get id =
+    Meta.Dynarray.get definitions id
+end
+
 (** Counter for abstract constants. *)
 let abstract = ref (-1)
 
@@ -130,6 +157,9 @@ let rec eval (env:environment) : Term.t -> t = function
     eval env (Term.app (Abs(Explicit, x, u)) t)
   | Opaque (Some n) -> Opaque (n, [])
   | Opaque None -> assert false
+  | Global (_, id) ->
+    let g = Global.get id in
+    if g.ginline then Lazy.force g.gvalue else Def (g, [], g.gvalue)
   | Hole pos -> Hole (pos, [])
   | Meta (`Fresh _) -> assert false
   | Meta (`Generated id) -> Meta (Meta.get id, [])
@@ -162,30 +192,44 @@ and var k = Var (k, [])
 
 (** Apply a value to another. *)
 and app t u =
-  match force t, force u with
-  | Abs f, u -> capp f u
-  | IndType_ind (`Unit, [t], []), IndTerm (`Unit, []) -> t
-  | IndType_ind (`Bool, [tf;_tt], []), IndTerm (`Bool false, []) -> tf
-  | IndType_ind (`Bool, [_tf;tt], []), IndTerm (`Bool true, []) -> tt
-  | IndType_ind (`Nat, [tz;_ts], []), IndTerm (`Zero, []) -> tz
-  | IndType_ind (`Nat, [_tz;ts], []), IndTerm (`Succ, [n]) -> apps ts [n; app t n]
-  | IndType_ind (`List, [tn;_tc], []), IndTerm (`Nil, []) -> tn
-  | IndType_ind (`List, [_tn;tc], []), IndTerm (`Cons, [x; l]) -> apps tc [x; l; app t l]
-  | IndType_ind (ind, t, l), u -> IndType_ind (ind, t, u::l)
-  | Pair_ind (t, []), Pair (u, v) -> capp2 t u v
-  | Pair_ind (t, l), u -> Pair_ind (t, u::l)
-  | Tens_ind (t, []), TensPair (u, v) -> capp2 t u v
-  | Tens_ind (t, l), u -> Tens_ind (t, u::l)
-  | Flat_ind (t, []), Flatten u -> capp t u
-  | Flat_ind (t, l), u -> Flat_ind (t, u::l)
-  | J (r, [_]), Refl _ -> r
-  | J (r, l), u -> J (r, u::l)
-  | Var (x, l), u -> Var (x, u::l)
-  | Meta (m, l), u -> Meta (m, u::l)
-  | Hole (pos, l), u -> Hole (pos, u::l)
-  | Opaque (n, l), u -> Opaque (n, u::l)
-  | RecordField (x, []), Record l -> List.assoc x l
-  | _ -> failwith @@ Printf.sprintf "vapp: %s vs %s" (show t) (show u)
+  match force_meta t with
+  | Def (g, l, v) -> Def (g, u::l, lazy (app (Lazy.force v) u))
+  | _ ->
+    (* The argument is only forced when it has to be inspected: otherwise, definitions are kept folded. *)
+    match force t with
+    | Abs f -> capp f u
+    | IndType_ind (ind, args, []) as t ->
+      (
+        match ind, args, force u with
+        | `Unit, [t], IndTerm (`Unit, []) -> t
+        | `Bool, [tf;_tt], IndTerm (`Bool false, []) -> tf
+        | `Bool, [_tf;tt], IndTerm (`Bool true, []) -> tt
+        | `Nat, [tz;_ts], IndTerm (`Zero, []) -> tz
+        | `Nat, [_tz;ts], IndTerm (`Succ, [n]) -> apps ts [n; app t n]
+        | `List, [tn;_tc], IndTerm (`Nil, []) -> tn
+        | `List, [_tn;tc], IndTerm (`Cons, [x; l]) -> apps tc [x; l; app t l]
+        | _ -> IndType_ind (ind, args, [u])
+      )
+    | IndType_ind (ind, t, l) -> IndType_ind (ind, t, u::l)
+    | Pair_ind (t, []) -> (match force u with Pair (u, v) -> capp2 t u v | _ -> Pair_ind (t, [u]))
+    | Pair_ind (t, l) -> Pair_ind (t, u::l)
+    | Tens_ind (t, []) -> (match force u with TensPair (u, v) -> capp2 t u v | _ -> Tens_ind (t, [u]))
+    | Tens_ind (t, l) -> Tens_ind (t, u::l)
+    | Flat_ind (t, []) -> (match force u with Flatten u -> capp t u | _ -> Flat_ind (t, [u]))
+    | Flat_ind (t, l) -> Flat_ind (t, u::l)
+    | J (r, ([_] as l)) -> (match force u with Refl _ -> r | _ -> J (r, u::l))
+    | J (r, l) -> J (r, u::l)
+    | Var (x, l) -> Var (x, u::l)
+    | Meta (m, l) -> Meta (m, u::l)
+    | Hole (pos, l) -> Hole (pos, u::l)
+    | Opaque (n, l) -> Opaque (n, u::l)
+    | RecordField (x, []) as t ->
+      (
+        match force u with
+        | Record l -> List.assoc x l
+        | _ -> failwith @@ Printf.sprintf "vapp: %s vs %s" (show t) (show u)
+      )
+    | t -> failwith @@ Printf.sprintf "vapp: %s vs %s" (show t) (show u)
 
 (** Apply a value to a list of values. *)
 and apps t = function
@@ -204,10 +248,17 @@ and capp ((x,t,env):closure) (v:t) =
 and capp2 ((x,y,t,env):closure2) (u:t) (v:t) =
   eval ((y,v)::(x,u)::env) t
 
-(** Remove already evaluated values. *)
+(** Compute the weak head normal form: solved metavariables and definitions are unfolded. *)
 and force t =
   match t with
   | Meta (m, s) when m.value <> None -> force @@ app_spine (Option.get m.value) s
+  | Def (_, _, v) -> force (Lazy.force v)
+  | _ -> t
+
+(** Unfold solved metavariables, but not definitions. *)
+and force_meta t =
+  match t with
+  | Meta (m, s) when m.value <> None -> force_meta @@ app_spine (Option.get m.value) s
   | _ -> t
 
 (** Put an interval value in canonical conjunctive normal form: a meet of joins
@@ -248,7 +299,8 @@ and interval i =
 and readback k v : Term.t =
   (* Binders keep the name of the original variable (Term.to_string takes care of avoiding clashes). *)
   let spine l t = Term.app_spine t (List.map (readback k) l) in
-  match force v with
+  match force_meta v with
+  | Def (g, l, _) -> spine l @@ Global (g.gname, g.gid)
   | Type n -> Type n
   | IndType (ind, l) -> IndType (ind, List.map (readback k) l)
   | IndType_ind (ind, args, l) -> spine l @@ IndType_ind (ind, List.map (readback k) args)
@@ -289,3 +341,9 @@ and readback k v : Term.t =
 
 (** String representation of a value at level [k]: [vars] are the names of the variables at levels [k-1], ..., [0]. *)
 let to_string ?vars k v = Term.to_string ?vars @@ readback k v
+
+(** Whether two values are the same global definition, or physically equal. *)
+let same_head t u =
+  match t, u with
+  | Def (g, [], _), Def (g', [], _) -> g.gid = g'.gid
+  | _ -> t == u

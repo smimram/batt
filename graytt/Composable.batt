@@ -49,7 +49,7 @@ pair-path-J {X} g h {y} e0 {t} e2 {z} e1' e1 =
       e2)
     e0
 
-abstract coc-pair-hom-pair ∷ {X ∷ U} {y z t : X} (v : hom X y z) (w : hom X z t) →
+coc-pair-hom-pair ∷ {X ∷ U} {y z t : X} (v : hom X y z) (w : hom X z t) →
   coc-pair {X} (hom-pair {X} {y} {z} {t} v w) ≡ (y , z , t , v , w)
 coc-pair-hom-pair {X} {y} {z} {t} (g , ev) (h , ew) =
   let k : (ev : (g 𝕀0 ≡ y) × (g 𝕀1 ≡ z)) (ew : (h 𝕀0 ≡ z) × (h 𝕀1 ≡ t)) →
@@ -62,7 +62,7 @@ coc-pair-hom-pair {X} {y} {z} {t} (g , ev) (h , ew) =
 pair-section ∷ (X ∷ U) {y z t : X} (v : hom X y z) (w : hom X z t) → (spine 2 →ᵣ X)
 pair-section X {y} {z} {t} v w = hom-spine X {y} {z} {t} v w
 
-abstract pair-section-path ∷ (X ∷ U) {y z t : X} (v : hom X y z) (w : hom X z t) →
+pair-section-path ∷ (X ∷ U) {y z t : X} (v : hom X y z) (w : hom X z t) →
   coc-pair {X} (wedge-restr-r (spine 2) sp-EA sp-EB sp-i sp-j sp-a1 sp-b0 sp-γ X (pair-section X {y} {z} {t} v w)) ≡ (y , z , t , v , w)
 pair-section-path X {y} {z} {t} v w =
   trans (cong {spine-cocone-r X} {pairs X} (coc-pair {X})
@@ -111,7 +111,7 @@ coc3-tri {X} c =
     (pair-of3 {X} (wr-g {sp3-EA} {sp3-EB} {sp3-a1} {sp3-b0} {X} c)) (wr-q {sp3-EA} {sp3-EB} {sp3-a1} {sp3-b0} {X} c)
 
 -- an oplax map out of the 2-spine, seen on the copy of the 2-spine, has the same pair of edges
-abstract pair-of3-proj ∷ {X ∷ U} (Φ : spine 2 →ᵣ X) →
+pair-of3-proj ∷ {X ∷ U} (Φ : spine 2 →ᵣ X) →
   pair-of3 {X} (pre-r {sp3-EB} {spine 2} {X} Φ sp3-proj) ≡ coc-pair {X} (wedge-restr-r (spine 2) sp-EA sp-EB sp-i sp-j sp-a1 sp-b0 sp-γ X Φ)
 pair-of3-proj {X} Φ =
   cong {Φ (sp-i sp-a1) ≡ Φ (sp-j sp-b0)} {pairs X}
@@ -141,7 +141,7 @@ tri-src-J ∷ {X ∷ U} (f : 𝕀 →ᵣ X) {x : X} (e0 : f 𝕀0 ≡ x) {y : X}
 tri-src-J {X} f {x} e0 {y} e1 r =
   J (f 𝕀0) (λ x e0 . (f 𝕀0 , y , (f , refl , e1) , r) ≡{triples X} (x , y , (f , e0 , e1) , r)) refl e0
 
-abstract tri-section-path ∷ (X ∷ U) {x y z t : X} (u : hom X x y) (v : hom X y z) (w : hom X z t) →
+tri-section-path ∷ (X ∷ U) {x y z t : X} (u : hom X x y) (v : hom X y z) (w : hom X z t) →
   coc3-tri {X} (tri-section X {x} {y} {z} {t} u v w) ≡ (x , y , u , z , t , v , w)
 tri-section-path X {x} {y} {z} {t} (f , e) v w =
   let P : pair-of3 {X} (pre-r {sp3-EB} {spine 2} {X} (pair-section X {y} {z} {t} v w) sp3-proj) ≡ (y , z , t , v , w) =

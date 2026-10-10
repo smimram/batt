@@ -70,7 +70,7 @@ spine ∷ (n ∷ ℕ) → Type
 spine n = Σ (x : cart-cube n) . is-in-spine n x
 
 -- being sorted is a proposition
-abstract is-prop-is-sorted ∷ (n ∷ ℕ) → (x : cart-cube (succ n)) → is-prop (is-sorted n x)
+is-prop-is-sorted ∷ (n ∷ ℕ) → (x : cart-cube (succ n)) → is-prop (is-sorted n x)
 is-prop-is-sorted zero x = is-prop-unit
 is-prop-is-sorted (succ n) x =
   let x1 : 𝕀 = prod-fst x in
@@ -133,7 +133,7 @@ long-edge ∷ 𝕀 → simplex 2
 long-edge t = ((t , t , tt) , (refl , tt))
 
 -- two points of a simplex with the same coordinates are equal (sortedness is a proposition)
-abstract sorted-path ∷ (n ∷ ℕ) (x ∷ cart-cube (succ n)) (p q ∷ is-sorted n x) → (x , p) ≡{simplex (succ n)} (x , q)
+sorted-path ∷ (n ∷ ℕ) (x ∷ cart-cube (succ n)) (p q ∷ is-sorted n x) → (x , p) ≡{simplex (succ n)} (x , q)
 sorted-path n x p q =
   let e ∷ p ≡ q = center (p ≡ q) (is-prop-is-sorted n x p q) in
   cong {is-sorted n x} {simplex (succ n)} (λ z . (x , z)) e
@@ -142,7 +142,7 @@ sorted-path n x p q =
 -- The spine as a set, and its vertex seen from both edges
 --
 
-abstract is-set-cart-cube ∷ (n ∷ ℕ) → is-set (cart-cube n)
+is-set-cart-cube ∷ (n ∷ ℕ) → is-set (cart-cube n)
 is-set-cart-cube zero = is-set-unit
 is-set-cart-cube (succ n) = is-set-prod {𝕀} {cart-cube n} is-set-𝕀 rec
 
@@ -150,7 +150,7 @@ is-prop-is-in-spine ∷ (n ∷ ℕ) (x : cart-cube n) → is-prop (is-in-spine n
 is-prop-is-in-spine zero x = is-prop-unit
 is-prop-is-in-spine (succ n) x = is-prop-type-prop-trunc _
 
-abstract is-set-spine ∷ (n ∷ ℕ) → is-set (spine n)
+is-set-spine ∷ (n ∷ ℕ) → is-set (spine n)
 is-set-spine n = is-set-Σ-prop (is-in-spine n) (is-set-cart-cube n) (is-prop-is-in-spine n)
 
 spine-1-pt ∷ (t : 𝕀) → is-in-spine 1 (t , tt)
@@ -171,7 +171,7 @@ simplex-2-snd ∷ simplex 2 → 𝕀
 simplex-2-snd z = prod-fst {𝕀} {⊤} (prod-snd {𝕀} {cart-cube 1} (fst (is-sorted 1) z))
 
 -- simplices are sets
-abstract is-set-simplex ∷ (n ∷ ℕ) → is-set (simplex (succ n))
+is-set-simplex ∷ (n ∷ ℕ) → is-set (simplex (succ n))
 is-set-simplex n = is-set-Σ-prop (is-sorted n) (is-set-cart-cube (succ n)) (is-prop-is-sorted n)
 
 --

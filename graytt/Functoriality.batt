@@ -90,7 +90,7 @@ map-fill X A p {x} {y} {z} u v (Ψ , P) =
   (post-r {simplex 2} {X} {A} p Ψ , map-fill-path X A p {x} {y} {z} u v Ψ P)
 
 -- on the maps of the cocones, the path of map-fill is the image of the path of the filler
-abstract map-fill-f ∷ (X A ∷ U) (p ∷ X → A) {x y z : X} (u : hom X x y) (v : hom X y z) (Ψ : simplex 2 →ᵣ X)
+map-fill-f ∷ (X A ∷ U) (p ∷ X → A) {x y z : X} (u : hom X x y) (v : hom X y z) (Ψ : simplex 2 →ᵣ X)
   (P : simplex-coc-r X Ψ ≡ hom-pair {X} {x} {y} {z} u v) →
   cong (wr-f {sp-EA} {sp-EB} {sp-a1} {sp-b0} {A}) (map-fill-path X A p {x} {y} {z} u v Ψ P)
     ≡ cong (wr-f {sp-EA} {sp-EB} {sp-a1} {sp-b0} {A}) (cong (post-coc {X} {A} p) P)
@@ -107,7 +107,7 @@ map-fill-f X A p {x} {y} {z} u v Ψ P =
       (trans (trans-refl-l (cong wf (trans C H)))
         (trans (cong-trans wf C H) (cong {Fb ≡ Fb} {Fa ≡ Fb} (λ e . trans (cong wf C) e) (coc-glue-path-f _ _ _)))))
 
-abstract map-fill-g ∷ (X A ∷ U) (p ∷ X → A) {x y z : X} (u : hom X x y) (v : hom X y z) (Ψ : simplex 2 →ᵣ X)
+map-fill-g ∷ (X A ∷ U) (p ∷ X → A) {x y z : X} (u : hom X x y) (v : hom X y z) (Ψ : simplex 2 →ᵣ X)
   (P : simplex-coc-r X Ψ ≡ hom-pair {X} {x} {y} {z} u v) →
   cong (wr-g {sp-EA} {sp-EB} {sp-a1} {sp-b0} {A}) (map-fill-path X A p {x} {y} {z} u v Ψ P)
     ≡ cong (wr-g {sp-EA} {sp-EB} {sp-a1} {sp-b0} {A}) (cong (post-coc {X} {A} p) P)
@@ -125,7 +125,7 @@ map-fill-g X A p {x} {y} {z} u v Ψ P =
         (trans (cong-trans wg C H) (cong {Fb ≡ Fb} {Fa ≡ Fb} (λ e . trans (cong wg C) e) (coc-glue-path-g _ _ _)))))
 
 -- the hom read off the image of a filler is the image of the hom read off the filler
-abstract map-fill-hom ∷ (X A ∷ U) (p ∷ X → A) {x y z : X} (u : hom X x y) (v : hom X y z) (F : hom-fill X {x} {y} {z} u v) →
+map-fill-hom ∷ (X A ∷ U) (p ∷ X → A) {x y z : X} (u : hom X x y) (v : hom X y z) (F : hom-fill X {x} {y} {z} u v) →
   fill-hom A {p x} {p y} {p z} (hom-map {X} {A} p {x} {y} u) (hom-map {X} {A} p {y} {z} v) (map-fill X A p {x} {y} {z} u v F)
     ≡ hom-map {X} {A} p {x} {z} (fill-hom X {x} {y} {z} u v F)
 map-fill-hom X A p {x} {y} {z} u v (Ψ , P) =
@@ -157,7 +157,7 @@ map-fill-hom X A p {x} {y} {z} u v (Ψ , P) =
     (cong2 {p (Ψ (long-edge 𝕀0)) ≡ p x} {p (Ψ (long-edge 𝕀1)) ≡ p z} {(p (Ψ (long-edge 𝕀0)) ≡ p x) × (p (Ψ (long-edge 𝕀1)) ≡ p z)} pair S T)
 
 -- the action of p on homs preserves composition
-abstract hom-map-comp ∷ (X A ∷ U) (p ∷ X → A) (sX : is-segal-r X) (sA : is-segal-r A) {x y z : X} (u : hom X x y) (v : hom X y z) →
+hom-map-comp ∷ (X A ∷ U) (p ∷ X → A) (sX : is-segal-r X) (sA : is-segal-r A) {x y z : X} (u : hom X x y) (v : hom X y z) →
   hom-map {X} {A} p {x} {z} (comp-hom-r X sX {x} {y} {z} u v)
     ≡ comp-hom-r A sA {p x} {p y} {p z} (hom-map {X} {A} p {x} {y} u) (hom-map {X} {A} p {y} {z} v)
 hom-map-comp X A p sX sA {x} {y} {z} u v =
