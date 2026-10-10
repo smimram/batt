@@ -179,7 +179,7 @@ module Unification = struct
   (** Metavariables solved so far, most recent first (used to undo tentative unifications). *)
   let trail = ref ([] : V.meta list)
 
-  let set m t =
+  let set (m:V.meta) t =
     if !Common.show_debug then debug "META  %s <- %s\n%!" (V.Meta.to_string m) (T.to_string t);
     assert (m.value = None);
     let t = V.eval [] t in
@@ -228,7 +228,7 @@ module Unification = struct
   (** Restore a saved state of unification: metavariables solved since then are unsolved again. *)
   let restore (tr, d) =
     while !trail != tr do
-      (List.hd !trail).value <- None;
+      (List.hd !trail : V.meta).value <- None;
       trail := List.tl !trail
     done;
     deferred := d
@@ -295,7 +295,7 @@ let unify ~pos k (t:value) (u:value) =
         | Def (g, l, v) ->
           (* Definitions are closed and thus kept folded, unless their arguments cannot be renamed, in which case we try again with the unfolding. NOTE: we do not perform the occurs check in the body of the definition, which could only contain metavariables created before the definition. *)
           (
-            try spine l @@ Global (g.gname, g.gid)
+            try spine l @@ Global (g.name, g.id)
             with Unification -> rename r (Lazy.force v)
           )
         | t ->
@@ -384,7 +384,7 @@ let unify ~pos k (t:value) (u:value) =
   let rec unify ?(flex=false) ?(solve=true) k t u =
     let unfold = function V.Def (_, _, v) -> Lazy.force v | t -> t in
     match V.force_meta t, V.force_meta u with
-    | (Def (g, l, _) as t), (Def (g', l', _) as u) when g.gid = g'.gid && List.length l = List.length l' ->
+    | (Def (g, l, _) as t), (Def (g', l', _) as u) when g.id = g'.id && List.length l = List.length l' ->
       let args ~flex ~solve = List.iter2 (unify ~flex ~solve k) l l' in
       if flex then args ~flex ~solve else
         (
@@ -396,7 +396,7 @@ let unify ~pos k (t:value) (u:value) =
           with Unification ->
             try args ~flex:false ~solve:false
             with Unification ->
-              if !Common.show_debug then debug "UNFOLD %s\n" g.gname;
+              if !Common.show_debug then debug "UNFOLD %s\n" g.name;
               unify ~solve k (unfold t) (unfold u)
         )
     | Def _, _ | _, Def _ when flex ->
@@ -406,7 +406,7 @@ let unify ~pos k (t:value) (u:value) =
     | (Meta _ as t), u | t, (Meta _ as u) -> unify_whnf ~flex ~solve k t u
     (* Unfold the most recent definition first, since it might unfold to the other one. *)
     | (Def (g, _, _) as t), (Def (g', _, _) as u) ->
-      if g.gid > g'.gid then unify ~solve k (unfold t) u else unify ~solve k t (unfold u)
+      if g.id > g'.id then unify ~solve k (unfold t) u else unify ~solve k t (unfold u)
     | (Def _ as t), u -> unify ~solve k (unfold t) u
     | t, (Def _ as u) -> unify ~solve k t (unfold u)
     | t, u -> unify_whnf ~flex ~solve k t u
@@ -947,7 +947,7 @@ and infer k env ctx (t:term) : term * value =
     (
       (* Global definitions are referred to directly, which avoids looking them up in the environment during evaluation. *)
       match snd (List.nth env k) with
-      | Def (g, [], _) -> Global (g.gname, g.gid)
+      | Def (g, [], _) -> Global (g.name, g.id)
       | _ -> Var' k
     ), a
   | Meta (`Fresh pos) ->
@@ -1041,7 +1041,7 @@ and check_decls k env ctx (decls:T.decls) =
             (* Toplevel definitions are elaborated to global definitions, which are only unfolded when needed. *)
             let env = !env in
             let g = V.Global.fresh x (lazy (V.eval env t)) in
-            T.Global (x, g.gid)
+            T.Global (x, g.id)
       in
       tm := (x,t) :: !tm;
       env := (x, V.eval !env t) :: !env;
@@ -1081,7 +1081,7 @@ let check_decls_toplevel decls =
   let add ?(crispness=T.Crisp) x a t =
     (* Builtins are inlined global definitions, so that they can be referred to directly (and not by looking them up in the environment). *)
     let g = V.Global.fresh ~inline:true x (Lazy.from_val t) in
-    env := (x, V.Def (g, [], g.gvalue)) :: !env;
+    env := (x, V.Def (g, [], g.value)) :: !env;
     ctx := Context.ext ~crispness !ctx x a
   in
   if !Common.builtins then

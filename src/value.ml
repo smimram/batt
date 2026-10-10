@@ -49,10 +49,10 @@ type t =
 (** A global definition. *)
 and global =
   {
-    gid : int; (** unique identifier *)
-    gname : string; (** name, only used for printing *)
-    gvalue : t Lazy.t; (** value of the definition *)
-    ginline : bool; (** whether the definition is always unfolded (used for builtins) *)
+    id : int; (** unique identifier *)
+    name : string; (** name, only used for printing *)
+    value : t Lazy.t; (** value of the definition *)
+    inline : bool; (** whether the definition is always unfolded (used for builtins) *)
   }
 
 (** A closure. *)
@@ -91,11 +91,11 @@ module Meta = struct
 
   let variables = Dynarray.create ()
 
-  let to_string m = "?" ^ string_of_int m.id
+  let to_string (m:t) = "?" ^ string_of_int m.id
 
   (** Generate a fresh metavariable. *)
   let fresh ?pos () =
-    let m = { id = Dynarray.length variables; pos; value = None } in
+    let m : t = { id = Dynarray.length variables; pos; value = None } in
     Dynarray.add_last variables m;
     m
 
@@ -111,8 +111,8 @@ module Global = struct
   let definitions = Meta.Dynarray.create ()
 
   (** Register a new global definition. *)
-  let fresh ?(inline=false) gname gvalue =
-    let g = { gid = Meta.Dynarray.length definitions; gname; gvalue; ginline = inline } in
+  let fresh ?(inline=false) name value =
+    let g = { id = Meta.Dynarray.length definitions; name; value; inline } in
     Meta.Dynarray.add_last definitions g;
     g
 
@@ -159,7 +159,7 @@ let rec eval (env:environment) : Term.t -> t = function
   | Opaque None -> assert false
   | Global (_, id) ->
     let g = Global.get id in
-    if g.ginline then Lazy.force g.gvalue else Def (g, [], g.gvalue)
+    if g.inline then Lazy.force g.value else Def (g, [], g.value)
   | Hole pos -> Hole (pos, [])
   | Meta (`Fresh _) -> assert false
   | Meta (`Generated id) -> Meta (Meta.get id, [])
@@ -300,7 +300,7 @@ and readback k v : Term.t =
   (* Binders keep the name of the original variable (Term.to_string takes care of avoiding clashes). *)
   let spine l t = Term.app_spine t (List.map (readback k) l) in
   match force_meta v with
-  | Def (g, l, _) -> spine l @@ Global (g.gname, g.gid)
+  | Def (g, l, _) -> spine l @@ Global (g.name, g.id)
   | Type n -> Type n
   | IndType (ind, l) -> IndType (ind, List.map (readback k) l)
   | IndType_ind (ind, args, l) -> spine l @@ IndType_ind (ind, List.map (readback k) args)
@@ -345,5 +345,5 @@ let to_string ?vars k v = Term.to_string ?vars @@ readback k v
 (** Whether two values are the same global definition, or physically equal. *)
 let same_head t u =
   match t, u with
-  | Def (g, [], _), Def (g', [], _) -> g.gid = g'.gid
+  | Def (g, [], _), Def (g', [], _) -> g.id = g'.id
   | _ -> t == u
