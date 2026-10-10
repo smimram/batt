@@ -33,9 +33,9 @@ coconn {C} t = λ i . λ j . t (i 𝕀∨ j)
 --
 
 -- Γ_t : id (t 𝕀0) → t in 𝕀 →ᵣ C
-conn-hom ∷ {C ∷ U} (t : arrᵣ C) → hom (arrᵣ C) (λ j . t 𝕀0) t
+conn-hom ∷ {C ∷ U} (t : arrᵣ C) → hom (arrᵣ C) (λ j . srcᵣ t) t
 conn-hom {C} t = (conn {C} t , refl , refl)
 
 -- Γ'_t : t → id (t 𝕀1) in 𝕀 →ᵣ C
-coconn-hom ∷ {C ∷ U} (t : arrᵣ C) → hom (arrᵣ C) t (λ j . t 𝕀1)
+coconn-hom ∷ {C ∷ U} (t : arrᵣ C) → hom (arrᵣ C) t (λ j . tgtᵣ t)
 coconn-hom {C} t = (coconn {C} t , refl , refl)
