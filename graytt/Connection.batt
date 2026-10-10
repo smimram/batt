@@ -1,7 +1,7 @@
 --
 -- Connections
 --
--- For an arrow t : 𝕀 →ᵣ C, the connection and coconnection cells (BATT.tex, defin:connection_cells)
+-- For an arrow t : 𝕀 →ᵣ C, the connection and coconnection cells
 --
 --   Γ_t  = λ i . λ j . t (i ∧ j)        Γ'_t = λ i . λ j . t (i ∨ j)
 --
