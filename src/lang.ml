@@ -502,8 +502,7 @@ let unify ~pos k (t:value) (u:value) =
     | Meta (m, l), t -> solve_meta k m l t
     | t, Meta (m, l) -> solve_meta k m l t
     (* eta-expansion (needs to be after meta-variables, otherwise the spine might contain a pair and not be a pattern *)
-    (* only for unapplied eliminators: an applied one is stuck (neutral) and
-       applying it to a pair would only grow its spine, looping forever *)
+    (* only for unapplied eliminators: an applied one is stuck (neutral) and applying it to a pair would only grow its spine, looping forever *)
     | (Pair_ind (_, []) as t), u
     | t, (Pair_ind (_, []) as u) ->
       if not_function t || not_function u then raise Unification;
