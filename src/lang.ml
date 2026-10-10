@@ -548,15 +548,6 @@ let unify k env t a b =
   try unify ~pos:(T.Position.find_opt t) k a b
   with Unification -> error ~t "term has type %s but %s expected" (string_of_value k env a) (string_of_value k env b)
 
-(*
-(** Comparison of values. *)
-let is_eq k (t:value) (u:value) =
-  readback k t = readback k u
-
-let eq k t u =
-  if not @@ is_eq k t u then failwith "eq"
-*)
-
 (** Generate a fresh metavariable. *)
 let fresh_meta ?pos env =
   let m = V.Meta.fresh ?pos () in
