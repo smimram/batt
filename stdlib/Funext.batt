@@ -242,6 +242,11 @@ happly-l-fib-happly-l A B f g p =
 is-prop-Π ∷ {A : U} (P : A → U) → ((x : A) → is-prop (P x)) → is-prop ((x : A) → P x)
 is-prop-Π {A} P pP = prop-from-paths (λ f g . funext P f g (λ x . prop-path (pP x) (f x) (g x)))
 
+-- variant for implicit arguments, as a retract of the explicit one
+is-prop-Π-impl ∷ {A : U} (P : A → U) → ((x : A) → is-prop (P x)) → is-prop ({x : A} → P x)
+is-prop-Π-impl {A} P pP =
+  is-prop-retract {{x : A} → P x} {(x : A) → P x} (λ f x . f {x}) (λ g {x} . g x) (λ f . refl) (is-prop-Π P pP)
+
 is-prop-is-contr ∷ (A : U) → is-prop (is-contr A)
 is-prop-is-contr A =
   let P : A → U = λ a . (x : A) → a ≡ x in

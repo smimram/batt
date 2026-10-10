@@ -267,3 +267,35 @@ is-cocartesian-cancel {X} {A} sX sA p {x} {y} {z} f g cf =
       (is-equiv-htpy {hom X z z'} {cocart-pb {X} {A} sA p {x} {z} (comp-hom-r X sX {x} {y} {z} f g) z'} {gfg z'} {Φ z' ∘ gg z'}
         (λ w . sym (cancel-Φ-gap {X} {A} sX sA p {x} {y} {z} f g z' w))
         (cgf z'))))
+
+--
+-- Cocartesian maps
+--
+-- A fiberwise map φ : (x : A) → F x → G x between families over A is cocartesian when its total
+-- map Σ A F → Σ A G sends cocartesian arrows (for the first projections) to cocartesian arrows.
+--
+
+is-cocartesian-map ∷ {A ∷ U} (F G ∷ A → U) (sA : is-segal-r A)
+  (sF : is-segal-r (Σ (x : A) . F x)) (sG : is-segal-r (Σ (x : A) . G x)) (φ ∷ (x : A) → F x → G x) → U
+is-cocartesian-map {A} F G sA sF sG φ =
+  {u v : Σ (x : A) . F x} (f : hom (Σ (x : A) . F x) u v) →
+  is-cocartesian {Σ (x : A) . F x} {A} sF sA (fst F) {u} {v} f →
+  is-cocartesian {Σ (x : A) . G x} {A} sG sA (fst G)
+    {tot {A} {F} {G} φ u} {tot {A} {F} {G} φ v} (hom-map {Σ (x : A) . F x} {Σ (x : A) . G x} (tot {A} {F} {G} φ) {u} {v} f)
+
+-- being a cocartesian map is a proposition
+is-prop-is-cocartesian-map ∷ {A ∷ U} (F G ∷ A → U) (sA : is-segal-r A)
+  (sF : is-segal-r (Σ (x : A) . F x)) (sG : is-segal-r (Σ (x : A) . G x)) (φ ∷ (x : A) → F x → G x) →
+  is-prop (is-cocartesian-map {A} F G sA sF sG φ)
+is-prop-is-cocartesian-map {A} F G sA sF sG φ =
+  let S ∷ U = Σ (x : A) . F x in
+  let T ∷ U = Σ (x : A) . G x in
+  let Φ ∷ S → T = tot {A} {F} {G} φ in
+  let C : {u v : S} → hom S u v → U = λ {u} {v} f . is-cocartesian {S} {A} sF sA (fst F) {u} {v} f in
+  let D : {u v : S} → hom S u v → U = λ {u} {v} f .
+    is-cocartesian {T} {A} sG sA (fst G) {Φ u} {Φ v} (hom-map {S} {T} Φ {u} {v} f) in
+  is-prop-Π-impl (λ u . {v : S} (f : hom S u v) → C {u} {v} f → D {u} {v} f) (λ u .
+    is-prop-Π-impl (λ v . (f : hom S u v) → C {u} {v} f → D {u} {v} f) (λ v .
+      is-prop-Π (λ f . C {u} {v} f → D {u} {v} f) (λ f .
+        is-prop-Π (λ _ . D {u} {v} f) (λ _ .
+          is-prop-is-cocartesian {T} {A} sG sA (fst G) {Φ u} {Φ v} (hom-map {S} {T} Φ {u} {v} f)))))
