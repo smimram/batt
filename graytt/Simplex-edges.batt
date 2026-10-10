@@ -273,7 +273,7 @@ spine-2-cocone→cells {X} c =
     (λ f . Σ-base (restrict-spine-2-edge-2 {X}) (λ g . f 𝕀1 ≡ g 𝕀0))
     (Σ-base (restrict-spine-2-edge-1 {X}) (λ f . Σ (G : spine-2-edge-2 →ᵣ X) . f 𝕀1 ≡ G spine-2-edge-2-start) c)
 
-abstract is-equiv-spine-2-cocone→cells ∷ {X ∷ U} → is-equiv (spine-2-cocone→cells {X})
+is-equiv-spine-2-cocone→cells ∷ {X ∷ U} → is-equiv (spine-2-cocone→cells {X})
 is-equiv-spine-2-cocone→cells {X} =
   is-equiv-circ
     (tot {𝕀 →ᵣ X} {λ f . Σ (G : spine-2-edge-2 →ᵣ X) . f 𝕀1 ≡ G spine-2-edge-2-start} {λ f . Σ (g : 𝕀 →ᵣ X) . f 𝕀1 ≡ g 𝕀0}
@@ -294,7 +294,7 @@ spine-2-cocone→pair-factor {X} (F , r) =
     fun (G , q) → refl in
   h r
 
-abstract is-equiv-spine-2-cocone→pair ∷ {X ∷ U} → is-equiv (spine-2-cocone→pair {X})
+is-equiv-spine-2-cocone→pair ∷ {X ∷ U} → is-equiv (spine-2-cocone→pair {X})
 is-equiv-spine-2-cocone→pair {X} =
   is-equiv-htpy {spine-2-cocone-r X} {pairs X} {λ c . cells→pair {X} (spine-2-cocone→cells {X} c)}
     {spine-2-cocone→pair {X}} (spine-2-cocone→pair-factor {X})
@@ -312,7 +312,7 @@ spine-3-tail-pair-factor {X} G =
     (ap-r-pre-r (spine 2) {spine-3-tail} {X} {spine-2-edge-1-incl spine-2-edge-1-end}
         {spine-2-edge-2-incl spine-2-edge-2-start} spine-2-glue spine-2→spine-3-tail G)
 
-abstract is-equiv-spine-3-tail-pair ∷ {X ∷ U} → is-equiv (spine-3-tail-pair {X})
+is-equiv-spine-3-tail-pair ∷ {X ∷ U} → is-equiv (spine-3-tail-pair {X})
 is-equiv-spine-3-tail-pair {X} =
   let wr : (spine 2 →ᵣ X) → spine-2-cocone-r X = spine-2→cocone-r X in
   is-equiv-htpy {spine-3-tail →ᵣ X} {pairs X} {λ G . spine-2-cocone→pair {X} (wr (restrict-spine-3-tail {X} G))}
@@ -328,7 +328,7 @@ spine-3-cocone→cells {X} c =
     (λ f . Σ-base (spine-3-tail-pair {X}) (λ r . f 𝕀1 ≡ fst (pair-from X) r))
     (Σ-base (restrict-spine-3-edge-1 {X}) (λ f . Σ (G : spine-3-tail →ᵣ X) . f 𝕀1 ≡ G spine-3-tail-start) c)
 
-abstract is-equiv-spine-3-cocone→cells ∷ {X ∷ U} → is-equiv (spine-3-cocone→cells {X})
+is-equiv-spine-3-cocone→cells ∷ {X ∷ U} → is-equiv (spine-3-cocone→cells {X})
 is-equiv-spine-3-cocone→cells {X} =
   is-equiv-circ
     (tot {𝕀 →ᵣ X} {λ f . Σ (G : spine-3-tail →ᵣ X) . f 𝕀1 ≡ G spine-3-tail-start}
@@ -350,7 +350,7 @@ spine-3-cocone→triple-factor {X} (F , r) =
     fun (G , q) → refl in
   h r
 
-abstract is-equiv-spine-3-cocone→triple ∷ {X ∷ U} → is-equiv (spine-3-cocone→triple {X})
+is-equiv-spine-3-cocone→triple ∷ {X ∷ U} → is-equiv (spine-3-cocone→triple {X})
 is-equiv-spine-3-cocone→triple {X} =
   is-equiv-htpy {spine-3-cocone-r X} {triples X} {λ c . cells→triple {X} (spine-3-cocone→cells {X} c)}
     {spine-3-cocone→triple {X}} (spine-3-cocone→triple-factor {X})
@@ -399,7 +399,7 @@ spine-2-edge-2-in-simplex-path = funext-htpy {𝕀} {λ _ . simplex 2} spine-2-e
   (λ t . spine-2-edge-2-in-simplex-pt (𝕀→spine-2-edge-2 t))
 
 -- the pair read off the restriction of a 2-simplex to the 2-spine is its pair of edges
-abstract spine-restr-edges-2 ∷ {X ∷ U} (Ψ : simplex 2 →ᵣ X) →
+spine-restr-edges-2 ∷ {X ∷ U} (Ψ : simplex 2 →ᵣ X) →
   spine-2-cocone→pair {X} (spine-2→cocone-r X (spine-restr-r 2 X Ψ)) ≡ edges-2 {X} Ψ
 spine-restr-edges-2 {X} Ψ =
   trans (cong {Ψ (spine-2-edge-1-in-simplex 𝕀1) ≡ Ψ (spine-2-edge-2-in-simplex 𝕀0)} {pairs X}
@@ -411,7 +411,7 @@ spine-restr-edges-2 {X} Ψ =
 
 -- edges-2 is the composite of the Segal restriction, the restriction to the pieces of the spine
 -- and spine-2-cocone→pair, all of which are equivalences
-abstract is-equiv-edges-2 ∷ (X ∷ U) → is-segal-r X → is-equiv (edges-2 {X})
+is-equiv-edges-2 ∷ (X ∷ U) → is-segal-r X → is-equiv (edges-2 {X})
 is-equiv-edges-2 X s =
   let sr : (simplex 2 →ᵣ X) → (spine 2 →ᵣ X) = spine-restr-r 2 X in
   let wr : (spine 2 →ᵣ X) → spine-2-cocone-r X = spine-2→cocone-r X in
@@ -424,7 +424,7 @@ is-equiv-edges-2 X s =
 --
 
 -- as above, with spine-restr-edges-tri (Associativity.batt) in place of spine-restr-edges-2
-abstract is-equiv-edges-tri ∷ (X ∷ U) → is-segal-r X → is-equiv (edges-tri {X})
+is-equiv-edges-tri ∷ (X ∷ U) → is-segal-r X → is-equiv (edges-tri {X})
 is-equiv-edges-tri X s =
   let sr : (simplex 3 →ᵣ X) → (spine 3 →ᵣ X) = spine-restr-r 3 X in
   let wr : (spine 3 →ᵣ X) → spine-3-cocone-r X = spine-3→cocone-r X in
@@ -435,7 +435,7 @@ is-equiv-edges-tri X s =
 
 -- on the edges of a 3-simplex, the associator is the one given by its four faces
 -- (assoc-simplex-3-def, Associativity.batt): the fibres of edges-tri are contractible
-abstract comp-hom-r-assoc-edges ∷ (X ∷ U) (s : is-segal-r X) (Θ : simplex 3 →ᵣ X) →
+comp-hom-r-assoc-edges ∷ (X ∷ U) (s : is-segal-r X) (Θ : simplex 3 →ᵣ X) →
   comp-hom-r-assoc X s (simplex-3-hom {X} simplex-3-e01 Θ) (simplex-3-hom {X} simplex-3-e12 Θ) (simplex-3-hom {X} simplex-3-e23 Θ)
     ≡ assoc-simplex-3-def X s Θ
 comp-hom-r-assoc-edges X s Θ =

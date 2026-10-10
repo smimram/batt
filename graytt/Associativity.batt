@@ -77,7 +77,7 @@ assoc-simplex-3-def X s Θ =
 
 -- frozen: assoc-simplex-3 does not unfold (unfolding it in unified terms is expensive), but it
 -- is equal to its definition (assoc-simplex-3-eq)
-abstract assoc-simplex-3-freeze ∷ (X ∷ U) (s : is-segal-r X) (Θ : simplex 3 →ᵣ X) →
+assoc-simplex-3-freeze ∷ (X ∷ U) (s : is-segal-r X) (Θ : simplex 3 →ᵣ X) →
   Σ (a : comp-hom-r X s (comp-hom-r X s (simplex-3-hom {X} simplex-3-e01 Θ)
         (simplex-3-hom {X} simplex-3-e12 Θ)) (simplex-3-hom {X} simplex-3-e23 Θ)
     ≡ comp-hom-r X s (simplex-3-hom {X} simplex-3-e01 Θ)
@@ -209,7 +209,7 @@ comp-hom-r-assoc-def X s {x} {y} {z} {t} u v w =
     (assoc-simplex-3 X s (assoc-filler X s {x} {y} {z} {t} u v w))
 
 -- frozen, as assoc-simplex-3
-abstract comp-hom-r-assoc-freeze ∷ (X ∷ U) (s : is-segal-r X) {x y z t : X} (u : hom X x y) (v : hom X y z) (w : hom X z t) →
+comp-hom-r-assoc-freeze ∷ (X ∷ U) (s : is-segal-r X) {x y z t : X} (u : hom X x y) (v : hom X y z) (w : hom X z t) →
   Σ (a : comp-hom-r X s {x} {z} {t} (comp-hom-r X s {x} {y} {z} u v) w ≡ comp-hom-r X s {x} {y} {t} u
       (comp-hom-r X s {y} {z} {t} v w)) . a ≡ comp-hom-r-assoc-def X s {x} {y} {z} {t} u v w
 comp-hom-r-assoc-freeze X s {x} {y} {z} {t} u v w = (comp-hom-r-assoc-def X s {x} {y} {z} {t} u v w , refl)

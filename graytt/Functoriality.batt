@@ -74,7 +74,7 @@ hom-map-comp-def X A p sX sA {x} {y} {z} u v =
     (hom-map-comp-simplex X A p sX sA (map-section (edges-2 {X}) s r))
 
 -- frozen (as assoc-simplex-3): it does not unfold, but it is equal to its definition
-abstract hom-map-comp-freeze ∷
+hom-map-comp-freeze ∷
   (X A ∷ U) (p ∷ X → A) (sX : is-segal-r X) (sA : is-segal-r A)
   {x y z : X} (u : hom X x y) (v : hom X y z)
   → Σ (e : hom-map p (comp-hom-r X sX u v) ≡ comp-hom-r A sA (hom-map p u) (hom-map p v)) .
@@ -89,7 +89,7 @@ hom-map-comp ∷
 hom-map-comp X A p sX sA {x} {y} {z} u v = fst _ (hom-map-comp-freeze X A p sX sA {x} {y} {z} u v)
 
 -- on the edges of a 2-simplex, it is the commutation given by that 2-simplex
-abstract hom-map-comp-edges ∷
+hom-map-comp-edges ∷
   (X A ∷ U) (p ∷ X → A) (sX : is-segal-r X) (sA : is-segal-r A)
   (Ψ : simplex 2 →ᵣ X)
   → hom-map-comp X A p sX sA (simplex-2-hom01 {X} Ψ) (simplex-2-hom12 {X} Ψ) ≡ hom-map-comp-simplex X A p sX sA Ψ
@@ -122,7 +122,7 @@ face-image X A p sX sA {x} {y} {z} u v {a} c =
 trans-solve ∷ {T : U} {x y : T} {z : T} (c : y ≡ z) (q : x ≡ z) {f : x ≡ y} → trans q (sym c) ≡ f → trans (sym f) q ≡ c
 trans-solve {T} {x} {y} refl q refl = trans-sym-l q
 
-abstract hom-map-comp-face ∷
+hom-map-comp-face ∷
   (X A ∷ U) (p ∷ X → A) (sX : is-segal-r X) (sA : is-segal-r A)
   (Ψ : simplex 2 →ᵣ X)
   → face-image X A p sX sA (simplex-2-hom01 {X} Ψ) (simplex-2-hom12 {X} Ψ) (comp-simplex-2 X sX Ψ)
@@ -187,7 +187,7 @@ tetra-core {T} {t0} refl refl = refl
 
 -- the hexagon for the degenerate tetrahedron, with P = hom-map p, L = - ; P w, R = P u ; -,
 -- g = fn u v, h = fn v w, F4 = fn (u ; v) w, F1 = fn u (v ; w), and c1 the remaining face
-abstract tetra-alg ∷
+tetra-alg ∷
   {H S1 S2 T : U} (P : H → T) (L : S1 → T) (R : S2 → T)
   {s : S1} {s' : S1} (g : s ≡ s')
   {r : S2} {r' : S2} (h : r ≡ r')
@@ -201,7 +201,7 @@ abstract tetra-alg ∷
 tetra-alg {H} {S1} {S2} {T} P L R {s} refl {r} refl {k0} refl F4 F1 = tetra-core F4 F1
 
 -- the hexagon commutes for associators given by faces and their images
-abstract hom-map-tetrahedron ∷
+hom-map-tetrahedron ∷
   (X A ∷ U) (p ∷ X → A) (sX : is-segal-r X) (sA : is-segal-r A)
   {x y z t : X} (u : hom X x y) (v : hom X y z) (w : hom X z t)
   -- the faces in X
@@ -239,7 +239,7 @@ assoc-coh-stmt X A p sX sA {x} {y} {z} {t} u v w =
     (comp-hom-r-assoc A sA (hom-map p u) (hom-map p v) (hom-map p w))
 
 -- on the edges of a 3-simplex Θ: the associators are given by the faces of Θ and of p ∘ Θ
-abstract assoc-coh-simplex ∷
+assoc-coh-simplex ∷
   (X A ∷ U) (p ∷ X → A) (sX : is-segal-r X) (sA : is-segal-r A)
   (Θ : simplex 3 →ᵣ X)
   → assoc-coh-stmt X A p sX sA (simplex-3-hom {X} simplex-3-e01 Θ) (simplex-3-hom {X} simplex-3-e12 Θ) (simplex-3-hom {X} simplex-3-e23 Θ)
@@ -275,7 +275,7 @@ assoc-coh-tri X A p sX sA = tri-family X (λ x y z t u v w . assoc-coh-stmt X A 
 
 -- the commutation of p with composition is coherent with associativity: transport the coherence
 -- on the edges of the 3-simplex filling the triple
-abstract hom-map-comp-assoc ∷
+hom-map-comp-assoc ∷
   (X A ∷ U) (p ∷ X → A) (sX : is-segal-r X) (sA : is-segal-r A)
   {x y z t : X} (u : hom X x y) (v : hom X y z) (w : hom X z t)
   → assoc-coh-stmt X A p sX sA u v w

@@ -104,7 +104,7 @@ spine-2-meet-contr-aux1 ∷ (c : cart-cube 2) (w : spine-2-on-edge-1 c × spine-
   ((𝕀1 , 𝕀0 , tt) , refl , (refl , spine-1-pt 𝕀0)) ≡{union-I spine-2-on-edge-1 spine-2-on-edge-2} (c , w)
 spine-2-meet-contr-aux1 (c1 , xs) w = spine-2-meet-contr-aux2 c1 xs w
 
-abstract spine-2-meet-contr ∷ (t : union-I spine-2-on-edge-1 spine-2-on-edge-2) →
+spine-2-meet-contr ∷ (t : union-I spine-2-on-edge-1 spine-2-on-edge-2) →
   ((𝕀1 , 𝕀0 , tt) , refl , (refl , spine-1-pt 𝕀0)) ≡{union-I spine-2-on-edge-1 spine-2-on-edge-2} t
 spine-2-meet-contr (c , w) = spine-2-meet-contr-aux1 c w
 
@@ -112,7 +112,6 @@ spine-2-meet-contr (c , w) = spine-2-meet-contr-aux1 c w
 -- the universal properties of the spine
 --
 
--- abstract: only its type is used, and unfolding its proof inside unified terms is expensive
 spine-cart-up ∷
   wedge-cart-up (spine 2)
     spine-2-edge-1 spine-2-edge-2

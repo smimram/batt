@@ -105,7 +105,7 @@ is-cartesian-fibration ∷ {X A ∷ U} (sX : is-segal-r X) (sA : is-segal-r A) (
 is-cartesian-fibration {X} {A} sX sA p = is-equiv (cart-cell-lift {X} {A} sX sA p)
 
 -- being a cartesian fibration is a proposition
-abstract is-prop-is-cartesian-fibration ∷ {X A ∷ U} (sX : is-segal-r X) (sA : is-segal-r A) (p ∷ X → A) →
+is-prop-is-cartesian-fibration ∷ {X A ∷ U} (sX : is-segal-r X) (sA : is-segal-r A) (p ∷ X → A) →
   is-prop (is-cartesian-fibration {X} {A} sX sA p)
 is-prop-is-cartesian-fibration {X} {A} sX sA p = is-prop-is-equiv (cart-cell-lift {X} {A} sX sA p)
 
@@ -133,7 +133,7 @@ is-cocartesian-fibration ∷ {X A ∷ U} (sX : is-segal-r X) (sA : is-segal-r A)
 is-cocartesian-fibration {X} {A} sX sA p = is-equiv (cocart-cell-lift {X} {A} sX sA p)
 
 -- being a cocartesian fibration is a proposition
-abstract is-prop-is-cocartesian-fibration ∷ {X A ∷ U} (sX : is-segal-r X) (sA : is-segal-r A) (p ∷ X → A) →
+is-prop-is-cocartesian-fibration ∷ {X A ∷ U} (sX : is-segal-r X) (sA : is-segal-r A) (p ∷ X → A) →
   is-prop (is-cocartesian-fibration {X} {A} sX sA p)
 is-prop-is-cocartesian-fibration {X} {A} sX sA p = is-prop-is-equiv (cocart-cell-lift {X} {A} sX sA p)
 
@@ -209,7 +209,7 @@ cancel-Φ {X} {A} sX sA p {x} {y} {z} f g z' v =
   pb-paste a b c d (cancel-R {X} {A} sX sA p {x} {y} {z} f g z')
     (Σ-base (cocart-gap {X} {A} sX sA p {x} {y} f z') (pb-Q a b c) v)
 
-abstract is-equiv-cancel-Φ ∷ {X A ∷ U} (sX : is-segal-r X) (sA : is-segal-r A) (p ∷ X → A) {x y z : X} (f : hom X x y) (g : hom X y z) →
+is-equiv-cancel-Φ ∷ {X A ∷ U} (sX : is-segal-r X) (sA : is-segal-r A) (p ∷ X → A) {x y z : X} (f : hom X x y) (g : hom X y z) →
   is-cocartesian {X} {A} sX sA p {x} {y} f → (z' : X) → is-equiv (cancel-Φ {X} {A} sX sA p {x} {y} {z} f g z')
 is-equiv-cancel-Φ {X} {A} sX sA p {x} {y} {z} f g cf z' =
   let a : hom X x z' → hom A (p x) (p z') = hom-map {X} {A} p {x} {z'} in
@@ -223,7 +223,7 @@ is-equiv-cancel-Φ {X} {A} sX sA p {x} {y} {z} f g cf z' =
     (is-equiv-Σ-base (cocart-gap {X} {A} sX sA p {x} {y} f z') (cf z') (pb-Q a b c))
 
 -- Φ sends the gap map of g to the gap map of comp f g
-abstract cancel-Φ-gap ∷ {X A ∷ U} (sX : is-segal-r X) (sA : is-segal-r A) (p ∷ X → A)
+cancel-Φ-gap ∷ {X A ∷ U} (sX : is-segal-r X) (sA : is-segal-r A) (p ∷ X → A)
   {x y z : X} (f : hom X x y) (g : hom X y z) (z' : X) (w : hom X z z') →
   cancel-Φ {X} {A} sX sA p {x} {y} {z} f g z' (cocart-gap {X} {A} sX sA p {y} {z} g z' w)
     ≡ cocart-gap {X} {A} sX sA p {x} {z} (comp-hom-r X sX {x} {y} {z} f g) z' w
@@ -241,7 +241,7 @@ cancel-Φ-gap {X} {A} sX sA p {x} {y} {z} f g z' w =
             {a (comp-hom-r X sX {x} {y} {z'} f (comp-hom-r X sX {y} {z} {z'} g w)) ≡ d (hom-map {X} {A} p {z} {z'} w)}
             (λ q . trans q D) (sym (cong-sym a α))))
 
-abstract is-cocartesian-cancel ∷ 
+is-cocartesian-cancel ∷ 
   {X A ∷ U}
   (sX : is-segal-r X)
   (sA : is-segal-r A)
