@@ -104,6 +104,11 @@ cart-cell-lift {X} {A} sX sA p (f , c) = (f 𝕀1 , post-r {𝕀} {X} {A} p f , 
 is-cartesian-fibration ∷ {X A ∷ U} (sX : is-segal-r X) (sA : is-segal-r A) (p ∷ X → A) → U
 is-cartesian-fibration {X} {A} sX sA p = is-equiv (cart-cell-lift {X} {A} sX sA p)
 
+-- being a cartesian fibration is a proposition
+abstract is-prop-is-cartesian-fibration ∷ {X A ∷ U} (sX : is-segal-r X) (sA : is-segal-r A) (p ∷ X → A) →
+  is-prop (is-cartesian-fibration {X} {A} sX sA p)
+is-prop-is-cartesian-fibration {X} {A} sX sA p = is-prop-is-equiv (cart-cell-lift {X} {A} sX sA p)
+
 --
 -- Cocartesian fibrations
 --
@@ -124,8 +129,13 @@ cocart-cell-lift ∷ {X A ∷ U} (sX : is-segal-r X) (sA : is-segal-r A) (p ∷ 
   cocart-cell {X} {A} sX sA p → pullback {X} {arrᵣ A} {A} p (λ u . srcᵣ u)
 cocart-cell-lift {X} {A} sX sA p (f , c) = (f 𝕀0 , post-r {𝕀} {X} {A} p f , refl)
 
-abstract is-cocartesian-fibration ∷ {X A ∷ U} (sX : is-segal-r X) (sA : is-segal-r A) (p ∷ X → A) → U
+is-cocartesian-fibration ∷ {X A ∷ U} (sX : is-segal-r X) (sA : is-segal-r A) (p ∷ X → A) → U
 is-cocartesian-fibration {X} {A} sX sA p = is-equiv (cocart-cell-lift {X} {A} sX sA p)
+
+-- being a cocartesian fibration is a proposition
+abstract is-prop-is-cocartesian-fibration ∷ {X A ∷ U} (sX : is-segal-r X) (sA : is-segal-r A) (p ∷ X → A) →
+  is-prop (is-cocartesian-fibration {X} {A} sX sA p)
+is-prop-is-cocartesian-fibration {X} {A} sX sA p = is-prop-is-equiv (cocart-cell-lift {X} {A} sX sA p)
 
 --
 -- Isomorphisms are (co)cartesian
