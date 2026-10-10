@@ -1,0 +1,23 @@
+-- Definitions are unfolded lazily: these check the cases where unification
+-- has to unfold them.
+
+const ∷ {A B : U} → A → B → A
+const x y = x
+
+-- Same head, but the arguments differ: the definition has to be unfolded.
+const-irrelevant ∷ (n m : ℕ) → const {ℕ} {ℕ} 0 n ≡ const {ℕ} {ℕ} 0 m
+const-irrelevant n m = refl
+
+double ∷ ℕ → ℕ
+double zero = zero
+double (succ n) = succ (succ rec)
+
+double' ∷ ℕ → ℕ
+double' n = double n
+
+-- Different heads, which agree after unfolding.
+double-double' ∷ (n : ℕ) → double' (double n) ≡ double (double' n)
+double-double' n = refl
+
+four ∷ double' 2 ≡ 4
+four = refl

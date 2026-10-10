@@ -1,0 +1,41 @@
+--
+-- Connections
+--
+-- For an arrow t : 𝕀 →ᵣ C, the connection and coconnection cells
+--
+--   Γ_t  = λ i . λ j . t (i ∧ j)        Γ'_t = λ i . λ j . t (i ∨ j)
+--
+-- are oplax squares, the horizontal direction being the first variable i and the vertical one j:
+--
+--      t0 ───t──→ t1               t ───t1──→ t1
+--      ↑          ↑                ↑          ↑
+--     t0   Γ_t    t                t   Γ'_t   t1
+--      │          │                │          │
+--      t0 ──t0──→ t0               t0 ───t──→ t1
+--
+-- (constant sides are the identities). Their boundaries hold judgmentally, by the lattice laws of
+-- the interval.
+--
+
+open import Stdlib
+open import Hom
+
+-- the connection cell Γ_t
+conn ∷ {C ∷ U} → arrᵣ C → (𝕀 →ᵣ 𝕀 →ᵣ C)
+conn {C} t = λ i . λ j . t (i 𝕀∧ j)
+
+-- the coconnection cell Γ'_t
+coconn ∷ {C ∷ U} → arrᵣ C → (𝕀 →ᵣ 𝕀 →ᵣ C)
+coconn {C} t = λ i . λ j . t (i 𝕀∨ j)
+
+--
+-- (Co)connections as homs in the arrow type
+--
+
+-- Γ_t : id (t 𝕀0) → t in 𝕀 →ᵣ C
+conn-hom ∷ {C ∷ U} (t : arrᵣ C) → hom (arrᵣ C) (λ j . srcᵣ t) t
+conn-hom {C} t = (conn {C} t , refl , refl)
+
+-- Γ'_t : t → id (t 𝕀1) in 𝕀 →ᵣ C
+coconn-hom ∷ {C ∷ U} (t : arrᵣ C) → hom (arrᵣ C) t (λ j . tgtᵣ t)
+coconn-hom {C} t = (coconn {C} t , refl , refl)

@@ -23,10 +23,10 @@ mapbipt X' Y' =
 map-mapbipt ∷ {X' Y' : Ubipt} → mapbipt X' Y' → type-Ubipt X' → type-Ubipt Y'
 map-mapbipt (f, _) = f
 
-abstract leftcoh ∷ {X' Y' : Ubipt} → (f' : mapbipt X' Y') → map-mapbipt f' (leftpt X') ≡ leftpt Y'
+leftcoh ∷ {X' Y' : Ubipt} → (f' : mapbipt X' Y') → map-mapbipt f' (leftpt X') ≡ leftpt Y'
 leftcoh {X'} {Y'} (f, u) = fst (λ_. f (rightpt X') ≡ rightpt Y') u
 
-abstract rightcoh ∷ {X' Y' : Ubipt} → (f' : mapbipt X' Y') → map-mapbipt f' (rightpt X') ≡ rightpt Y'
+rightcoh ∷ {X' Y' : Ubipt} → (f' : mapbipt X' Y') → map-mapbipt f' (rightpt X') ≡ rightpt Y'
 rightcoh {X'} {Y'} (f, u) = snd (λ_. f (rightpt X') ≡ rightpt Y') u
 
 -- identity and composition for bipointed maps
@@ -67,10 +67,10 @@ oplaxbipt X' Y' =
 oplax-oplaxbipt ∷ {X' Y' ∷ Ubipt} → oplaxbipt X' Y' → type-Ubipt X' →ᵣ type-Ubipt Y'
 oplax-oplaxbipt (f, _) = f
 
-abstract oplaxleftcoh ∷ {X' Y' ∷ Ubipt} → (f' : oplaxbipt X' Y') → oplax-oplaxbipt f' (leftpt X') ≡ leftpt Y'
+oplaxleftcoh ∷ {X' Y' ∷ Ubipt} → (f' : oplaxbipt X' Y') → oplax-oplaxbipt f' (leftpt X') ≡ leftpt Y'
 oplaxleftcoh {X'} {Y'} (f, u) = fst (λ_. f (rightpt X') ≡ rightpt Y') u
 
-abstract oplaxrightcoh ∷ {X' Y' ∷ Ubipt} → (f' : oplaxbipt X' Y') → oplax-oplaxbipt f' (rightpt X') ≡ rightpt Y'
+oplaxrightcoh ∷ {X' Y' ∷ Ubipt} → (f' : oplaxbipt X' Y') → oplax-oplaxbipt f' (rightpt X') ≡ rightpt Y'
 oplaxrightcoh {X'} {Y'} (f, u) = snd (λ_. f (rightpt X') ≡ rightpt Y') u
 
 -- bipointed homotopies of bipointed maps

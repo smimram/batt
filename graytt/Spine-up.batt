@@ -44,10 +44,10 @@ spine-2-on-edge-1 c = cube-2-tail c ≡{cart-cube 1} zero-cube 1
 spine-2-on-edge-2 ∷ cart-cube 2 → U
 spine-2-on-edge-2 c = (cube-2-x1 c ≡ 𝕀1) × is-in-spine 1 (cube-2-tail c)
 
-abstract is-prop-spine-2-on-edge-1 ∷ (c : cart-cube 2) → is-prop (spine-2-on-edge-1 c)
+is-prop-spine-2-on-edge-1 ∷ (c : cart-cube 2) → is-prop (spine-2-on-edge-1 c)
 is-prop-spine-2-on-edge-1 c = is-set-cart-cube 1 (cube-2-tail c) (zero-cube 1)
 
-abstract is-prop-spine-2-on-edge-2 ∷ (c : cart-cube 2) → is-prop (spine-2-on-edge-2 c)
+is-prop-spine-2-on-edge-2 ∷ (c : cart-cube 2) → is-prop (spine-2-on-edge-2 c)
 is-prop-spine-2-on-edge-2 c = is-prop-prod (is-set-𝕀 (cube-2-x1 c) 𝕀1) (is-prop-is-in-spine 1 (cube-2-tail c))
 
 spine-is-union ∷ spine 2 ≡ union spine-2-on-edge-1 spine-2-on-edge-2
@@ -89,7 +89,7 @@ spine-2-glue ∷ spine-2-edge-1-incl spine-2-edge-1-end ≡{spine 2} spine-2-edg
 spine-2-glue = spine-glue
 
 -- the intersection of the two edges is contractible, with centre the vertex
-abstract spine-2-meet-contr-aux2 ∷ (c1 : 𝕀) (xs : cart-cube 1) (w : spine-2-on-edge-1 (c1 , xs) × spine-2-on-edge-2 (c1 , xs)) →
+spine-2-meet-contr-aux2 ∷ (c1 : 𝕀) (xs : cart-cube 1) (w : spine-2-on-edge-1 (c1 , xs) × spine-2-on-edge-2 (c1 , xs)) →
   ((𝕀1 , 𝕀0 , tt) , refl , (refl , spine-1-pt 𝕀0)) ≡{union-I spine-2-on-edge-1 spine-2-on-edge-2} ((c1 , xs) , w)
 spine-2-meet-contr-aux2 c1 xs w =
   subtype-path (λ c . spine-2-on-edge-1 c × spine-2-on-edge-2 c)
@@ -100,7 +100,7 @@ spine-2-meet-contr-aux2 c1 xs w =
       (sym (prod-fst {spine-2-on-edge-1 (c1 , xs)} {spine-2-on-edge-2 (c1 , xs)} w)))
     (refl , (refl , spine-1-pt 𝕀0)) w
 
-abstract spine-2-meet-contr-aux1 ∷ (c : cart-cube 2) (w : spine-2-on-edge-1 c × spine-2-on-edge-2 c) →
+spine-2-meet-contr-aux1 ∷ (c : cart-cube 2) (w : spine-2-on-edge-1 c × spine-2-on-edge-2 c) →
   ((𝕀1 , 𝕀0 , tt) , refl , (refl , spine-1-pt 𝕀0)) ≡{union-I spine-2-on-edge-1 spine-2-on-edge-2} (c , w)
 spine-2-meet-contr-aux1 (c1 , xs) w = spine-2-meet-contr-aux2 c1 xs w
 
@@ -113,7 +113,7 @@ spine-2-meet-contr (c , w) = spine-2-meet-contr-aux1 c w
 --
 
 -- abstract: only its type is used, and unfolding its proof inside unified terms is expensive
-abstract spine-cart-up ∷
+spine-cart-up ∷
   wedge-cart-up (spine 2)
     spine-2-edge-1 spine-2-edge-2
     spine-2-edge-1-incl spine-2-edge-2-incl
@@ -123,7 +123,7 @@ spine-cart-up Y =
   union-pt-up spine-2-on-edge-1 spine-2-on-edge-2 is-prop-spine-2-on-edge-1 is-prop-spine-2-on-edge-2 Y
     (𝕀1 , 𝕀0 , tt) refl (refl , spine-1-pt 𝕀0) spine-2-meet-contr
 
-abstract spine-oplax-up ∷ (X ∷ U) →
+spine-oplax-up ∷ (X ∷ U) →
   is-equiv (wedge→cocone-r (spine 2)
     spine-2-edge-1 spine-2-edge-2
     spine-2-edge-1-incl spine-2-edge-2-incl
@@ -138,7 +138,7 @@ spine-oplax-up X =
     spine-2-glue
     spine-cart-up X
 
-abstract spine-lax-up ∷ (X ∷ U) →
+spine-lax-up ∷ (X ∷ U) →
   is-equiv (wedge→cocone-l (spine 2)
     spine-2-edge-1 spine-2-edge-2
     spine-2-edge-1-incl spine-2-edge-2-incl
@@ -300,8 +300,7 @@ spine-3-meet-contr ∷ (t : union-I spine-3-on-edge-1 spine-3-on-tail) →
 spine-3-meet-contr (c , w) = spine-3-meet-contr-aux1 c w
 
 -- the universal properties of the 3-spine
--- abstract: only its type is used, and unfolding its proof inside unified terms is expensive
-abstract spine-3-cart-up ∷
+spine-3-cart-up ∷
   wedge-cart-up (spine 3)
     spine-3-edge-1 spine-3-tail
     spine-3-edge-1-incl spine-3-tail-incl
@@ -311,7 +310,7 @@ spine-3-cart-up Y =
   union-pt-up spine-3-on-edge-1 spine-3-on-tail is-prop-spine-3-on-edge-1 is-prop-spine-3-on-tail Y
     (𝕀1 , 𝕀0 , 𝕀0 , tt) refl spine-3-on-tail-vertex spine-3-meet-contr
 
-abstract spine-3-oplax-up ∷ (X ∷ U) →
+spine-3-oplax-up ∷ (X ∷ U) →
   is-equiv (wedge→cocone-r (spine 3)
     spine-3-edge-1 spine-3-tail
     spine-3-edge-1-incl spine-3-tail-incl

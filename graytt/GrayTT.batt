@@ -17,3 +17,4 @@ open import Composable
 open import Associativity
 open import Simplex-edges
 open import Iso
+open import Connection

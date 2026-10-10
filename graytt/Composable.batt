@@ -74,7 +74,7 @@ pair-path-J {X} g h {y} e0 {t} e2 {z} e1' e1 =
       e2)
     e0
 
-abstract spine-2-cocone→pair-homs ∷ {X ∷ U} {y z t : X} (v : hom X y z) (w : hom X z t) →
+spine-2-cocone→pair-homs ∷ {X ∷ U} {y z t : X} (v : hom X y z) (w : hom X z t) →
   spine-2-cocone→pair {X} (homs→spine-2-cocone {X} {y} {z} {t} v w) ≡ (y , z , t , v , w)
 spine-2-cocone→pair-homs {X} {y} {z} {t} (g , ev) (h , ew) =
   let k : (ev : (g 𝕀0 ≡ y) × (g 𝕀1 ≡ z)) (ew : (h 𝕀0 ≡ z) × (h 𝕀1 ≡ t)) →
@@ -87,7 +87,7 @@ spine-2-cocone→pair-homs {X} {y} {z} {t} (g , ev) (h , ew) =
 pair-section ∷ (X ∷ U) {y z t : X} (v : hom X y z) (w : hom X z t) → (spine 2 →ᵣ X)
 pair-section X {y} {z} {t} v w = homs→spine-2 X {y} {z} {t} v w
 
-abstract pair-section-path ∷ (X ∷ U) {y z t : X} (v : hom X y z) (w : hom X z t) →
+pair-section-path ∷ (X ∷ U) {y z t : X} (v : hom X y z) (w : hom X z t) →
   spine-2-cocone→pair {X} (spine-2→cocone-r X (pair-section X {y} {z} {t} v w)) ≡ (y , z , t , v , w)
 pair-section-path X {y} {z} {t} v w =
   trans (cong {spine-2-cocone-r X} {pairs X} (spine-2-cocone→pair {X})
@@ -139,7 +139,7 @@ spine-3-cocone→triple {X} c =
       (spine-3-cocone-glue {X} c)
 
 -- an oplax map out of the 2-spine, seen on the copy of the 2-spine, has the same pair of edges
-abstract spine-3-tail-pair-proj ∷ {X ∷ U} (Φ : spine 2 →ᵣ X) →
+spine-3-tail-pair-proj ∷ {X ∷ U} (Φ : spine 2 →ᵣ X) →
   spine-3-tail-pair {X} (pre-r {spine-3-tail} {spine 2} {X} Φ spine-3-tail→spine-2) ≡ spine-2-cocone→pair {X}
     (spine-2→cocone-r X Φ)
 spine-3-tail-pair-proj {X} Φ =
@@ -175,7 +175,7 @@ tri-src-J ∷ {X ∷ U} (f : 𝕀 →ᵣ X) {x : X} (e0 : f 𝕀0 ≡ x) {y : X}
 tri-src-J {X} f {x} e0 {y} e1 r =
   J (f 𝕀0) (λ x e0 . (f 𝕀0 , y , (f , refl , e1) , r) ≡{triples X} (x , y , (f , e0 , e1) , r)) refl e0
 
-abstract tri-section-path ∷ (X ∷ U) {x y z t : X} (u : hom X x y) (v : hom X y z) (w : hom X z t) →
+tri-section-path ∷ (X ∷ U) {x y z t : X} (u : hom X x y) (v : hom X y z) (w : hom X z t) →
   spine-3-cocone→triple {X} (tri-section X {x} {y} {z} {t} u v w) ≡ (x , y , u , z , t , v , w)
 tri-section-path X {x} {y} {z} {t} (f , e) v w =
   let P : spine-3-tail-pair {X} (pre-r {spine-3-tail} {spine 2} {X} (pair-section X {y} {z} {t} v w)

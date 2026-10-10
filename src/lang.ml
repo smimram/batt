@@ -176,11 +176,15 @@ type context = Context.t
 
 (** Unification problems. *)
 module Unification = struct
-  let set m t =
+  (** Metavariables solved so far, most recent first (used to undo tentative unifications). *)
+  let trail = ref ([] : V.meta list)
+
+  let set (m:V.meta) t =
     if !Common.show_debug then debug "META  %s <- %s\n%!" (V.Meta.to_string m) (T.to_string t);
     assert (m.value = None);
     let t = V.eval [] t in
-    m.value <- Some t
+    m.value <- Some t;
+    trail := m :: !trail
 
   (** A unification problem. *)
   type t = Pos.t option * int * value * value
@@ -217,6 +221,17 @@ module Unification = struct
 
   let pop () =
     Option.get @@ pop_opt ()
+
+  (** Save the state of unification. *)
+  let save () = !trail, !deferred
+
+  (** Restore a saved state of unification: metavariables solved since then are unsolved again. *)
+  let restore (tr, d) =
+    while !trail != tr do
+      (List.hd !trail : V.meta).value <- None;
+      trail := List.tl !trail
+    done;
+    deferred := d
 end
 
 exception Unification
@@ -243,7 +258,7 @@ let error ?t fmt =
 let unify ~pos k (t:value) (u:value) =
   if !Common.show_debug then debug "UNIFY %s WITH %s\n%!" (V.to_string k t) (V.to_string k u);
   (* Make sure that metavariable m applied to spine s equals t. *)
-  let solve k m s t =
+  let solve_meta k m s t =
     if !Common.show_debug then debug "SOLVE %s =? %s\n" (V.to_string k (Meta (m, s))) (V.to_string k t);
     (* Construct the initial renaming. Note that we number variables x0, x1, etc so that the furthest variable is x0: this is to avoid having to shift all indices when lifting. *)
     let r =
@@ -275,8 +290,16 @@ let unify ~pos k (t:value) (u:value) =
       let rec rename r t =
         (* The variable at level y in the codomain. *)
         let var y = T.Var' (r.cod - y - 1) in
-        let t = V.force t in
         let spine l (t:term) = T.app_spine t (List.map (rename r) l) in
+        match V.force_meta t with
+        | Def (g, l, v) ->
+          (* Definitions are closed and thus kept folded, unless their arguments cannot be renamed, in which case we try again with the unfolding. NOTE: we do not perform the occurs check in the body of the definition, which could only contain metavariables created before the definition. *)
+          (
+            try spine l @@ Global (g.name, g.id)
+            with Unification -> rename r (Lazy.force v)
+          )
+        | t ->
+        let t = V.force t in
         match t with
         | Meta (m',l) ->
           if m'.id = m.id then (debug "OCCURS\n"; raise Unification); (* Occurs-check. *)
@@ -354,12 +377,52 @@ let unify ~pos k (t:value) (u:value) =
     in
     Unification.set m t
   in
-  let rec unify k t u =
+  (* Definitions are unfolded lazily. When the same definition occurs on both sides, we try to unify the arguments before unfolding it:
+     1. first without unfolding any definition ([flex] mode), as in smalltt,
+     2. then with unfolding, but without solving metavariables ([solve] is false): arguments often only agree after unfolding (e.g. [union-ext (a , r)] and [union-ext3 a b c]), whereas unfolding the definition is costly; we do not solve metavariables there, because the definition might not be injective and we would thus commit to a solution which is not the most general one,
+     3. and finally unfold the definition if this fails. *)
+  let rec unify ?(flex=false) ?(solve=true) k t u =
+    let unfold = function V.Def (_, _, v) -> Lazy.force v | t -> t in
+    match V.force_meta t, V.force_meta u with
+    | (Def (g, l, _) as t), (Def (g', l', _) as u) when g.id = g'.id && List.length l = List.length l' ->
+      let args ~flex ~solve = List.iter2 (unify ~flex ~solve k) l l' in
+      if flex then args ~flex ~solve else
+        (
+          try
+            if not solve then raise Unification;
+            let s = Unification.save () in
+            try args ~flex:true ~solve
+            with Unification -> Unification.restore s; raise Unification
+          with Unification ->
+            try args ~flex:false ~solve:false
+            with Unification ->
+              if !Common.show_debug then debug "UNFOLD %s\n" g.name;
+              unify ~solve k (unfold t) (unfold u)
+        )
+    | Def _, _ | _, Def _ when flex ->
+      if !Common.show_debug then debug "FLEX %s VS %s\n" (V.to_string k t) (V.to_string k u);
+      raise Unification
+    (* Metavariables are solved with folded definitions. *)
+    | (Meta _ as t), u | t, (Meta _ as u) -> unify_whnf ~flex ~solve k t u
+    (* Unfold the most recent definition first, since it might unfold to the other one. *)
+    | (Def (g, _, _) as t), (Def (g', _, _) as u) ->
+      if g.id > g'.id then unify ~solve k (unfold t) u else unify ~solve k t (unfold u)
+    | (Def _ as t), u -> unify ~solve k (unfold t) u
+    | t, (Def _ as u) -> unify ~solve k t (unfold u)
+    | t, u -> unify_whnf ~flex ~solve k t u
+  (* Unify values in weak head normal form (except for definitions opposite to a metavariable). *)
+  and unify_whnf ~flex ~solve k t u =
+    let unify = unify ~flex ~solve in
+    (* Values which are not functions: eta-expansion fails for those (they can occur when unifying ill-typed values, e.g. arguments of a definition after a previous argument failed to unify). *)
+    let not_function : V.t -> bool = function
+      | Type _ | IndType _ | IndTerm _ | Pi _ | Sigma _ | Pair _ | Arr _ | Tens _ | TensPair _ | Flat _ | Flatten _ | Eq _ | Refl _ | RecordType _ | Record _ | I | I0 | I1 | Iv _ | Iw _ -> true
+      | _ -> false
+    in
     let spine k l l' =
       if List.length l <> List.length l' then raise Unification;
       List.iter2 (unify k) l l'
     in
-    match V.force t, V.force u with
+    match t, u with
     | Type l, Type l' ->
       if l <> l' then raise Unification
     | IndType (i, l), IndType (i', l') ->
@@ -382,6 +445,7 @@ let unify ~pos k (t:value) (u:value) =
     (* eta-expansion *)
     | (Abs _ as t), u
     | t, (Abs _ as u) ->
+      if not_function t || not_function u then raise Unification;
       let x = V.var k in
       unify (k+1) (V.app t x) (V.app u x)
     | Meta (m, s), Meta (m', s') when m.id = m'.id ->
@@ -433,20 +497,22 @@ let unify ~pos k (t:value) (u:value) =
     | Iw (i, j), Iw (i', j') ->
       unify k i i';
       unify k j j'
+    | Meta _, _ | _, Meta _ when not solve -> raise Unification
     | Meta _, Meta _ -> Unification.defer pos k t u
-    | Meta (m, l), t -> solve k m l t
-    | t, Meta (m, l) -> solve k m l t
+    | Meta (m, l), t -> solve_meta k m l t
+    | t, Meta (m, l) -> solve_meta k m l t
     (* eta-expansion (needs to be after meta-variables, otherwise the spine might contain a pair and not be a pattern *)
-    (* only for unapplied eliminators: an applied one is stuck (neutral) and
-       applying it to a pair would only grow its spine, looping forever *)
+    (* only for unapplied eliminators: an applied one is stuck (neutral) and applying it to a pair would only grow its spine, looping forever *)
     | (Pair_ind (_, []) as t), u
     | t, (Pair_ind (_, []) as u) ->
+      if not_function t || not_function u then raise Unification;
       let x = V.var k in
       let y = V.var (k+1) in
       let p = V.Pair (x,y) in
       unify (k+2) (V.app t p) (V.app u p)
     | (Tens_ind (_, []) as t), u
     | t, (Tens_ind (_, []) as u) ->
+      if not_function t || not_function u then raise Unification;
       let x = V.var k in
       let y = V.var (k+1) in
       let p = V.TensPair (x,y) in
@@ -481,15 +547,6 @@ let unify_base = unify
 let unify k env t a b =
   try unify ~pos:(T.Position.find_opt t) k a b
   with Unification -> error ~t "term has type %s but %s expected" (string_of_value k env a) (string_of_value k env b)
-
-(*
-(** Comparison of values. *)
-let is_eq k (t:value) (u:value) =
-  readback k t = readback k u
-
-let eq k t u =
-  if not @@ is_eq k t u then failwith "eq"
-*)
 
 (** Generate a fresh metavariable. *)
 let fresh_meta ?pos env =
@@ -708,9 +765,9 @@ let rec check k env ctx (t:term) (a:value) : term =
     let o = match o with Some o -> o | None -> incr V.abstract; `Postulate !V.abstract in
     important "\nPOSTULATE %s %s\n%!" (T.string_of_opaque o) (string_of_value k env a);
     Opaque (Some o)
-  | _, Pi (Implicit, _, _, _) ->
+  | _, Pi (Implicit, _, _, (x, _, _)) ->
     (* Insert implicit abstraction. *)
-    check k env ctx (Abs (Implicit, "_", t)) a
+    check k env ctx (Abs (Implicit, x, t)) a
   | Pi _, Type m
   | Sigma _, Type m
   | Arr _, Type m
@@ -747,9 +804,10 @@ and check_type k env ctx a : term * int =
     | a, Type l -> a, l
     | _, b -> error ~t:a "%s has type %s by type expected" (T.to_string a) (V.to_string k b)
   *)
-  match infer k env ctx a with
-  | a, Type l -> a, l
-  | a, b -> unify k env a b (Type 0); a, 0
+  let a, b = infer k env ctx a in
+  match V.force b with
+  | Type l -> a, l
+  | _ -> unify k env a b (Type 0); a, 0
 (* error ~t:a "%s has type %s by type expected" (T.to_string a) (V.to_string k b) *)
 
 (** Infer the type of a term. *)
@@ -876,7 +934,12 @@ and infer k env ctx (t:term) : term * value =
     (* The de Bruijn index of x in env (not a level!). *)
     let k = aux 0 env in
     let a = match Context.assoc_opt x ctx with Some a -> a | None -> error ~t "variable %s is in the context but not in the typing environment (crispness issue?)" x in
-    Var' k, a
+    (
+      (* Global definitions are referred to directly, which avoids looking them up in the environment during evaluation. *)
+      match snd (List.nth env k) with
+      | Def (g, [], _) -> Global (g.name, g.id)
+      | _ -> Var' k
+    ), a
   | Meta (`Fresh pos) ->
     let a = V.eval env @@ fresh_meta env in
     let t = fresh_meta ?pos env in
@@ -954,12 +1017,21 @@ and check_decls k env ctx (decls:T.decls) =
           infer k !env (Context.crisp ~crispness:c !ctx) t
       in
       let t =
-        if not abstract then t else
+        if abstract then
           (
             (* The definition is elaborated to a fresh opaque constant so that it does not reduce, including when imported from another module. *)
             incr V.abstract;
             T.Opaque (Some (`Abstract (x, !V.abstract)))
           )
+        else
+          match t with
+          | Var' _ | RecordField _ | Global _ | Opaque _ -> t
+          | _ when k <> 0 -> t
+          | _ ->
+            (* Toplevel definitions are elaborated to global definitions, which are only unfolded when needed. *)
+            let env = !env in
+            let g = V.Global.fresh x (lazy (V.eval env t)) in
+            T.Global (x, g.id)
       in
       tm := (x,t) :: !tm;
       env := (x, V.eval !env t) :: !env;
@@ -980,7 +1052,7 @@ and check_decls k env ctx (decls:T.decls) =
           fun x ->
             (
               match List.assoc_opt x !env, List.assoc_opt x r with
-              | Some v, Some v' -> v == v'
+              | Some v, Some v' -> V.same_head v v'
               | _ -> false
             )
         | _ -> fun _ -> false
@@ -997,7 +1069,9 @@ let check_decls_toplevel decls =
   let env = ref ([] : V.environment) in
   let ctx = ref Context.empty in
   let add ?(crispness=T.Crisp) x a t =
-    env := (x,t) :: !env;
+    (* Builtins are inlined global definitions, so that they can be referred to directly (and not by looking them up in the environment). *)
+    let g = V.Global.fresh ~inline:true x (Lazy.from_val t) in
+    env := (x, V.Def (g, [], g.value)) :: !env;
     ctx := Context.ext ~crispness !ctx x a
   in
   if !Common.builtins then

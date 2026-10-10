@@ -79,7 +79,7 @@ spine-restr-r n X Ψ =
   let ι ∷ spine n → simplex n = spine→simplex n in
   pre-r {spine n} {simplex n} {X} Ψ ι
 
-abstract is-segal-r-unthick ∷ (X ∷ U) → is-segal-r X → (n ∷ ℕ) → is-equiv (spine-restr-r n X)
+is-segal-r-unthick ∷ (X ∷ U) → is-segal-r X → (n ∷ ℕ) → is-equiv (spine-restr-r n X)
 is-segal-r-unthick X s n =
   let u ∷ thick-simplex nil n nil → simplex n = thicken-unit {simplex n} in
   let c ∷ spine n → thick-spine nil n nil = thicken-counit {spine n} in
@@ -110,7 +110,7 @@ is-segal-r-unthick X s n =
 cur2 ∷ {Q S G T ∷ U} → (Q ⨂ (S ⨂ G) →ᵣ T) → (Q →ᵣ S →ᵣ G →ᵣ T)
 cur2 {Q} {S} {G} {T} f = post-r {Q} {S ⨂ G →ᵣ T} {S →ᵣ G →ᵣ T} (tens-curry-right {S} {G} {T}) (tens-curry-right {Q} {S ⨂ G} {T} f)
 
-abstract is-equiv-cur2 ∷ {Q S G T ∷ U} → is-equiv (cur2 {Q} {S} {G} {T})
+is-equiv-cur2 ∷ {Q S G T ∷ U} → is-equiv (cur2 {Q} {S} {G} {T})
 is-equiv-cur2 {Q} {S} {G} {T} =
   is-equiv-circ (post-r {Q} {S ⨂ G →ᵣ T} {S →ᵣ G →ᵣ T} (tens-curry-right {S} {G} {T})) (tens-curry-right {Q} {S ⨂ G} {T})
     (post-r-equiv Q {S ⨂ G →ᵣ T} {S →ᵣ G →ᵣ T} (tens-curry-right {S} {G} {T}) (snd _ (tens-curry-equiv-right {S} {G} {T})))
@@ -126,7 +126,7 @@ cur-segal-restr ∷ (a ∷ List ℕ) (n ∷ ℕ) (b ∷ List ℕ) (X ∷ U) (f :
 cur-segal-restr a n b X f = refl
 
 -- postcomposition with a crisp equivalence of the target
-abstract cur-restr-equiv ∷ {Q S S' ∷ U} (ι ∷ S' → S) {T T' ∷ U} (h ∷ T → T') (eh ∷ is-equiv h) →
+cur-restr-equiv ∷ {Q S S' ∷ U} (ι ∷ S' → S) {T T' ∷ U} (h ∷ T → T') (eh ∷ is-equiv h) →
   is-equiv (cur-restr {Q} {S} {S'} {T} ι) → is-equiv (cur-restr {Q} {S} {S'} {T'} ι)
 cur-restr-equiv {Q} {S} {S'} ι {T} {T'} h eh e =
   is-equiv-conj (cur-restr {Q} {S} {S'} {T} ι) (cur-restr {Q} {S} {S'} {T'} ι)
@@ -162,7 +162,7 @@ is-equiv-𝕀→simplex-1 = ((simplex-1→𝕀 , simplex-1-eta) , (simplex-1→�
 -- Arrow types are oplax-Segal
 --
 
-abstract is-segal-arrᵣ ∷ {A ∷ U} → is-segal-r A → is-segal-r (arrᵣ A)
+is-segal-arrᵣ ∷ {A ∷ U} → is-segal-r A → is-segal-r (arrᵣ A)
 is-segal-arrᵣ {A} sA a n b =
   let c ∷ List ℕ = cons 1 b in
   let ι ∷ spine n → simplex n = spine→simplex n in
