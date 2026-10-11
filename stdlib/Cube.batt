@@ -83,7 +83,7 @@ grid ∷ (a ∷ List ℕ) → Type
 grid nil = ⊤
 grid (cons m a) = rec ⨂ simplex m
 
--- Whether a point of the cartesian cube is in the spine
+-- Whether a point of the cartesian cube is in the n-spine
 is-in-spine ∷ (n ∷ ℕ) → (x : cart-cube n) → Type
 is-in-spine zero _ = ⊤
 is-in-spine (succ n) x =
@@ -91,6 +91,7 @@ is-in-spine (succ n) x =
   let xs : cart-cube n = Product.snd x in
   (xs ≡ origin n) ∨ ((x1 ≡ 𝕀1) × (rec xs))
 
+-- The n-spine
 spine ∷ (n ∷ ℕ) → Type
 spine n = Σ (x : cart-cube n) . is-in-spine n x
 
@@ -167,20 +168,24 @@ sorted-path n x p q =
 -- The spine as a set, and its vertex seen from both edges
 --
 
+-- The n-cube is a set
 is-set-cart-cube ∷ (n ∷ ℕ) → is-set (cart-cube n)
-is-set-cart-cube zero = is-set-unit
+is-set-cart-cube zero     = is-set-unit
 is-set-cart-cube (succ n) = is-set-prod {𝕀} {cart-cube n} is-set-𝕀 rec
 
+-- Being in a spine is a proposition
 is-prop-is-in-spine ∷ (n ∷ ℕ) (x : cart-cube n) → is-prop (is-in-spine n x)
 is-prop-is-in-spine zero x = is-prop-unit
 is-prop-is-in-spine (succ n) x = is-prop-type-prop-trunc _
 
+-- The n-spine is a set
 is-set-spine ∷ (n ∷ ℕ) → is-set (spine n)
 is-set-spine n = is-set-Σ-prop (is-in-spine n) (is-set-cart-cube n) (is-prop-is-in-spine n)
 
 spine-1-pt ∷ (t : 𝕀) → is-in-spine 1 (t , tt)
 spine-1-pt t = unit-prop-trunc (sum (tt ≡ origin 0) ((t ≡ 𝕀1) × is-in-spine 0 tt)) (inl {tt ≡ origin 0} {(t ≡ 𝕀1) × is-in-spine 0 tt} refl)
 
+-- In the 2-spine, the target of the first edge coincides with the source of the second edge
 spine-glue ∷ spine-edge-1 𝕀1 ≡{spine 2} spine-edge-2 𝕀0
 spine-glue =
   let c0 ∷ cart-cube 2 = (𝕀1 , 𝕀0 , tt) in
