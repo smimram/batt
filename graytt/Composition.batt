@@ -86,7 +86,7 @@ comp-fillerᵣ-spine X s φ v {y} r =
   let r' ∷ c y ≡ c (spine→simplex 2 v) = cong c r in
   let w ∷ thick-spine nil 2 nil = thicken-counit {spine 2} v in
   let Φ : thick-simplex nil 2 nil →ᵣ X = thick-fillerᵣ X s (thick-pairᵣ {X} φ) in
-  trans (congᵣ r' Φ) (happlyᵣ w (thick-fillerᵣ-restr X s (thick-pairᵣ {X} φ)))
+  trans (congᵣ Φ r') (happlyᵣ (thick-fillerᵣ-restr X s (thick-pairᵣ {X} φ)) w)
 
 compᵣ-src ∷ (X ∷ U) (s : is-segalᵣ X) (φ : spine 2 →ᵣ X) → compᵣ X s φ 𝕀0 ≡ fst-cell {X} φ 𝕀0
 compᵣ-src X s φ =
@@ -195,10 +195,10 @@ fill-hom ∷ (X ∷ U) {x y z : X} (u : hom x y) (v : hom y z) → hom-fill X {x
 fill-hom X {x} {y} {z} u v (Ψ , P) =
   let δ ∷ 𝕀 → simplex 2 = long-edge in
   (preᵣ {𝕀} {simplex 2} {X} Ψ δ ,
-   trans (congᵣ {simplex 2} {X} long-edge-src Ψ)
-     (trans (happlyᵣ {spine-2-edge-1} {X} spine-2-edge-1-start (cong (spine-2-cocone-edge-1 {X}) P)) (hom-src {X} {x} {y} u)) ,
-   trans (congᵣ {simplex 2} {X} long-edge-tgt Ψ)
-     (trans (happlyᵣ {spine-2-edge-2} {X} spine-2-edge-2-end (cong (spine-2-cocone-edge-2 {X}) P)) (hom-tgt {X} {y} {z} v)))
+   trans (congᵣ {simplex 2} {X} Ψ long-edge-src)
+     (trans (happlyᵣ {spine-2-edge-1} {X} (cong (spine-2-cocone-edge-1 {X}) P) spine-2-edge-1-start) (hom-src {X} {x} {y} u)) ,
+   trans (congᵣ {simplex 2} {X} Ψ long-edge-tgt)
+     (trans (happlyᵣ {spine-2-edge-2} {X} (cong (spine-2-cocone-edge-2 {X}) P) spine-2-edge-2-end) (hom-tgt {X} {y} {z} v)))
 
 -- the canonical filler: the Segal filler of the composable pair homs→spine-2
 comp-fill ∷ (X ∷ U) (s : is-segalᵣ X) {x y z : X} (u : hom x y) (v : hom y z) → hom-fill X {x} {y} {z} u v
@@ -296,8 +296,8 @@ simplex-2→cocone-edges {X} Ψ =
   spine-2-cocone-path X
     (preᵣ {spine-2-edge-1} {simplex 2} {X} Ψ (λ a . spine→simplex 2 (spine-2-edge-1-incl a)))
     (preᵣ {spine-2-edge-2} {simplex 2} {X} Ψ (λ b . spine→simplex 2 (spine-2-edge-2-incl b)))
-    (congᵣ {spine 2} {X} {spine-2-edge-1-incl spine-2-edge-1-end} {spine-2-edge-2-incl spine-2-edge-2-start}
-        spine-2-glue (spine-restrᵣ 2 X Ψ))
+    (congᵣ {spine 2} {X} (spine-restrᵣ 2 X Ψ) {spine-2-edge-1-incl spine-2-edge-1-end}
+        {spine-2-edge-2-incl spine-2-edge-2-start} spine-2-glue)
     (preᵣ {spine-2-edge-1} {simplex 2} {X} Ψ (λ a . simplex-2-e01 (spine-2-edge-1→𝕀 a)))
     (preᵣ-path spine-2-edge-1 {simplex 2} {X} {λ a . spine→simplex 2 (spine-2-edge-1-incl a)}
         {λ a . simplex-2-e01 (spine-2-edge-1→𝕀 a)} PA Ψ)
@@ -340,26 +340,26 @@ fill-hom-simplex-2 {X} Ψ =
               ≡ preᵣ-path spine-2-edge-2 {simplex 2} {X} {λ b . spine→simplex 2 (spine-2-edge-2-incl b)}
                 {λ b . simplex-2-e12 (spine-2-edge-2→𝕀 b)} PB Ψ) =
     spine-2-cocone-path-maps X _ _ _ _ _ _ _ _ _ in
-  let src : trans (congᵣ {simplex 2} {X} long-edge-src Ψ)
-              (happlyᵣ {spine-2-edge-1} {X} spine-2-edge-1-start
-                  (cong (spine-2-cocone-edge-1 {X}) (simplex-2→cocone-edges {X} Ψ))) ≡ refl =
+  let src : trans (congᵣ {simplex 2} {X} Ψ long-edge-src)
+              (happlyᵣ {spine-2-edge-1} {X} (cong (spine-2-cocone-edge-1 {X}) (simplex-2→cocone-edges {X} Ψ))
+                  spine-2-edge-1-start) ≡ refl =
     trans (cong {Ψ (spine→simplex 2 (spine-2-edge-1-incl spine-2-edge-1-start)) ≡ Ψ (long-edge 𝕀0)}
         {Ψ (long-edge 𝕀0) ≡ Ψ (long-edge 𝕀0)}
-            (λ β . trans (congᵣ {simplex 2} {X} long-edge-src Ψ) β)
-            (trans (cong (happlyᵣ {spine-2-edge-1} {X} spine-2-edge-1-start) (Product.fst fg))
+            (λ β . trans (congᵣ {simplex 2} {X} Ψ long-edge-src) β)
+            (trans (cong {_ ≡ _} {_ ≡ _} (λ p . happlyᵣ {spine-2-edge-1} {X} p spine-2-edge-1-start) (Product.fst fg))
               (happlyᵣ-preᵣ-path spine-2-edge-1 {simplex 2} {X} {λ a . spine→simplex 2 (spine-2-edge-1-incl a)}
                   {λ a . simplex-2-e01 (spine-2-edge-1→𝕀 a)} PA spine-2-edge-1-start Ψ)))
       (trans (sym (congᵣ-trans {simplex 2} {X} long-edge-src
               (happly {spine-2-edge-1} {λ _ . simplex 2} PA spine-2-edge-1-start) Ψ))
         (congᵣ-set (is-set-simplex 1) (trans long-edge-src
               (happly {spine-2-edge-1} {λ _ . simplex 2} PA spine-2-edge-1-start)) refl Ψ)) in
-  let tgt : trans (congᵣ {simplex 2} {X} long-edge-tgt Ψ)
-              (happlyᵣ {spine-2-edge-2} {X} spine-2-edge-2-end
-                  (cong (spine-2-cocone-edge-2 {X}) (simplex-2→cocone-edges {X} Ψ))) ≡ refl =
+  let tgt : trans (congᵣ {simplex 2} {X} Ψ long-edge-tgt)
+              (happlyᵣ {spine-2-edge-2} {X} (cong (spine-2-cocone-edge-2 {X}) (simplex-2→cocone-edges {X} Ψ))
+                  spine-2-edge-2-end) ≡ refl =
     trans (cong {Ψ (spine→simplex 2 (spine-2-edge-2-incl spine-2-edge-2-end)) ≡ Ψ (long-edge 𝕀1)}
         {Ψ (long-edge 𝕀1) ≡ Ψ (long-edge 𝕀1)}
-            (λ β . trans (congᵣ {simplex 2} {X} long-edge-tgt Ψ) β)
-            (trans (cong (happlyᵣ {spine-2-edge-2} {X} spine-2-edge-2-end) (Product.snd fg))
+            (λ β . trans (congᵣ {simplex 2} {X} Ψ long-edge-tgt) β)
+            (trans (cong {_ ≡ _} {_ ≡ _} (λ p . happlyᵣ {spine-2-edge-2} {X} p spine-2-edge-2-end) (Product.snd fg))
               (happlyᵣ-preᵣ-path spine-2-edge-2 {simplex 2} {X} {λ b . spine→simplex 2 (spine-2-edge-2-incl b)}
                   {λ b . simplex-2-e12 (spine-2-edge-2→𝕀 b)} PB spine-2-edge-2-end Ψ)))
       (trans (sym (congᵣ-trans {simplex 2} {X} long-edge-tgt (happly {spine-2-edge-2} {λ _ . simplex 2} PB spine-2-edge-2-end) Ψ))

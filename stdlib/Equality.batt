@@ -47,7 +47,7 @@ transport {A} refl a = a
 subst ∷ {A : Type} (P : A → Type) {x y : A} → x ≡ y → P x → P y
 subst P {x} refl z = z
 
-happly ∷ {A : Type} {B : A → Type} {f g : (x : A) → B x} → f ≡ g → (x : A) → f x ≡ g x
+happly ∷ {A : Type} {B : A → Type} {f g : (x : A) → B x} (p : f ≡ g) (x : A) → f x ≡ g x
 happly {A} {B} {f} refl x = refl
 
 ---
@@ -93,20 +93,20 @@ trans-sym-r {A} {x} refl = refl
 ---
 
 -- A lax map sends a crisp path between crisp points to a path (crisp path induction)
-congₗ ∷ {A B ∷ U} {x y ∷ A} (p ∷ x ≡ y) (f : A →ₗ B) → f x ≡ f y
-congₗ {A} {B} {x} refl φ = refl
+congₗ ∷ {A B ∷ U} (f : A →ₗ B) {x y ∷ A} (p ∷ x ≡ y) → f x ≡ f y
+congₗ f {x} refl = refl
 
 -- An oplax map sends a crisp path between crisp points to a path (crisp path induction)
-congᵣ ∷ {A B ∷ U} {x y ∷ A} (p ∷ x ≡ y) (f : A →ᵣ B) → f x ≡ f y
-congᵣ {A} {B} {x} refl f = refl
+congᵣ ∷ {A B ∷ U} (f : A →ᵣ B) {x y ∷ A} (p ∷ x ≡ y) → f x ≡ f y
+congᵣ f {x} refl = refl
 
 -- Evaluation of a path between lax maps at a crisp point
-happlyₗ ∷ {A B ∷ U} (x ∷ A) {f g : A →ₗ B} → f ≡ g → f x ≡ g x
-happlyₗ {A} {B} x p = cong {A →ₗ B} (λ f . f x) p
+happlyₗ ∷ {A B ∷ U} {f g : A →ₗ B} (p : f ≡ g) (x ∷ A) → f x ≡ g x
+happlyₗ {A} {B} p x = cong {A →ₗ B} (λ f . f x) p
 
 -- Evaluation of a path between oplax maps at a crisp point
-happlyᵣ ∷ {A B ∷ U} (x ∷ A) {f g : A →ᵣ B} → f ≡ g → f x ≡ g x
-happlyᵣ {A} {B} x p = cong {A →ᵣ B} {B} (λ f . f x) p
+happlyᵣ ∷ {A B ∷ U} {f g : A →ᵣ B} (p : f ≡ g) (x ∷ A) → f x ≡ g x
+happlyᵣ {A} {B} p x = cong {A →ᵣ B} {B} (λ f . f x) p
 
 ---
 --- More path algebra
@@ -161,7 +161,7 @@ happlyᵣ-at-κ {G} {X} {k} refl w = refl
 
 -- the glue of the restriction of λ x . e x w is the evaluation of the glue of the restriction of e
 congᵣ-family ∷ {S G X ∷ U} {y0 y1 ∷ S} (c ∷ y0 ≡ y1) (e ∷ S → (G →ₗ X)) (w : G) →
-  congᵣ {S} {X} {y0} {y1} c (λ x . e x w) ≡ happlyₗ-at {G} {X} {e y0} {e y1} (cong e c) w
+  congᵣ {S} {X} (λ x . e x w) {y0} {y1} c ≡ happlyₗ-at {G} {X} {e y0} {e y1} (cong e c) w
 congᵣ-family {S} {G} {X} {y0} refl e w = refl
 
 -- applying a crisp path of families to a point
@@ -173,7 +173,7 @@ evᵣ-path ∷ {S X ∷ U} {y0 y1 ∷ S} (c ∷ y0 ≡ y1) → (λ φ . φ y0) �
 evᵣ-path {S} {X} {y0} refl = refl
 
 happly-evᵣ-path ∷ {S X ∷ U} {y0 y1 ∷ S} (c ∷ y0 ≡ y1) →
-  happly {S →ᵣ X} {λ _ . X} {λ φ . φ y0} {λ φ . φ y1} (evᵣ-path {S} {X} c) ≡ (λ φ . congᵣ {S} {X} {y0} {y1} c φ)
+  happly {S →ᵣ X} {λ _ . X} {λ φ . φ y0} {λ φ . φ y1} (evᵣ-path {S} {X} c) ≡ (λ φ . congᵣ {S} {X} φ {y0} {y1} c)
 happly-evᵣ-path {S} {X} {y0} refl = refl
 
 -- the image of a crisp path under the lax evaluation family is that of evᵣ-path
@@ -183,7 +183,7 @@ cong-evᵣ-path {S} {X} {y0} refl = refl
 
 -- evaluating the path between two constant oplax maps induced by a path of values
 happlyᵣ-const ∷ {S X ∷ U} (y ∷ S) {z z' : X} (p : z ≡ z') →
-  happlyᵣ {S} {X} y {λ b . z} {λ b . z'} (cong {X} {S →ᵣ X} (λ v . λ b . v) p) ≡ p
+  happlyᵣ {S} {X} {λ b . z} {λ b . z'} (cong {X} {S →ᵣ X} (λ v . λ b . v) p) y ≡ p
 happlyᵣ-const {S} {X} y {z} refl = refl
 
 -- a crisp path of maps k ≡ k' gives a path between the precompositions of an oplax (lax) map
@@ -195,27 +195,27 @@ preₗ-path A {B} {X} {k} refl φ = refl
 
 -- evaluated at a crisp point, it is the image of the pointwise path
 happlyᵣ-preᵣ-path ∷ (A ∷ U) {B X ∷ U} {k k' ∷ A → B} (p ∷ k ≡ k') (y ∷ A) (φ : B →ᵣ X) →
-  happlyᵣ {A} {X} y {preᵣ {A} {B} {X} φ k} {preᵣ {A} {B} {X} φ k'} (preᵣ-path A {B} {X} {k} {k'} p φ)
-    ≡ congᵣ {B} {X} {k y} {k' y} (happly {A} {λ _ . B} {k} {k'} p y) φ
+  happlyᵣ {A} {X} {preᵣ {A} {B} {X} φ k} {preᵣ {A} {B} {X} φ k'} (preᵣ-path A {B} {X} {k} {k'} p φ) y
+    ≡ congᵣ {B} {X} φ {k y} {k' y} (happly {A} {λ _ . B} {k} {k'} p y)
 happlyᵣ-preᵣ-path A {B} {X} {k} refl y φ = refl
 
 -- congᵣ only depends on its crisp path up to a crisp path
-congᵣ-path ∷ {S X ∷ U} {y0 y1 ∷ S} {e e' ∷ y0 ≡ y1} (E ∷ e ≡ e') (φ : S →ᵣ X) → congᵣ {S} {X} {y0} {y1} e φ ≡ congᵣ {S} {X} {y0} {y1} e' φ
+congᵣ-path ∷ {S X ∷ U} {y0 y1 ∷ S} {e e' ∷ y0 ≡ y1} (E ∷ e ≡ e') (φ : S →ᵣ X) → congᵣ {S} {X} φ {y0} {y1} e ≡ congᵣ {S} {X} φ {y0} {y1} e'
 congᵣ-path {S} {X} {y0} {y1} {e} refl φ = refl
 
 -- congᵣ of a concatenation of crisp paths
 congᵣ-trans ∷ {S X ∷ U} {y0 y1 ∷ S} (p ∷ y0 ≡ y1) {y2 ∷ S} (q ∷ y1 ≡ y2) (φ : S →ᵣ X) →
-  congᵣ {S} {X} {y0} {y2} (trans p q) φ ≡ trans (congᵣ {S} {X} {y0} {y1} p φ) (congᵣ {S} {X} {y1} {y2} q φ)
+  congᵣ {S} {X} φ {y0} {y2} (trans p q) ≡ trans (congᵣ {S} {X} φ {y0} {y1} p) (congᵣ {S} {X} φ {y1} {y2} q)
 congᵣ-trans {S} {X} {y0} {y1} p refl φ = refl
 
 -- congᵣ of a precomposition is congᵣ of the image path
 congᵣ-preᵣ ∷ (A ∷ U) {B X ∷ U} {y0 y1 ∷ A} (c ∷ y0 ≡ y1) (k ∷ A → B) (φ : B →ᵣ X) →
-  congᵣ {A} {X} {y0} {y1} c (preᵣ {A} {B} {X} φ k) ≡ congᵣ {B} {X} {k y0} {k y1} (cong k c) φ
+  congᵣ {A} {X} (preᵣ {A} {B} {X} φ k) {y0} {y1} c ≡ congᵣ {B} {X} φ {k y0} {k y1} (cong k c)
 congᵣ-preᵣ A {B} {X} {y0} refl k φ = refl
 
 -- the lax mirrors of the four lemmas above
 congₗ-family ∷ {S G X ∷ U} {y0 y1 ∷ S} (c ∷ y0 ≡ y1) (e ∷ S → (G →ᵣ X)) (w : G) →
-  congₗ {S} {X} {y0} {y1} c (λ x . e x w) ≡ happlyᵣ-at {G} {X} {e y0} {e y1} (cong e c) w
+  congₗ {S} {X} (λ x . e x w) {y0} {y1} c ≡ happlyᵣ-at {G} {X} {e y0} {e y1} (cong e c) w
 congₗ-family {S} {G} {X} {y0} refl e w = refl
 
 familyₗ-path ∷ {S G X ∷ U} {e e' ∷ S → (G →ᵣ X)} (p ∷ e ≡ e') (φ : G) → (λ x . e x φ) ≡{S →ₗ X} (λ x . e' x φ)
@@ -225,7 +225,7 @@ evₗ-path ∷ {S X ∷ U} {y0 y1 ∷ S} (c ∷ y0 ≡ y1) → (λ φ . φ y0) �
 evₗ-path {S} {X} {y0} refl = refl
 
 happly-evₗ-path ∷ {S X ∷ U} {y0 y1 ∷ S} (c ∷ y0 ≡ y1) →
-  happly {S →ₗ X} {λ _ . X} {λ φ . φ y0} {λ φ . φ y1} (evₗ-path {S} {X} c) ≡ (λ φ . congₗ {S} {X} {y0} {y1} c φ)
+  happly {S →ₗ X} {λ _ . X} {λ φ . φ y0} {λ φ . φ y1} (evₗ-path {S} {X} c) ≡ (λ φ . congₗ {S} {X} φ {y0} {y1} c)
 happly-evₗ-path {S} {X} {y0} refl = refl
 
 -- the image of a crisp path under the oplax evaluation family is that of evₗ-path

@@ -117,8 +117,8 @@ tri-shape-path ∷ {X ∷ U} (Θ : simplex 3 →ᵣ X) (path-u ∷ 𝕀 → simp
     {path-w' ∷ 𝕀 → simplex 3} (htpy-w ∷ path-w ≡ path-w')
   (glue-uv ∷ path-u 𝕀1 ≡ path-v 𝕀0) (glue-uv' ∷ path-u' 𝕀1 ≡ path-v' 𝕀0) (glue-vw ∷ path-v 𝕀1 ≡ path-w 𝕀0)
     (glue-vw' ∷ path-v' 𝕀1 ≡ path-w' 𝕀0) →
-  tri-shape {X} Θ path-u path-v path-w (congᵣ {simplex 3} {X} glue-uv Θ) (congᵣ {simplex 3} {X} glue-vw Θ)
-    ≡ tri-shape {X} Θ path-u' path-v' path-w' (congᵣ {simplex 3} {X} glue-uv' Θ) (congᵣ {simplex 3} {X} glue-vw' Θ)
+  tri-shape {X} Θ path-u path-v path-w (congᵣ {simplex 3} {X} Θ glue-uv) (congᵣ {simplex 3} {X} Θ glue-vw)
+    ≡ tri-shape {X} Θ path-u' path-v' path-w' (congᵣ {simplex 3} {X} Θ glue-uv') (congᵣ {simplex 3} {X} Θ glue-vw')
 tri-shape-path {X} Θ path-u refl path-v refl path-w refl glue-uv glue-uv' glue-vw glue-vw' =
   cong2 {Θ (path-u 𝕀1) ≡ Θ (path-v 𝕀0)} {Θ (path-v 𝕀1) ≡ Θ (path-w 𝕀0)} {triples X}
     (λ α β . tri-shape {X} Θ path-u path-v path-w α β)

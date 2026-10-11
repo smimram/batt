@@ -127,8 +127,8 @@ spine-3-tail-glue = cong spine-2→spine-3-tail spine-2-glue
 spine-3-tail-pair ∷ {X ∷ U} → (spine-3-tail →ᵣ X) → pairs X
 spine-3-tail-pair {X} g =
   (g spine-3-tail-start , g (𝕀→spine-3-tail-edge-2 𝕀0) , g (𝕀→spine-3-tail-edge-2 𝕀1) ,
-    ((λ t . g (𝕀→spine-3-tail-edge-1 t)) , refl , congᵣ {spine-3-tail} {X} {𝕀→spine-3-tail-edge-1 𝕀1}
-        {𝕀→spine-3-tail-edge-2 𝕀0} spine-3-tail-glue g) ,
+    ((λ t . g (𝕀→spine-3-tail-edge-1 t)) , refl , congᵣ {spine-3-tail} {X} g
+        {𝕀→spine-3-tail-edge-1 𝕀1} {𝕀→spine-3-tail-edge-2 𝕀0} spine-3-tail-glue) ,
     ((λ t . g (𝕀→spine-3-tail-edge-2 t)) , refl , refl))
 
 -- the triple of edges of an oplax cocone on the 3-spine

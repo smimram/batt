@@ -194,8 +194,8 @@ spine-2-cocone-path ∷
   (X ∷ U) (f : spine-2-edge-1 →ᵣ X) (g : spine-2-edge-2 →ᵣ X) (q : f spine-2-edge-1-end ≡ g spine-2-edge-2-start)
   (f' : spine-2-edge-1 →ᵣ X) (Pf : f ≡ f') (g' : spine-2-edge-2 →ᵣ X) (Pg : g ≡ g')
     (q' : f' spine-2-edge-1-end ≡ g' spine-2-edge-2-start)
-  → trans q (happlyᵣ {spine-2-edge-2} {X} spine-2-edge-2-start {g} {g'} Pg) ≡ trans
-    (happlyᵣ {spine-2-edge-1} {X} spine-2-edge-1-end {f} {f'} Pf) q'
+  → trans q (happlyᵣ {spine-2-edge-2} {X} {g} {g'} Pg spine-2-edge-2-start) ≡ trans
+    (happlyᵣ {spine-2-edge-1} {X} {f} {f'} Pf spine-2-edge-1-end) q'
   → (f , g , q) ≡{spine-2-coconeᵣ X} (f' , g' , q')
 spine-2-cocone-path = wedge-coconeᵣ-path spine-2-edge-1-end spine-2-edge-2-start
 
@@ -203,8 +203,8 @@ spine-2-cocone-path-maps ∷
   (X ∷ U) (f : spine-2-edge-1 →ᵣ X) (g : spine-2-edge-2 →ᵣ X) (q : f spine-2-edge-1-end ≡ g spine-2-edge-2-start)
   (f' : spine-2-edge-1 →ᵣ X) (Pf : f ≡ f') (g' : spine-2-edge-2 →ᵣ X) (Pg : g ≡ g')
     (q' : f' spine-2-edge-1-end ≡ g' spine-2-edge-2-start)
-  (θ : trans q (happlyᵣ {spine-2-edge-2} {X} spine-2-edge-2-start {g} {g'} Pg) ≡ trans
-      (happlyᵣ {spine-2-edge-1} {X} spine-2-edge-1-end {f} {f'} Pf) q')
+  (θ : trans q (happlyᵣ {spine-2-edge-2} {X} {g} {g'} Pg spine-2-edge-2-start) ≡ trans
+      (happlyᵣ {spine-2-edge-1} {X} {f} {f'} Pf spine-2-edge-1-end) q')
   → (cong (spine-2-cocone-edge-1 {X}) (spine-2-cocone-path X f g q f' Pf g' Pg q' θ) ≡ Pf)
     × (cong (spine-2-cocone-edge-2 {X}) (spine-2-cocone-path X f g q f' Pf g' Pg q' θ) ≡ Pg)
 spine-2-cocone-path-maps = wedge-coconeᵣ-path-maps spine-2-edge-1-end spine-2-edge-2-start

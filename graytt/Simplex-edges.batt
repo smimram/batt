@@ -377,8 +377,8 @@ pair-shape {X} Ψ path-u path-v α =
 pair-shape-path ∷ {X ∷ U} (Ψ : simplex 2 →ᵣ X) (path-u ∷ 𝕀 → simplex 2) {path-u' ∷ 𝕀 → simplex 2} (htpy-u ∷ path-u ≡ path-u')
   (path-v ∷ 𝕀 → simplex 2) {path-v' ∷ 𝕀 → simplex 2} (htpy-v ∷ path-v ≡ path-v')
     (glue-uv ∷ path-u 𝕀1 ≡ path-v 𝕀0) (glue-uv' ∷ path-u' 𝕀1 ≡ path-v' 𝕀0) →
-  pair-shape {X} Ψ path-u path-v (congᵣ {simplex 2} {X} glue-uv Ψ) ≡ pair-shape {X} Ψ path-u' path-v'
-    (congᵣ {simplex 2} {X} glue-uv' Ψ)
+  pair-shape {X} Ψ path-u path-v (congᵣ {simplex 2} {X} Ψ glue-uv) ≡ pair-shape {X} Ψ path-u' path-v'
+    (congᵣ {simplex 2} {X} Ψ glue-uv')
 pair-shape-path {X} Ψ path-u refl path-v refl glue-uv glue-uv' =
   cong {Ψ (path-u 𝕀1) ≡ Ψ (path-v 𝕀0)} {pairs X} (λ α . pair-shape {X} Ψ path-u path-v α)
     (congᵣ-set (is-set-simplex 1) glue-uv glue-uv' Ψ)
