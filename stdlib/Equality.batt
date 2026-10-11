@@ -148,6 +148,17 @@ evₗ-at {G} {X} {h} refl w = refl
 evᵣ-at ∷ {G X ∷ U} {h h' ∷ G →ᵣ X} (q ∷ h ≡ h') (w : G) → h w ≡ h' w
 evᵣ-at {G} {X} {h} refl w = refl
 
+-- evaluating the image of a cartesian path under arr→arrₗ (resp. arr→arrᵣ) gives back the pointwise path
+evₗ-at-κ ∷ {G X ∷ U} {k k' ∷ G → X} (p ∷ k ≡ k') (w : G) →
+  evₗ-at {G} {X} {arr→arrₗ {G} {X} k} {arr→arrₗ {G} {X} k'} (cong {G → X} {G →ₗ X} (arr→arrₗ {G} {X}) p) w ≡ happly
+    {G} {λ _ . X} {k} {k'} p w
+evₗ-at-κ {G} {X} {k} refl w = refl
+
+evᵣ-at-κ ∷ {G X ∷ U} {k k' ∷ G → X} (p ∷ k ≡ k') (w : G) →
+  evᵣ-at {G} {X} {arr→arrᵣ {G} {X} k} {arr→arrᵣ {G} {X} k'} (cong {G → X} {G →ᵣ X} (arr→arrᵣ {G} {X}) p) w ≡ happly
+    {G} {λ _ . X} {k} {k'} p w
+evᵣ-at-κ {G} {X} {k} refl w = refl
+
 -- the glue of the restriction of λ x . e x w is the evaluation of the glue of the restriction of e
 apᵣ-family ∷ {S G X ∷ U} {y0 y1 ∷ S} (c ∷ y0 ≡ y1) (e ∷ S → (G →ₗ X)) (w : G) →
   apᵣ {S} {X} {y0} {y1} c (λ x . e x w) ≡ evₗ-at {G} {X} {e y0} {e y1} (cong e c) w
@@ -164,6 +175,11 @@ evᵣ-path {S} {X} {y0} refl = refl
 happly-evᵣ-path ∷ {S X ∷ U} {y0 y1 ∷ S} (c ∷ y0 ≡ y1) →
   happly {S →ᵣ X} {λ _ . X} {λ φ . φ y0} {λ φ . φ y1} (evᵣ-path {S} {X} c) ≡ (λ φ . apᵣ {S} {X} {y0} {y1} c φ)
 happly-evᵣ-path {S} {X} {y0} refl = refl
+
+-- the image of a crisp path under the lax evaluation family is that of evᵣ-path
+cong-evᵣ-path ∷ {S X ∷ U} {y0 y1 ∷ S} (c ∷ y0 ≡ y1) →
+  cong {S} {(S →ᵣ X) →ₗ X} (λ x . λ φ . φ x) c ≡ cong {(S →ᵣ X) → X} {(S →ᵣ X) →ₗ X} (arr→arrₗ {S →ᵣ X} {X}) (evᵣ-path {S} {X} c)
+cong-evᵣ-path {S} {X} {y0} refl = refl
 
 -- evaluating the path between two constant oplax maps induced by a path of values
 evᵣ-const ∷ {S X ∷ U} (y ∷ S) {z z' : X} (p : z ≡ z') →
@@ -211,6 +227,11 @@ evₗ-path {S} {X} {y0} refl = refl
 happly-evₗ-path ∷ {S X ∷ U} {y0 y1 ∷ S} (c ∷ y0 ≡ y1) →
   happly {S →ₗ X} {λ _ . X} {λ φ . φ y0} {λ φ . φ y1} (evₗ-path {S} {X} c) ≡ (λ φ . apₗ {S} {X} {y0} {y1} c φ)
 happly-evₗ-path {S} {X} {y0} refl = refl
+
+-- the image of a crisp path under the oplax evaluation family is that of evₗ-path
+cong-evₗ-path ∷ {S X ∷ U} {y0 y1 ∷ S} (c ∷ y0 ≡ y1) →
+  cong {S} {(S →ₗ X) →ᵣ X} (λ x . λ φ . φ x) c ≡ cong {(S →ₗ X) → X} {(S →ₗ X) →ᵣ X} (arr→arrᵣ {S →ₗ X} {X}) (evₗ-path {S} {X} c)
+cong-evₗ-path {S} {X} {y0} refl = refl
 
 happly-cong-pre ∷ {A A' B : U} (h : A' → A) {k k' : A → B} (p : k ≡ k') →
   happly {A'} {λ _ . B} {λ a . k (h a)} {λ a . k' (h a)} (cong {A → B} {A' → B} (λ m . λ a . m (h a)) p)

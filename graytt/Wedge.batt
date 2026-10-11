@@ -13,30 +13,6 @@
 open import Stdlib
 
 --
--- lax evaluation of the images of cartesian paths
---
-
--- evaluating the funext-built glue gives back the pointwise glue
-ev-l-at-κ ∷ {G X ∷ U} {k k' ∷ G → X} (p ∷ k ≡ k') (w : G) →
-  evₗ-at {G} {X} {arr→arrₗ {G} {X} k} {arr→arrₗ {G} {X} k'} (cong {G → X} {G →ₗ X} (arr→arrₗ {G} {X}) p) w ≡ happly
-    {G} {λ _ . X} {k} {k'} p w
-ev-l-at-κ {G} {X} {k} refl w = refl
-
-cong-evᵣ-path ∷ {S X ∷ U} {y0 y1 ∷ S} (c ∷ y0 ≡ y1) →
-  cong {S} {(S →ᵣ X) →ₗ X} (λ x . λ φ . φ x) c ≡ cong {(S →ᵣ X) → X} {(S →ᵣ X) →ₗ X} (arr→arrₗ {S →ᵣ X} {X}) (evᵣ-path {S} {X} c)
-cong-evᵣ-path {S} {X} {y0} refl = refl
-
--- the lax mirrors
-ev-r-at-κ ∷ {G X ∷ U} {k k' ∷ G → X} (p ∷ k ≡ k') (w : G) →
-  evᵣ-at {G} {X} {arr→arrᵣ {G} {X} k} {arr→arrᵣ {G} {X} k'} (cong {G → X} {G →ᵣ X} (arr→arrᵣ {G} {X}) p) w ≡ happly
-    {G} {λ _ . X} {k} {k'} p w
-ev-r-at-κ {G} {X} {k} refl w = refl
-
-cong-evₗ-path ∷ {S X ∷ U} {y0 y1 ∷ S} (c ∷ y0 ≡ y1) →
-  cong {S} {(S →ₗ X) →ᵣ X} (λ x . λ φ . φ x) c ≡ cong {(S →ₗ X) → X} {(S →ₗ X) →ᵣ X} (arr→arrᵣ {S →ₗ X} {X}) (evₗ-path {S} {X} c)
-cong-evₗ-path {S} {X} {y0} refl = refl
-
---
 -- wedges and their cocones
 --
 
