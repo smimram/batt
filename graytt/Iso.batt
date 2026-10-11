@@ -25,6 +25,10 @@ is-iso-hom ∷ {X ∷ U} (s : is-segal-r X) {x y : X} (f : hom X x y) → U
 is-iso-hom {X} s {x} {y} f =
   Σ (g : hom X y x) . (comp-hom-r X s {x} {y} {x} f g ≡ id-hom {X} x) × (comp-hom-r X s {y} {x} {y} g f ≡ id-hom {X} y)
 
+-- identities are isomorphisms
+is-iso-hom-id ∷ {X ∷ U} (s : is-segal-r X) (x : X) → is-iso-hom {X} s {x} {x} (id-hom {X} x)
+is-iso-hom-id {X} s x = (id-hom {X} x , comp-hom-r-lunit X s {x} {x} (id-hom {X} x) , comp-hom-r-lunit X s {x} {x} (id-hom {X} x))
+
 --
 -- Composition with an isomorphism is an equivalence
 --

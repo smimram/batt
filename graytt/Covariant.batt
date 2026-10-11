@@ -39,18 +39,49 @@ cocart-cell-lift-tgt ∷ {A ∷ U} (F ∷ A → U) (sA : is-segal-r A) (sF : is-
   fst F (tgtᵣ (fst _ w)) ≡ tgtᵣ (fst _ (snd _ (cocart-cell-lift {Σ (x : A) . F x} {A} sF sA (fst F) w)))
 cocart-cell-lift-tgt {A} F sA sF (g , e) = refl
 
--- the target of the cocartesian lift lies over x
-cocart-lift-tgt ∷ {A ∷ U} (F ∷ A → U) (sA : is-segal-r A) (sF : is-segal-r (Σ (x : A) . F x)) (c : is-covariant {A} F sA sF)
-  {a x : A} (f : hom A a x) (u : F a) →
-  fst F (tgtᵣ (fst _ (cocart-lift {A} F sA sF c {a} {x} f u))) ≡ x
-cocart-lift-tgt {A} F sA sF c {a} {x} f u =
+-- the target of a lift of f lies over x
+lift-tgt ∷ {A ∷ U} (F ∷ A → U) (sA : is-segal-r A) (sF : is-segal-r (Σ (x : A) . F x))
+  {a x : A} (f : hom A a x) (u : F a)
+  (w : cocart-cell {Σ (x : A) . F x} {A} sF sA (fst F))
+  (e : cocart-cell-lift {Σ (x : A) . F x} {A} sF sA (fst F) w ≡ cocart-lift-data {A} F {a} {x} f u) →
+  fst F (tgtᵣ (fst _ w)) ≡ x
+lift-tgt {A} F sA sF {a} {x} f u w e =
   let P ∷ U = pullback {Σ (x : A) . F x} {arrᵣ A} {A} (fst F) (λ g . srcᵣ g) in
   let t : P → A = λ w . tgtᵣ (fst _ (snd _ w)) in
-  trans (cocart-cell-lift-tgt {A} F sA sF (cocart-lift {A} F sA sF c {a} {x} f u))
-    (trans (cong {P} {A} t (cocart-lift-over {A} F sA sF c {a} {x} f u)) (hom-tgt {A} {a} {x} f))
+  trans (cocart-cell-lift-tgt {A} F sA sF w) (trans (cong {P} {A} t e) (hom-tgt {A} {a} {x} f))
+
+-- the pushforward of u along f, computed from any lift of f at u
+push-fib ∷ {A ∷ U} (F ∷ A → U) (sA : is-segal-r A) (sF : is-segal-r (Σ (x : A) . F x))
+  {a x : A} (f : hom A a x) (u : F a) →
+  fib (cocart-cell-lift {Σ (x : A) . F x} {A} sF sA (fst F)) (cocart-lift-data {A} F {a} {x} f u) → F x
+push-fib {A} F sA sF {a} {x} f u (w , e) =
+  subst F (lift-tgt {A} F sA sF {a} {x} f u w e) (snd F (tgtᵣ (fst _ w)))
 
 -- pushforward of u along f
 push ∷ {A ∷ U} (F ∷ A → U) (sA : is-segal-r A) (sF : is-segal-r (Σ (x : A) . F x)) (c : is-covariant {A} F sA sF)
   {a x : A} (f : hom A a x) (u : F a) → F x
 push {A} F sA sF c {a} {x} f u =
-  subst F (cocart-lift-tgt {A} F sA sF c {a} {x} f u) (snd F (tgtᵣ (fst _ (cocart-lift {A} F sA sF c {a} {x} f u))))
+  push-fib {A} F sA sF {a} {x} f u (cocart-lift {A} F sA sF c {a} {x} f u , cocart-lift-over {A} F sA sF c {a} {x} f u)
+
+--
+-- Functoriality of the pushforward
+--
+-- The identity at (a , u) is cocartesian, being an isomorphism, and lies over the identity at a:
+-- by uniqueness of lifts, it is the cocartesian lift, so that pushing forward along the identity
+-- is the identity.
+--
+
+push-id ∷ {A ∷ U} (F ∷ A → U) (sA : is-segal-r A) (sF : is-segal-r (Σ (x : A) . F x)) (c : is-covariant {A} F sA sF)
+  {a : A} (u : F a) → push {A} F sA sF c {a} {a} (id-hom {A} a) u ≡ u
+push-id {A} F sA sF c {a} u =
+  let L : (cocart-cell {Σ (x : A) . F x} {A} sF sA (fst F) → pullback {Σ (x : A) . F x} {arrᵣ A} {A} (fst F) (λ g . srcᵣ g)) =
+    cocart-cell-lift {Σ (x : A) . F x} {A} sF sA (fst F) in
+  let d : pullback {Σ (x : A) . F x} {arrᵣ A} {A} (fst F) (λ g . srcᵣ g) = cocart-lift-data {A} F {a} {a} (id-hom {A} a) u in
+  let w : cocart-cell {Σ (x : A) . F x} {A} sF sA (fst F) =
+    ((λ t . (a , u)) ,
+     is-cocartesian-iso {Σ (x : A) . F x} {A} sF sA (fst F) {(a , u)} {(a , u)} (id-hom {Σ (x : A) . F x} (a , u))
+       (is-iso-hom-id {Σ (x : A) . F x} sF (a , u))) in
+  cong {fib L d} {F a} (push-fib {A} F sA sF {a} {a} (id-hom {A} a) u)
+    (is-contr-eq (is-contr-fib L c d)
+      (cocart-lift {A} F sA sF c {a} {a} (id-hom {A} a) u , cocart-lift-over {A} F sA sF c {a} {a} (id-hom {A} a) u)
+      (w , refl))
