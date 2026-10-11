@@ -9,12 +9,14 @@
 open import Interval
 open import Unit
 
+-- The 2-simplex (a filled triangle)
 simplex2 ∷ Type
 simplex2 = Σ (i : 𝕀) . Σ (j : 𝕀) . i ≥ j
 
+-- The 2-spine (two consecutive edges)
 spine2 ∷ Type
 spine2 = Σ (i : 𝕀) . Σ (j : 𝕀) . (j ≡ 𝕀0) ∨ (i ≡ 𝕀1)
-
+-- Canonical inclusion from the 2-spine to the 2-simplex
 spine2→simplex2 ∷ spine2 → simplex2
 spine2→simplex2 (i , y) =
   let j : 𝕀 = fst _ y in
@@ -26,16 +28,24 @@ spine2→simplex2 (i , y) =
       (λ q . trans (cong (λ k . k 𝕀∨ j) q) (sym q)))     -- i ≡ 𝕀1 : i 𝕀∨ j ≡ 𝕀1 𝕀∨ j = 𝕀1 ≡ i
     p)
 
+-- The directed square
 gray-square ∷ Type
 gray-square = 𝕀 ⨂ 𝕀
 
+-- The non-directed square
 cart-square ∷ Type
 cart-square = 𝕀 × 𝕀
 
+-- Canonical inclusion
+gray-square→cart-square ∷ gray-square → cart-square
+gray-square→cart-square (x ⊗ y) = (x , y)
+
+-- Directed cubes
 gray-cube ∷ (n ∷ ℕ) → Type
 gray-cube zero = unit
 gray-cube (succ n) = 𝕀 ⨂ rec
 
+-- Non-directed cubes
 cart-cube ∷ (n ∷ ℕ) → Type
 cart-cube zero = unit
 cart-cube (succ n) = 𝕀 × rec
