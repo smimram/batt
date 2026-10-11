@@ -166,7 +166,7 @@ wedge-univ-ext-r ∷ (S A B ∷ U) (i ∷ A → S) (j ∷ B → S) (a1 ∷ A) (b
   (up ∷ wedge-cart-up S A B i j a1 b0 γ) (X ∷ U) →
   S → (wedge-cocone-r A B a1 b0 X →ₗ X)
 wedge-univ-ext-r S A B i j a1 b0 γ up X =
-  map-section (wedge→cocone S A B i j a1 b0 γ (wedge-cocone-r A B a1 b0 X →ₗ X))
+  section-map (wedge→cocone S A B i j a1 b0 γ (wedge-cocone-r A B a1 b0 X →ₗ X))
     (is-equiv-sec (wedge→cocone S A B i j a1 b0 γ (wedge-cocone-r A B a1 b0 X →ₗ X)) (up (wedge-cocone-r A B a1 b0 X →ₗ X)))
     (wedge-univ-cocone-r A B a1 b0 X)
 
@@ -396,7 +396,7 @@ wedge-univ-ext-l ∷ (S A B ∷ U) (i ∷ A → S) (j ∷ B → S) (a1 ∷ A) (b
   (up ∷ wedge-cart-up S A B i j a1 b0 γ) (X ∷ U) →
   S → (wedge-cocone-l A B a1 b0 X →ᵣ X)
 wedge-univ-ext-l S A B i j a1 b0 γ up X =
-  map-section (wedge→cocone S A B i j a1 b0 γ (wedge-cocone-l A B a1 b0 X →ᵣ X))
+  section-map (wedge→cocone S A B i j a1 b0 γ (wedge-cocone-l A B a1 b0 X →ᵣ X))
     (is-equiv-sec (wedge→cocone S A B i j a1 b0 γ (wedge-cocone-l A B a1 b0 X →ᵣ X)) (up (wedge-cocone-l A B a1 b0 X →ᵣ X)))
     (wedge-univ-cocone-l A B a1 b0 X)
 

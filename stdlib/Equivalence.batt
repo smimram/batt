@@ -12,8 +12,8 @@ is-section {A} {B} f s = (y : B) → f (s y) ≡ y
 section ∷ {A B : U} → (A → B) → U
 section {A} {B} f = Σ (s : B → A) . is-section f s
 
-map-section ∷ {A B : U} (f : A → B) → section f → B → A
-map-section f s' = fst _ s'
+section-map ∷ {A B : U} (f : A → B) → section f → B → A
+section-map f s' = fst _ s'
 
 is-retraction ∷ {A B : U} → (A → B) → (B → A) → U
 is-retraction {A} {B} f r = (x : A) → r (f x) ≡ x
@@ -21,8 +21,8 @@ is-retraction {A} {B} f r = (x : A) → r (f x) ≡ x
 retraction ∷ {A B : U} → (A → B) → U
 retraction {A} {B} f = Σ (r : B → A) . is-retraction f r
 
-map-retraction ∷ {A B : U} (f : A → B) → retraction f → B → A
-map-retraction f r' = fst _ r'
+retraction-map ∷ {A B : U} (f : A → B) → retraction f → B → A
+retraction-map f r' = fst _ r'
 
 -- maps with a retraction are injective
 retraction-inj ∷ {A B : U} (f : A → B) → retraction f → {x y : A} → f x ≡ f y → x ≡ y
@@ -43,13 +43,13 @@ is-equiv-sec ∷ {A B : U} (f : A → B) → is-equiv f → section f
 is-equiv-sec f (s, _) = s
 
 is-equiv-inv-r ∷ {A B : U} (f : A → B) → is-equiv f → B → A
-is-equiv-inv-r {A} {B} f (s', _) = map-section f s'
+is-equiv-inv-r {A} {B} f (s', _) = section-map f s'
 
 is-equiv-ret ∷ {A B : U} (f : A → B) → is-equiv f → retraction f
 is-equiv-ret f (_, r) = r
 
 is-equiv-inv-l ∷ {A B : U} (f : A → B) → is-equiv f → B → A
-is-equiv-inv-l {A} {B} f (_, r') = map-retraction f r'
+is-equiv-inv-l {A} {B} f (_, r') = retraction-map f r'
 
 -- type of equivalences
 
@@ -67,11 +67,11 @@ equiv-fun (f , _) = f
 
 -- left inverse (retraction)
 equiv-inv-l ∷ {A B : U} → equiv A B → B → A
-equiv-inv-l (f , e) = map-retraction f (is-equiv-ret f e)
+equiv-inv-l (f , e) = retraction-map f (is-equiv-ret f e)
 
 -- right inverse (section)
 equiv-inv-r ∷ {A B : U} → equiv A B → B → A
-equiv-inv-r (f , e) = map-section f (is-equiv-sec f e)
+equiv-inv-r (f , e) = section-map f (is-equiv-sec f e)
 
 -- the left inverse is a retraction
 equiv-ret ∷ {A B : U} (e : equiv A B) (x : A) → equiv-inv-l e (equiv-fun e x) ≡ x
@@ -235,9 +235,9 @@ fund-id {X} P x0 p0 c x =
 -- left and right cancellation (2-out-of-3)
 is-equiv-cancel-l ∷ {A B C : U} (g : B → C) (f : A → B) → is-equiv g → is-equiv (g ∘ f) → is-equiv f
 is-equiv-cancel-l {A} {B} {C} g f eg egf =
-  let r : C → B = map-retraction g (is-equiv-ret g eg) in
+  let r : C → B = retraction-map g (is-equiv-ret g eg) in
   let rr : (b : B) → r (g b) ≡ b = snd _ (is-equiv-ret g eg) in
-  let s : C → B = map-section g (is-equiv-sec g eg) in
+  let s : C → B = section-map g (is-equiv-sec g eg) in
   let ss : (c : C) → g (s c) ≡ c = snd _ (is-equiv-sec g eg) in
   let gr : (c : C) → g (r c) ≡ c = λ c .
     trans (cong (λ c' . g (r c')) (sym (ss c))) (trans (cong g (rr (s c))) (ss c)) in
@@ -246,9 +246,9 @@ is-equiv-cancel-l {A} {B} {C} g f eg egf =
 
 is-equiv-cancel-r ∷ {A B C : U} (g : B → C) (f : A → B) → is-equiv f → is-equiv (g ∘ f) → is-equiv g
 is-equiv-cancel-r {A} {B} {C} g f ef egf =
-  let r : B → A = map-retraction f (is-equiv-ret f ef) in
+  let r : B → A = retraction-map f (is-equiv-ret f ef) in
   let rr : (a : A) → r (f a) ≡ a = snd _ (is-equiv-ret f ef) in
-  let s : B → A = map-section f (is-equiv-sec f ef) in
+  let s : B → A = section-map f (is-equiv-sec f ef) in
   let ss : (b : B) → f (s b) ≡ b = snd _ (is-equiv-sec f ef) in
   let sf : (a : A) → s (f a) ≡ a = λ a .
     trans (sym (rr (s (f a)))) (trans (cong r (ss (f a))) (rr a)) in
@@ -319,10 +319,10 @@ tot {A} {P} {Q} f (a , x) = (a , f a x)
 -- a fiberwise equivalence induces an equivalence of total spaces
 abstract is-equiv-tot ∷ {A : U} {P Q : A → U} (f : (a : A) → P a → Q a) → ((a : A) → is-equiv (f a)) → is-equiv (tot {A} {P} {Q} f)
 is-equiv-tot {A} {P} {Q} f e =
-  let s : (Σ (a : A) . Q a) → Σ (a : A) . P a = fun (a , y) → (a , map-section (f a) (is-equiv-sec (f a) (e a)) y) in
+  let s : (Σ (a : A) . Q a) → Σ (a : A) . P a = fun (a , y) → (a , section-map (f a) (is-equiv-sec (f a) (e a)) y) in
   let ss : (w : Σ (a : A) . Q a) → tot {A} {P} {Q} f (s w) ≡ w = fun (a , y) →
     cong {Q a} {Σ (a : A) . Q a} (λ z . (a , z)) (snd _ (is-equiv-sec (f a) (e a)) y) in
-  let r : (Σ (a : A) . Q a) → Σ (a : A) . P a = fun (a , y) → (a , map-retraction (f a) (is-equiv-ret (f a) (e a)) y) in
+  let r : (Σ (a : A) . Q a) → Σ (a : A) . P a = fun (a , y) → (a , retraction-map (f a) (is-equiv-ret (f a) (e a)) y) in
   let rr : (w : Σ (a : A) . P a) → r (tot {A} {P} {Q} f w) ≡ w = fun (a , x) →
     cong {P a} {Σ (a : A) . P a} (λ z . (a , z)) (snd _ (is-equiv-ret (f a) (e a)) x) in
   ((s , ss) , (r , rr))

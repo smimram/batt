@@ -184,7 +184,7 @@ tri-assoc X s = tri-family X (λ x y z t u v w . assoc-stmt X s {x} {y} {z} {t} 
 -- the 3-simplex filling a composable triple
 assoc-filler ∷ (X ∷ U) (s : is-segal-r X) {x y z t : X} (u : hom X x y) (v : hom X y z) (w : hom X z t) → (simplex 3 →ᵣ X)
 assoc-filler X s {x} {y} {z} {t} u v w =
-  map-section (spine-restr-r 3 X) (is-equiv-sec (spine-restr-r 3 X) (is-segal-r-unthick X s 3))
+  section-map (spine-restr-r 3 X) (is-equiv-sec (spine-restr-r 3 X) (is-segal-r-unthick X s 3))
     (cocone→spine-3-r X (tri-section X {x} {y} {z} {t} u v w))
 
 -- its triple of edges is the given triple

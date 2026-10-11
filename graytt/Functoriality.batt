@@ -71,7 +71,7 @@ hom-map-comp-def X A p sX sA {x} {y} {z} u v =
   let s : section (edges-2 {X}) = is-equiv-sec (edges-2 {X}) (is-equiv-edges-2 X sX) in
   let r : pairs X = (x , y , z , u , v) in
   subst (pair-stmt X A p sX sA) (snd (is-section (edges-2 {X})) s r)
-    (hom-map-comp-simplex X A p sX sA (map-section (edges-2 {X}) s r))
+    (hom-map-comp-simplex X A p sX sA (section-map (edges-2 {X}) s r))
 
 -- frozen (as assoc-simplex-3): it does not unfold, but it is equal to its definition
 hom-map-comp-freeze ∷
@@ -97,7 +97,7 @@ hom-map-comp-edges X A p sX sA Ψ =
   let s : section (edges-2 {X}) = is-equiv-sec (edges-2 {X}) (is-equiv-edges-2 X sX) in
   trans (snd _ (hom-map-comp-freeze X A p sX sA (simplex-2-hom01 {X} Ψ) (simplex-2-hom12 {X} Ψ)))
     (transfer-equiv (edges-2 {X}) (is-equiv-edges-2 X sX) (pair-stmt X A p sX sA) (hom-map-comp-simplex X A p sX sA) Ψ
-      (map-section (edges-2 {X}) s (edges-2 {X} Ψ)) (snd (is-section (edges-2 {X})) s (edges-2 {X} Ψ)))
+      (section-map (edges-2 {X}) s (edges-2 {X} Ψ)) (snd (is-section (edges-2 {X})) s (edges-2 {X} Ψ)))
 
 --
 -- Faces of 2-simplices

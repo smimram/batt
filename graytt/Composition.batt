@@ -45,7 +45,7 @@ segal-section-r X s = is-equiv-sec (segal-restr-r nil 2 nil X) (is-segal-r-2 X s
 
 -- the extension of a (trivially thickened) composable pair to a (trivially thickened) 2-simplex
 thick-filler-r ∷ (X ∷ U) → is-segal-r X → (thick-spine nil 2 nil →ᵣ X) → (thick-simplex nil 2 nil →ᵣ X)
-thick-filler-r X s = map-section (segal-restr-r nil 2 nil X) (segal-section-r X s)
+thick-filler-r X s = section-map (segal-restr-r nil 2 nil X) (segal-section-r X s)
 
 -- it restricts back to the given pair
 thick-filler-r-restr ∷ (X ∷ U) (s : is-segal-r X) (ψ : thick-spine nil 2 nil →ᵣ X) →

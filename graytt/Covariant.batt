@@ -23,7 +23,7 @@ cocart-lift-data {A} F {a} {x} f u = ((a , u) , hom-cell {A} {a} {x} f , sym (ho
 cocart-lift ∷ {A ∷ U} (F ∷ A → U) (sA : is-segal-r A) (sF : is-segal-r (Σ (x : A) . F x)) (c : is-covariant {A} F sA sF)
   {a x : A} (f : hom A a x) (u : F a) → cocart-cell {Σ (x : A) . F x} {A} sF sA (fst F)
 cocart-lift {A} F sA sF c {a} {x} f u =
-  map-section (cocart-cell-lift {Σ (x : A) . F x} {A} sF sA (fst F))
+  section-map (cocart-cell-lift {Σ (x : A) . F x} {A} sF sA (fst F))
     (is-equiv-sec (cocart-cell-lift {Σ (x : A) . F x} {A} sF sA (fst F)) c) (cocart-lift-data {A} F {a} {x} f u)
 
 -- the image of the cocartesian lift of f at u lies over f
