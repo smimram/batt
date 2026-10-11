@@ -359,38 +359,38 @@ flat-tens-prod-r {A} {B} =
 --- Global points of cartesian, oplax and lax function types
 ---
 
-flat-pi-to-arr-r ∷ {A B ∷ U} → ♭(A → B) → ♭(A →ᵣ B)
-flat-pi-to-arr-r {A} {B} 𝄫f = 𝄫(λ a . f a)
+flat-pi-to-arrᵣ ∷ {A B ∷ U} → ♭(A → B) → ♭(A →ᵣ B)
+flat-pi-to-arrᵣ {A} {B} 𝄫f = 𝄫(λ a . f a)
 
-flat-arr-r-to-pi ∷ {A B ∷ U} → ♭(A →ᵣ B) → ♭(A → B)
-flat-arr-r-to-pi {A} {B} 𝄫f = 𝄫(λ a . f a)
+flat-arrᵣ-to-pi ∷ {A B ∷ U} → ♭(A →ᵣ B) → ♭(A → B)
+flat-arrᵣ-to-pi {A} {B} 𝄫f = 𝄫(λ a . f a)
 
-flat-pi-arr-r-pi ∷ {A B ∷ U} (x : ♭(A → B)) → flat-arr-r-to-pi {A} {B} (flat-pi-to-arr-r {A} {B} x) ≡ x
-flat-pi-arr-r-pi {A} {B} 𝄫f = refl
+flat-pi-arrᵣ-pi ∷ {A B ∷ U} (x : ♭(A → B)) → flat-arrᵣ-to-pi {A} {B} (flat-pi-to-arrᵣ {A} {B} x) ≡ x
+flat-pi-arrᵣ-pi {A} {B} 𝄫f = refl
 
-flat-arr-r-pi-arr-r ∷ {A B ∷ U} (x : ♭(A →ᵣ B)) → flat-pi-to-arr-r {A} {B} (flat-arr-r-to-pi {A} {B} x) ≡ x
-flat-arr-r-pi-arr-r {A} {B} 𝄫f = refl
+flat-arrᵣ-pi-arrᵣ ∷ {A B ∷ U} (x : ♭(A →ᵣ B)) → flat-pi-to-arrᵣ {A} {B} (flat-arrᵣ-to-pi {A} {B} x) ≡ x
+flat-arrᵣ-pi-arrᵣ {A} {B} 𝄫f = refl
 
-flat-pi≃arr-r ∷ {A B ∷ U} → ♭(A → B) ≃ ♭(A →ᵣ B)
-flat-pi≃arr-r {A} {B} =
-  ( flat-pi-to-arr-r {A} {B}
-  , ( (flat-arr-r-to-pi {A} {B} , flat-arr-r-pi-arr-r {A} {B})
-    , (flat-arr-r-to-pi {A} {B} , flat-pi-arr-r-pi {A} {B}) ) )
+flat-pi≃arrᵣ ∷ {A B ∷ U} → ♭(A → B) ≃ ♭(A →ᵣ B)
+flat-pi≃arrᵣ {A} {B} =
+  ( flat-pi-to-arrᵣ {A} {B}
+  , ( (flat-arrᵣ-to-pi {A} {B} , flat-arrᵣ-pi-arrᵣ {A} {B})
+    , (flat-arrᵣ-to-pi {A} {B} , flat-pi-arrᵣ-pi {A} {B}) ) )
 
-flat-pi-to-arr-l ∷ {A B ∷ U} → ♭(A → B) → ♭(A →ₗ B)
-flat-pi-to-arr-l {A} {B} 𝄫f = 𝄫(λ a . f a)
+flat-pi-to-arrₗ ∷ {A B ∷ U} → ♭(A → B) → ♭(A →ₗ B)
+flat-pi-to-arrₗ {A} {B} 𝄫f = 𝄫(λ a . f a)
 
-flat-arr-l-to-pi ∷ {A B ∷ U} → ♭(A →ₗ B) → ♭(A → B)
-flat-arr-l-to-pi {A} {B} 𝄫f = 𝄫(λ a . f a)
+flat-arrₗ-to-pi ∷ {A B ∷ U} → ♭(A →ₗ B) → ♭(A → B)
+flat-arrₗ-to-pi {A} {B} 𝄫f = 𝄫(λ a . f a)
 
-flat-pi-arr-l-pi ∷ {A B ∷ U} (x : ♭(A → B)) → flat-arr-l-to-pi {A} {B} (flat-pi-to-arr-l {A} {B} x) ≡ x
-flat-pi-arr-l-pi {A} {B} 𝄫f = refl
+flat-pi-arrₗ-pi ∷ {A B ∷ U} (x : ♭(A → B)) → flat-arrₗ-to-pi {A} {B} (flat-pi-to-arrₗ {A} {B} x) ≡ x
+flat-pi-arrₗ-pi {A} {B} 𝄫f = refl
 
-flat-arr-l-pi-arr-l ∷ {A B ∷ U} (x : ♭(A →ₗ B)) → flat-pi-to-arr-l {A} {B} (flat-arr-l-to-pi {A} {B} x) ≡ x
-flat-arr-l-pi-arr-l {A} {B} 𝄫f = refl
+flat-arrₗ-pi-arrₗ ∷ {A B ∷ U} (x : ♭(A →ₗ B)) → flat-pi-to-arrₗ {A} {B} (flat-arrₗ-to-pi {A} {B} x) ≡ x
+flat-arrₗ-pi-arrₗ {A} {B} 𝄫f = refl
 
-flat-pi≃arr-l ∷ {A B ∷ U} → ♭(A → B) ≃ ♭(A →ₗ B)
-flat-pi≃arr-l {A} {B} =
-  ( flat-pi-to-arr-l {A} {B}
-  , ( (flat-arr-l-to-pi {A} {B} , flat-arr-l-pi-arr-l {A} {B})
-    , (flat-arr-l-to-pi {A} {B} , flat-pi-arr-l-pi {A} {B}) ) )
+flat-pi≃arrₗ ∷ {A B ∷ U} → ♭(A → B) ≃ ♭(A →ₗ B)
+flat-pi≃arrₗ {A} {B} =
+  ( flat-pi-to-arrₗ {A} {B}
+  , ( (flat-arrₗ-to-pi {A} {B} , flat-arrₗ-pi-arrₗ {A} {B})
+    , (flat-arrₗ-to-pi {A} {B} , flat-pi-arrₗ-pi {A} {B}) ) )
