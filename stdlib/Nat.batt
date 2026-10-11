@@ -2,13 +2,13 @@ open import Equality
 open import Product
 
 -- Dependent eliminator
-ind ∷ (C : ℕ → U) → C zero → ((n : ℕ) → C n → C (succ n)) → (n : ℕ) → C n
-ind C z s zero = z
-ind C z s (succ n) = s n rec
+ind ∷ (A : ℕ → U) → A zero → ((n : ℕ) → A n → A (succ n)) → (n : ℕ) → A n
+ind A z s zero = z
+ind A z s (succ n) = s n rec
 
 -- Recursor
-rec ∷ {C : U} → C → (ℕ → C → C) → ℕ → C
-rec {C} z s = ind (λ _ . C) z s
+rec ∷ {A : U} → A → (ℕ → A → A) → ℕ → A
+rec {A} z s = ind (λ _ . A) z s
 
 -- Predecessor
 pred ∷ ℕ → ℕ
@@ -62,42 +62,42 @@ lt m n = le (succ m) n
 --- r/l nat recursion, derived from ordinary recursion
 ---
 
-recᵣ-family ∷ (C ∷ U) → ℕ → (C × (ℕ → C → C)) →ₗ C
-recᵣ-family C zero = λ w . prod-fst {C} {ℕ → C → C} w
-recᵣ-family C (succ n) = λ w . prod-snd {C} {ℕ → C → C} w n (rec w)
+recᵣ-family ∷ (A ∷ U) → ℕ → (A × (ℕ → A → A)) →ₗ A
+recᵣ-family A zero = λ w . prod-fst {A} {ℕ → A → A} w
+recᵣ-family A (succ n) = λ w . prod-snd {A} {ℕ → A → A} w n (rec w)
 
 -- oplax recursion
-recᵣ ∷ (C ∷ U) → C → (ℕ → C → C) → (ℕ →ᵣ C)
-recᵣ C z s =
-  let E ∷ ℕ → (C × (ℕ → C → C)) →ₗ C = recᵣ-family C in
+recᵣ ∷ (A ∷ U) → A → (ℕ → A → A) → (ℕ →ᵣ A)
+recᵣ A z s =
+  let E ∷ ℕ → (A × (ℕ → A → A)) →ₗ A = recᵣ-family A in
   λ n . E n (z , s)
 
-recᵣ-zero ∷ (C ∷ U) (z : C) (s : ℕ → C → C) → recᵣ C z s 0 ≡ z
-recᵣ-zero C z s = refl
+recᵣ-zero ∷ (A ∷ U) (z : A) (s : ℕ → A → A) → recᵣ A z s 0 ≡ z
+recᵣ-zero A z s = refl
 
-recᵣ-succ ∷ (C ∷ U) (z : C) (s : ℕ → C → C) (n ∷ ℕ) → recᵣ C z s (succ n) ≡ s n (recᵣ C z s n)
-recᵣ-succ C z s n = refl
+recᵣ-succ ∷ (A ∷ U) (z : A) (s : ℕ → A → A) (n ∷ ℕ) → recᵣ A z s (succ n) ≡ s n (recᵣ A z s n)
+recᵣ-succ A z s n = refl
 
-recᵣ-succ' ∷ (C ∷ U) (z : C) (s : ℕ → C → C) →
-  (λ n . recᵣ C z s (succ n)) ≡{ℕ →ᵣ C} (λ n . s n (recᵣ C z s n))
-recᵣ-succ' C z s = refl
+recᵣ-succ' ∷ (A ∷ U) (z : A) (s : ℕ → A → A) →
+  (λ n . recᵣ A z s (succ n)) ≡{ℕ →ᵣ A} (λ n . s n (recᵣ A z s n))
+recᵣ-succ' A z s = refl
 
-recₗ-family ∷ (C ∷ U) → ℕ → (C × (ℕ → C → C)) →ᵣ C
-recₗ-family C zero = λ w . prod-fst {C} {ℕ → C → C} w
-recₗ-family C (succ n) = λ w . prod-snd {C} {ℕ → C → C} w n (rec w)
+recₗ-family ∷ (A ∷ U) → ℕ → (A × (ℕ → A → A)) →ᵣ A
+recₗ-family A zero = λ w . prod-fst {A} {ℕ → A → A} w
+recₗ-family A (succ n) = λ w . prod-snd {A} {ℕ → A → A} w n (rec w)
 
 -- lax recursion
-recₗ ∷ (C ∷ U) → C → (ℕ → C → C) → (ℕ →ₗ C)
-recₗ C z s =
-  let E ∷ ℕ → (C × (ℕ → C → C)) →ᵣ C = recₗ-family C in
+recₗ ∷ (A ∷ U) → A → (ℕ → A → A) → (ℕ →ₗ A)
+recₗ A z s =
+  let E ∷ ℕ → (A × (ℕ → A → A)) →ᵣ A = recₗ-family A in
   λ n . E n (z , s)
 
-recₗ-zero ∷ (C ∷ U) (z : C) (s : ℕ → C → C) → recₗ C z s 0 ≡ z
-recₗ-zero C z s = refl
+recₗ-zero ∷ (A ∷ U) (z : A) (s : ℕ → A → A) → recₗ A z s 0 ≡ z
+recₗ-zero A z s = refl
 
-recₗ-succ ∷ (C ∷ U) (z : C) (s : ℕ → C → C) (n ∷ ℕ) → recₗ C z s (succ n) ≡ s n (recₗ C z s n)
-recₗ-succ C z s n = refl
+recₗ-succ ∷ (A ∷ U) (z : A) (s : ℕ → A → A) (n ∷ ℕ) → recₗ A z s (succ n) ≡ s n (recₗ A z s n)
+recₗ-succ A z s n = refl
 
-recₗ-succ' ∷ (C ∷ U) (z : C) (s : ℕ → C → C) →
-  (λ n . recₗ C z s (succ n)) ≡{ℕ →ₗ C} (λ n . s n (recₗ C z s n))
-recₗ-succ' C z s = refl
+recₗ-succ' ∷ (A ∷ U) (z : A) (s : ℕ → A → A) →
+  (λ n . recₗ A z s (succ n)) ≡{ℕ →ₗ A} (λ n . s n (recₗ A z s n))
+recₗ-succ' A z s = refl
