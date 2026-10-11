@@ -109,12 +109,11 @@ spine-2-meet-contr ∷ (t : union-I spine-2-on-edge-1 spine-2-on-edge-2) →
 spine-2-meet-contr (c , w) = spine-2-meet-contr-aux1 c w
 
 --
--- the universal properties of the spine
+-- The universal properties of the spine
 --
 
 spine-cart-up ∷
-  wedge-cart-up (spine 2)
-    spine-2-edge-1 spine-2-edge-2
+  wedge-cart-up
     spine-2-edge-1-incl spine-2-edge-2-incl
     spine-2-edge-1-end spine-2-edge-2-start
     spine-2-glue
@@ -123,30 +122,26 @@ spine-cart-up Y =
     (𝕀1 , 𝕀0 , tt) refl (refl , spine-1-pt 𝕀0) spine-2-meet-contr
 
 spine-oplax-up ∷ (X ∷ U) →
-  is-equiv (wedge→coconeᵣ (spine 2)
-    spine-2-edge-1 spine-2-edge-2
+  is-equiv (wedge→coconeᵣ
     spine-2-edge-1-incl spine-2-edge-2-incl
     spine-2-edge-1-end spine-2-edge-2-start
     spine-2-glue
     X)
 spine-oplax-up X =
-  wedge-oplax-up (spine 2)
-    spine-2-edge-1 spine-2-edge-2
+  wedge-oplax-up
     spine-2-edge-1-incl spine-2-edge-2-incl
     spine-2-edge-1-end spine-2-edge-2-start
     spine-2-glue
     spine-cart-up X
 
 spine-lax-up ∷ (X ∷ U) →
-  is-equiv (wedge→coconeₗ (spine 2)
-    spine-2-edge-1 spine-2-edge-2
+  is-equiv (wedge→coconeₗ
     spine-2-edge-1-incl spine-2-edge-2-incl
     spine-2-edge-1-end spine-2-edge-2-start
     spine-2-glue
     X)
 spine-lax-up X =
-  wedge-lax-up (spine 2)
-    spine-2-edge-1 spine-2-edge-2
+  wedge-lax-up
     spine-2-edge-1-incl spine-2-edge-2-incl
     spine-2-edge-1-end spine-2-edge-2-start
     spine-2-glue
@@ -157,7 +152,7 @@ spine-lax-up X =
 --
 
 spine-2-coconeᵣ ∷ (X ∷ U) → U
-spine-2-coconeᵣ X = wedge-coconeᵣ spine-2-edge-1 spine-2-edge-2 spine-2-edge-1-end spine-2-edge-2-start X
+spine-2-coconeᵣ X = wedge-coconeᵣ spine-2-edge-1-end spine-2-edge-2-start X
 
 --
 -- abbreviations of the wedge combinators, for the 2-spine
@@ -165,19 +160,19 @@ spine-2-coconeᵣ X = wedge-coconeᵣ spine-2-edge-1 spine-2-edge-2 spine-2-edge
 
 -- restricting an oplax map out of the spine to a cocone on its edges, and back
 spine-2→coconeᵣ ∷ (X ∷ U) → (spine 2 →ᵣ X) → spine-2-coconeᵣ X
-spine-2→coconeᵣ X = wedge→coconeᵣ (spine 2) spine-2-edge-1 spine-2-edge-2 spine-2-edge-1-incl
+spine-2→coconeᵣ X = wedge→coconeᵣ spine-2-edge-1-incl
   spine-2-edge-2-incl spine-2-edge-1-end spine-2-edge-2-start spine-2-glue X
 
 cocone→spine-2ᵣ ∷ (X ∷ U) → spine-2-coconeᵣ X → (spine 2 →ᵣ X)
-cocone→spine-2ᵣ X = cocone→wedgeᵣ (spine 2) spine-2-edge-1 spine-2-edge-2 spine-2-edge-1-incl
+cocone→spine-2ᵣ X = cocone→wedgeᵣ spine-2-edge-1-incl
   spine-2-edge-2-incl spine-2-edge-1-end spine-2-edge-2-start spine-2-glue spine-cart-up X
 
 spine-2→coconeᵣ-sec ∷ (X ∷ U) (w : spine-2-coconeᵣ X) → spine-2→coconeᵣ X (cocone→spine-2ᵣ X w) ≡ w
-spine-2→coconeᵣ-sec X w = wedge→coconeᵣ-sec (spine 2) spine-2-edge-1 spine-2-edge-2 spine-2-edge-1-incl
+spine-2→coconeᵣ-sec X w = wedge→coconeᵣ-sec spine-2-edge-1-incl
   spine-2-edge-2-incl spine-2-edge-1-end spine-2-edge-2-start spine-2-glue spine-cart-up X w
 
 spine-2→coconeᵣ-retr ∷ (X ∷ U) (φ : spine 2 →ᵣ X) → cocone→spine-2ᵣ X (spine-2→coconeᵣ X φ) ≡ φ
-spine-2→coconeᵣ-retr X φ = wedge→coconeᵣ-retr (spine 2) spine-2-edge-1 spine-2-edge-2 spine-2-edge-1-incl
+spine-2→coconeᵣ-retr X φ = wedge→coconeᵣ-retr spine-2-edge-1-incl
   spine-2-edge-2-incl spine-2-edge-1-end spine-2-edge-2-start spine-2-glue spine-cart-up X φ
 
 -- the components of a cocone: the maps on the two edges, and the glue
@@ -202,7 +197,7 @@ spine-2-cocone-path ∷
   → trans q (evᵣ {spine-2-edge-2} {X} spine-2-edge-2-start {g} {g'} Pg) ≡ trans
     (evᵣ {spine-2-edge-1} {X} spine-2-edge-1-end {f} {f'} Pf) q'
   → (f , g , q) ≡{spine-2-coconeᵣ X} (f' , g' , q')
-spine-2-cocone-path = wedge-coconeᵣ-path spine-2-edge-1 spine-2-edge-2 spine-2-edge-1-end spine-2-edge-2-start
+spine-2-cocone-path = wedge-coconeᵣ-path spine-2-edge-1-end spine-2-edge-2-start
 
 spine-2-cocone-path-maps ∷
   (X ∷ U) (f : spine-2-edge-1 →ᵣ X) (g : spine-2-edge-2 →ᵣ X) (q : f spine-2-edge-1-end ≡ g spine-2-edge-2-start)
@@ -212,7 +207,7 @@ spine-2-cocone-path-maps ∷
       (evᵣ {spine-2-edge-1} {X} spine-2-edge-1-end {f} {f'} Pf) q')
   → (cong (spine-2-cocone-edge-1 {X}) (spine-2-cocone-path X f g q f' Pf g' Pg q' θ) ≡ Pf)
     × (cong (spine-2-cocone-edge-2 {X}) (spine-2-cocone-path X f g q f' Pf g' Pg q' θ) ≡ Pg)
-spine-2-cocone-path-maps = wedge-coconeᵣ-path-maps spine-2-edge-1 spine-2-edge-2 spine-2-edge-1-end spine-2-edge-2-start
+spine-2-cocone-path-maps = wedge-coconeᵣ-path-maps spine-2-edge-1-end spine-2-edge-2-start
 
 --
 -- The 3-spine as a wedge of an edge and a 2-spine
@@ -300,8 +295,7 @@ spine-3-meet-contr (c , w) = spine-3-meet-contr-aux1 c w
 
 -- the universal properties of the 3-spine
 spine-3-cart-up ∷
-  wedge-cart-up (spine 3)
-    spine-3-edge-1 spine-3-tail
+  wedge-cart-up
     spine-3-edge-1-incl spine-3-tail-incl
     spine-3-edge-1-end spine-3-tail-start
     spine-3-glue
@@ -310,37 +304,35 @@ spine-3-cart-up Y =
     (𝕀1 , 𝕀0 , 𝕀0 , tt) refl spine-3-on-tail-vertex spine-3-meet-contr
 
 spine-3-oplax-up ∷ (X ∷ U) →
-  is-equiv (wedge→coconeᵣ (spine 3)
-    spine-3-edge-1 spine-3-tail
+  is-equiv (wedge→coconeᵣ
     spine-3-edge-1-incl spine-3-tail-incl
     spine-3-edge-1-end spine-3-tail-start
     spine-3-glue
     X)
 spine-3-oplax-up X =
-  wedge-oplax-up (spine 3)
-    spine-3-edge-1 spine-3-tail
+  wedge-oplax-up
     spine-3-edge-1-incl spine-3-tail-incl
     spine-3-edge-1-end spine-3-tail-start
     spine-3-glue
     spine-3-cart-up X
 
 spine-3-coconeᵣ ∷ (X ∷ U) → U
-spine-3-coconeᵣ X = wedge-coconeᵣ spine-3-edge-1 spine-3-tail spine-3-edge-1-end spine-3-tail-start X
+spine-3-coconeᵣ X = wedge-coconeᵣ spine-3-edge-1-end spine-3-tail-start X
 
 --
 -- abbreviations of the wedge combinators, for the 3-spine
 --
 
 spine-3→coconeᵣ ∷ (X ∷ U) → (spine 3 →ᵣ X) → spine-3-coconeᵣ X
-spine-3→coconeᵣ X = wedge→coconeᵣ (spine 3) spine-3-edge-1 spine-3-tail spine-3-edge-1-incl
+spine-3→coconeᵣ X = wedge→coconeᵣ spine-3-edge-1-incl
   spine-3-tail-incl spine-3-edge-1-end spine-3-tail-start spine-3-glue X
 
 cocone→spine-3ᵣ ∷ (X ∷ U) → spine-3-coconeᵣ X → (spine 3 →ᵣ X)
-cocone→spine-3ᵣ X = cocone→wedgeᵣ (spine 3) spine-3-edge-1 spine-3-tail spine-3-edge-1-incl spine-3-tail-incl
+cocone→spine-3ᵣ X = cocone→wedgeᵣ spine-3-edge-1-incl spine-3-tail-incl
   spine-3-edge-1-end spine-3-tail-start spine-3-glue spine-3-cart-up X
 
 spine-3→coconeᵣ-sec ∷ (X ∷ U) (w : spine-3-coconeᵣ X) → spine-3→coconeᵣ X (cocone→spine-3ᵣ X w) ≡ w
-spine-3→coconeᵣ-sec X w = wedge→coconeᵣ-sec (spine 3) spine-3-edge-1 spine-3-tail spine-3-edge-1-incl
+spine-3→coconeᵣ-sec X w = wedge→coconeᵣ-sec spine-3-edge-1-incl
   spine-3-tail-incl spine-3-edge-1-end spine-3-tail-start spine-3-glue spine-3-cart-up X w
 
 spine-3-cocone-edge-1 ∷ {X ∷ U} → spine-3-coconeᵣ X → (spine-3-edge-1 →ᵣ X)

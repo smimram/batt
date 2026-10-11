@@ -41,39 +41,39 @@ cong-evₗ-path {S} {X} {y0} refl = refl
 --
 
 -- cartesian cocones
-wedge-cocone ∷ (A B : U) (a1 : A) (b0 : B) (Y : U) → U
-wedge-cocone A B a1 b0 Y = Σ (f : A → Y) . Σ (g : B → Y) . f a1 ≡ g b0
+wedge-cocone ∷ {A B : U} (a1 : A) (b0 : B) (Y : U) → U
+wedge-cocone {A} {B} a1 b0 Y = Σ (f : A → Y) . Σ (g : B → Y) . f a1 ≡ g b0
 
-wedge-cocone-fst ∷ {A B : U} {a1 : A} {b0 : B} {Y : U} → wedge-cocone A B a1 b0 Y → A → Y
+wedge-cocone-fst ∷ {A B : U} {a1 : A} {b0 : B} {Y : U} → wedge-cocone a1 b0 Y → A → Y
 wedge-cocone-fst (f , r) = f
 
-wedge-cocone-snd ∷ {A B : U} {a1 : A} {b0 : B} {Y : U} → wedge-cocone A B a1 b0 Y → B → Y
+wedge-cocone-snd ∷ {A B : U} {a1 : A} {b0 : B} {Y : U} → wedge-cocone a1 b0 Y → B → Y
 wedge-cocone-snd {A} {B} {a1} {b0} {Y} (f , r) = fst {B → Y} (λ g . f a1 ≡ g b0) r
 
-wedge-cocone-glue ∷ {A B : U} {a1 : A} {b0 : B} {Y : U} (d : wedge-cocone A B a1 b0 Y) →
+wedge-cocone-glue ∷ {A B : U} {a1 : A} {b0 : B} {Y : U} (d : wedge-cocone a1 b0 Y) →
   wedge-cocone-fst {A} {B} {a1} {b0} {Y} d a1 ≡ wedge-cocone-snd {A} {B} {a1} {b0} {Y} d b0
 wedge-cocone-glue {A} {B} {a1} {b0} {Y} (f , r) = snd {B → Y} (λ g . f a1 ≡ g b0) r
 
 -- restriction of a map out of the wedge
-wedge→cocone ∷ (S A B ∷ U) (i ∷ A → S) (j ∷ B → S) (a1 ∷ A) (b0 ∷ B) (γ ∷ i a1 ≡ j b0) (Y : U) →
-  (S → Y) → wedge-cocone A B a1 b0 Y
-wedge→cocone S A B i j a1 b0 γ Y k = ((λ a . k (i a)) , (λ b . k (j b)) , cong k γ)
+wedge→cocone ∷ {S A B ∷ U} (i ∷ A → S) (j ∷ B → S) (a1 ∷ A) (b0 ∷ B) (γ ∷ i a1 ≡ j b0) (Y : U) →
+  (S → Y) → wedge-cocone a1 b0 Y
+wedge→cocone {S} {A} {B} i j a1 b0 γ Y k = ((λ a . k (i a)) , (λ b . k (j b)) , cong k γ)
 
 -- the cartesian universal property of a wedge
-wedge-cart-up ∷ (S A B ∷ U) (i ∷ A → S) (j ∷ B → S) (a1 ∷ A) (b0 ∷ B) (γ ∷ i a1 ≡ j b0) → TYPE
-wedge-cart-up S A B i j a1 b0 γ = (Y : U) → is-equiv (wedge→cocone S A B i j a1 b0 γ Y)
+wedge-cart-up ∷ {S A B ∷ U} (i ∷ A → S) (j ∷ B → S) (a1 ∷ A) (b0 ∷ B) (γ ∷ i a1 ≡ j b0) → TYPE
+wedge-cart-up {S} {A} {B} i j a1 b0 γ = (Y : U) → is-equiv (wedge→cocone i j a1 b0 γ Y)
 
 -- naturality of the restriction in the target
-wedge-cocone-post ∷ {A B : U} {a1 : A} {b0 : B} {Y Z : U} (g : Y → Z) → wedge-cocone A B a1 b0 Y → wedge-cocone A B a1 b0 Z
+wedge-cocone-post ∷ {A B : U} {a1 : A} {b0 : B} {Y Z : U} (g : Y → Z) → wedge-cocone a1 b0 Y → wedge-cocone a1 b0 Z
 wedge-cocone-post {A} {B} {a1} {b0} {Y} {Z} g (f , r) =
   ((λ a . g (f a)) , (λ b . g (fst {B → Y} (λ h . f a1 ≡ h b0) r b)) , cong g (snd {B → Y} (λ h . f a1 ≡ h b0) r))
 
-wedge→cocone-post ∷ (S A B ∷ U) (i ∷ A → S) (j ∷ B → S) (a1 ∷ A) (b0 ∷ B) (γ ∷ i a1 ≡ j b0)
+wedge→cocone-post ∷ {S A B ∷ U} (i ∷ A → S) (j ∷ B → S) (a1 ∷ A) (b0 ∷ B) (γ ∷ i a1 ≡ j b0)
   {Y Z : U} (g : Y → Z) (k : S → Y) →
-  wedge→cocone S A B i j a1 b0 γ Z (λ s . g (k s)) ≡ wedge-cocone-post {A} {B} {a1} {b0} {Y} {Z} g
-    (wedge→cocone S A B i j a1 b0 γ Y k)
-wedge→cocone-post S A B i j a1 b0 γ {Y} {Z} g k =
-  cong {g (k (i a1)) ≡ g (k (j b0))} {wedge-cocone A B a1 b0 Z}
+  wedge→cocone i j a1 b0 γ Z (λ s . g (k s)) ≡ wedge-cocone-post {A} {B} {a1} {b0} {Y} {Z} g
+    (wedge→cocone i j a1 b0 γ Y k)
+wedge→cocone-post {S} {A} {B} i j a1 b0 γ {Y} {Z} g k =
+  cong {g (k (i a1)) ≡ g (k (j b0))} {wedge-cocone a1 b0 Z}
     (λ z . ((λ a . g (k (i a))) , (λ b . g (k (j b))) , z))
     (cong-comp {S} {Y} {Z} g k γ)
 
@@ -82,108 +82,108 @@ wedge→cocone-post S A B i j a1 b0 γ {Y} {Z} g k =
 --
 
 -- oplax cocones
-wedge-coconeᵣ ∷ (A B ∷ U) (a1 ∷ A) (b0 ∷ B) (X ∷ U) → U
-wedge-coconeᵣ A B a1 b0 X = Σ (f : A →ᵣ X) . Σ (g : B →ᵣ X) . f a1 ≡ g b0
+wedge-coconeᵣ ∷ {A B ∷ U} (a1 ∷ A) (b0 ∷ B) (X ∷ U) → U
+wedge-coconeᵣ {A} {B} a1 b0 X = Σ (f : A →ᵣ X) . Σ (g : B →ᵣ X) . f a1 ≡ g b0
 
-wedge-coconeᵣ-fst ∷ {A B ∷ U} {a1 ∷ A} {b0 ∷ B} {X ∷ U} → wedge-coconeᵣ A B a1 b0 X → (A →ᵣ X)
+wedge-coconeᵣ-fst ∷ {A B ∷ U} {a1 ∷ A} {b0 ∷ B} {X ∷ U} → wedge-coconeᵣ a1 b0 X → (A →ᵣ X)
 wedge-coconeᵣ-fst (f , r) = f
 
-wedge-coconeᵣ-snd ∷ {A B ∷ U} {a1 ∷ A} {b0 ∷ B} {X ∷ U} → wedge-coconeᵣ A B a1 b0 X → (B →ᵣ X)
+wedge-coconeᵣ-snd ∷ {A B ∷ U} {a1 ∷ A} {b0 ∷ B} {X ∷ U} → wedge-coconeᵣ a1 b0 X → (B →ᵣ X)
 wedge-coconeᵣ-snd {A} {B} {a1} {b0} {X} (f , r) = fst {B →ᵣ X} (λ g . f a1 ≡ g b0) r
 
-wedge-coconeᵣ-glue ∷ {A B ∷ U} {a1 ∷ A} {b0 ∷ B} {X ∷ U} (w : wedge-coconeᵣ A B a1 b0 X) →
+wedge-coconeᵣ-glue ∷ {A B ∷ U} {a1 ∷ A} {b0 ∷ B} {X ∷ U} (w : wedge-coconeᵣ a1 b0 X) →
   wedge-coconeᵣ-fst w a1 ≡ wedge-coconeᵣ-snd w b0
 wedge-coconeᵣ-glue {A} {B} {a1} {b0} {X} (f , r) = snd {B →ᵣ X} (λ g . f a1 ≡ g b0) r
 
 -- a path of oplax cocones from paths of the two maps and a coherence of the glue
-wedge-coconeᵣ-path ∷ (A B ∷ U) (a1 ∷ A) (b0 ∷ B) (X ∷ U) (f : A →ᵣ X) (g : B →ᵣ X) (q : f a1 ≡ g b0)
+wedge-coconeᵣ-path ∷ {A B ∷ U} (a1 ∷ A) (b0 ∷ B) (X ∷ U) (f : A →ᵣ X) (g : B →ᵣ X) (q : f a1 ≡ g b0)
   (f' : A →ᵣ X) (Pf : f ≡ f') (g' : B →ᵣ X) (Pg : g ≡ g') (q' : f' a1 ≡ g' b0) →
   trans q (evᵣ {B} {X} b0 {g} {g'} Pg) ≡ trans (evᵣ {A} {X} a1 {f} {f'} Pf) q' →
-  (f , g , q) ≡{wedge-coconeᵣ A B a1 b0 X} (f' , g' , q')
-wedge-coconeᵣ-path A B a1 b0 X f g q f' Pf =
+  (f , g , q) ≡{wedge-coconeᵣ a1 b0 X} (f' , g' , q')
+wedge-coconeᵣ-path {A} {B} a1 b0 X f g q f' Pf =
   J f (λ f' Pf . (g' : B →ᵣ X) (Pg : g ≡ g') (q' : f' a1 ≡ g' b0) →
         trans q (evᵣ {B} {X} b0 {g} {g'} Pg) ≡ trans (evᵣ {A} {X} a1 {f} {f'} Pf) q' →
-        (f , g , q) ≡{wedge-coconeᵣ A B a1 b0 X} (f' , g' , q'))
+        (f , g , q) ≡{wedge-coconeᵣ a1 b0 X} (f' , g' , q'))
     (λ g' Pg . J g (λ g' Pg . (q' : f a1 ≡ g' b0) →
         trans q (evᵣ {B} {X} b0 {g} {g'} Pg) ≡ trans (evᵣ {A} {X} a1 {f} {f} refl) q' →
-        (f , g , q) ≡{wedge-coconeᵣ A B a1 b0 X} (f , g' , q'))
-      (λ q' θ . cong {f a1 ≡ g b0} {wedge-coconeᵣ A B a1 b0 X} (λ z . (f , g , z)) (trans θ (trans-refl-l q')))
+        (f , g , q) ≡{wedge-coconeᵣ a1 b0 X} (f , g' , q'))
+      (λ q' θ . cong {f a1 ≡ g b0} {wedge-coconeᵣ a1 b0 X} (λ z . (f , g , z)) (trans θ (trans-refl-l q')))
       Pg)
     Pf
 
 -- on the two maps, that path of cocones is the given pair of paths
-wedge-coconeᵣ-path-maps ∷ (A B ∷ U) (a1 ∷ A) (b0 ∷ B) (X ∷ U) (f : A →ᵣ X) (g : B →ᵣ X) (q : f a1 ≡ g b0)
+wedge-coconeᵣ-path-maps ∷ {A B ∷ U} (a1 ∷ A) (b0 ∷ B) (X ∷ U) (f : A →ᵣ X) (g : B →ᵣ X) (q : f a1 ≡ g b0)
   (f' : A →ᵣ X) (Pf : f ≡ f') (g' : B →ᵣ X) (Pg : g ≡ g') (q' : f' a1 ≡ g' b0)
   (θ : trans q (evᵣ {B} {X} b0 {g} {g'} Pg) ≡ trans (evᵣ {A} {X} a1 {f} {f'} Pf) q') →
-  (cong (wedge-coconeᵣ-fst {A} {B} {a1} {b0} {X}) (wedge-coconeᵣ-path A B a1 b0 X f g q f' Pf g' Pg q' θ) ≡ Pf) ×
-  (cong (wedge-coconeᵣ-snd {A} {B} {a1} {b0} {X}) (wedge-coconeᵣ-path A B a1 b0 X f g q f' Pf g' Pg q' θ) ≡ Pg)
-wedge-coconeᵣ-path-maps A B a1 b0 X f g q f' Pf =
+  (cong (wedge-coconeᵣ-fst {A} {B} {a1} {b0} {X}) (wedge-coconeᵣ-path a1 b0 X f g q f' Pf g' Pg q' θ) ≡ Pf) ×
+  (cong (wedge-coconeᵣ-snd {A} {B} {a1} {b0} {X}) (wedge-coconeᵣ-path a1 b0 X f g q f' Pf g' Pg q' θ) ≡ Pg)
+wedge-coconeᵣ-path-maps {A} {B} a1 b0 X f g q f' Pf =
   J f (λ f' Pf . (g' : B →ᵣ X) (Pg : g ≡ g') (q' : f' a1 ≡ g' b0)
         (θ : trans q (evᵣ {B} {X} b0 {g} {g'} Pg) ≡ trans (evᵣ {A} {X} a1 {f} {f'} Pf) q') →
-        (cong (wedge-coconeᵣ-fst {A} {B} {a1} {b0} {X}) (wedge-coconeᵣ-path A B a1 b0 X f g q f' Pf g' Pg q' θ) ≡ Pf) ×
-        (cong (wedge-coconeᵣ-snd {A} {B} {a1} {b0} {X}) (wedge-coconeᵣ-path A B a1 b0 X f g q f' Pf g' Pg q' θ) ≡ Pg))
+        (cong (wedge-coconeᵣ-fst {A} {B} {a1} {b0} {X}) (wedge-coconeᵣ-path a1 b0 X f g q f' Pf g' Pg q' θ) ≡ Pf) ×
+        (cong (wedge-coconeᵣ-snd {A} {B} {a1} {b0} {X}) (wedge-coconeᵣ-path a1 b0 X f g q f' Pf g' Pg q' θ) ≡ Pg))
     (λ g' Pg . J g (λ g' Pg . (q' : f a1 ≡ g' b0)
         (θ : trans q (evᵣ {B} {X} b0 {g} {g'} Pg) ≡ trans (evᵣ {A} {X} a1 {f} {f} refl) q') →
-        (cong (wedge-coconeᵣ-fst {A} {B} {a1} {b0} {X}) (wedge-coconeᵣ-path A B a1 b0 X f g q f refl g' Pg q' θ) ≡ refl) ×
-        (cong (wedge-coconeᵣ-snd {A} {B} {a1} {b0} {X}) (wedge-coconeᵣ-path A B a1 b0 X f g q f refl g' Pg q' θ) ≡ Pg))
+        (cong (wedge-coconeᵣ-fst {A} {B} {a1} {b0} {X}) (wedge-coconeᵣ-path a1 b0 X f g q f refl g' Pg q' θ) ≡ refl) ×
+        (cong (wedge-coconeᵣ-snd {A} {B} {a1} {b0} {X}) (wedge-coconeᵣ-path a1 b0 X f g q f refl g' Pg q' θ) ≡ Pg))
       (λ q' θ .
         let τ : q ≡ q' = trans θ (trans-refl-l q') in
-        (trans (sym (cong-comp {f a1 ≡ g b0} {wedge-coconeᵣ A B a1 b0 X} {A →ᵣ X}
+        (trans (sym (cong-comp {f a1 ≡ g b0} {wedge-coconeᵣ a1 b0 X} {A →ᵣ X}
                 (wedge-coconeᵣ-fst {A} {B} {a1} {b0} {X}) (λ z . (f , g , z)) τ))
            (cong-cst {f a1 ≡ g b0} {A →ᵣ X} f τ) ,
-         trans (sym (cong-comp {f a1 ≡ g b0} {wedge-coconeᵣ A B a1 b0 X} {B →ᵣ X}
+         trans (sym (cong-comp {f a1 ≡ g b0} {wedge-coconeᵣ a1 b0 X} {B →ᵣ X}
                (wedge-coconeᵣ-snd {A} {B} {a1} {b0} {X}) (λ z . (f , g , z)) τ))
            (cong-cst {f a1 ≡ g b0} {B →ᵣ X} g τ)))
       Pg)
     Pf
 
 -- restriction of an oplax map out of the wedge
-wedge→coconeᵣ ∷ (S A B ∷ U) (i ∷ A → S) (j ∷ B → S) (a1 ∷ A) (b0 ∷ B) (γ ∷ i a1 ≡ j b0) (X ∷ U) →
-  (S →ᵣ X) → wedge-coconeᵣ A B a1 b0 X
-wedge→coconeᵣ S A B i j a1 b0 γ X φ =
+wedge→coconeᵣ ∷ {S A B ∷ U} (i ∷ A → S) (j ∷ B → S) (a1 ∷ A) (b0 ∷ B) (γ ∷ i a1 ≡ j b0) (X ∷ U) →
+  (S →ᵣ X) → wedge-coconeᵣ a1 b0 X
+wedge→coconeᵣ {S} {A} {B} i j a1 b0 γ X φ =
   (preᵣ {A} {S} {X} φ i , preᵣ {B} {S} {X} φ j , apᵣ {S} {X} {i a1} {j b0} γ φ)
 
 -- the universal oplax cocone, as a cartesian cocone with values in Q →ₗ X
-wedge-univ-glue-funᵣ ∷ (A B ∷ U) (a1 ∷ A) (b0 ∷ B) (X ∷ U) →
-  (λ w . wedge-coconeᵣ-fst w a1) ≡{wedge-coconeᵣ A B a1 b0 X → X} (λ w . wedge-coconeᵣ-snd w b0)
-wedge-univ-glue-funᵣ A B a1 b0 X =
-  funext-htpy {wedge-coconeᵣ A B a1 b0 X} {λ _ . X}
+wedge-univ-glue-funᵣ ∷ {A B ∷ U} (a1 ∷ A) (b0 ∷ B) (X ∷ U) →
+  (λ w . wedge-coconeᵣ-fst w a1) ≡{wedge-coconeᵣ a1 b0 X → X} (λ w . wedge-coconeᵣ-snd w b0)
+wedge-univ-glue-funᵣ {A} {B} a1 b0 X =
+  funext-htpy {wedge-coconeᵣ a1 b0 X} {λ _ . X}
     (λ w . wedge-coconeᵣ-fst w a1) (λ w . wedge-coconeᵣ-snd w b0) (wedge-coconeᵣ-glue {A} {B} {a1} {b0} {X})
 
-wedge-univ-glueᵣ ∷ (A B ∷ U) (a1 ∷ A) (b0 ∷ B) (X ∷ U) →
-  (λ w . wedge-coconeᵣ-fst w a1) ≡{wedge-coconeᵣ A B a1 b0 X →ₗ X} (λ w . wedge-coconeᵣ-snd w b0)
-wedge-univ-glueᵣ A B a1 b0 X =
-  cong {wedge-coconeᵣ A B a1 b0 X → X} {wedge-coconeᵣ A B a1 b0 X →ₗ X} (arr→arrₗ {wedge-coconeᵣ A B a1 b0 X} {X})
-    (wedge-univ-glue-funᵣ A B a1 b0 X)
+wedge-univ-glueᵣ ∷ {A B ∷ U} (a1 ∷ A) (b0 ∷ B) (X ∷ U) →
+  (λ w . wedge-coconeᵣ-fst w a1) ≡{wedge-coconeᵣ a1 b0 X →ₗ X} (λ w . wedge-coconeᵣ-snd w b0)
+wedge-univ-glueᵣ {A} {B} a1 b0 X =
+  cong {wedge-coconeᵣ a1 b0 X → X} {wedge-coconeᵣ a1 b0 X →ₗ X} (arr→arrₗ {wedge-coconeᵣ a1 b0 X} {X})
+    (wedge-univ-glue-funᵣ a1 b0 X)
 
-wedge-univ-coconeᵣ ∷ (A B ∷ U) (a1 ∷ A) (b0 ∷ B) (X ∷ U) → wedge-cocone A B a1 b0 (wedge-coconeᵣ A B a1 b0 X →ₗ X)
-wedge-univ-coconeᵣ A B a1 b0 X =
+wedge-univ-coconeᵣ ∷ {A B ∷ U} (a1 ∷ A) (b0 ∷ B) (X ∷ U) → wedge-cocone a1 b0 (wedge-coconeᵣ a1 b0 X →ₗ X)
+wedge-univ-coconeᵣ {A} {B} a1 b0 X =
   ((λ a . λ w . wedge-coconeᵣ-fst {A} {B} {a1} {b0} {X} w a) ,
-      (λ b . λ w . wedge-coconeᵣ-snd {A} {B} {a1} {b0} {X} w b) , wedge-univ-glueᵣ A B a1 b0 X)
+      (λ b . λ w . wedge-coconeᵣ-snd {A} {B} {a1} {b0} {X} w b) , wedge-univ-glueᵣ a1 b0 X)
 
 -- the inverse: extend the universal cocone, then apply it to w
-wedge-univ-extᵣ ∷ (S A B ∷ U) (i ∷ A → S) (j ∷ B → S) (a1 ∷ A) (b0 ∷ B) (γ ∷ i a1 ≡ j b0)
-  (up ∷ wedge-cart-up S A B i j a1 b0 γ) (X ∷ U) →
-  S → (wedge-coconeᵣ A B a1 b0 X →ₗ X)
-wedge-univ-extᵣ S A B i j a1 b0 γ up X =
-  section-map (wedge→cocone S A B i j a1 b0 γ (wedge-coconeᵣ A B a1 b0 X →ₗ X))
-    (is-equiv-sec (wedge→cocone S A B i j a1 b0 γ (wedge-coconeᵣ A B a1 b0 X →ₗ X)) (up (wedge-coconeᵣ A B a1 b0 X →ₗ X)))
-    (wedge-univ-coconeᵣ A B a1 b0 X)
+wedge-univ-extᵣ ∷ {S A B ∷ U} (i ∷ A → S) (j ∷ B → S) (a1 ∷ A) (b0 ∷ B) (γ ∷ i a1 ≡ j b0)
+  (up ∷ wedge-cart-up i j a1 b0 γ) (X ∷ U) →
+  S → (wedge-coconeᵣ a1 b0 X →ₗ X)
+wedge-univ-extᵣ {S} {A} {B} i j a1 b0 γ up X =
+  section-map (wedge→cocone i j a1 b0 γ (wedge-coconeᵣ a1 b0 X →ₗ X))
+    (is-equiv-sec (wedge→cocone i j a1 b0 γ (wedge-coconeᵣ a1 b0 X →ₗ X)) (up (wedge-coconeᵣ a1 b0 X →ₗ X)))
+    (wedge-univ-coconeᵣ a1 b0 X)
 
-wedge-univ-ext-restrᵣ ∷ (S A B ∷ U) (i ∷ A → S) (j ∷ B → S) (a1 ∷ A) (b0 ∷ B) (γ ∷ i a1 ≡ j b0)
-  (up ∷ wedge-cart-up S A B i j a1 b0 γ) (X ∷ U) →
-  wedge→cocone S A B i j a1 b0 γ (wedge-coconeᵣ A B a1 b0 X →ₗ X) (wedge-univ-extᵣ S A B i j a1 b0 γ up X)
-    ≡ wedge-univ-coconeᵣ A B a1 b0 X
-wedge-univ-ext-restrᵣ S A B i j a1 b0 γ up X =
-  snd (is-section (wedge→cocone S A B i j a1 b0 γ (wedge-coconeᵣ A B a1 b0 X →ₗ X)))
-    (is-equiv-sec (wedge→cocone S A B i j a1 b0 γ (wedge-coconeᵣ A B a1 b0 X →ₗ X)) (up (wedge-coconeᵣ A B a1 b0 X →ₗ X)))
-    (wedge-univ-coconeᵣ A B a1 b0 X)
+wedge-univ-ext-restrᵣ ∷ {S A B ∷ U} (i ∷ A → S) (j ∷ B → S) (a1 ∷ A) (b0 ∷ B) (γ ∷ i a1 ≡ j b0)
+  (up ∷ wedge-cart-up i j a1 b0 γ) (X ∷ U) →
+  wedge→cocone i j a1 b0 γ (wedge-coconeᵣ a1 b0 X →ₗ X) (wedge-univ-extᵣ i j a1 b0 γ up X)
+    ≡ wedge-univ-coconeᵣ a1 b0 X
+wedge-univ-ext-restrᵣ {S} {A} {B} i j a1 b0 γ up X =
+  snd (is-section (wedge→cocone i j a1 b0 γ (wedge-coconeᵣ a1 b0 X →ₗ X)))
+    (is-equiv-sec (wedge→cocone i j a1 b0 γ (wedge-coconeᵣ a1 b0 X →ₗ X)) (up (wedge-coconeᵣ a1 b0 X →ₗ X)))
+    (wedge-univ-coconeᵣ a1 b0 X)
 
-cocone→wedgeᵣ ∷ (S A B ∷ U) (i ∷ A → S) (j ∷ B → S) (a1 ∷ A) (b0 ∷ B) (γ ∷ i a1 ≡ j b0)
-  (up ∷ wedge-cart-up S A B i j a1 b0 γ) (X ∷ U) →
-  wedge-coconeᵣ A B a1 b0 X → (S →ᵣ X)
-cocone→wedgeᵣ S A B i j a1 b0 γ up X w =
-  let e ∷ S → (wedge-coconeᵣ A B a1 b0 X →ₗ X) = wedge-univ-extᵣ S A B i j a1 b0 γ up X in
+cocone→wedgeᵣ ∷ {S A B ∷ U} (i ∷ A → S) (j ∷ B → S) (a1 ∷ A) (b0 ∷ B) (γ ∷ i a1 ≡ j b0)
+  (up ∷ wedge-cart-up i j a1 b0 γ) (X ∷ U) →
+  wedge-coconeᵣ a1 b0 X → (S →ᵣ X)
+cocone→wedgeᵣ {S} {A} {B} i j a1 b0 γ up X w =
+  let e ∷ S → (wedge-coconeᵣ a1 b0 X →ₗ X) = wedge-univ-extᵣ i j a1 b0 γ up X in
   λ s . e s w
 
 --
@@ -191,229 +191,229 @@ cocone→wedgeᵣ S A B i j a1 b0 γ up X w =
 --
 
 -- a crisp cartesian cocone with values in Q →ₗ X, evaluated at a point w : Q
-wedge-cocone-evalᵣ ∷ (A B ∷ U) (a1 ∷ A) (b0 ∷ B) (X ∷ U) (d ∷ wedge-cocone A B a1 b0 (wedge-coconeᵣ A B a1 b0 X →ₗ X)) →
-  wedge-coconeᵣ A B a1 b0 X → wedge-coconeᵣ A B a1 b0 X
-wedge-cocone-evalᵣ A B a1 b0 X d w =
+wedge-cocone-evalᵣ ∷ {A B ∷ U} (a1 ∷ A) (b0 ∷ B) (X ∷ U) (d ∷ wedge-cocone a1 b0 (wedge-coconeᵣ a1 b0 X →ₗ X)) →
+  wedge-coconeᵣ a1 b0 X → wedge-coconeᵣ a1 b0 X
+wedge-cocone-evalᵣ {A} {B} a1 b0 X d w =
   ((λ a . wedge-cocone-fst d a w) , (λ b . wedge-cocone-snd d b w) ,
-   evₗ-at {wedge-coconeᵣ A B a1 b0 X} {X} {wedge-cocone-fst d a1} {wedge-cocone-snd d b0} (wedge-cocone-glue d) w)
+   evₗ-at {wedge-coconeᵣ a1 b0 X} {X} {wedge-cocone-fst d a1} {wedge-cocone-snd d b0} (wedge-cocone-glue d) w)
 
 -- restricting λ s . e s w is evaluating the restriction of e at w
-wedge→coconeᵣ-eval ∷ (S A B ∷ U) (i ∷ A → S) (j ∷ B → S) (a1 ∷ A) (b0 ∷ B) (γ ∷ i a1 ≡ j b0) (X ∷ U)
-  (e ∷ S → (wedge-coconeᵣ A B a1 b0 X →ₗ X)) (w : wedge-coconeᵣ A B a1 b0 X) →
-  wedge→coconeᵣ S A B i j a1 b0 γ X (λ s . e s w)
-    ≡ wedge-cocone-evalᵣ A B a1 b0 X (wedge→cocone S A B i j a1 b0 γ (wedge-coconeᵣ A B a1 b0 X →ₗ X) e) w
-wedge→coconeᵣ-eval S A B i j a1 b0 γ X e w =
-  cong {e (i a1) w ≡ e (j b0) w} {wedge-coconeᵣ A B a1 b0 X}
+wedge→coconeᵣ-eval ∷ {S A B ∷ U} (i ∷ A → S) (j ∷ B → S) (a1 ∷ A) (b0 ∷ B) (γ ∷ i a1 ≡ j b0) (X ∷ U)
+  (e ∷ S → (wedge-coconeᵣ a1 b0 X →ₗ X)) (w : wedge-coconeᵣ a1 b0 X) →
+  wedge→coconeᵣ i j a1 b0 γ X (λ s . e s w)
+    ≡ wedge-cocone-evalᵣ a1 b0 X (wedge→cocone i j a1 b0 γ (wedge-coconeᵣ a1 b0 X →ₗ X) e) w
+wedge→coconeᵣ-eval {S} {A} {B} i j a1 b0 γ X e w =
+  cong {e (i a1) w ≡ e (j b0) w} {wedge-coconeᵣ a1 b0 X}
     (λ z . ((λ a . e (i a) w) , (λ b . e (j b) w) , z))
-    (apᵣ-family {S} {wedge-coconeᵣ A B a1 b0 X} {X} γ e w)
+    (apᵣ-family {S} {wedge-coconeᵣ a1 b0 X} {X} γ e w)
 
-wedge-cocone-evalᵣ-path ∷ (A B ∷ U) (a1 ∷ A) (b0 ∷ B) (X ∷ U) {d d' ∷ wedge-cocone A B a1 b0 (wedge-coconeᵣ A B a1 b0 X →ₗ X)}
-  (p ∷ d ≡ d') (w : wedge-coconeᵣ A B a1 b0 X) → wedge-cocone-evalᵣ A B a1 b0 X d w ≡ wedge-cocone-evalᵣ A B a1 b0 X d' w
-wedge-cocone-evalᵣ-path A B a1 b0 X {d} refl w = refl
+wedge-cocone-evalᵣ-path ∷ {A B ∷ U} (a1 ∷ A) (b0 ∷ B) (X ∷ U) {d d' ∷ wedge-cocone a1 b0 (wedge-coconeᵣ a1 b0 X →ₗ X)}
+  (p ∷ d ≡ d') (w : wedge-coconeᵣ a1 b0 X) → wedge-cocone-evalᵣ a1 b0 X d w ≡ wedge-cocone-evalᵣ a1 b0 X d' w
+wedge-cocone-evalᵣ-path {A} {B} a1 b0 X {d} refl w = refl
 
 -- evaluating the universal cocone at w gives back w
-wedge-univ-glue-evᵣ ∷ (A B ∷ U) (a1 ∷ A) (b0 ∷ B) (X ∷ U) (w : wedge-coconeᵣ A B a1 b0 X) →
-  evₗ-at {wedge-coconeᵣ A B a1 b0 X} {X} {λ w . wedge-coconeᵣ-fst w a1} {λ w . wedge-coconeᵣ-snd w b0}
-    (wedge-univ-glueᵣ A B a1 b0 X) w ≡ wedge-coconeᵣ-glue {A} {B} {a1} {b0} {X} w
-wedge-univ-glue-evᵣ A B a1 b0 X w =
-  trans (ev-l-at-κ {wedge-coconeᵣ A B a1 b0 X} {X} {λ w . wedge-coconeᵣ-fst w a1} {λ w . wedge-coconeᵣ-snd w b0}
-           (wedge-univ-glue-funᵣ A B a1 b0 X) w)
-    (happly {wedge-coconeᵣ A B a1 b0 X} {λ w . wedge-coconeᵣ-fst w a1 ≡ wedge-coconeᵣ-snd w b0}
-       {happly {wedge-coconeᵣ A B a1 b0 X} {λ _ . X} {λ w . wedge-coconeᵣ-fst w a1} {λ w . wedge-coconeᵣ-snd w b0}
-         (wedge-univ-glue-funᵣ A B a1 b0 X)}
+wedge-univ-glue-evᵣ ∷ {A B ∷ U} (a1 ∷ A) (b0 ∷ B) (X ∷ U) (w : wedge-coconeᵣ a1 b0 X) →
+  evₗ-at {wedge-coconeᵣ a1 b0 X} {X} {λ w . wedge-coconeᵣ-fst w a1} {λ w . wedge-coconeᵣ-snd w b0}
+    (wedge-univ-glueᵣ a1 b0 X) w ≡ wedge-coconeᵣ-glue {A} {B} {a1} {b0} {X} w
+wedge-univ-glue-evᵣ {A} {B} a1 b0 X w =
+  trans (ev-l-at-κ {wedge-coconeᵣ a1 b0 X} {X} {λ w . wedge-coconeᵣ-fst w a1} {λ w . wedge-coconeᵣ-snd w b0}
+           (wedge-univ-glue-funᵣ a1 b0 X) w)
+    (happly {wedge-coconeᵣ a1 b0 X} {λ w . wedge-coconeᵣ-fst w a1 ≡ wedge-coconeᵣ-snd w b0}
+       {happly {wedge-coconeᵣ a1 b0 X} {λ _ . X} {λ w . wedge-coconeᵣ-fst w a1} {λ w . wedge-coconeᵣ-snd w b0}
+         (wedge-univ-glue-funᵣ a1 b0 X)}
        {wedge-coconeᵣ-glue {A} {B} {a1} {b0} {X}}
-       (happly-funext-htpy {wedge-coconeᵣ A B a1 b0 X} {λ _ . X}
+       (happly-funext-htpy {wedge-coconeᵣ a1 b0 X} {λ _ . X}
          (λ w . wedge-coconeᵣ-fst w a1) (λ w . wedge-coconeᵣ-snd w b0) (wedge-coconeᵣ-glue {A} {B} {a1} {b0} {X})) w)
 
-wedge-univ-cocone-evalᵣ-aux2 ∷ (A B ∷ U) (a1 ∷ A) (b0 ∷ B) (X ∷ U) (f : A →ᵣ X) (g : B →ᵣ X) (q : f a1 ≡ g b0) →
-  wedge-cocone-evalᵣ A B a1 b0 X (wedge-univ-coconeᵣ A B a1 b0 X) (f , g , q) ≡ (f , g , q)
-wedge-univ-cocone-evalᵣ-aux2 A B a1 b0 X f g q =
-  cong {f a1 ≡ g b0} {wedge-coconeᵣ A B a1 b0 X} (λ z . (f , g , z)) (wedge-univ-glue-evᵣ A B a1 b0 X (f , g , q))
+wedge-univ-cocone-evalᵣ-aux2 ∷ {A B ∷ U} (a1 ∷ A) (b0 ∷ B) (X ∷ U) (f : A →ᵣ X) (g : B →ᵣ X) (q : f a1 ≡ g b0) →
+  wedge-cocone-evalᵣ a1 b0 X (wedge-univ-coconeᵣ a1 b0 X) (f , g , q) ≡ (f , g , q)
+wedge-univ-cocone-evalᵣ-aux2 {A} {B} a1 b0 X f g q =
+  cong {f a1 ≡ g b0} {wedge-coconeᵣ a1 b0 X} (λ z . (f , g , z)) (wedge-univ-glue-evᵣ a1 b0 X (f , g , q))
 
-wedge-univ-cocone-evalᵣ-aux1 ∷ (A B ∷ U) (a1 ∷ A) (b0 ∷ B) (X ∷ U) (f : A →ᵣ X) (r : Σ (g : B →ᵣ X) . f a1 ≡ g b0) →
-  wedge-cocone-evalᵣ A B a1 b0 X (wedge-univ-coconeᵣ A B a1 b0 X) (f , r) ≡ (f , r)
-wedge-univ-cocone-evalᵣ-aux1 A B a1 b0 X f (g , q) = wedge-univ-cocone-evalᵣ-aux2 A B a1 b0 X f g q
+wedge-univ-cocone-evalᵣ-aux1 ∷ {A B ∷ U} (a1 ∷ A) (b0 ∷ B) (X ∷ U) (f : A →ᵣ X) (r : Σ (g : B →ᵣ X) . f a1 ≡ g b0) →
+  wedge-cocone-evalᵣ a1 b0 X (wedge-univ-coconeᵣ a1 b0 X) (f , r) ≡ (f , r)
+wedge-univ-cocone-evalᵣ-aux1 {A} {B} a1 b0 X f (g , q) = wedge-univ-cocone-evalᵣ-aux2 a1 b0 X f g q
 
-wedge-univ-cocone-evalᵣ ∷ (A B ∷ U) (a1 ∷ A) (b0 ∷ B) (X ∷ U) (w : wedge-coconeᵣ A B a1 b0 X) →
-  wedge-cocone-evalᵣ A B a1 b0 X (wedge-univ-coconeᵣ A B a1 b0 X) w ≡ w
-wedge-univ-cocone-evalᵣ A B a1 b0 X (f , r) = wedge-univ-cocone-evalᵣ-aux1 A B a1 b0 X f r
+wedge-univ-cocone-evalᵣ ∷ {A B ∷ U} (a1 ∷ A) (b0 ∷ B) (X ∷ U) (w : wedge-coconeᵣ a1 b0 X) →
+  wedge-cocone-evalᵣ a1 b0 X (wedge-univ-coconeᵣ a1 b0 X) w ≡ w
+wedge-univ-cocone-evalᵣ {A} {B} a1 b0 X (f , r) = wedge-univ-cocone-evalᵣ-aux1 a1 b0 X f r
 
-wedge→coconeᵣ-sec ∷ (S A B ∷ U) (i ∷ A → S) (j ∷ B → S) (a1 ∷ A) (b0 ∷ B) (γ ∷ i a1 ≡ j b0)
-  (up ∷ wedge-cart-up S A B i j a1 b0 γ) (X ∷ U)
-  (w : wedge-coconeᵣ A B a1 b0 X) → wedge→coconeᵣ S A B i j a1 b0 γ X (cocone→wedgeᵣ S A B i j a1 b0 γ up X w) ≡ w
-wedge→coconeᵣ-sec S A B i j a1 b0 γ up X w =
-  trans (wedge→coconeᵣ-eval S A B i j a1 b0 γ X (wedge-univ-extᵣ S A B i j a1 b0 γ up X) w)
-    (trans (wedge-cocone-evalᵣ-path A B a1 b0 X (wedge-univ-ext-restrᵣ S A B i j a1 b0 γ up X) w)
-        (wedge-univ-cocone-evalᵣ A B a1 b0 X w))
+wedge→coconeᵣ-sec ∷ {S A B ∷ U} (i ∷ A → S) (j ∷ B → S) (a1 ∷ A) (b0 ∷ B) (γ ∷ i a1 ≡ j b0)
+  (up ∷ wedge-cart-up i j a1 b0 γ) (X ∷ U)
+  (w : wedge-coconeᵣ a1 b0 X) → wedge→coconeᵣ i j a1 b0 γ X (cocone→wedgeᵣ i j a1 b0 γ up X w) ≡ w
+wedge→coconeᵣ-sec {S} {A} {B} i j a1 b0 γ up X w =
+  trans (wedge→coconeᵣ-eval i j a1 b0 γ X (wedge-univ-extᵣ i j a1 b0 γ up X) w)
+    (trans (wedge-cocone-evalᵣ-path a1 b0 X (wedge-univ-ext-restrᵣ i j a1 b0 γ up X) w)
+        (wedge-univ-cocone-evalᵣ a1 b0 X w))
 
 --
 -- second round trip: the inverse of the restriction of φ is φ
 --
 
 -- precomposition with the restriction, from the family on Q to the family on S →ᵣ X
-wedge-pre-restrᵣ ∷ (S A B ∷ U) (i ∷ A → S) (j ∷ B → S) (a1 ∷ A) (b0 ∷ B) (γ ∷ i a1 ≡ j b0) (X ∷ U) →
-  (wedge-coconeᵣ A B a1 b0 X →ₗ X) → ((S →ᵣ X) →ₗ X)
-wedge-pre-restrᵣ S A B i j a1 b0 γ X h = λ φ . h (wedge→coconeᵣ S A B i j a1 b0 γ X φ)
+wedge-pre-restrᵣ ∷ {S A B ∷ U} (i ∷ A → S) (j ∷ B → S) (a1 ∷ A) (b0 ∷ B) (γ ∷ i a1 ≡ j b0) (X ∷ U) →
+  (wedge-coconeᵣ a1 b0 X →ₗ X) → ((S →ᵣ X) →ₗ X)
+wedge-pre-restrᵣ {S} {A} {B} i j a1 b0 γ X h = λ φ . h (wedge→coconeᵣ i j a1 b0 γ X φ)
 
 -- evaluation: the universal family on S →ᵣ X
-wedge-ev-familyᵣ ∷ (S X ∷ U) → S → ((S →ᵣ X) →ₗ X)
-wedge-ev-familyᵣ S X s = λ φ . φ s
+wedge-ev-familyᵣ ∷ {S ∷ U} (X ∷ U) → S → ((S →ᵣ X) →ₗ X)
+wedge-ev-familyᵣ {S} X s = λ φ . φ s
 
 -- the key coherence: precomposing the universal glue with the restriction gives the glue of
 -- the evaluation family (both are determined by their pointwise values, by happly-injectivity)
-wedge-univ-glue-preᵣ ∷ (S A B ∷ U) (i ∷ A → S) (j ∷ B → S) (a1 ∷ A) (b0 ∷ B) (γ ∷ i a1 ≡ j b0) (X ∷ U) →
-  cong {wedge-coconeᵣ A B a1 b0 X → X} {(S →ᵣ X) → X} (λ m . λ φ . m (wedge→coconeᵣ S A B i j a1 b0 γ X φ))
-    (wedge-univ-glue-funᵣ A B a1 b0 X)
+wedge-univ-glue-preᵣ ∷ {S A B ∷ U} (i ∷ A → S) (j ∷ B → S) (a1 ∷ A) (b0 ∷ B) (γ ∷ i a1 ≡ j b0) (X ∷ U) →
+  cong {wedge-coconeᵣ a1 b0 X → X} {(S →ᵣ X) → X} (λ m . λ φ . m (wedge→coconeᵣ i j a1 b0 γ X φ))
+    (wedge-univ-glue-funᵣ a1 b0 X)
     ≡ evᵣ-path {S} {X} γ
-wedge-univ-glue-preᵣ S A B i j a1 b0 γ X =
+wedge-univ-glue-preᵣ {S} {A} {B} i j a1 b0 γ X =
   retraction-inj (happly {S →ᵣ X} {λ _ . X} {λ φ . φ (i a1)} {λ φ . φ (j b0)})
     (is-equiv-ret (happly {S →ᵣ X} {λ _ . X} {λ φ . φ (i a1)} {λ φ . φ (j b0)})
       (is-equiv-happly {S →ᵣ X} {λ _ . X} (λ φ . φ (i a1)) (λ φ . φ (j b0))))
-    {cong {wedge-coconeᵣ A B a1 b0 X → X} {(S →ᵣ X) → X}
-        (λ m . λ φ . m (wedge→coconeᵣ S A B i j a1 b0 γ X φ)) (wedge-univ-glue-funᵣ A B a1 b0 X)}
+    {cong {wedge-coconeᵣ a1 b0 X → X} {(S →ᵣ X) → X}
+        (λ m . λ φ . m (wedge→coconeᵣ i j a1 b0 γ X φ)) (wedge-univ-glue-funᵣ a1 b0 X)}
     {evᵣ-path {S} {X} γ}
-    (trans (happly-cong-pre {wedge-coconeᵣ A B a1 b0 X} {S →ᵣ X} {X} (wedge→coconeᵣ S A B i j a1 b0 γ X)
-              {λ w . wedge-coconeᵣ-fst w a1} {λ w . wedge-coconeᵣ-snd w b0} (wedge-univ-glue-funᵣ A B a1 b0 X))
-      (trans (cong {(w : wedge-coconeᵣ A B a1 b0 X) → wedge-coconeᵣ-fst w a1 ≡ wedge-coconeᵣ-snd w b0}
+    (trans (happly-cong-pre {wedge-coconeᵣ a1 b0 X} {S →ᵣ X} {X} (wedge→coconeᵣ i j a1 b0 γ X)
+              {λ w . wedge-coconeᵣ-fst w a1} {λ w . wedge-coconeᵣ-snd w b0} (wedge-univ-glue-funᵣ a1 b0 X))
+      (trans (cong {(w : wedge-coconeᵣ a1 b0 X) → wedge-coconeᵣ-fst w a1 ≡ wedge-coconeᵣ-snd w b0}
                    {(φ : S →ᵣ X) → φ (i a1) ≡ φ (j b0)}
-                   (λ h . λ φ . h (wedge→coconeᵣ S A B i j a1 b0 γ X φ))
-                   (happly-funext-htpy {wedge-coconeᵣ A B a1 b0 X} {λ _ . X}
+                   (λ h . λ φ . h (wedge→coconeᵣ i j a1 b0 γ X φ))
+                   (happly-funext-htpy {wedge-coconeᵣ a1 b0 X} {λ _ . X}
                      (λ w . wedge-coconeᵣ-fst w a1) (λ w . wedge-coconeᵣ-snd w b0) (wedge-coconeᵣ-glue {A} {B} {a1} {b0} {X})))
         (sym (happly-evᵣ-path {S} {X} γ))))
 
 -- the universal cocone, precomposed with the restriction, is the cocone of the evaluation family
-wedge-univ-cocone-preᵣ ∷ (S A B ∷ U) (i ∷ A → S) (j ∷ B → S) (a1 ∷ A) (b0 ∷ B) (γ ∷ i a1 ≡ j b0) (X ∷ U) →
-  wedge-cocone-post (wedge-pre-restrᵣ S A B i j a1 b0 γ X) (wedge-univ-coconeᵣ A B a1 b0 X) ≡ wedge→cocone
-    S A B i j a1 b0 γ ((S →ᵣ X) →ₗ X) (wedge-ev-familyᵣ S X)
-wedge-univ-cocone-preᵣ S A B i j a1 b0 γ X =
-  let κQ ∷ (wedge-coconeᵣ A B a1 b0 X → X) → (wedge-coconeᵣ A B a1 b0 X →ₗ X) = arr→arrₗ {wedge-coconeᵣ A B a1 b0 X} {X} in
+wedge-univ-cocone-preᵣ ∷ {S A B ∷ U} (i ∷ A → S) (j ∷ B → S) (a1 ∷ A) (b0 ∷ B) (γ ∷ i a1 ≡ j b0) (X ∷ U) →
+  wedge-cocone-post (wedge-pre-restrᵣ i j a1 b0 γ X) (wedge-univ-coconeᵣ a1 b0 X) ≡ wedge→cocone
+    i j a1 b0 γ ((S →ᵣ X) →ₗ X) (wedge-ev-familyᵣ X)
+wedge-univ-cocone-preᵣ {S} {A} {B} i j a1 b0 γ X =
+  let κQ ∷ (wedge-coconeᵣ a1 b0 X → X) → (wedge-coconeᵣ a1 b0 X →ₗ X) = arr→arrₗ {wedge-coconeᵣ a1 b0 X} {X} in
   let κF ∷ ((S →ᵣ X) → X) → ((S →ᵣ X) →ₗ X) = arr→arrₗ {S →ᵣ X} {X} in
-  let pre ∷ (wedge-coconeᵣ A B a1 b0 X → X) → ((S →ᵣ X) → X) = λ m . λ φ . m (wedge→coconeᵣ S A B i j a1 b0 γ X φ) in
-  cong {wedge-ev-familyᵣ S X (i a1) ≡ wedge-ev-familyᵣ S X (j b0)} {wedge-cocone A B a1 b0 ((S →ᵣ X) →ₗ X)}
-    (λ z . ((λ a . wedge-ev-familyᵣ S X (i a)) , (λ b . wedge-ev-familyᵣ S X (j b)) , z))
-    (trans (sym (cong-comp {wedge-coconeᵣ A B a1 b0 X → X} {wedge-coconeᵣ A B a1 b0 X →ₗ X} {(S →ᵣ X) →ₗ X}
-                  (wedge-pre-restrᵣ S A B i j a1 b0 γ X) κQ (wedge-univ-glue-funᵣ A B a1 b0 X)))
-      (trans (cong-comp {wedge-coconeᵣ A B a1 b0 X → X} {(S →ᵣ X) → X} {(S →ᵣ X) →ₗ X} κF pre
-            (wedge-univ-glue-funᵣ A B a1 b0 X))
+  let pre ∷ (wedge-coconeᵣ a1 b0 X → X) → ((S →ᵣ X) → X) = λ m . λ φ . m (wedge→coconeᵣ i j a1 b0 γ X φ) in
+  cong {wedge-ev-familyᵣ X (i a1) ≡ wedge-ev-familyᵣ X (j b0)} {wedge-cocone a1 b0 ((S →ᵣ X) →ₗ X)}
+    (λ z . ((λ a . wedge-ev-familyᵣ X (i a)) , (λ b . wedge-ev-familyᵣ X (j b)) , z))
+    (trans (sym (cong-comp {wedge-coconeᵣ a1 b0 X → X} {wedge-coconeᵣ a1 b0 X →ₗ X} {(S →ᵣ X) →ₗ X}
+                  (wedge-pre-restrᵣ i j a1 b0 γ X) κQ (wedge-univ-glue-funᵣ a1 b0 X)))
+      (trans (cong-comp {wedge-coconeᵣ a1 b0 X → X} {(S →ᵣ X) → X} {(S →ᵣ X) →ₗ X} κF pre
+            (wedge-univ-glue-funᵣ a1 b0 X))
         (trans (cong {(λ φ . φ (i a1)) ≡{(S →ᵣ X) → X} (λ φ . φ (j b0))} {κF (λ φ . φ (i a1)) ≡ κF (λ φ . φ (j b0))}
-                     (λ p . cong {(S →ᵣ X) → X} {(S →ᵣ X) →ₗ X} κF p) (wedge-univ-glue-preᵣ S A B i j a1 b0 γ X))
+                     (λ p . cong {(S →ᵣ X) → X} {(S →ᵣ X) →ₗ X} κF p) (wedge-univ-glue-preᵣ i j a1 b0 γ X))
           (sym (cong-evᵣ-path {S} {X} γ)))))
 
 -- the two families on S →ᵣ X agree, by injectivity of the cartesian comparison map
-wedge-univ-ext-evᵣ ∷ (S A B ∷ U) (i ∷ A → S) (j ∷ B → S) (a1 ∷ A) (b0 ∷ B) (γ ∷ i a1 ≡ j b0)
-  (up ∷ wedge-cart-up S A B i j a1 b0 γ) (X ∷ U) →
-  (λ s . wedge-pre-restrᵣ S A B i j a1 b0 γ X (wedge-univ-extᵣ S A B i j a1 b0 γ up X s))
-    ≡{S → ((S →ᵣ X) →ₗ X)} wedge-ev-familyᵣ S X
-wedge-univ-ext-evᵣ S A B i j a1 b0 γ up X =
-  retraction-inj {S → ((S →ᵣ X) →ₗ X)} {wedge-cocone A B a1 b0 ((S →ᵣ X) →ₗ X)}
-    (wedge→cocone S A B i j a1 b0 γ ((S →ᵣ X) →ₗ X))
-    (is-equiv-ret (wedge→cocone S A B i j a1 b0 γ ((S →ᵣ X) →ₗ X)) (up ((S →ᵣ X) →ₗ X)))
-    {λ s . wedge-pre-restrᵣ S A B i j a1 b0 γ X (wedge-univ-extᵣ S A B i j a1 b0 γ up X s)} {wedge-ev-familyᵣ S X}
-    (trans (wedge→cocone-post S A B i j a1 b0 γ {wedge-coconeᵣ A B a1 b0 X →ₗ X} {(S →ᵣ X) →ₗ X}
-              (wedge-pre-restrᵣ S A B i j a1 b0 γ X) (wedge-univ-extᵣ S A B i j a1 b0 γ up X))
-      (trans (cong {wedge-cocone A B a1 b0 (wedge-coconeᵣ A B a1 b0 X →ₗ X)} {wedge-cocone A B a1 b0 ((S →ᵣ X) →ₗ X)}
-                   (wedge-cocone-post {A} {B} {a1} {b0} {wedge-coconeᵣ A B a1 b0 X →ₗ X} {(S →ᵣ X) →ₗ X}
-                       (wedge-pre-restrᵣ S A B i j a1 b0 γ X))
-                   (wedge-univ-ext-restrᵣ S A B i j a1 b0 γ up X))
-        (wedge-univ-cocone-preᵣ S A B i j a1 b0 γ X)))
+wedge-univ-ext-evᵣ ∷ {S A B ∷ U} (i ∷ A → S) (j ∷ B → S) (a1 ∷ A) (b0 ∷ B) (γ ∷ i a1 ≡ j b0)
+  (up ∷ wedge-cart-up i j a1 b0 γ) (X ∷ U) →
+  (λ s . wedge-pre-restrᵣ i j a1 b0 γ X (wedge-univ-extᵣ i j a1 b0 γ up X s))
+    ≡{S → ((S →ᵣ X) →ₗ X)} wedge-ev-familyᵣ X
+wedge-univ-ext-evᵣ {S} {A} {B} i j a1 b0 γ up X =
+  retraction-inj {S → ((S →ᵣ X) →ₗ X)} {wedge-cocone a1 b0 ((S →ᵣ X) →ₗ X)}
+    (wedge→cocone i j a1 b0 γ ((S →ᵣ X) →ₗ X))
+    (is-equiv-ret (wedge→cocone i j a1 b0 γ ((S →ᵣ X) →ₗ X)) (up ((S →ᵣ X) →ₗ X)))
+    {λ s . wedge-pre-restrᵣ i j a1 b0 γ X (wedge-univ-extᵣ i j a1 b0 γ up X s)} {wedge-ev-familyᵣ X}
+    (trans (wedge→cocone-post i j a1 b0 γ {wedge-coconeᵣ a1 b0 X →ₗ X} {(S →ᵣ X) →ₗ X}
+              (wedge-pre-restrᵣ i j a1 b0 γ X) (wedge-univ-extᵣ i j a1 b0 γ up X))
+      (trans (cong {wedge-cocone a1 b0 (wedge-coconeᵣ a1 b0 X →ₗ X)} {wedge-cocone a1 b0 ((S →ᵣ X) →ₗ X)}
+                   (wedge-cocone-post {A} {B} {a1} {b0} {wedge-coconeᵣ a1 b0 X →ₗ X} {(S →ᵣ X) →ₗ X}
+                       (wedge-pre-restrᵣ i j a1 b0 γ X))
+                   (wedge-univ-ext-restrᵣ i j a1 b0 γ up X))
+        (wedge-univ-cocone-preᵣ i j a1 b0 γ X)))
 
-wedge→coconeᵣ-retr ∷ (S A B ∷ U) (i ∷ A → S) (j ∷ B → S) (a1 ∷ A) (b0 ∷ B) (γ ∷ i a1 ≡ j b0)
-  (up ∷ wedge-cart-up S A B i j a1 b0 γ) (X ∷ U)
-  (φ : S →ᵣ X) → cocone→wedgeᵣ S A B i j a1 b0 γ up X (wedge→coconeᵣ S A B i j a1 b0 γ X φ) ≡ φ
-wedge→coconeᵣ-retr S A B i j a1 b0 γ up X φ =
+wedge→coconeᵣ-retr ∷ {S A B ∷ U} (i ∷ A → S) (j ∷ B → S) (a1 ∷ A) (b0 ∷ B) (γ ∷ i a1 ≡ j b0)
+  (up ∷ wedge-cart-up i j a1 b0 γ) (X ∷ U)
+  (φ : S →ᵣ X) → cocone→wedgeᵣ i j a1 b0 γ up X (wedge→coconeᵣ i j a1 b0 γ X φ) ≡ φ
+wedge→coconeᵣ-retr {S} {A} {B} i j a1 b0 γ up X φ =
   familyᵣ-path {S} {S →ᵣ X} {X}
-    {λ s . wedge-pre-restrᵣ S A B i j a1 b0 γ X (wedge-univ-extᵣ S A B i j a1 b0 γ up X s)} {wedge-ev-familyᵣ S X}
-    (wedge-univ-ext-evᵣ S A B i j a1 b0 γ up X) φ
+    {λ s . wedge-pre-restrᵣ i j a1 b0 γ X (wedge-univ-extᵣ i j a1 b0 γ up X s)} {wedge-ev-familyᵣ X}
+    (wedge-univ-ext-evᵣ i j a1 b0 γ up X) φ
 
 -- the oplax universal property of a wedge
-wedge-oplax-up ∷ (S A B ∷ U) (i ∷ A → S) (j ∷ B → S) (a1 ∷ A) (b0 ∷ B) (γ ∷ i a1 ≡ j b0)
-  (up ∷ wedge-cart-up S A B i j a1 b0 γ) (X ∷ U) →
-  is-equiv (wedge→coconeᵣ S A B i j a1 b0 γ X)
-wedge-oplax-up S A B i j a1 b0 γ up X =
-  ((cocone→wedgeᵣ S A B i j a1 b0 γ up X , wedge→coconeᵣ-sec S A B i j a1 b0 γ up X) ,
-   (cocone→wedgeᵣ S A B i j a1 b0 γ up X , wedge→coconeᵣ-retr S A B i j a1 b0 γ up X))
+wedge-oplax-up ∷ {S A B ∷ U} (i ∷ A → S) (j ∷ B → S) (a1 ∷ A) (b0 ∷ B) (γ ∷ i a1 ≡ j b0)
+  (up ∷ wedge-cart-up i j a1 b0 γ) (X ∷ U) →
+  is-equiv (wedge→coconeᵣ i j a1 b0 γ X)
+wedge-oplax-up {S} {A} {B} i j a1 b0 γ up X =
+  ((cocone→wedgeᵣ i j a1 b0 γ up X , wedge→coconeᵣ-sec i j a1 b0 γ up X) ,
+   (cocone→wedgeᵣ i j a1 b0 γ up X , wedge→coconeᵣ-retr i j a1 b0 γ up X))
 
 --
 -- the lax universal property
 --
 
 -- lax cocones
-wedge-coconeₗ ∷ (A B ∷ U) (a1 ∷ A) (b0 ∷ B) (X ∷ U) → U
-wedge-coconeₗ A B a1 b0 X = Σ (f : A →ₗ X) . Σ (g : B →ₗ X) . f a1 ≡ g b0
+wedge-coconeₗ ∷ {A B ∷ U} (a1 ∷ A) (b0 ∷ B) (X ∷ U) → U
+wedge-coconeₗ {A} {B} a1 b0 X = Σ (f : A →ₗ X) . Σ (g : B →ₗ X) . f a1 ≡ g b0
 
-wedge-coconeₗ-fst ∷ {A B ∷ U} {a1 ∷ A} {b0 ∷ B} {X ∷ U} → wedge-coconeₗ A B a1 b0 X → (A →ₗ X)
+wedge-coconeₗ-fst ∷ {A B ∷ U} {a1 ∷ A} {b0 ∷ B} {X ∷ U} → wedge-coconeₗ a1 b0 X → (A →ₗ X)
 wedge-coconeₗ-fst (f , r) = f
 
-wedge-coconeₗ-snd ∷ {A B ∷ U} {a1 ∷ A} {b0 ∷ B} {X ∷ U} → wedge-coconeₗ A B a1 b0 X → (B →ₗ X)
+wedge-coconeₗ-snd ∷ {A B ∷ U} {a1 ∷ A} {b0 ∷ B} {X ∷ U} → wedge-coconeₗ a1 b0 X → (B →ₗ X)
 wedge-coconeₗ-snd {A} {B} {a1} {b0} {X} (f , r) = fst {B →ₗ X} (λ g . f a1 ≡ g b0) r
 
-wedge-coconeₗ-glue ∷ {A B ∷ U} {a1 ∷ A} {b0 ∷ B} {X ∷ U} (w : wedge-coconeₗ A B a1 b0 X) →
+wedge-coconeₗ-glue ∷ {A B ∷ U} {a1 ∷ A} {b0 ∷ B} {X ∷ U} (w : wedge-coconeₗ a1 b0 X) →
   wedge-coconeₗ-fst w a1 ≡ wedge-coconeₗ-snd w b0
 wedge-coconeₗ-glue {A} {B} {a1} {b0} {X} (f , r) = snd {B →ₗ X} (λ g . f a1 ≡ g b0) r
 
 -- a path of lax cocones from paths of the two maps and a coherence of the glue
-wedge-coconeₗ-path ∷ (A B ∷ U) (a1 ∷ A) (b0 ∷ B) (X ∷ U) (f : A →ₗ X) (g : B →ₗ X) (q : f a1 ≡ g b0)
+wedge-coconeₗ-path ∷ {A B ∷ U} (a1 ∷ A) (b0 ∷ B) (X ∷ U) (f : A →ₗ X) (g : B →ₗ X) (q : f a1 ≡ g b0)
   (f' : A →ₗ X) (Pf : f ≡ f') (g' : B →ₗ X) (Pg : g ≡ g') (q' : f' a1 ≡ g' b0) →
   trans q (evₗ {B} {X} b0 {g} {g'} Pg) ≡ trans (evₗ {A} {X} a1 {f} {f'} Pf) q' →
-  (f , g , q) ≡{wedge-coconeₗ A B a1 b0 X} (f' , g' , q')
-wedge-coconeₗ-path A B a1 b0 X f g q f' Pf =
+  (f , g , q) ≡{wedge-coconeₗ a1 b0 X} (f' , g' , q')
+wedge-coconeₗ-path {A} {B} a1 b0 X f g q f' Pf =
   J f (λ f' Pf . (g' : B →ₗ X) (Pg : g ≡ g') (q' : f' a1 ≡ g' b0) →
         trans q (evₗ {B} {X} b0 {g} {g'} Pg) ≡ trans (evₗ {A} {X} a1 {f} {f'} Pf) q' →
-        (f , g , q) ≡{wedge-coconeₗ A B a1 b0 X} (f' , g' , q'))
+        (f , g , q) ≡{wedge-coconeₗ a1 b0 X} (f' , g' , q'))
     (λ g' Pg . J g (λ g' Pg . (q' : f a1 ≡ g' b0) →
         trans q (evₗ {B} {X} b0 {g} {g'} Pg) ≡ trans (evₗ {A} {X} a1 {f} {f} refl) q' →
-        (f , g , q) ≡{wedge-coconeₗ A B a1 b0 X} (f , g' , q'))
-      (λ q' θ . cong {f a1 ≡ g b0} {wedge-coconeₗ A B a1 b0 X} (λ z . (f , g , z)) (trans θ (trans-refl-l q')))
+        (f , g , q) ≡{wedge-coconeₗ a1 b0 X} (f , g' , q'))
+      (λ q' θ . cong {f a1 ≡ g b0} {wedge-coconeₗ a1 b0 X} (λ z . (f , g , z)) (trans θ (trans-refl-l q')))
       Pg)
     Pf
 
 -- restriction of an lax map out of the wedge
-wedge→coconeₗ ∷ (S A B ∷ U) (i ∷ A → S) (j ∷ B → S) (a1 ∷ A) (b0 ∷ B) (γ ∷ i a1 ≡ j b0) (X ∷ U) →
-  (S →ₗ X) → wedge-coconeₗ A B a1 b0 X
-wedge→coconeₗ S A B i j a1 b0 γ X φ =
+wedge→coconeₗ ∷ {S A B ∷ U} (i ∷ A → S) (j ∷ B → S) (a1 ∷ A) (b0 ∷ B) (γ ∷ i a1 ≡ j b0) (X ∷ U) →
+  (S →ₗ X) → wedge-coconeₗ a1 b0 X
+wedge→coconeₗ {S} {A} {B} i j a1 b0 γ X φ =
   (preₗ {A} {S} {X} φ i , preₗ {B} {S} {X} φ j , apₗ {S} {X} {i a1} {j b0} γ φ)
 
 -- the universal lax cocone, as a cartesian cocone with values in Q →ᵣ X
-wedge-univ-glue-funₗ ∷ (A B ∷ U) (a1 ∷ A) (b0 ∷ B) (X ∷ U) →
-  (λ w . wedge-coconeₗ-fst w a1) ≡{wedge-coconeₗ A B a1 b0 X → X} (λ w . wedge-coconeₗ-snd w b0)
-wedge-univ-glue-funₗ A B a1 b0 X =
-  funext-htpy {wedge-coconeₗ A B a1 b0 X} {λ _ . X}
+wedge-univ-glue-funₗ ∷ {A B ∷ U} (a1 ∷ A) (b0 ∷ B) (X ∷ U) →
+  (λ w . wedge-coconeₗ-fst w a1) ≡{wedge-coconeₗ a1 b0 X → X} (λ w . wedge-coconeₗ-snd w b0)
+wedge-univ-glue-funₗ {A} {B} a1 b0 X =
+  funext-htpy {wedge-coconeₗ a1 b0 X} {λ _ . X}
     (λ w . wedge-coconeₗ-fst w a1) (λ w . wedge-coconeₗ-snd w b0) (wedge-coconeₗ-glue {A} {B} {a1} {b0} {X})
 
-wedge-univ-glueₗ ∷ (A B ∷ U) (a1 ∷ A) (b0 ∷ B) (X ∷ U) →
-  (λ w . wedge-coconeₗ-fst w a1) ≡{wedge-coconeₗ A B a1 b0 X →ᵣ X} (λ w . wedge-coconeₗ-snd w b0)
-wedge-univ-glueₗ A B a1 b0 X =
-  cong {wedge-coconeₗ A B a1 b0 X → X} {wedge-coconeₗ A B a1 b0 X →ᵣ X} (arr→arrᵣ {wedge-coconeₗ A B a1 b0 X} {X})
-    (wedge-univ-glue-funₗ A B a1 b0 X)
+wedge-univ-glueₗ ∷ {A B ∷ U} (a1 ∷ A) (b0 ∷ B) (X ∷ U) →
+  (λ w . wedge-coconeₗ-fst w a1) ≡{wedge-coconeₗ a1 b0 X →ᵣ X} (λ w . wedge-coconeₗ-snd w b0)
+wedge-univ-glueₗ {A} {B} a1 b0 X =
+  cong {wedge-coconeₗ a1 b0 X → X} {wedge-coconeₗ a1 b0 X →ᵣ X} (arr→arrᵣ {wedge-coconeₗ a1 b0 X} {X})
+    (wedge-univ-glue-funₗ a1 b0 X)
 
-wedge-univ-coconeₗ ∷ (A B ∷ U) (a1 ∷ A) (b0 ∷ B) (X ∷ U) → wedge-cocone A B a1 b0 (wedge-coconeₗ A B a1 b0 X →ᵣ X)
-wedge-univ-coconeₗ A B a1 b0 X =
+wedge-univ-coconeₗ ∷ {A B ∷ U} (a1 ∷ A) (b0 ∷ B) (X ∷ U) → wedge-cocone a1 b0 (wedge-coconeₗ a1 b0 X →ᵣ X)
+wedge-univ-coconeₗ {A} {B} a1 b0 X =
   ((λ a . λ w . wedge-coconeₗ-fst {A} {B} {a1} {b0} {X} w a) ,
-      (λ b . λ w . wedge-coconeₗ-snd {A} {B} {a1} {b0} {X} w b) , wedge-univ-glueₗ A B a1 b0 X)
+      (λ b . λ w . wedge-coconeₗ-snd {A} {B} {a1} {b0} {X} w b) , wedge-univ-glueₗ a1 b0 X)
 
 -- the inverse: extend the universal cocone, then apply it to w
-wedge-univ-extₗ ∷ (S A B ∷ U) (i ∷ A → S) (j ∷ B → S) (a1 ∷ A) (b0 ∷ B) (γ ∷ i a1 ≡ j b0)
-  (up ∷ wedge-cart-up S A B i j a1 b0 γ) (X ∷ U) →
-  S → (wedge-coconeₗ A B a1 b0 X →ᵣ X)
-wedge-univ-extₗ S A B i j a1 b0 γ up X =
-  section-map (wedge→cocone S A B i j a1 b0 γ (wedge-coconeₗ A B a1 b0 X →ᵣ X))
-    (is-equiv-sec (wedge→cocone S A B i j a1 b0 γ (wedge-coconeₗ A B a1 b0 X →ᵣ X)) (up (wedge-coconeₗ A B a1 b0 X →ᵣ X)))
-    (wedge-univ-coconeₗ A B a1 b0 X)
+wedge-univ-extₗ ∷ {S A B ∷ U} (i ∷ A → S) (j ∷ B → S) (a1 ∷ A) (b0 ∷ B) (γ ∷ i a1 ≡ j b0)
+  (up ∷ wedge-cart-up i j a1 b0 γ) (X ∷ U) →
+  S → (wedge-coconeₗ a1 b0 X →ᵣ X)
+wedge-univ-extₗ {S} {A} {B} i j a1 b0 γ up X =
+  section-map (wedge→cocone i j a1 b0 γ (wedge-coconeₗ a1 b0 X →ᵣ X))
+    (is-equiv-sec (wedge→cocone i j a1 b0 γ (wedge-coconeₗ a1 b0 X →ᵣ X)) (up (wedge-coconeₗ a1 b0 X →ᵣ X)))
+    (wedge-univ-coconeₗ a1 b0 X)
 
-wedge-univ-ext-restrₗ ∷ (S A B ∷ U) (i ∷ A → S) (j ∷ B → S) (a1 ∷ A) (b0 ∷ B) (γ ∷ i a1 ≡ j b0)
-  (up ∷ wedge-cart-up S A B i j a1 b0 γ) (X ∷ U) →
-  wedge→cocone S A B i j a1 b0 γ (wedge-coconeₗ A B a1 b0 X →ᵣ X) (wedge-univ-extₗ S A B i j a1 b0 γ up X)
-    ≡ wedge-univ-coconeₗ A B a1 b0 X
-wedge-univ-ext-restrₗ S A B i j a1 b0 γ up X =
-  snd (is-section (wedge→cocone S A B i j a1 b0 γ (wedge-coconeₗ A B a1 b0 X →ᵣ X)))
-    (is-equiv-sec (wedge→cocone S A B i j a1 b0 γ (wedge-coconeₗ A B a1 b0 X →ᵣ X)) (up (wedge-coconeₗ A B a1 b0 X →ᵣ X)))
-    (wedge-univ-coconeₗ A B a1 b0 X)
+wedge-univ-ext-restrₗ ∷ {S A B ∷ U} (i ∷ A → S) (j ∷ B → S) (a1 ∷ A) (b0 ∷ B) (γ ∷ i a1 ≡ j b0)
+  (up ∷ wedge-cart-up i j a1 b0 γ) (X ∷ U) →
+  wedge→cocone i j a1 b0 γ (wedge-coconeₗ a1 b0 X →ᵣ X) (wedge-univ-extₗ i j a1 b0 γ up X)
+    ≡ wedge-univ-coconeₗ a1 b0 X
+wedge-univ-ext-restrₗ {S} {A} {B} i j a1 b0 γ up X =
+  snd (is-section (wedge→cocone i j a1 b0 γ (wedge-coconeₗ a1 b0 X →ᵣ X)))
+    (is-equiv-sec (wedge→cocone i j a1 b0 γ (wedge-coconeₗ a1 b0 X →ᵣ X)) (up (wedge-coconeₗ a1 b0 X →ᵣ X)))
+    (wedge-univ-coconeₗ a1 b0 X)
 
-cocone→wedgeₗ ∷ (S A B ∷ U) (i ∷ A → S) (j ∷ B → S) (a1 ∷ A) (b0 ∷ B) (γ ∷ i a1 ≡ j b0)
-  (up ∷ wedge-cart-up S A B i j a1 b0 γ) (X ∷ U) →
-  wedge-coconeₗ A B a1 b0 X → (S →ₗ X)
-cocone→wedgeₗ S A B i j a1 b0 γ up X w =
-  let e ∷ S → (wedge-coconeₗ A B a1 b0 X →ᵣ X) = wedge-univ-extₗ S A B i j a1 b0 γ up X in
+cocone→wedgeₗ ∷ {S A B ∷ U} (i ∷ A → S) (j ∷ B → S) (a1 ∷ A) (b0 ∷ B) (γ ∷ i a1 ≡ j b0)
+  (up ∷ wedge-cart-up i j a1 b0 γ) (X ∷ U) →
+  wedge-coconeₗ a1 b0 X → (S →ₗ X)
+cocone→wedgeₗ {S} {A} {B} i j a1 b0 γ up X w =
+  let e ∷ S → (wedge-coconeₗ a1 b0 X →ᵣ X) = wedge-univ-extₗ i j a1 b0 γ up X in
   λ s . e s w
 
 --
@@ -421,144 +421,144 @@ cocone→wedgeₗ S A B i j a1 b0 γ up X w =
 --
 
 -- a crisp cartesian cocone with values in Q →ᵣ X, evaluated at a point w : Q
-wedge-cocone-evalₗ ∷ (A B ∷ U) (a1 ∷ A) (b0 ∷ B) (X ∷ U) (d ∷ wedge-cocone A B a1 b0 (wedge-coconeₗ A B a1 b0 X →ᵣ X)) →
-  wedge-coconeₗ A B a1 b0 X → wedge-coconeₗ A B a1 b0 X
-wedge-cocone-evalₗ A B a1 b0 X d w =
+wedge-cocone-evalₗ ∷ {A B ∷ U} (a1 ∷ A) (b0 ∷ B) (X ∷ U) (d ∷ wedge-cocone a1 b0 (wedge-coconeₗ a1 b0 X →ᵣ X)) →
+  wedge-coconeₗ a1 b0 X → wedge-coconeₗ a1 b0 X
+wedge-cocone-evalₗ {A} {B} a1 b0 X d w =
   ((λ a . wedge-cocone-fst d a w) , (λ b . wedge-cocone-snd d b w) ,
-   evᵣ-at {wedge-coconeₗ A B a1 b0 X} {X} {wedge-cocone-fst d a1} {wedge-cocone-snd d b0} (wedge-cocone-glue d) w)
+   evᵣ-at {wedge-coconeₗ a1 b0 X} {X} {wedge-cocone-fst d a1} {wedge-cocone-snd d b0} (wedge-cocone-glue d) w)
 
 -- restricting λ s . e s w is evaluating the restriction of e at w
-wedge→coconeₗ-eval ∷ (S A B ∷ U) (i ∷ A → S) (j ∷ B → S) (a1 ∷ A) (b0 ∷ B) (γ ∷ i a1 ≡ j b0) (X ∷ U)
-  (e ∷ S → (wedge-coconeₗ A B a1 b0 X →ᵣ X)) (w : wedge-coconeₗ A B a1 b0 X) →
-  wedge→coconeₗ S A B i j a1 b0 γ X (λ s . e s w)
-    ≡ wedge-cocone-evalₗ A B a1 b0 X (wedge→cocone S A B i j a1 b0 γ (wedge-coconeₗ A B a1 b0 X →ᵣ X) e) w
-wedge→coconeₗ-eval S A B i j a1 b0 γ X e w =
-  cong {e (i a1) w ≡ e (j b0) w} {wedge-coconeₗ A B a1 b0 X}
+wedge→coconeₗ-eval ∷ {S A B ∷ U} (i ∷ A → S) (j ∷ B → S) (a1 ∷ A) (b0 ∷ B) (γ ∷ i a1 ≡ j b0) (X ∷ U)
+  (e ∷ S → (wedge-coconeₗ a1 b0 X →ᵣ X)) (w : wedge-coconeₗ a1 b0 X) →
+  wedge→coconeₗ i j a1 b0 γ X (λ s . e s w)
+    ≡ wedge-cocone-evalₗ a1 b0 X (wedge→cocone i j a1 b0 γ (wedge-coconeₗ a1 b0 X →ᵣ X) e) w
+wedge→coconeₗ-eval {S} {A} {B} i j a1 b0 γ X e w =
+  cong {e (i a1) w ≡ e (j b0) w} {wedge-coconeₗ a1 b0 X}
     (λ z . ((λ a . e (i a) w) , (λ b . e (j b) w) , z))
-    (apₗ-family {S} {wedge-coconeₗ A B a1 b0 X} {X} γ e w)
+    (apₗ-family {S} {wedge-coconeₗ a1 b0 X} {X} γ e w)
 
-wedge-cocone-evalₗ-path ∷ (A B ∷ U) (a1 ∷ A) (b0 ∷ B) (X ∷ U) {d d' ∷ wedge-cocone A B a1 b0 (wedge-coconeₗ A B a1 b0 X →ᵣ X)}
-  (p ∷ d ≡ d') (w : wedge-coconeₗ A B a1 b0 X) → wedge-cocone-evalₗ A B a1 b0 X d w ≡ wedge-cocone-evalₗ A B a1 b0 X d' w
-wedge-cocone-evalₗ-path A B a1 b0 X {d} refl w = refl
+wedge-cocone-evalₗ-path ∷ {A B ∷ U} (a1 ∷ A) (b0 ∷ B) (X ∷ U) {d d' ∷ wedge-cocone a1 b0 (wedge-coconeₗ a1 b0 X →ᵣ X)}
+  (p ∷ d ≡ d') (w : wedge-coconeₗ a1 b0 X) → wedge-cocone-evalₗ a1 b0 X d w ≡ wedge-cocone-evalₗ a1 b0 X d' w
+wedge-cocone-evalₗ-path {A} {B} a1 b0 X {d} refl w = refl
 
 -- evaluating the universal cocone at w gives back w
-wedge-univ-glue-evₗ ∷ (A B ∷ U) (a1 ∷ A) (b0 ∷ B) (X ∷ U) (w : wedge-coconeₗ A B a1 b0 X) →
-  evᵣ-at {wedge-coconeₗ A B a1 b0 X} {X} {λ w . wedge-coconeₗ-fst w a1} {λ w . wedge-coconeₗ-snd w b0}
-    (wedge-univ-glueₗ A B a1 b0 X) w ≡ wedge-coconeₗ-glue {A} {B} {a1} {b0} {X} w
-wedge-univ-glue-evₗ A B a1 b0 X w =
-  trans (ev-r-at-κ {wedge-coconeₗ A B a1 b0 X} {X} {λ w . wedge-coconeₗ-fst w a1} {λ w . wedge-coconeₗ-snd w b0}
-           (wedge-univ-glue-funₗ A B a1 b0 X) w)
-    (happly {wedge-coconeₗ A B a1 b0 X} {λ w . wedge-coconeₗ-fst w a1 ≡ wedge-coconeₗ-snd w b0}
-       {happly {wedge-coconeₗ A B a1 b0 X} {λ _ . X} {λ w . wedge-coconeₗ-fst w a1} {λ w . wedge-coconeₗ-snd w b0}
-         (wedge-univ-glue-funₗ A B a1 b0 X)}
+wedge-univ-glue-evₗ ∷ {A B ∷ U} (a1 ∷ A) (b0 ∷ B) (X ∷ U) (w : wedge-coconeₗ a1 b0 X) →
+  evᵣ-at {wedge-coconeₗ a1 b0 X} {X} {λ w . wedge-coconeₗ-fst w a1} {λ w . wedge-coconeₗ-snd w b0}
+    (wedge-univ-glueₗ a1 b0 X) w ≡ wedge-coconeₗ-glue {A} {B} {a1} {b0} {X} w
+wedge-univ-glue-evₗ {A} {B} a1 b0 X w =
+  trans (ev-r-at-κ {wedge-coconeₗ a1 b0 X} {X} {λ w . wedge-coconeₗ-fst w a1} {λ w . wedge-coconeₗ-snd w b0}
+           (wedge-univ-glue-funₗ a1 b0 X) w)
+    (happly {wedge-coconeₗ a1 b0 X} {λ w . wedge-coconeₗ-fst w a1 ≡ wedge-coconeₗ-snd w b0}
+       {happly {wedge-coconeₗ a1 b0 X} {λ _ . X} {λ w . wedge-coconeₗ-fst w a1} {λ w . wedge-coconeₗ-snd w b0}
+         (wedge-univ-glue-funₗ a1 b0 X)}
        {wedge-coconeₗ-glue {A} {B} {a1} {b0} {X}}
-       (happly-funext-htpy {wedge-coconeₗ A B a1 b0 X} {λ _ . X}
+       (happly-funext-htpy {wedge-coconeₗ a1 b0 X} {λ _ . X}
          (λ w . wedge-coconeₗ-fst w a1) (λ w . wedge-coconeₗ-snd w b0) (wedge-coconeₗ-glue {A} {B} {a1} {b0} {X})) w)
 
-wedge-univ-cocone-evalₗ-aux2 ∷ (A B ∷ U) (a1 ∷ A) (b0 ∷ B) (X ∷ U) (f : A →ₗ X) (g : B →ₗ X) (q : f a1 ≡ g b0) →
-  wedge-cocone-evalₗ A B a1 b0 X (wedge-univ-coconeₗ A B a1 b0 X) (f , g , q) ≡ (f , g , q)
-wedge-univ-cocone-evalₗ-aux2 A B a1 b0 X f g q =
-  cong {f a1 ≡ g b0} {wedge-coconeₗ A B a1 b0 X} (λ z . (f , g , z)) (wedge-univ-glue-evₗ A B a1 b0 X (f , g , q))
+wedge-univ-cocone-evalₗ-aux2 ∷ {A B ∷ U} (a1 ∷ A) (b0 ∷ B) (X ∷ U) (f : A →ₗ X) (g : B →ₗ X) (q : f a1 ≡ g b0) →
+  wedge-cocone-evalₗ a1 b0 X (wedge-univ-coconeₗ a1 b0 X) (f , g , q) ≡ (f , g , q)
+wedge-univ-cocone-evalₗ-aux2 {A} {B} a1 b0 X f g q =
+  cong {f a1 ≡ g b0} {wedge-coconeₗ a1 b0 X} (λ z . (f , g , z)) (wedge-univ-glue-evₗ a1 b0 X (f , g , q))
 
-wedge-univ-cocone-evalₗ-aux1 ∷ (A B ∷ U) (a1 ∷ A) (b0 ∷ B) (X ∷ U) (f : A →ₗ X) (r : Σ (g : B →ₗ X) . f a1 ≡ g b0) →
-  wedge-cocone-evalₗ A B a1 b0 X (wedge-univ-coconeₗ A B a1 b0 X) (f , r) ≡ (f , r)
-wedge-univ-cocone-evalₗ-aux1 A B a1 b0 X f (g , q) = wedge-univ-cocone-evalₗ-aux2 A B a1 b0 X f g q
+wedge-univ-cocone-evalₗ-aux1 ∷ {A B ∷ U} (a1 ∷ A) (b0 ∷ B) (X ∷ U) (f : A →ₗ X) (r : Σ (g : B →ₗ X) . f a1 ≡ g b0) →
+  wedge-cocone-evalₗ a1 b0 X (wedge-univ-coconeₗ a1 b0 X) (f , r) ≡ (f , r)
+wedge-univ-cocone-evalₗ-aux1 {A} {B} a1 b0 X f (g , q) = wedge-univ-cocone-evalₗ-aux2 a1 b0 X f g q
 
-wedge-univ-cocone-evalₗ ∷ (A B ∷ U) (a1 ∷ A) (b0 ∷ B) (X ∷ U) (w : wedge-coconeₗ A B a1 b0 X) →
-  wedge-cocone-evalₗ A B a1 b0 X (wedge-univ-coconeₗ A B a1 b0 X) w ≡ w
-wedge-univ-cocone-evalₗ A B a1 b0 X (f , r) = wedge-univ-cocone-evalₗ-aux1 A B a1 b0 X f r
+wedge-univ-cocone-evalₗ ∷ {A B ∷ U} (a1 ∷ A) (b0 ∷ B) (X ∷ U) (w : wedge-coconeₗ a1 b0 X) →
+  wedge-cocone-evalₗ a1 b0 X (wedge-univ-coconeₗ a1 b0 X) w ≡ w
+wedge-univ-cocone-evalₗ {A} {B} a1 b0 X (f , r) = wedge-univ-cocone-evalₗ-aux1 a1 b0 X f r
 
-wedge→coconeₗ-sec ∷ (S A B ∷ U) (i ∷ A → S) (j ∷ B → S) (a1 ∷ A) (b0 ∷ B) (γ ∷ i a1 ≡ j b0)
-  (up ∷ wedge-cart-up S A B i j a1 b0 γ) (X ∷ U)
-  (w : wedge-coconeₗ A B a1 b0 X) → wedge→coconeₗ S A B i j a1 b0 γ X (cocone→wedgeₗ S A B i j a1 b0 γ up X w) ≡ w
-wedge→coconeₗ-sec S A B i j a1 b0 γ up X w =
-  trans (wedge→coconeₗ-eval S A B i j a1 b0 γ X (wedge-univ-extₗ S A B i j a1 b0 γ up X) w)
-    (trans (wedge-cocone-evalₗ-path A B a1 b0 X (wedge-univ-ext-restrₗ S A B i j a1 b0 γ up X) w)
-        (wedge-univ-cocone-evalₗ A B a1 b0 X w))
+wedge→coconeₗ-sec ∷ {S A B ∷ U} (i ∷ A → S) (j ∷ B → S) (a1 ∷ A) (b0 ∷ B) (γ ∷ i a1 ≡ j b0)
+  (up ∷ wedge-cart-up i j a1 b0 γ) (X ∷ U)
+  (w : wedge-coconeₗ a1 b0 X) → wedge→coconeₗ i j a1 b0 γ X (cocone→wedgeₗ i j a1 b0 γ up X w) ≡ w
+wedge→coconeₗ-sec {S} {A} {B} i j a1 b0 γ up X w =
+  trans (wedge→coconeₗ-eval i j a1 b0 γ X (wedge-univ-extₗ i j a1 b0 γ up X) w)
+    (trans (wedge-cocone-evalₗ-path a1 b0 X (wedge-univ-ext-restrₗ i j a1 b0 γ up X) w)
+        (wedge-univ-cocone-evalₗ a1 b0 X w))
 
 --
 -- second round trip: the inverse of the restriction of φ is φ
 --
 
 -- precomposition with the restriction, from the family on Q to the family on S →ₗ X
-wedge-pre-restrₗ ∷ (S A B ∷ U) (i ∷ A → S) (j ∷ B → S) (a1 ∷ A) (b0 ∷ B) (γ ∷ i a1 ≡ j b0) (X ∷ U) →
-  (wedge-coconeₗ A B a1 b0 X →ᵣ X) → ((S →ₗ X) →ᵣ X)
-wedge-pre-restrₗ S A B i j a1 b0 γ X h = λ φ . h (wedge→coconeₗ S A B i j a1 b0 γ X φ)
+wedge-pre-restrₗ ∷ {S A B ∷ U} (i ∷ A → S) (j ∷ B → S) (a1 ∷ A) (b0 ∷ B) (γ ∷ i a1 ≡ j b0) (X ∷ U) →
+  (wedge-coconeₗ a1 b0 X →ᵣ X) → ((S →ₗ X) →ᵣ X)
+wedge-pre-restrₗ {S} {A} {B} i j a1 b0 γ X h = λ φ . h (wedge→coconeₗ i j a1 b0 γ X φ)
 
 -- evaluation: the universal family on S →ₗ X
-wedge-ev-familyₗ ∷ (S X ∷ U) → S → ((S →ₗ X) →ᵣ X)
-wedge-ev-familyₗ S X s = λ φ . φ s
+wedge-ev-familyₗ ∷ {S ∷ U} (X ∷ U) → S → ((S →ₗ X) →ᵣ X)
+wedge-ev-familyₗ {S} X s = λ φ . φ s
 
 -- the key coherence: precomposing the universal glue with the restriction gives the glue of
 -- the evaluation family (both are determined by their pointwise values, by happly-injectivity)
-wedge-univ-glue-preₗ ∷ (S A B ∷ U) (i ∷ A → S) (j ∷ B → S) (a1 ∷ A) (b0 ∷ B) (γ ∷ i a1 ≡ j b0) (X ∷ U) →
-  cong {wedge-coconeₗ A B a1 b0 X → X} {(S →ₗ X) → X} (λ m . λ φ . m (wedge→coconeₗ S A B i j a1 b0 γ X φ))
-    (wedge-univ-glue-funₗ A B a1 b0 X)
+wedge-univ-glue-preₗ ∷ {S A B ∷ U} (i ∷ A → S) (j ∷ B → S) (a1 ∷ A) (b0 ∷ B) (γ ∷ i a1 ≡ j b0) (X ∷ U) →
+  cong {wedge-coconeₗ a1 b0 X → X} {(S →ₗ X) → X} (λ m . λ φ . m (wedge→coconeₗ i j a1 b0 γ X φ))
+    (wedge-univ-glue-funₗ a1 b0 X)
     ≡ evₗ-path {S} {X} γ
-wedge-univ-glue-preₗ S A B i j a1 b0 γ X =
+wedge-univ-glue-preₗ {S} {A} {B} i j a1 b0 γ X =
   retraction-inj (happly {S →ₗ X} {λ _ . X} {λ φ . φ (i a1)} {λ φ . φ (j b0)})
     (is-equiv-ret (happly {S →ₗ X} {λ _ . X} {λ φ . φ (i a1)} {λ φ . φ (j b0)})
       (is-equiv-happly {S →ₗ X} {λ _ . X} (λ φ . φ (i a1)) (λ φ . φ (j b0))))
-    {cong {wedge-coconeₗ A B a1 b0 X → X} {(S →ₗ X) → X}
-        (λ m . λ φ . m (wedge→coconeₗ S A B i j a1 b0 γ X φ)) (wedge-univ-glue-funₗ A B a1 b0 X)}
+    {cong {wedge-coconeₗ a1 b0 X → X} {(S →ₗ X) → X}
+        (λ m . λ φ . m (wedge→coconeₗ i j a1 b0 γ X φ)) (wedge-univ-glue-funₗ a1 b0 X)}
     {evₗ-path {S} {X} γ}
-    (trans (happly-cong-pre {wedge-coconeₗ A B a1 b0 X} {S →ₗ X} {X} (wedge→coconeₗ S A B i j a1 b0 γ X)
-              {λ w . wedge-coconeₗ-fst w a1} {λ w . wedge-coconeₗ-snd w b0} (wedge-univ-glue-funₗ A B a1 b0 X))
-      (trans (cong {(w : wedge-coconeₗ A B a1 b0 X) → wedge-coconeₗ-fst w a1 ≡ wedge-coconeₗ-snd w b0}
+    (trans (happly-cong-pre {wedge-coconeₗ a1 b0 X} {S →ₗ X} {X} (wedge→coconeₗ i j a1 b0 γ X)
+              {λ w . wedge-coconeₗ-fst w a1} {λ w . wedge-coconeₗ-snd w b0} (wedge-univ-glue-funₗ a1 b0 X))
+      (trans (cong {(w : wedge-coconeₗ a1 b0 X) → wedge-coconeₗ-fst w a1 ≡ wedge-coconeₗ-snd w b0}
                    {(φ : S →ₗ X) → φ (i a1) ≡ φ (j b0)}
-                   (λ h . λ φ . h (wedge→coconeₗ S A B i j a1 b0 γ X φ))
-                   (happly-funext-htpy {wedge-coconeₗ A B a1 b0 X} {λ _ . X}
+                   (λ h . λ φ . h (wedge→coconeₗ i j a1 b0 γ X φ))
+                   (happly-funext-htpy {wedge-coconeₗ a1 b0 X} {λ _ . X}
                      (λ w . wedge-coconeₗ-fst w a1) (λ w . wedge-coconeₗ-snd w b0) (wedge-coconeₗ-glue {A} {B} {a1} {b0} {X})))
         (sym (happly-evₗ-path {S} {X} γ))))
 
 -- the universal cocone, precomposed with the restriction, is the cocone of the evaluation family
-wedge-univ-cocone-preₗ ∷ (S A B ∷ U) (i ∷ A → S) (j ∷ B → S) (a1 ∷ A) (b0 ∷ B) (γ ∷ i a1 ≡ j b0) (X ∷ U) →
-  wedge-cocone-post (wedge-pre-restrₗ S A B i j a1 b0 γ X) (wedge-univ-coconeₗ A B a1 b0 X) ≡ wedge→cocone
-    S A B i j a1 b0 γ ((S →ₗ X) →ᵣ X) (wedge-ev-familyₗ S X)
-wedge-univ-cocone-preₗ S A B i j a1 b0 γ X =
-  let κQ ∷ (wedge-coconeₗ A B a1 b0 X → X) → (wedge-coconeₗ A B a1 b0 X →ᵣ X) = arr→arrᵣ {wedge-coconeₗ A B a1 b0 X} {X} in
+wedge-univ-cocone-preₗ ∷ {S A B ∷ U} (i ∷ A → S) (j ∷ B → S) (a1 ∷ A) (b0 ∷ B) (γ ∷ i a1 ≡ j b0) (X ∷ U) →
+  wedge-cocone-post (wedge-pre-restrₗ i j a1 b0 γ X) (wedge-univ-coconeₗ a1 b0 X) ≡ wedge→cocone
+    i j a1 b0 γ ((S →ₗ X) →ᵣ X) (wedge-ev-familyₗ X)
+wedge-univ-cocone-preₗ {S} {A} {B} i j a1 b0 γ X =
+  let κQ ∷ (wedge-coconeₗ a1 b0 X → X) → (wedge-coconeₗ a1 b0 X →ᵣ X) = arr→arrᵣ {wedge-coconeₗ a1 b0 X} {X} in
   let κF ∷ ((S →ₗ X) → X) → ((S →ₗ X) →ᵣ X) = arr→arrᵣ {S →ₗ X} {X} in
-  let pre ∷ (wedge-coconeₗ A B a1 b0 X → X) → ((S →ₗ X) → X) = λ m . λ φ . m (wedge→coconeₗ S A B i j a1 b0 γ X φ) in
-  cong {wedge-ev-familyₗ S X (i a1) ≡ wedge-ev-familyₗ S X (j b0)} {wedge-cocone A B a1 b0 ((S →ₗ X) →ᵣ X)}
-    (λ z . ((λ a . wedge-ev-familyₗ S X (i a)) , (λ b . wedge-ev-familyₗ S X (j b)) , z))
-    (trans (sym (cong-comp {wedge-coconeₗ A B a1 b0 X → X} {wedge-coconeₗ A B a1 b0 X →ᵣ X} {(S →ₗ X) →ᵣ X}
-                  (wedge-pre-restrₗ S A B i j a1 b0 γ X) κQ (wedge-univ-glue-funₗ A B a1 b0 X)))
-      (trans (cong-comp {wedge-coconeₗ A B a1 b0 X → X} {(S →ₗ X) → X} {(S →ₗ X) →ᵣ X} κF pre
-            (wedge-univ-glue-funₗ A B a1 b0 X))
+  let pre ∷ (wedge-coconeₗ a1 b0 X → X) → ((S →ₗ X) → X) = λ m . λ φ . m (wedge→coconeₗ i j a1 b0 γ X φ) in
+  cong {wedge-ev-familyₗ X (i a1) ≡ wedge-ev-familyₗ X (j b0)} {wedge-cocone a1 b0 ((S →ₗ X) →ᵣ X)}
+    (λ z . ((λ a . wedge-ev-familyₗ X (i a)) , (λ b . wedge-ev-familyₗ X (j b)) , z))
+    (trans (sym (cong-comp {wedge-coconeₗ a1 b0 X → X} {wedge-coconeₗ a1 b0 X →ᵣ X} {(S →ₗ X) →ᵣ X}
+                  (wedge-pre-restrₗ i j a1 b0 γ X) κQ (wedge-univ-glue-funₗ a1 b0 X)))
+      (trans (cong-comp {wedge-coconeₗ a1 b0 X → X} {(S →ₗ X) → X} {(S →ₗ X) →ᵣ X} κF pre
+            (wedge-univ-glue-funₗ a1 b0 X))
         (trans (cong {(λ φ . φ (i a1)) ≡{(S →ₗ X) → X} (λ φ . φ (j b0))} {κF (λ φ . φ (i a1)) ≡ κF (λ φ . φ (j b0))}
-                     (λ p . cong {(S →ₗ X) → X} {(S →ₗ X) →ᵣ X} κF p) (wedge-univ-glue-preₗ S A B i j a1 b0 γ X))
+                     (λ p . cong {(S →ₗ X) → X} {(S →ₗ X) →ᵣ X} κF p) (wedge-univ-glue-preₗ i j a1 b0 γ X))
           (sym (cong-evₗ-path {S} {X} γ)))))
 
 -- the two families on S →ₗ X agree, by injectivity of the cartesian comparison map
-wedge-univ-ext-evₗ ∷ (S A B ∷ U) (i ∷ A → S) (j ∷ B → S) (a1 ∷ A) (b0 ∷ B) (γ ∷ i a1 ≡ j b0)
-  (up ∷ wedge-cart-up S A B i j a1 b0 γ) (X ∷ U) →
-  (λ s . wedge-pre-restrₗ S A B i j a1 b0 γ X (wedge-univ-extₗ S A B i j a1 b0 γ up X s))
-    ≡{S → ((S →ₗ X) →ᵣ X)} wedge-ev-familyₗ S X
-wedge-univ-ext-evₗ S A B i j a1 b0 γ up X =
-  retraction-inj {S → ((S →ₗ X) →ᵣ X)} {wedge-cocone A B a1 b0 ((S →ₗ X) →ᵣ X)}
-    (wedge→cocone S A B i j a1 b0 γ ((S →ₗ X) →ᵣ X))
-    (is-equiv-ret (wedge→cocone S A B i j a1 b0 γ ((S →ₗ X) →ᵣ X)) (up ((S →ₗ X) →ᵣ X)))
-    {λ s . wedge-pre-restrₗ S A B i j a1 b0 γ X (wedge-univ-extₗ S A B i j a1 b0 γ up X s)} {wedge-ev-familyₗ S X}
-    (trans (wedge→cocone-post S A B i j a1 b0 γ {wedge-coconeₗ A B a1 b0 X →ᵣ X} {(S →ₗ X) →ᵣ X}
-              (wedge-pre-restrₗ S A B i j a1 b0 γ X) (wedge-univ-extₗ S A B i j a1 b0 γ up X))
-      (trans (cong {wedge-cocone A B a1 b0 (wedge-coconeₗ A B a1 b0 X →ᵣ X)} {wedge-cocone A B a1 b0 ((S →ₗ X) →ᵣ X)}
-                   (wedge-cocone-post {A} {B} {a1} {b0} {wedge-coconeₗ A B a1 b0 X →ᵣ X} {(S →ₗ X) →ᵣ X}
-                       (wedge-pre-restrₗ S A B i j a1 b0 γ X))
-                   (wedge-univ-ext-restrₗ S A B i j a1 b0 γ up X))
-        (wedge-univ-cocone-preₗ S A B i j a1 b0 γ X)))
+wedge-univ-ext-evₗ ∷ {S A B ∷ U} (i ∷ A → S) (j ∷ B → S) (a1 ∷ A) (b0 ∷ B) (γ ∷ i a1 ≡ j b0)
+  (up ∷ wedge-cart-up i j a1 b0 γ) (X ∷ U) →
+  (λ s . wedge-pre-restrₗ i j a1 b0 γ X (wedge-univ-extₗ i j a1 b0 γ up X s))
+    ≡{S → ((S →ₗ X) →ᵣ X)} wedge-ev-familyₗ X
+wedge-univ-ext-evₗ {S} {A} {B} i j a1 b0 γ up X =
+  retraction-inj {S → ((S →ₗ X) →ᵣ X)} {wedge-cocone a1 b0 ((S →ₗ X) →ᵣ X)}
+    (wedge→cocone i j a1 b0 γ ((S →ₗ X) →ᵣ X))
+    (is-equiv-ret (wedge→cocone i j a1 b0 γ ((S →ₗ X) →ᵣ X)) (up ((S →ₗ X) →ᵣ X)))
+    {λ s . wedge-pre-restrₗ i j a1 b0 γ X (wedge-univ-extₗ i j a1 b0 γ up X s)} {wedge-ev-familyₗ X}
+    (trans (wedge→cocone-post i j a1 b0 γ {wedge-coconeₗ a1 b0 X →ᵣ X} {(S →ₗ X) →ᵣ X}
+              (wedge-pre-restrₗ i j a1 b0 γ X) (wedge-univ-extₗ i j a1 b0 γ up X))
+      (trans (cong {wedge-cocone a1 b0 (wedge-coconeₗ a1 b0 X →ᵣ X)} {wedge-cocone a1 b0 ((S →ₗ X) →ᵣ X)}
+                   (wedge-cocone-post {A} {B} {a1} {b0} {wedge-coconeₗ a1 b0 X →ᵣ X} {(S →ₗ X) →ᵣ X}
+                       (wedge-pre-restrₗ i j a1 b0 γ X))
+                   (wedge-univ-ext-restrₗ i j a1 b0 γ up X))
+        (wedge-univ-cocone-preₗ i j a1 b0 γ X)))
 
-wedge→coconeₗ-retr ∷ (S A B ∷ U) (i ∷ A → S) (j ∷ B → S) (a1 ∷ A) (b0 ∷ B) (γ ∷ i a1 ≡ j b0)
-  (up ∷ wedge-cart-up S A B i j a1 b0 γ) (X ∷ U)
-  (φ : S →ₗ X) → cocone→wedgeₗ S A B i j a1 b0 γ up X (wedge→coconeₗ S A B i j a1 b0 γ X φ) ≡ φ
-wedge→coconeₗ-retr S A B i j a1 b0 γ up X φ =
+wedge→coconeₗ-retr ∷ {S A B ∷ U} (i ∷ A → S) (j ∷ B → S) (a1 ∷ A) (b0 ∷ B) (γ ∷ i a1 ≡ j b0)
+  (up ∷ wedge-cart-up i j a1 b0 γ) (X ∷ U)
+  (φ : S →ₗ X) → cocone→wedgeₗ i j a1 b0 γ up X (wedge→coconeₗ i j a1 b0 γ X φ) ≡ φ
+wedge→coconeₗ-retr {S} {A} {B} i j a1 b0 γ up X φ =
   familyₗ-path {S} {S →ₗ X} {X}
-    {λ s . wedge-pre-restrₗ S A B i j a1 b0 γ X (wedge-univ-extₗ S A B i j a1 b0 γ up X s)} {wedge-ev-familyₗ S X}
-    (wedge-univ-ext-evₗ S A B i j a1 b0 γ up X) φ
+    {λ s . wedge-pre-restrₗ i j a1 b0 γ X (wedge-univ-extₗ i j a1 b0 γ up X s)} {wedge-ev-familyₗ X}
+    (wedge-univ-ext-evₗ i j a1 b0 γ up X) φ
 
 -- the lax universal property of a wedge
-wedge-lax-up ∷ (S A B ∷ U) (i ∷ A → S) (j ∷ B → S) (a1 ∷ A) (b0 ∷ B) (γ ∷ i a1 ≡ j b0)
-  (up ∷ wedge-cart-up S A B i j a1 b0 γ) (X ∷ U) →
-  is-equiv (wedge→coconeₗ S A B i j a1 b0 γ X)
-wedge-lax-up S A B i j a1 b0 γ up X =
-  ((cocone→wedgeₗ S A B i j a1 b0 γ up X , wedge→coconeₗ-sec S A B i j a1 b0 γ up X) ,
-   (cocone→wedgeₗ S A B i j a1 b0 γ up X , wedge→coconeₗ-retr S A B i j a1 b0 γ up X))
+wedge-lax-up ∷ {S A B ∷ U} (i ∷ A → S) (j ∷ B → S) (a1 ∷ A) (b0 ∷ B) (γ ∷ i a1 ≡ j b0)
+  (up ∷ wedge-cart-up i j a1 b0 γ) (X ∷ U) →
+  is-equiv (wedge→coconeₗ i j a1 b0 γ X)
+wedge-lax-up {S} {A} {B} i j a1 b0 γ up X =
+  ((cocone→wedgeₗ i j a1 b0 γ up X , wedge→coconeₗ-sec i j a1 b0 γ up X) ,
+   (cocone→wedgeₗ i j a1 b0 γ up X , wedge→coconeₗ-retr i j a1 b0 γ up X))
