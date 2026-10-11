@@ -39,13 +39,13 @@ cube-2-x2 c = Product.fst {𝕀} {⊤} (cube-2-tail c)
 
 -- the two propositions whose disjunction defines the spine
 spine-2-on-edge-1 ∷ cart-cube 2 → U
-spine-2-on-edge-1 c = cube-2-tail c ≡{cart-cube 1} zero-cube 1
+spine-2-on-edge-1 c = cube-2-tail c ≡{cart-cube 1} origin 1
 
 spine-2-on-edge-2 ∷ cart-cube 2 → U
 spine-2-on-edge-2 c = (cube-2-x1 c ≡ 𝕀1) × is-in-spine 1 (cube-2-tail c)
 
 is-prop-spine-2-on-edge-1 ∷ (c : cart-cube 2) → is-prop (spine-2-on-edge-1 c)
-is-prop-spine-2-on-edge-1 c = is-set-cart-cube 1 (cube-2-tail c) (zero-cube 1)
+is-prop-spine-2-on-edge-1 c = is-set-cart-cube 1 (cube-2-tail c) (origin 1)
 
 is-prop-spine-2-on-edge-2 ∷ (c : cart-cube 2) → is-prop (spine-2-on-edge-2 c)
 is-prop-spine-2-on-edge-2 c = is-prop-prod (is-set-𝕀 (cube-2-x1 c) 𝕀1) (is-prop-is-in-spine 1 (cube-2-tail c))
@@ -231,13 +231,13 @@ cube-3-tail ∷ cart-cube 3 → cart-cube 2
 cube-3-tail c = Product.snd {𝕀} {cart-cube 2} c
 
 spine-3-on-edge-1 ∷ cart-cube 3 → U
-spine-3-on-edge-1 c = cube-3-tail c ≡{cart-cube 2} zero-cube 2
+spine-3-on-edge-1 c = cube-3-tail c ≡{cart-cube 2} origin 2
 
 spine-3-on-tail ∷ cart-cube 3 → U
 spine-3-on-tail c = (cube-3-x1 c ≡ 𝕀1) × is-in-spine 2 (cube-3-tail c)
 
 is-prop-spine-3-on-edge-1 ∷ (c : cart-cube 3) → is-prop (spine-3-on-edge-1 c)
-is-prop-spine-3-on-edge-1 c = is-set-cart-cube 2 (cube-3-tail c) (zero-cube 2)
+is-prop-spine-3-on-edge-1 c = is-set-cart-cube 2 (cube-3-tail c) (origin 2)
 
 is-prop-spine-3-on-tail ∷ (c : cart-cube 3) → is-prop (spine-3-on-tail c)
 is-prop-spine-3-on-tail c = is-prop-prod (is-set-𝕀 (cube-3-x1 c) 𝕀1) (is-prop-is-in-spine 2 (cube-3-tail c))
