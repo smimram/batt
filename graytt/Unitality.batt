@@ -115,7 +115,7 @@ simplex-2-snd-on-edge-2-vertex =
 
 -- the restriction to the spine of the degenerate simplex u ∘ k, for a coordinate k
 degen-r ∷ (X ∷ U) (k ∷ simplex 2 → 𝕀) (u : 𝕀 →ᵣ X) → (spine 2 →ᵣ X)
-degen-r X k u = spine-restr-r 2 X (pre-r {simplex 2} {𝕀} {X} u k)
+degen-r X k u = spine-restr-r 2 X (preᵣ {simplex 2} {𝕀} {X} u k)
 
 -- its glue at the vertex is the image in u of the image of the vertex path in 𝕀
 degen-r-glue ∷ (X ∷ U) (k ∷ simplex 2 → 𝕀) (u : 𝕀 →ᵣ X) →
@@ -125,10 +125,10 @@ degen-r-glue ∷ (X ∷ U) (k ∷ simplex 2 → 𝕀) (u : 𝕀 →ᵣ X) →
       {k (spine→simplex 2 (spine-2-edge-2-incl spine-2-edge-2-start))}
       (cong k (cong (spine→simplex 2) spine-2-glue)) u
 degen-r-glue X k u =
-  trans (ap-r-pre-r (spine 2) {simplex 2} {X} {spine-2-edge-1-incl spine-2-edge-1-end}
+  trans (ap-r-preᵣ (spine 2) {simplex 2} {X} {spine-2-edge-1-incl spine-2-edge-1-end}
       {spine-2-edge-2-incl spine-2-edge-2-start} spine-2-glue (spine→simplex 2)
-      (pre-r {simplex 2} {𝕀} {X} u k))
-    (ap-r-pre-r (simplex 2) {𝕀} {X} {spine→simplex 2 (spine-2-edge-1-incl spine-2-edge-1-end)}
+      (preᵣ {simplex 2} {𝕀} {X} u k))
+    (ap-r-preᵣ (simplex 2) {𝕀} {X} {spine→simplex 2 (spine-2-edge-1-incl spine-2-edge-1-end)}
         {spine→simplex 2 (spine-2-edge-2-incl spine-2-edge-2-start)}
         (cong (spine→simplex 2) spine-2-glue) k u)
 
@@ -158,15 +158,15 @@ runit-coc ∷ (X ∷ U) {x y : X} (u : hom X x y) →
   spine-2→cocone-r X (degen-r X simplex-2-fst (hom-cell {X} {x} {y} u)) ≡ homs→spine-2-cocone {X} {x} {y} {y} u (id {X} y)
 runit-coc X {x} {y} u =
   spine-2-cocone-path X
-    (pre-r {spine-2-edge-1} {𝕀} {X} (hom-cell {X} {x} {y} u) (λ a . simplex-2-fst (spine→simplex 2 (spine-2-edge-1-incl a))))
-    (pre-r {spine-2-edge-2} {𝕀} {X} (hom-cell {X} {x} {y} u) (λ b . simplex-2-fst (spine→simplex 2 (spine-2-edge-2-incl b))))
+    (preᵣ {spine-2-edge-1} {𝕀} {X} (hom-cell {X} {x} {y} u) (λ a . simplex-2-fst (spine→simplex 2 (spine-2-edge-1-incl a))))
+    (preᵣ {spine-2-edge-2} {𝕀} {X} (hom-cell {X} {x} {y} u) (λ b . simplex-2-fst (spine→simplex 2 (spine-2-edge-2-incl b))))
     (ap-r {spine 2} {X} {spine-2-edge-1-incl spine-2-edge-1-end} {spine-2-edge-2-incl spine-2-edge-2-start}
         spine-2-glue (degen-r X simplex-2-fst (hom-cell {X} {x} {y} u)))
-    (pre-r {spine-2-edge-1} {𝕀} {X} (hom-cell {X} {x} {y} u) spine-2-edge-1→𝕀)
-    (pre-r-path spine-2-edge-1 {𝕀} {X} {λ a . simplex-2-fst (spine→simplex 2 (spine-2-edge-1-incl a))}
+    (preᵣ {spine-2-edge-1} {𝕀} {X} (hom-cell {X} {x} {y} u) spine-2-edge-1→𝕀)
+    (preᵣ-path spine-2-edge-1 {𝕀} {X} {λ a . simplex-2-fst (spine→simplex 2 (spine-2-edge-1-incl a))}
         {spine-2-edge-1→𝕀} simplex-2-fst-on-edge-1-path (hom-cell {X} {x} {y} u))
     (λ b . y)
-    (trans (pre-r-path spine-2-edge-2 {𝕀} {X} {λ b . simplex-2-fst (spine→simplex 2 (spine-2-edge-2-incl b))}
+    (trans (preᵣ-path spine-2-edge-2 {𝕀} {X} {λ b . simplex-2-fst (spine→simplex 2 (spine-2-edge-2-incl b))}
           {λ b . 𝕀1} simplex-2-fst-on-edge-2-path (hom-cell {X} {x} {y} u))
       (cong {X} {spine-2-edge-2 →ᵣ X} (λ v . λ b . v) (hom-tgt {X} {x} {y} u)))
     (hom-tgt {X} {x} {y} u)
@@ -175,13 +175,13 @@ runit-coc X {x} {y} u =
           {hom-cell {X} {x} {y} u 𝕀1 ≡ y} (λ α β . trans α β)
         (degen-r-glue-fst X (hom-cell {X} {x} {y} u))
         (trans (cong-trans {spine-2-edge-2 →ᵣ X} {X} (λ h . h spine-2-edge-2-start)
-                  (pre-r-path spine-2-edge-2 {𝕀} {X} {λ b . simplex-2-fst
+                  (preᵣ-path spine-2-edge-2 {𝕀} {X} {λ b . simplex-2-fst
                         (spine→simplex 2 (spine-2-edge-2-incl b))} {λ b . 𝕀1} simplex-2-fst-on-edge-2-path
                       (hom-cell {X} {x} {y} u))
                   (cong {X} {spine-2-edge-2 →ᵣ X} (λ v . λ b . v) (hom-tgt {X} {x} {y} u)))
           (cong2 {hom-cell {X} {x} {y} u 𝕀1 ≡ hom-cell {X} {x} {y} u 𝕀1} {hom-cell {X} {x} {y} u 𝕀1 ≡ y}
               {hom-cell {X} {x} {y} u 𝕀1 ≡ y} (λ α β . trans α β)
-            (trans (ev-r-pre-r-path spine-2-edge-2 {𝕀} {X}
+            (trans (ev-r-preᵣ-path spine-2-edge-2 {𝕀} {X}
                   {λ b . simplex-2-fst (spine→simplex 2 (spine-2-edge-2-incl b))} {λ b . 𝕀1} simplex-2-fst-on-edge-2-path
                   spine-2-edge-2-start (hom-cell {X} {x} {y} u))
               (ap-r-path {𝕀} {X} {𝕀1} {𝕀1} {happly {spine-2-edge-2} {λ _ . 𝕀}
@@ -192,7 +192,7 @@ runit-coc X {x} {y} u =
       (trans (trans-refl-l (trans refl (hom-tgt {X} {x} {y} u)))
         (sym (cong {hom-cell {X} {x} {y} u 𝕀1 ≡ hom-cell {X} {x} {y} u 𝕀1} {hom-cell {X} {x} {y} u 𝕀1 ≡ y}
               (λ α . trans α (hom-tgt {X} {x} {y} u))
-          (trans (ev-r-pre-r-path spine-2-edge-1 {𝕀} {X}
+          (trans (ev-r-preᵣ-path spine-2-edge-1 {𝕀} {X}
                 {λ a . simplex-2-fst (spine→simplex 2 (spine-2-edge-1-incl a))} {spine-2-edge-1→𝕀} simplex-2-fst-on-edge-1-path
                 spine-2-edge-1-end (hom-cell {X} {x} {y} u))
             (ap-r-path {𝕀} {X} {𝕀1} {𝕀1} {happly {spine-2-edge-1} {λ _ . 𝕀}
@@ -212,7 +212,7 @@ comp-hom-r-runit-cell ∷ (X ∷ U) (s : is-segal-r X) {x y : X} (u : hom X x y)
   hom-cell {X} {x} {y} (comp-hom-r X s {x} {y} {y} u (id {X} y)) ≡ hom-cell {X} {x} {y} u
 comp-hom-r-runit-cell X s {x} {y} u =
   comp-r-unique X s (homs→spine-2 X {x} {y} {y} u (id {X} y))
-    (pre-r {simplex 2} {𝕀} {X} (hom-cell {X} {x} {y} u) simplex-2-fst)
+    (preᵣ {simplex 2} {𝕀} {X} (hom-cell {X} {x} {y} u) simplex-2-fst)
     (runit-fill X {x} {y} u)
 
 --
@@ -223,16 +223,16 @@ lunit-coc ∷ (X ∷ U) {x y : X} (u : hom X x y) →
   spine-2→cocone-r X (degen-r X simplex-2-snd (hom-cell {X} {x} {y} u)) ≡ homs→spine-2-cocone {X} {x} {x} {y} (id {X} x) u
 lunit-coc X {x} {y} u =
   spine-2-cocone-path X
-    (pre-r {spine-2-edge-1} {𝕀} {X} (hom-cell {X} {x} {y} u) (λ a . simplex-2-snd (spine→simplex 2 (spine-2-edge-1-incl a))))
-    (pre-r {spine-2-edge-2} {𝕀} {X} (hom-cell {X} {x} {y} u) (λ b . simplex-2-snd (spine→simplex 2 (spine-2-edge-2-incl b))))
+    (preᵣ {spine-2-edge-1} {𝕀} {X} (hom-cell {X} {x} {y} u) (λ a . simplex-2-snd (spine→simplex 2 (spine-2-edge-1-incl a))))
+    (preᵣ {spine-2-edge-2} {𝕀} {X} (hom-cell {X} {x} {y} u) (λ b . simplex-2-snd (spine→simplex 2 (spine-2-edge-2-incl b))))
     (ap-r {spine 2} {X} {spine-2-edge-1-incl spine-2-edge-1-end} {spine-2-edge-2-incl spine-2-edge-2-start}
         spine-2-glue (degen-r X simplex-2-snd (hom-cell {X} {x} {y} u)))
     (λ a . x)
-    (trans (pre-r-path spine-2-edge-1 {𝕀} {X} {λ a . simplex-2-snd (spine→simplex 2 (spine-2-edge-1-incl a))}
+    (trans (preᵣ-path spine-2-edge-1 {𝕀} {X} {λ a . simplex-2-snd (spine→simplex 2 (spine-2-edge-1-incl a))}
           {λ a . 𝕀0} simplex-2-snd-on-edge-1-path (hom-cell {X} {x} {y} u))
       (cong {X} {spine-2-edge-1 →ᵣ X} (λ v . λ a . v) (hom-src {X} {x} {y} u)))
-    (pre-r {spine-2-edge-2} {𝕀} {X} (hom-cell {X} {x} {y} u) spine-2-edge-2→𝕀)
-    (pre-r-path spine-2-edge-2 {𝕀} {X} {λ b . simplex-2-snd (spine→simplex 2 (spine-2-edge-2-incl b))}
+    (preᵣ {spine-2-edge-2} {𝕀} {X} (hom-cell {X} {x} {y} u) spine-2-edge-2→𝕀)
+    (preᵣ-path spine-2-edge-2 {𝕀} {X} {λ b . simplex-2-snd (spine→simplex 2 (spine-2-edge-2-incl b))}
         {spine-2-edge-2→𝕀} simplex-2-snd-on-edge-2-path (hom-cell {X} {x} {y} u))
     (trans refl (sym (hom-src {X} {x} {y} u)))
     (trans
@@ -240,7 +240,7 @@ lunit-coc X {x} {y} u =
           {hom-cell {X} {x} {y} u 𝕀0 ≡ hom-cell {X} {x} {y} u 𝕀0}
           {hom-cell {X} {x} {y} u 𝕀0 ≡ hom-cell {X} {x} {y} u 𝕀0} (λ α β . trans α β)
         (degen-r-glue-snd X (hom-cell {X} {x} {y} u))
-        (trans (ev-r-pre-r-path spine-2-edge-2 {𝕀} {X}
+        (trans (ev-r-preᵣ-path spine-2-edge-2 {𝕀} {X}
               {λ b . simplex-2-snd (spine→simplex 2 (spine-2-edge-2-incl b))} {spine-2-edge-2→𝕀} simplex-2-snd-on-edge-2-path
               spine-2-edge-2-start (hom-cell {X} {x} {y} u))
           (ap-r-path {𝕀} {X} {𝕀0} {𝕀0} {happly {spine-2-edge-2} {λ _ . 𝕀}
@@ -251,13 +251,13 @@ lunit-coc X {x} {y} u =
         (cong2 {hom-cell {X} {x} {y} u 𝕀0 ≡ x} {x ≡ hom-cell {X} {x} {y} u 𝕀0}
             {hom-cell {X} {x} {y} u 𝕀0 ≡ hom-cell {X} {x} {y} u 𝕀0} (λ α β . trans α β)
           (trans (trans (cong-trans {spine-2-edge-1 →ᵣ X} {X} (λ h . h spine-2-edge-1-end)
-                          (pre-r-path spine-2-edge-1 {𝕀} {X} {λ a . simplex-2-snd
+                          (preᵣ-path spine-2-edge-1 {𝕀} {X} {λ a . simplex-2-snd
                                 (spine→simplex 2 (spine-2-edge-1-incl a))} {λ a . 𝕀0} simplex-2-snd-on-edge-1-path
                               (hom-cell {X} {x} {y} u))
                           (cong {X} {spine-2-edge-1 →ᵣ X} (λ v . λ a . v) (hom-src {X} {x} {y} u)))
                     (cong2 {hom-cell {X} {x} {y} u 𝕀0 ≡ hom-cell {X} {x} {y} u 𝕀0}
                         {hom-cell {X} {x} {y} u 𝕀0 ≡ x} {hom-cell {X} {x} {y} u 𝕀0 ≡ x} (λ α β . trans α β)
-                      (trans (ev-r-pre-r-path spine-2-edge-1 {𝕀} {X}
+                      (trans (ev-r-preᵣ-path spine-2-edge-1 {𝕀} {X}
                             {λ a . simplex-2-snd (spine→simplex 2 (spine-2-edge-1-incl a))} {λ a . 𝕀0}
                             simplex-2-snd-on-edge-1-path spine-2-edge-1-end (hom-cell {X} {x} {y} u))
                         (ap-r-path {𝕀} {X} {𝕀0} {𝕀0} {happly {spine-2-edge-1} {λ _ . 𝕀}
@@ -280,7 +280,7 @@ comp-hom-r-lunit-cell ∷ (X ∷ U) (s : is-segal-r X) {x y : X} (u : hom X x y)
   hom-cell (comp-hom-r X s (id x) u) ≡ hom-cell u
 comp-hom-r-lunit-cell X s {x} {y} u =
   comp-r-unique X s (homs→spine-2 X {x} {x} {y} (id {X} x) u)
-    (pre-r {simplex 2} {𝕀} {X} (hom-cell {X} {x} {y} u) simplex-2-snd)
+    (preᵣ {simplex 2} {𝕀} {X} (hom-cell {X} {x} {y} u) simplex-2-snd)
     (lunit-fill X {x} {y} u)
 
 --
@@ -300,16 +300,16 @@ ap-r-loop-𝕀 {X} {i} c f = ap-r-path {𝕀} {X} {i} {i} {c} {refl} (prop-path 
 -- through a degenerate simplex, are refl
 long-edge-src-degen ∷ {X ∷ U} (k ∷ simplex 2 → 𝕀) (f : 𝕀 →ᵣ X) →
   ap-r {simplex 2} {X} {long-edge 𝕀0} {spine→simplex 2 (spine-2-edge-1-incl spine-2-edge-1-start)}
-    long-edge-src (pre-r {simplex 2} {𝕀} {X} f k)
+    long-edge-src (preᵣ {simplex 2} {𝕀} {X} f k)
     ≡ ap-r {𝕀} {X} {k (long-edge 𝕀0)} {k (spine→simplex 2 (spine-2-edge-1-incl spine-2-edge-1-start))} (cong k long-edge-src) f
-long-edge-src-degen {X} k f = ap-r-pre-r (simplex 2) {𝕀} {X} {long-edge 𝕀0}
+long-edge-src-degen {X} k f = ap-r-preᵣ (simplex 2) {𝕀} {X} {long-edge 𝕀0}
   {spine→simplex 2 (spine-2-edge-1-incl spine-2-edge-1-start)} long-edge-src k f
 
 long-edge-tgt-degen ∷ {X ∷ U} (k ∷ simplex 2 → 𝕀) (f : 𝕀 →ᵣ X) →
   ap-r {simplex 2} {X} {long-edge 𝕀1} {spine→simplex 2 (spine-2-edge-2-incl spine-2-edge-2-end)}
-    long-edge-tgt (pre-r {simplex 2} {𝕀} {X} f k)
+    long-edge-tgt (preᵣ {simplex 2} {𝕀} {X} f k)
     ≡ ap-r {𝕀} {X} {k (long-edge 𝕀1)} {k (spine→simplex 2 (spine-2-edge-2-incl spine-2-edge-2-end))} (cong k long-edge-tgt) f
-long-edge-tgt-degen {X} k f = ap-r-pre-r (simplex 2) {𝕀} {X} {long-edge 𝕀1}
+long-edge-tgt-degen {X} k f = ap-r-preᵣ (simplex 2) {𝕀} {X} {long-edge 𝕀1}
   {spine→simplex 2 (spine-2-edge-2-incl spine-2-edge-2-end)} long-edge-tgt k f
 
 -- trans refl (trans refl p) ≡ p
@@ -322,13 +322,13 @@ trans-refl-l2 {A} {x} {y} p = trans (trans-refl-l (trans refl p)) (trans-refl-l 
 
 -- the filler of (u , id y) given by the degenerate simplex (t₁ , t₂) ↦ u t₁
 runit-hom-fill ∷ (X ∷ U) {x y : X} (u : hom X x y) → hom-fill X {x} {y} {y} u (id {X} y)
-runit-hom-fill X {x} {y} u = (pre-r {simplex 2} {𝕀} {X} (hom-cell {X} {x} {y} u) simplex-2-fst , runit-coc X {x} {y} u)
+runit-hom-fill X {x} {y} u = (preᵣ {simplex 2} {𝕀} {X} (hom-cell {X} {x} {y} u) simplex-2-fst , runit-coc X {x} {y} u)
 
 runit-src ∷ (X ∷ U) {x y : X} (f : 𝕀 →ᵣ X) (e0 : f 𝕀0 ≡ x) (e1 : f 𝕀1 ≡ y) →
   hom-src {X} {x} {y} (fill-hom X {x} {y} {y} (f , e0 , e1) (id {X} y) (runit-hom-fill X {x} {y} (f , e0 , e1))) ≡ e0
 runit-src X {x} {y} f e0 e1 =
   let rf : cong (spine-2-cocone-edge-1 {X}) (runit-coc X {x} {y} (f , e0 , e1))
-        ≡ pre-r-path spine-2-edge-1 {𝕀} {X} {λ a . simplex-2-fst (spine→simplex 2 (spine-2-edge-1-incl a))}
+        ≡ preᵣ-path spine-2-edge-1 {𝕀} {X} {λ a . simplex-2-fst (spine→simplex 2 (spine-2-edge-1-incl a))}
           {spine-2-edge-1→𝕀} simplex-2-fst-on-edge-1-path f =
     prod-fst (spine-2-cocone-path-maps X _ _ _ _ _ _ _ _ _) in
   let H ∷ happly {spine-2-edge-1} {λ _ . 𝕀} {λ a . simplex-2-fst (spine→simplex 2 (spine-2-edge-1-incl a))}
@@ -340,12 +340,12 @@ runit-src X {x} {y} f e0 e1 =
           (λ a . simplex-2-fst (spine→simplex 2 (spine-2-edge-1-incl a))) spine-2-edge-1→𝕀 simplex-2-fst-on-edge-1)
         spine-2-edge-1-start in
   let L1 : ap-r {simplex 2} {X} {long-edge 𝕀0} {spine→simplex 2 (spine-2-edge-1-incl spine-2-edge-1-start)}
-    long-edge-src (pre-r {simplex 2} {𝕀} {X} f simplex-2-fst) ≡ refl =
+    long-edge-src (preᵣ {simplex 2} {𝕀} {X} f simplex-2-fst) ≡ refl =
     trans (long-edge-src-degen {X} simplex-2-fst f) (ap-r-loop-𝕀 {X} {𝕀0} (cong simplex-2-fst long-edge-src) f) in
   let L2 : ev-r {spine-2-edge-1} {X} spine-2-edge-1-start
     (cong (spine-2-cocone-edge-1 {X}) (runit-coc X {x} {y} (f , e0 , e1))) ≡ refl =
     trans (cong (ev-r {spine-2-edge-1} {X} spine-2-edge-1-start) rf)
-      (trans (ev-r-pre-r-path spine-2-edge-1 {𝕀} {X}
+      (trans (ev-r-preᵣ-path spine-2-edge-1 {𝕀} {X}
             {λ a . simplex-2-fst (spine→simplex 2 (spine-2-edge-1-incl a))} {spine-2-edge-1→𝕀} simplex-2-fst-on-edge-1-path
             spine-2-edge-1-start f)
         (ap-r-path {𝕀} {X} {𝕀0} {𝕀0} H f)) in
@@ -356,9 +356,9 @@ runit-src X {x} {y} f e0 e1 =
 runit-tgt ∷ (X ∷ U) {x y : X} (f : 𝕀 →ᵣ X) (e0 : f 𝕀0 ≡ x) (e1 : f 𝕀1 ≡ y) →
   hom-tgt {X} {x} {y} (fill-hom X {x} {y} {y} (f , e0 , e1) (id {X} y) (runit-hom-fill X {x} {y} (f , e0 , e1))) ≡ e1
 runit-tgt X {x} {y} f e0 e1 =
-  let P1 : pre-r {spine-2-edge-2} {𝕀} {X} f (λ b . simplex-2-fst (spine→simplex 2 (spine-2-edge-2-incl b))) ≡
-    pre-r {spine-2-edge-2} {𝕀} {X} f (λ b . 𝕀1) =
-    pre-r-path spine-2-edge-2 {𝕀} {X} {λ b . simplex-2-fst (spine→simplex 2 (spine-2-edge-2-incl b))}
+  let P1 : preᵣ {spine-2-edge-2} {𝕀} {X} f (λ b . simplex-2-fst (spine→simplex 2 (spine-2-edge-2-incl b))) ≡
+    preᵣ {spine-2-edge-2} {𝕀} {X} f (λ b . 𝕀1) =
+    preᵣ-path spine-2-edge-2 {𝕀} {X} {λ b . simplex-2-fst (spine→simplex 2 (spine-2-edge-2-incl b))}
       {λ b . 𝕀1} simplex-2-fst-on-edge-2-path f in
   let P2 : (λ b . f 𝕀1) ≡{spine-2-edge-2 →ᵣ X} (λ b . y) = cong {X} {spine-2-edge-2 →ᵣ X} (λ v . λ b . v) e1 in
   let rg : cong (spine-2-cocone-edge-2 {X}) (runit-coc X {x} {y} (f , e0 , e1)) ≡ trans P1 P2 =
@@ -372,14 +372,14 @@ runit-tgt X {x} {y} f e0 e1 =
           (λ b . simplex-2-fst (spine→simplex 2 (spine-2-edge-2-incl b))) (λ b . 𝕀1) simplex-2-fst-on-edge-2)
         spine-2-edge-2-end in
   let L1 : ap-r {simplex 2} {X} {long-edge 𝕀1} {spine→simplex 2 (spine-2-edge-2-incl spine-2-edge-2-end)}
-    long-edge-tgt (pre-r {simplex 2} {𝕀} {X} f simplex-2-fst) ≡ refl =
+    long-edge-tgt (preᵣ {simplex 2} {𝕀} {X} f simplex-2-fst) ≡ refl =
     trans (long-edge-tgt-degen {X} simplex-2-fst f) (ap-r-loop-𝕀 {X} {𝕀1} (cong simplex-2-fst long-edge-tgt) f) in
   let L2 : ev-r {spine-2-edge-2} {X} spine-2-edge-2-end
     (cong (spine-2-cocone-edge-2 {X}) (runit-coc X {x} {y} (f , e0 , e1))) ≡ trans refl e1 =
     trans (cong (ev-r {spine-2-edge-2} {X} spine-2-edge-2-end) rg)
       (trans (cong-trans {spine-2-edge-2 →ᵣ X} {X} (λ h . h spine-2-edge-2-end) P1 P2)
         (cong2 {f 𝕀1 ≡ f 𝕀1} {f 𝕀1 ≡ y} {f 𝕀1 ≡ y} (λ α β . trans α β)
-          (trans (ev-r-pre-r-path spine-2-edge-2 {𝕀} {X}
+          (trans (ev-r-preᵣ-path spine-2-edge-2 {𝕀} {X}
                 {λ b . simplex-2-fst (spine→simplex 2 (spine-2-edge-2-incl b))} {λ b . 𝕀1} simplex-2-fst-on-edge-2-path
                 spine-2-edge-2-end f)
             (ap-r-path {𝕀} {X} {𝕀1} {𝕀1} H f))
@@ -402,14 +402,14 @@ comp-hom-r-runit X s {x} {y} (f , e) =
 
 -- the filler of (id x , u) given by the degenerate simplex (t₁ , t₂) ↦ u t₂
 lunit-hom-fill ∷ (X ∷ U) {x y : X} (u : hom X x y) → hom-fill X {x} {x} {y} (id {X} x) u
-lunit-hom-fill X {x} {y} u = (pre-r {simplex 2} {𝕀} {X} (hom-cell {X} {x} {y} u) simplex-2-snd , lunit-coc X {x} {y} u)
+lunit-hom-fill X {x} {y} u = (preᵣ {simplex 2} {𝕀} {X} (hom-cell {X} {x} {y} u) simplex-2-snd , lunit-coc X {x} {y} u)
 
 lunit-src ∷ (X ∷ U) {x y : X} (f : 𝕀 →ᵣ X) (e0 : f 𝕀0 ≡ x) (e1 : f 𝕀1 ≡ y) →
   hom-src {X} {x} {y} (fill-hom X {x} {x} {y} (id {X} x) (f , e0 , e1) (lunit-hom-fill X {x} {y} (f , e0 , e1))) ≡ e0
 lunit-src X {x} {y} f e0 e1 =
-  let P1 : pre-r {spine-2-edge-1} {𝕀} {X} f (λ a . simplex-2-snd (spine→simplex 2 (spine-2-edge-1-incl a))) ≡
-    pre-r {spine-2-edge-1} {𝕀} {X} f (λ a . 𝕀0) =
-    pre-r-path spine-2-edge-1 {𝕀} {X} {λ a . simplex-2-snd (spine→simplex 2 (spine-2-edge-1-incl a))}
+  let P1 : preᵣ {spine-2-edge-1} {𝕀} {X} f (λ a . simplex-2-snd (spine→simplex 2 (spine-2-edge-1-incl a))) ≡
+    preᵣ {spine-2-edge-1} {𝕀} {X} f (λ a . 𝕀0) =
+    preᵣ-path spine-2-edge-1 {𝕀} {X} {λ a . simplex-2-snd (spine→simplex 2 (spine-2-edge-1-incl a))}
       {λ a . 𝕀0} simplex-2-snd-on-edge-1-path f in
   let P2 : (λ a . f 𝕀0) ≡{spine-2-edge-1 →ᵣ X} (λ a . x) = cong {X} {spine-2-edge-1 →ᵣ X} (λ v . λ a . v) e0 in
   let rf : cong (spine-2-cocone-edge-1 {X}) (lunit-coc X {x} {y} (f , e0 , e1)) ≡ trans P1 P2 =
@@ -423,14 +423,14 @@ lunit-src X {x} {y} f e0 e1 =
           (λ a . simplex-2-snd (spine→simplex 2 (spine-2-edge-1-incl a))) (λ a . 𝕀0) simplex-2-snd-on-edge-1)
         spine-2-edge-1-start in
   let L1 : ap-r {simplex 2} {X} {long-edge 𝕀0} {spine→simplex 2 (spine-2-edge-1-incl spine-2-edge-1-start)}
-    long-edge-src (pre-r {simplex 2} {𝕀} {X} f simplex-2-snd) ≡ refl =
+    long-edge-src (preᵣ {simplex 2} {𝕀} {X} f simplex-2-snd) ≡ refl =
     trans (long-edge-src-degen {X} simplex-2-snd f) (ap-r-loop-𝕀 {X} {𝕀0} (cong simplex-2-snd long-edge-src) f) in
   let L2 : ev-r {spine-2-edge-1} {X} spine-2-edge-1-start
     (cong (spine-2-cocone-edge-1 {X}) (lunit-coc X {x} {y} (f , e0 , e1))) ≡ trans refl e0 =
     trans (cong (ev-r {spine-2-edge-1} {X} spine-2-edge-1-start) rf)
       (trans (cong-trans {spine-2-edge-1 →ᵣ X} {X} (λ h . h spine-2-edge-1-start) P1 P2)
         (cong2 {f 𝕀0 ≡ f 𝕀0} {f 𝕀0 ≡ x} {f 𝕀0 ≡ x} (λ α β . trans α β)
-          (trans (ev-r-pre-r-path spine-2-edge-1 {𝕀} {X}
+          (trans (ev-r-preᵣ-path spine-2-edge-1 {𝕀} {X}
                 {λ a . simplex-2-snd (spine→simplex 2 (spine-2-edge-1-incl a))} {λ a . 𝕀0} simplex-2-snd-on-edge-1-path
                 spine-2-edge-1-start f)
             (ap-r-path {𝕀} {X} {𝕀0} {𝕀0} H f))
@@ -441,7 +441,7 @@ lunit-tgt ∷ (X ∷ U) {x y : X} (f : 𝕀 →ᵣ X) (e0 : f 𝕀0 ≡ x) (e1 :
   hom-tgt {X} {x} {y} (fill-hom X {x} {x} {y} (id {X} x) (f , e0 , e1) (lunit-hom-fill X {x} {y} (f , e0 , e1))) ≡ e1
 lunit-tgt X {x} {y} f e0 e1 =
   let rg : cong (spine-2-cocone-edge-2 {X}) (lunit-coc X {x} {y} (f , e0 , e1))
-        ≡ pre-r-path spine-2-edge-2 {𝕀} {X} {λ b . simplex-2-snd (spine→simplex 2 (spine-2-edge-2-incl b))}
+        ≡ preᵣ-path spine-2-edge-2 {𝕀} {X} {λ b . simplex-2-snd (spine→simplex 2 (spine-2-edge-2-incl b))}
           {spine-2-edge-2→𝕀} simplex-2-snd-on-edge-2-path f =
     prod-snd (spine-2-cocone-path-maps X _ _ _ _ _ _ _ _ _) in
   let H ∷ happly {spine-2-edge-2} {λ _ . 𝕀} {λ b . simplex-2-snd (spine→simplex 2 (spine-2-edge-2-incl b))}
@@ -453,12 +453,12 @@ lunit-tgt X {x} {y} f e0 e1 =
           (λ b . simplex-2-snd (spine→simplex 2 (spine-2-edge-2-incl b))) spine-2-edge-2→𝕀 simplex-2-snd-on-edge-2)
         spine-2-edge-2-end in
   let L1 : ap-r {simplex 2} {X} {long-edge 𝕀1} {spine→simplex 2 (spine-2-edge-2-incl spine-2-edge-2-end)}
-    long-edge-tgt (pre-r {simplex 2} {𝕀} {X} f simplex-2-snd) ≡ refl =
+    long-edge-tgt (preᵣ {simplex 2} {𝕀} {X} f simplex-2-snd) ≡ refl =
     trans (long-edge-tgt-degen {X} simplex-2-snd f) (ap-r-loop-𝕀 {X} {𝕀1} (cong simplex-2-snd long-edge-tgt) f) in
   let L2 : ev-r {spine-2-edge-2} {X} spine-2-edge-2-end
     (cong (spine-2-cocone-edge-2 {X}) (lunit-coc X {x} {y} (f , e0 , e1))) ≡ refl =
     trans (cong (ev-r {spine-2-edge-2} {X} spine-2-edge-2-end) rg)
-      (trans (ev-r-pre-r-path spine-2-edge-2 {𝕀} {X}
+      (trans (ev-r-preᵣ-path spine-2-edge-2 {𝕀} {X}
             {λ b . simplex-2-snd (spine→simplex 2 (spine-2-edge-2-incl b))} {spine-2-edge-2→𝕀} simplex-2-snd-on-edge-2-path
             spine-2-edge-2-end f)
         (ap-r-path {𝕀} {X} {𝕀1} {𝕀1} H f)) in

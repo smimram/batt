@@ -49,28 +49,28 @@ right-left-swap f b a = f a b
 left-right-swap ∷ {A B C ∷ U} → (A →ₗ B →ᵣ C) → (B →ᵣ A →ₗ C)
 left-right-swap f b a = f a b
 
--- r-postcomposition: post-r A g f = g ∘ f
-post-r ∷ {A B C ∷ U} → (B → C) → (A →ᵣ B) → (A →ᵣ C)
-post-r g f a = g (f a)
+-- r-postcomposition: postᵣ A g f = g ∘ f
+postᵣ ∷ {A B C ∷ U} → (B → C) → (A →ᵣ B) → (A →ᵣ C)
+postᵣ g f a = g (f a)
 
--- l-postcomposition: post-l A g f = g ∘ f
-post-l ∷ {A B C ∷ U} → (B → C) → (A →ₗ B) → (A →ₗ C)
-post-l g f a = g (f a)
+-- l-postcomposition: postₗ A g f = g ∘ f
+postₗ ∷ {A B C ∷ U} → (B → C) → (A →ₗ B) → (A →ₗ C)
+postₗ g f a = g (f a)
 
--- r-precomposition: pre-r A g f = g ∘ f.
-pre-r ∷ {A B C ∷ U} → (B →ᵣ C) → (A → B) →ᵣ (A →ᵣ C)
-pre-r g f a = g (f a)
+-- r-precomposition: preᵣ A g f = g ∘ f.
+preᵣ ∷ {A B C ∷ U} → (B →ᵣ C) → (A → B) →ᵣ (A →ᵣ C)
+preᵣ g f a = g (f a)
 
--- l-precomposition: pre-l A g f = g ∘ f
-pre-l ∷ {A B C ∷ U} → (B →ₗ C) → (A → B) →ₗ (A →ₗ C)
-pre-l g f a = g (f a)
+-- l-precomposition: preₗ A g f = g ∘ f
+preₗ ∷ {A B C ∷ U} → (B →ₗ C) → (A → B) →ₗ (A →ₗ C)
+preₗ g f a = g (f a)
 
 ---
 --- Conversion
 ---
 
-arr→l ∷ {A B ∷ U} → (A → B) → (A →ₗ B)
-arr→l f a = f a
+arr→arrₗ ∷ {A B ∷ U} → (A → B) → (A →ₗ B)
+arr→arrₗ f a = f a
 
-arr→r ∷ {A B ∷ U} → (A → B) → (A →ᵣ B)
-arr→r f a = f a
+arr→arrᵣ ∷ {A B ∷ U} → (A → B) → (A →ᵣ B)
+arr→arrᵣ f a = f a

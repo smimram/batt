@@ -28,7 +28,7 @@ open import Associativity
 
 hom-map ∷ {X A ∷ U} (p ∷ X → A) {x y : X} → hom X x y → hom A (p x) (p y)
 hom-map {X} {A} p {x} {y} u =
-  (post-r {𝕀} {X} {A} p (hom-cell {X} {x} {y} u) ,
+  (postᵣ {𝕀} {X} {A} p (hom-cell {X} {x} {y} u) ,
    cong p (hom-src {X} {x} {y} u) ,
    cong p (hom-tgt {X} {x} {y} u))
 
@@ -60,7 +60,7 @@ hom-map-comp-simplex ∷
   → pair-stmt X A p sX sA (edges-2 {X} Ψ)
 hom-map-comp-simplex X A p sX sA Ψ =
   trans (cong (hom-map p {Ψ (simplex-2-e01 𝕀0)} {Ψ (simplex-2-e12 𝕀1)}) (comp-simplex-2 X sX Ψ))
-    (sym (comp-simplex-2 A sA (post-r {simplex 2} {X} {A} p Ψ)))
+    (sym (comp-simplex-2 A sA (postᵣ {simplex 2} {X} {A} p Ψ)))
 
 -- for an arbitrary composable pair, by transport along the section of the edges
 hom-map-comp-def ∷
@@ -126,9 +126,9 @@ hom-map-comp-face ∷
   (X A ∷ U) (p ∷ X → A) (sX : is-segal-r X) (sA : is-segal-r A)
   (Ψ : simplex 2 →ᵣ X)
   → face-image X A p sX sA (simplex-2-hom01 {X} Ψ) (simplex-2-hom12 {X} Ψ) (comp-simplex-2 X sX Ψ)
-      ≡ comp-simplex-2 A sA (post-r {simplex 2} {X} {A} p Ψ)
+      ≡ comp-simplex-2 A sA (postᵣ {simplex 2} {X} {A} p Ψ)
 hom-map-comp-face X A p sX sA Ψ =
-  trans-solve (comp-simplex-2 A sA (post-r {simplex 2} {X} {A} p Ψ))
+  trans-solve (comp-simplex-2 A sA (postᵣ {simplex 2} {X} {A} p Ψ))
     (cong (hom-map p {Ψ (simplex-2-e01 𝕀0)} {Ψ (simplex-2-e12 𝕀1)}) (comp-simplex-2 X sX Ψ))
     (sym (hom-map-comp-edges X A p sX sA Ψ))
 
@@ -244,7 +244,7 @@ assoc-coh-simplex ∷
   (Θ : simplex 3 →ᵣ X)
   → assoc-coh-stmt X A p sX sA (simplex-3-hom {X} simplex-3-e01 Θ) (simplex-3-hom {X} simplex-3-e12 Θ) (simplex-3-hom {X} simplex-3-e23 Θ)
 assoc-coh-simplex X A p sX sA Θ =
-  let pΘ : simplex 3 →ᵣ A = post-r {simplex 3} {X} {A} p Θ in
+  let pΘ : simplex 3 →ᵣ A = postᵣ {simplex 3} {X} {A} p Θ in
   let u : hom X (Θ (simplex-3-e01 𝕀0)) (Θ (simplex-3-e01 𝕀1)) = simplex-3-hom {X} simplex-3-e01 Θ in
   let v : hom X (Θ (simplex-3-e12 𝕀0)) (Θ (simplex-3-e12 𝕀1)) = simplex-3-hom {X} simplex-3-e12 Θ in
   let w : hom X (Θ (simplex-3-e23 𝕀0)) (Θ (simplex-3-e23 𝕀1)) = simplex-3-hom {X} simplex-3-e23 Θ in

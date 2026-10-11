@@ -33,13 +33,13 @@ complete-restr-r ∷ (a ∷ List ℕ) (b ∷ List ℕ) (X ∷ U) → (grid a ⨂
 complete-restr-r a b X g =
   -- a crisp name for τ, so that the oplax application shares no free variable with its function
   let t ∷ thick-free-equiv a b → grid a ⨂ grid b = thick-τ a b in
-  pre-r {thick-free-equiv a b} g t
+  preᵣ {thick-free-equiv a b} g t
 
 complete-restr-l ∷ (a ∷ List ℕ) (b ∷ List ℕ) (X ∷ U) → (grid a ⨂ grid b →ₗ X) → (thick-free-equiv a b →ₗ X)
 complete-restr-l a b X g =
   -- a crisp name for τ, so that the lax application shares no free variable with its function
   let t ∷ thick-free-equiv a b → grid a ⨂ grid b = thick-τ a b in
-  pre-l {thick-free-equiv a b} g t
+  preₗ {thick-free-equiv a b} g t
 
 --
 -- The four completeness conditions

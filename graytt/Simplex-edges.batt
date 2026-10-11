@@ -140,28 +140,28 @@ is-equiv-spine-2→spine-3-tail = ((spine-3-tail→spine-2 , spine-2→spine-3-t
 -- hence restricting an oplax map on a piece to its parametrization is an equivalence
 
 restrict-spine-2-edge-1 ∷ {X ∷ U} → (spine-2-edge-1 →ᵣ X) → (𝕀 →ᵣ X)
-restrict-spine-2-edge-1 {X} F = pre-r {𝕀} {spine-2-edge-1} {X} F 𝕀→spine-2-edge-1
+restrict-spine-2-edge-1 {X} F = preᵣ {𝕀} {spine-2-edge-1} {X} F 𝕀→spine-2-edge-1
 
 restrict-spine-2-edge-2 ∷ {X ∷ U} → (spine-2-edge-2 →ᵣ X) → (𝕀 →ᵣ X)
-restrict-spine-2-edge-2 {X} G = pre-r {𝕀} {spine-2-edge-2} {X} G 𝕀→spine-2-edge-2
+restrict-spine-2-edge-2 {X} G = preᵣ {𝕀} {spine-2-edge-2} {X} G 𝕀→spine-2-edge-2
 
 restrict-spine-3-edge-1 ∷ {X ∷ U} → (spine-3-edge-1 →ᵣ X) → (𝕀 →ᵣ X)
-restrict-spine-3-edge-1 {X} F = pre-r {𝕀} {spine-3-edge-1} {X} F 𝕀→spine-3-edge-1
+restrict-spine-3-edge-1 {X} F = preᵣ {𝕀} {spine-3-edge-1} {X} F 𝕀→spine-3-edge-1
 
 restrict-spine-3-tail ∷ {X ∷ U} → (spine-3-tail →ᵣ X) → (spine 2 →ᵣ X)
-restrict-spine-3-tail {X} G = pre-r {spine 2} {spine-3-tail} {X} G spine-2→spine-3-tail
+restrict-spine-3-tail {X} G = preᵣ {spine 2} {spine-3-tail} {X} G spine-2→spine-3-tail
 
 is-equiv-restrict-spine-2-edge-1 ∷ (X ∷ U) → is-equiv (restrict-spine-2-edge-1 {X})
-is-equiv-restrict-spine-2-edge-1 X = pre-r-equiv 𝕀 spine-2-edge-1 𝕀→spine-2-edge-1 is-equiv-𝕀→spine-2-edge-1 X
+is-equiv-restrict-spine-2-edge-1 X = preᵣ-equiv 𝕀 spine-2-edge-1 𝕀→spine-2-edge-1 is-equiv-𝕀→spine-2-edge-1 X
 
 is-equiv-restrict-spine-2-edge-2 ∷ (X ∷ U) → is-equiv (restrict-spine-2-edge-2 {X})
-is-equiv-restrict-spine-2-edge-2 X = pre-r-equiv 𝕀 spine-2-edge-2 𝕀→spine-2-edge-2 is-equiv-𝕀→spine-2-edge-2 X
+is-equiv-restrict-spine-2-edge-2 X = preᵣ-equiv 𝕀 spine-2-edge-2 𝕀→spine-2-edge-2 is-equiv-𝕀→spine-2-edge-2 X
 
 is-equiv-restrict-spine-3-edge-1 ∷ (X ∷ U) → is-equiv (restrict-spine-3-edge-1 {X})
-is-equiv-restrict-spine-3-edge-1 X = pre-r-equiv 𝕀 spine-3-edge-1 𝕀→spine-3-edge-1 is-equiv-𝕀→spine-3-edge-1 X
+is-equiv-restrict-spine-3-edge-1 X = preᵣ-equiv 𝕀 spine-3-edge-1 𝕀→spine-3-edge-1 is-equiv-𝕀→spine-3-edge-1 X
 
 is-equiv-restrict-spine-3-tail ∷ (X ∷ U) → is-equiv (restrict-spine-3-tail {X})
-is-equiv-restrict-spine-3-tail X = pre-r-equiv (spine 2) spine-3-tail spine-2→spine-3-tail is-equiv-spine-2→spine-3-tail X
+is-equiv-restrict-spine-3-tail X = preᵣ-equiv (spine 2) spine-3-tail spine-2→spine-3-tail is-equiv-spine-2→spine-3-tail X
 
 --
 -- Contracting the endpoints of composable pairs and triples
@@ -309,7 +309,7 @@ spine-3-tail-pair-factor {X} G =
     (λ e . (G spine-3-tail-start , G (𝕀→spine-3-tail-edge-2 𝕀0) , G (𝕀→spine-3-tail-edge-2 𝕀1) ,
           ((λ t . G (𝕀→spine-3-tail-edge-1 t)) , refl , e) ,
           ((λ t . G (𝕀→spine-3-tail-edge-2 t)) , refl , refl)))
-    (ap-r-pre-r (spine 2) {spine-3-tail} {X} {spine-2-edge-1-incl spine-2-edge-1-end}
+    (ap-r-preᵣ (spine 2) {spine-3-tail} {X} {spine-2-edge-1-incl spine-2-edge-1-end}
         {spine-2-edge-2-incl spine-2-edge-2-start} spine-2-glue spine-2→spine-3-tail G)
 
 is-equiv-spine-3-tail-pair ∷ {X ∷ U} → is-equiv (spine-3-tail-pair {X})
@@ -369,8 +369,8 @@ edges-2 {X} Ψ =
 -- (the analogue of tri-shape, Associativity.batt)
 pair-shape ∷ {X ∷ U} (Ψ : simplex 2 →ᵣ X) (path-u path-v ∷ 𝕀 → simplex 2) → Ψ (path-u 𝕀1) ≡ Ψ (path-v 𝕀0) → pairs X
 pair-shape {X} Ψ path-u path-v α =
-  (Ψ (path-u 𝕀0) , Ψ (path-v 𝕀0) , Ψ (path-v 𝕀1) , (pre-r {𝕀} {simplex 2} {X} Ψ path-u , refl , α) ,
-      (pre-r {𝕀} {simplex 2} {X} Ψ path-v , refl , refl))
+  (Ψ (path-u 𝕀0) , Ψ (path-v 𝕀0) , Ψ (path-v 𝕀1) , (preᵣ {𝕀} {simplex 2} {X} Ψ path-u , refl , α) ,
+      (preᵣ {𝕀} {simplex 2} {X} Ψ path-v , refl , refl))
 
 -- homotopic shape data give the same pair: by crisp path induction, then the glues are images of
 -- crisp paths in the set Δ²
@@ -404,7 +404,7 @@ spine-restr-edges-2 ∷ {X ∷ U} (Ψ : simplex 2 →ᵣ X) →
 spine-restr-edges-2 {X} Ψ =
   trans (cong {Ψ (spine-2-edge-1-in-simplex 𝕀1) ≡ Ψ (spine-2-edge-2-in-simplex 𝕀0)} {pairs X}
       (λ α . pair-shape {X} Ψ spine-2-edge-1-in-simplex spine-2-edge-2-in-simplex α)
-          (ap-r-pre-r (spine 2) {simplex 2} {X} {spine-2-edge-1-incl spine-2-edge-1-end}
+          (ap-r-preᵣ (spine 2) {simplex 2} {X} {spine-2-edge-1-incl spine-2-edge-1-end}
               {spine-2-edge-2-incl spine-2-edge-2-start} spine-2-glue (spine→simplex 2) Ψ))
     (pair-shape-path {X} Ψ spine-2-edge-1-in-simplex spine-2-edge-1-in-simplex-path spine-2-edge-2-in-simplex
         spine-2-edge-2-in-simplex-path (cong (spine→simplex 2) spine-2-glue) refl)
