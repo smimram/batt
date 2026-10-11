@@ -1,8 +1,8 @@
 unit-ind ∷ (A ∷ ⊤ → U) → A tt → (x : ⊤) → A x
 unit-ind A a tt = a
 
-unit-rec-l ∷ (A ∷ U) → A → ⊤ →ₗ A
-unit-rec-l A a tt = a
+unit-recₗ ∷ (A ∷ U) → A → ⊤ →ₗ A
+unit-recₗ A a tt = a
 
 -- terminal arrow
 terminal ∷ (A : U) → A → ⊤
@@ -23,8 +23,8 @@ terminal-equiv {A} = iso→equiv {A → ⊤} {⊤} (λ _ . tt) (λ _ _ . tt) (λ
 terminal-equiv-r ∷ {A ∷ U} → (A ⇁ ⊤) ≃ ⊤
 terminal-equiv-r {A} = iso→equiv {A ⇁ ⊤} {⊤} (λ _ . tt) (λ _ _ . tt) (λ tt . refl) (λ f . snd _ (snd _ (funextᵣ A ⊤ (λ a . (tt , f a , unit-ind (λ y . tt ≡ y) refl (f a))))))
 
-terminal-equiv-l ∷ {A ∷ U} → (A →ₗ ⊤) ≃ ⊤
-terminal-equiv-l {A} = iso→equiv {A →ₗ ⊤} {⊤} (λ _ . tt) (λ _ _ . tt) (λ tt . refl) (λ f . snd _ (snd _ (funextₗ A ⊤ (λ a . (tt , f a , unit-ind (λ y . tt ≡ y) refl (f a))))))
+terminal-equivₗ ∷ {A ∷ U} → (A →ₗ ⊤) ≃ ⊤
+terminal-equivₗ {A} = iso→equiv {A →ₗ ⊤} {⊤} (λ _ . tt) (λ _ _ . tt) (λ tt . refl) (λ f . snd _ (snd _ (funextₗ A ⊤ (λ a . (tt , f a , unit-ind (λ y . tt ≡ y) refl (f a))))))
 
 ---
 --- The unit type is a proposition
