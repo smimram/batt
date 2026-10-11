@@ -127,7 +127,7 @@ spine-3-tail-glue = cong spine-2→spine-3-tail spine-2-glue
 spine-3-tail-pair ∷ {X ∷ U} → (spine-3-tail →ᵣ X) → pairs X
 spine-3-tail-pair {X} g =
   (g spine-3-tail-start , g (𝕀→spine-3-tail-edge-2 𝕀0) , g (𝕀→spine-3-tail-edge-2 𝕀1) ,
-    ((λ t . g (𝕀→spine-3-tail-edge-1 t)) , refl , apᵣ {spine-3-tail} {X} {𝕀→spine-3-tail-edge-1 𝕀1}
+    ((λ t . g (𝕀→spine-3-tail-edge-1 t)) , refl , congᵣ {spine-3-tail} {X} {𝕀→spine-3-tail-edge-1 𝕀1}
         {𝕀→spine-3-tail-edge-2 𝕀0} spine-3-tail-glue g) ,
     ((λ t . g (𝕀→spine-3-tail-edge-2 t)) , refl , refl))
 
@@ -148,9 +148,9 @@ spine-3-tail-pair-proj {X} Φ =
           (spine-2-edge-2-incl spine-2-edge-2-end) ,
           ((λ t . Φ (spine-2-edge-1-incl (𝕀→spine-2-edge-1 t))) , refl , e) ,
           ((λ t . Φ (spine-2-edge-2-incl (𝕀→spine-2-edge-2 t))) , refl , refl)))
-    (trans (apᵣ-preᵣ spine-3-tail {spine 2} {X} {𝕀→spine-3-tail-edge-1 𝕀1} {𝕀→spine-3-tail-edge-2 𝕀0}
+    (trans (congᵣ-preᵣ spine-3-tail {spine 2} {X} {𝕀→spine-3-tail-edge-1 𝕀1} {𝕀→spine-3-tail-edge-2 𝕀0}
           spine-3-tail-glue spine-3-tail→spine-2 Φ)
-      (apᵣ-set (is-set-spine 2) (cong spine-3-tail→spine-2 spine-3-tail-glue) spine-2-glue Φ))
+      (congᵣ-set (is-set-spine 2) (cong spine-3-tail→spine-2 spine-3-tail-glue) spine-2-glue Φ))
 
 -- every composable triple is the triple of edges of an oplax cocone on the 3-spine
 spine-3-edge-1→𝕀 ∷ spine-3-edge-1 → 𝕀

@@ -309,7 +309,7 @@ spine-3-tail-pair-factor {X} G =
     (λ e . (G spine-3-tail-start , G (𝕀→spine-3-tail-edge-2 𝕀0) , G (𝕀→spine-3-tail-edge-2 𝕀1) ,
           ((λ t . G (𝕀→spine-3-tail-edge-1 t)) , refl , e) ,
           ((λ t . G (𝕀→spine-3-tail-edge-2 t)) , refl , refl)))
-    (apᵣ-preᵣ (spine 2) {spine-3-tail} {X} {spine-2-edge-1-incl spine-2-edge-1-end}
+    (congᵣ-preᵣ (spine 2) {spine-3-tail} {X} {spine-2-edge-1-incl spine-2-edge-1-end}
         {spine-2-edge-2-incl spine-2-edge-2-start} spine-2-glue spine-2→spine-3-tail G)
 
 is-equiv-spine-3-tail-pair ∷ {X ∷ U} → is-equiv (spine-3-tail-pair {X})
@@ -377,11 +377,11 @@ pair-shape {X} Ψ path-u path-v α =
 pair-shape-path ∷ {X ∷ U} (Ψ : simplex 2 →ᵣ X) (path-u ∷ 𝕀 → simplex 2) {path-u' ∷ 𝕀 → simplex 2} (htpy-u ∷ path-u ≡ path-u')
   (path-v ∷ 𝕀 → simplex 2) {path-v' ∷ 𝕀 → simplex 2} (htpy-v ∷ path-v ≡ path-v')
     (glue-uv ∷ path-u 𝕀1 ≡ path-v 𝕀0) (glue-uv' ∷ path-u' 𝕀1 ≡ path-v' 𝕀0) →
-  pair-shape {X} Ψ path-u path-v (apᵣ {simplex 2} {X} glue-uv Ψ) ≡ pair-shape {X} Ψ path-u' path-v'
-    (apᵣ {simplex 2} {X} glue-uv' Ψ)
+  pair-shape {X} Ψ path-u path-v (congᵣ {simplex 2} {X} glue-uv Ψ) ≡ pair-shape {X} Ψ path-u' path-v'
+    (congᵣ {simplex 2} {X} glue-uv' Ψ)
 pair-shape-path {X} Ψ path-u refl path-v refl glue-uv glue-uv' =
   cong {Ψ (path-u 𝕀1) ≡ Ψ (path-v 𝕀0)} {pairs X} (λ α . pair-shape {X} Ψ path-u path-v α)
-    (apᵣ-set (is-set-simplex 1) glue-uv glue-uv' Ψ)
+    (congᵣ-set (is-set-simplex 1) glue-uv glue-uv' Ψ)
 
 -- the edges of the 2-spine, included in the 2-simplex
 spine-2-edge-1-in-simplex ∷ 𝕀 → simplex 2
@@ -404,7 +404,7 @@ spine-restr-edges-2 ∷ {X ∷ U} (Ψ : simplex 2 →ᵣ X) →
 spine-restr-edges-2 {X} Ψ =
   trans (cong {Ψ (spine-2-edge-1-in-simplex 𝕀1) ≡ Ψ (spine-2-edge-2-in-simplex 𝕀0)} {pairs X}
       (λ α . pair-shape {X} Ψ spine-2-edge-1-in-simplex spine-2-edge-2-in-simplex α)
-          (apᵣ-preᵣ (spine 2) {simplex 2} {X} {spine-2-edge-1-incl spine-2-edge-1-end}
+          (congᵣ-preᵣ (spine 2) {simplex 2} {X} {spine-2-edge-1-incl spine-2-edge-1-end}
               {spine-2-edge-2-incl spine-2-edge-2-start} spine-2-glue (spine→simplex 2) Ψ))
     (pair-shape-path {X} Ψ spine-2-edge-1-in-simplex spine-2-edge-1-in-simplex-path spine-2-edge-2-in-simplex
         spine-2-edge-2-in-simplex-path (cong (spine→simplex 2) spine-2-glue) refl)

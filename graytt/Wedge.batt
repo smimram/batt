@@ -74,14 +74,14 @@ wedge-coconeᵣ-glue {A} {B} {a1} {b0} {X} (f , r) = snd {B →ᵣ X} (λ g . f 
 -- a path of oplax cocones from paths of the two maps and a coherence of the glue
 wedge-coconeᵣ-path ∷ {A B ∷ U} (a1 ∷ A) (b0 ∷ B) (X ∷ U) (f : A →ᵣ X) (g : B →ᵣ X) (q : f a1 ≡ g b0)
   (f' : A →ᵣ X) (Pf : f ≡ f') (g' : B →ᵣ X) (Pg : g ≡ g') (q' : f' a1 ≡ g' b0) →
-  trans q (evᵣ {B} {X} b0 {g} {g'} Pg) ≡ trans (evᵣ {A} {X} a1 {f} {f'} Pf) q' →
+  trans q (happlyᵣ {B} {X} b0 {g} {g'} Pg) ≡ trans (happlyᵣ {A} {X} a1 {f} {f'} Pf) q' →
   (f , g , q) ≡{wedge-coconeᵣ a1 b0 X} (f' , g' , q')
 wedge-coconeᵣ-path {A} {B} a1 b0 X f g q f' Pf =
   J f (λ f' Pf . (g' : B →ᵣ X) (Pg : g ≡ g') (q' : f' a1 ≡ g' b0) →
-        trans q (evᵣ {B} {X} b0 {g} {g'} Pg) ≡ trans (evᵣ {A} {X} a1 {f} {f'} Pf) q' →
+        trans q (happlyᵣ {B} {X} b0 {g} {g'} Pg) ≡ trans (happlyᵣ {A} {X} a1 {f} {f'} Pf) q' →
         (f , g , q) ≡{wedge-coconeᵣ a1 b0 X} (f' , g' , q'))
     (λ g' Pg . J g (λ g' Pg . (q' : f a1 ≡ g' b0) →
-        trans q (evᵣ {B} {X} b0 {g} {g'} Pg) ≡ trans (evᵣ {A} {X} a1 {f} {f} refl) q' →
+        trans q (happlyᵣ {B} {X} b0 {g} {g'} Pg) ≡ trans (happlyᵣ {A} {X} a1 {f} {f} refl) q' →
         (f , g , q) ≡{wedge-coconeᵣ a1 b0 X} (f , g' , q'))
       (λ q' θ . cong {f a1 ≡ g b0} {wedge-coconeᵣ a1 b0 X} (λ z . (f , g , z)) (trans θ (trans-refl-l q')))
       Pg)
@@ -90,16 +90,16 @@ wedge-coconeᵣ-path {A} {B} a1 b0 X f g q f' Pf =
 -- on the two maps, that path of cocones is the given pair of paths
 wedge-coconeᵣ-path-maps ∷ {A B ∷ U} (a1 ∷ A) (b0 ∷ B) (X ∷ U) (f : A →ᵣ X) (g : B →ᵣ X) (q : f a1 ≡ g b0)
   (f' : A →ᵣ X) (Pf : f ≡ f') (g' : B →ᵣ X) (Pg : g ≡ g') (q' : f' a1 ≡ g' b0)
-  (θ : trans q (evᵣ {B} {X} b0 {g} {g'} Pg) ≡ trans (evᵣ {A} {X} a1 {f} {f'} Pf) q') →
+  (θ : trans q (happlyᵣ {B} {X} b0 {g} {g'} Pg) ≡ trans (happlyᵣ {A} {X} a1 {f} {f'} Pf) q') →
   (cong (wedge-coconeᵣ-fst {A} {B} {a1} {b0} {X}) (wedge-coconeᵣ-path a1 b0 X f g q f' Pf g' Pg q' θ) ≡ Pf) ×
   (cong (wedge-coconeᵣ-snd {A} {B} {a1} {b0} {X}) (wedge-coconeᵣ-path a1 b0 X f g q f' Pf g' Pg q' θ) ≡ Pg)
 wedge-coconeᵣ-path-maps {A} {B} a1 b0 X f g q f' Pf =
   J f (λ f' Pf . (g' : B →ᵣ X) (Pg : g ≡ g') (q' : f' a1 ≡ g' b0)
-        (θ : trans q (evᵣ {B} {X} b0 {g} {g'} Pg) ≡ trans (evᵣ {A} {X} a1 {f} {f'} Pf) q') →
+        (θ : trans q (happlyᵣ {B} {X} b0 {g} {g'} Pg) ≡ trans (happlyᵣ {A} {X} a1 {f} {f'} Pf) q') →
         (cong (wedge-coconeᵣ-fst {A} {B} {a1} {b0} {X}) (wedge-coconeᵣ-path a1 b0 X f g q f' Pf g' Pg q' θ) ≡ Pf) ×
         (cong (wedge-coconeᵣ-snd {A} {B} {a1} {b0} {X}) (wedge-coconeᵣ-path a1 b0 X f g q f' Pf g' Pg q' θ) ≡ Pg))
     (λ g' Pg . J g (λ g' Pg . (q' : f a1 ≡ g' b0)
-        (θ : trans q (evᵣ {B} {X} b0 {g} {g'} Pg) ≡ trans (evᵣ {A} {X} a1 {f} {f} refl) q') →
+        (θ : trans q (happlyᵣ {B} {X} b0 {g} {g'} Pg) ≡ trans (happlyᵣ {A} {X} a1 {f} {f} refl) q') →
         (cong (wedge-coconeᵣ-fst {A} {B} {a1} {b0} {X}) (wedge-coconeᵣ-path a1 b0 X f g q f refl g' Pg q' θ) ≡ refl) ×
         (cong (wedge-coconeᵣ-snd {A} {B} {a1} {b0} {X}) (wedge-coconeᵣ-path a1 b0 X f g q f refl g' Pg q' θ) ≡ Pg))
       (λ q' θ .
@@ -117,7 +117,7 @@ wedge-coconeᵣ-path-maps {A} {B} a1 b0 X f g q f' Pf =
 wedge→coconeᵣ ∷ {S A B ∷ U} (i ∷ A → S) (j ∷ B → S) (a1 ∷ A) (b0 ∷ B) (γ ∷ i a1 ≡ j b0) (X ∷ U) →
   (S →ᵣ X) → wedge-coconeᵣ a1 b0 X
 wedge→coconeᵣ {S} {A} {B} i j a1 b0 γ X φ =
-  (preᵣ {A} {S} {X} φ i , preᵣ {B} {S} {X} φ j , apᵣ {S} {X} {i a1} {j b0} γ φ)
+  (preᵣ {A} {S} {X} φ i , preᵣ {B} {S} {X} φ j , congᵣ {S} {X} {i a1} {j b0} γ φ)
 
 -- the universal oplax cocone, as a cartesian cocone with values in Q →ₗ X
 wedge-univ-glue-funᵣ ∷ {A B ∷ U} (a1 ∷ A) (b0 ∷ B) (X ∷ U) →
@@ -171,7 +171,7 @@ wedge-cocone-evalᵣ ∷ {A B ∷ U} (a1 ∷ A) (b0 ∷ B) (X ∷ U) (d ∷ wedg
   wedge-coconeᵣ a1 b0 X → wedge-coconeᵣ a1 b0 X
 wedge-cocone-evalᵣ {A} {B} a1 b0 X d w =
   ((λ a . wedge-cocone-fst d a w) , (λ b . wedge-cocone-snd d b w) ,
-   evₗ-at {wedge-coconeᵣ a1 b0 X} {X} {wedge-cocone-fst d a1} {wedge-cocone-snd d b0} (wedge-cocone-glue d) w)
+   happlyₗ-at {wedge-coconeᵣ a1 b0 X} {X} {wedge-cocone-fst d a1} {wedge-cocone-snd d b0} (wedge-cocone-glue d) w)
 
 -- restricting λ s . e s w is evaluating the restriction of e at w
 wedge→coconeᵣ-eval ∷ {S A B ∷ U} (i ∷ A → S) (j ∷ B → S) (a1 ∷ A) (b0 ∷ B) (γ ∷ i a1 ≡ j b0) (X ∷ U)
@@ -181,7 +181,7 @@ wedge→coconeᵣ-eval ∷ {S A B ∷ U} (i ∷ A → S) (j ∷ B → S) (a1 ∷
 wedge→coconeᵣ-eval {S} {A} {B} i j a1 b0 γ X e w =
   cong {e (i a1) w ≡ e (j b0) w} {wedge-coconeᵣ a1 b0 X}
     (λ z . ((λ a . e (i a) w) , (λ b . e (j b) w) , z))
-    (apᵣ-family {S} {wedge-coconeᵣ a1 b0 X} {X} γ e w)
+    (congᵣ-family {S} {wedge-coconeᵣ a1 b0 X} {X} γ e w)
 
 wedge-cocone-evalᵣ-path ∷ {A B ∷ U} (a1 ∷ A) (b0 ∷ B) (X ∷ U) {d d' ∷ wedge-cocone a1 b0 (wedge-coconeᵣ a1 b0 X →ₗ X)}
   (p ∷ d ≡ d') (w : wedge-coconeᵣ a1 b0 X) → wedge-cocone-evalᵣ a1 b0 X d w ≡ wedge-cocone-evalᵣ a1 b0 X d' w
@@ -189,10 +189,10 @@ wedge-cocone-evalᵣ-path {A} {B} a1 b0 X {d} refl w = refl
 
 -- evaluating the universal cocone at w gives back w
 wedge-univ-glue-evᵣ ∷ {A B ∷ U} (a1 ∷ A) (b0 ∷ B) (X ∷ U) (w : wedge-coconeᵣ a1 b0 X) →
-  evₗ-at {wedge-coconeᵣ a1 b0 X} {X} {λ w . wedge-coconeᵣ-fst w a1} {λ w . wedge-coconeᵣ-snd w b0}
+  happlyₗ-at {wedge-coconeᵣ a1 b0 X} {X} {λ w . wedge-coconeᵣ-fst w a1} {λ w . wedge-coconeᵣ-snd w b0}
     (wedge-univ-glueᵣ a1 b0 X) w ≡ wedge-coconeᵣ-glue {A} {B} {a1} {b0} {X} w
 wedge-univ-glue-evᵣ {A} {B} a1 b0 X w =
-  trans (ev-l-at-κ {wedge-coconeᵣ a1 b0 X} {X} {λ w . wedge-coconeᵣ-fst w a1} {λ w . wedge-coconeᵣ-snd w b0}
+  trans (happlyₗ-at-κ {wedge-coconeᵣ a1 b0 X} {X} {λ w . wedge-coconeᵣ-fst w a1} {λ w . wedge-coconeᵣ-snd w b0}
            (wedge-univ-glue-funᵣ a1 b0 X) w)
     (happly {wedge-coconeᵣ a1 b0 X} {λ w . wedge-coconeᵣ-fst w a1 ≡ wedge-coconeᵣ-snd w b0}
        {happly {wedge-coconeᵣ a1 b0 X} {λ _ . X} {λ w . wedge-coconeᵣ-fst w a1} {λ w . wedge-coconeᵣ-snd w b0}
@@ -330,14 +330,14 @@ wedge-coconeₗ-glue {A} {B} {a1} {b0} {X} (f , r) = snd {B →ₗ X} (λ g . f 
 -- a path of lax cocones from paths of the two maps and a coherence of the glue
 wedge-coconeₗ-path ∷ {A B ∷ U} (a1 ∷ A) (b0 ∷ B) (X ∷ U) (f : A →ₗ X) (g : B →ₗ X) (q : f a1 ≡ g b0)
   (f' : A →ₗ X) (Pf : f ≡ f') (g' : B →ₗ X) (Pg : g ≡ g') (q' : f' a1 ≡ g' b0) →
-  trans q (evₗ {B} {X} b0 {g} {g'} Pg) ≡ trans (evₗ {A} {X} a1 {f} {f'} Pf) q' →
+  trans q (happlyₗ {B} {X} b0 {g} {g'} Pg) ≡ trans (happlyₗ {A} {X} a1 {f} {f'} Pf) q' →
   (f , g , q) ≡{wedge-coconeₗ a1 b0 X} (f' , g' , q')
 wedge-coconeₗ-path {A} {B} a1 b0 X f g q f' Pf =
   J f (λ f' Pf . (g' : B →ₗ X) (Pg : g ≡ g') (q' : f' a1 ≡ g' b0) →
-        trans q (evₗ {B} {X} b0 {g} {g'} Pg) ≡ trans (evₗ {A} {X} a1 {f} {f'} Pf) q' →
+        trans q (happlyₗ {B} {X} b0 {g} {g'} Pg) ≡ trans (happlyₗ {A} {X} a1 {f} {f'} Pf) q' →
         (f , g , q) ≡{wedge-coconeₗ a1 b0 X} (f' , g' , q'))
     (λ g' Pg . J g (λ g' Pg . (q' : f a1 ≡ g' b0) →
-        trans q (evₗ {B} {X} b0 {g} {g'} Pg) ≡ trans (evₗ {A} {X} a1 {f} {f} refl) q' →
+        trans q (happlyₗ {B} {X} b0 {g} {g'} Pg) ≡ trans (happlyₗ {A} {X} a1 {f} {f} refl) q' →
         (f , g , q) ≡{wedge-coconeₗ a1 b0 X} (f , g' , q'))
       (λ q' θ . cong {f a1 ≡ g b0} {wedge-coconeₗ a1 b0 X} (λ z . (f , g , z)) (trans θ (trans-refl-l q')))
       Pg)
@@ -347,7 +347,7 @@ wedge-coconeₗ-path {A} {B} a1 b0 X f g q f' Pf =
 wedge→coconeₗ ∷ {S A B ∷ U} (i ∷ A → S) (j ∷ B → S) (a1 ∷ A) (b0 ∷ B) (γ ∷ i a1 ≡ j b0) (X ∷ U) →
   (S →ₗ X) → wedge-coconeₗ a1 b0 X
 wedge→coconeₗ {S} {A} {B} i j a1 b0 γ X φ =
-  (preₗ {A} {S} {X} φ i , preₗ {B} {S} {X} φ j , apₗ {S} {X} {i a1} {j b0} γ φ)
+  (preₗ {A} {S} {X} φ i , preₗ {B} {S} {X} φ j , congₗ {S} {X} {i a1} {j b0} γ φ)
 
 -- the universal lax cocone, as a cartesian cocone with values in Q →ᵣ X
 wedge-univ-glue-funₗ ∷ {A B ∷ U} (a1 ∷ A) (b0 ∷ B) (X ∷ U) →
@@ -401,7 +401,7 @@ wedge-cocone-evalₗ ∷ {A B ∷ U} (a1 ∷ A) (b0 ∷ B) (X ∷ U) (d ∷ wedg
   wedge-coconeₗ a1 b0 X → wedge-coconeₗ a1 b0 X
 wedge-cocone-evalₗ {A} {B} a1 b0 X d w =
   ((λ a . wedge-cocone-fst d a w) , (λ b . wedge-cocone-snd d b w) ,
-   evᵣ-at {wedge-coconeₗ a1 b0 X} {X} {wedge-cocone-fst d a1} {wedge-cocone-snd d b0} (wedge-cocone-glue d) w)
+   happlyᵣ-at {wedge-coconeₗ a1 b0 X} {X} {wedge-cocone-fst d a1} {wedge-cocone-snd d b0} (wedge-cocone-glue d) w)
 
 -- restricting λ s . e s w is evaluating the restriction of e at w
 wedge→coconeₗ-eval ∷ {S A B ∷ U} (i ∷ A → S) (j ∷ B → S) (a1 ∷ A) (b0 ∷ B) (γ ∷ i a1 ≡ j b0) (X ∷ U)
@@ -411,7 +411,7 @@ wedge→coconeₗ-eval ∷ {S A B ∷ U} (i ∷ A → S) (j ∷ B → S) (a1 ∷
 wedge→coconeₗ-eval {S} {A} {B} i j a1 b0 γ X e w =
   cong {e (i a1) w ≡ e (j b0) w} {wedge-coconeₗ a1 b0 X}
     (λ z . ((λ a . e (i a) w) , (λ b . e (j b) w) , z))
-    (apₗ-family {S} {wedge-coconeₗ a1 b0 X} {X} γ e w)
+    (congₗ-family {S} {wedge-coconeₗ a1 b0 X} {X} γ e w)
 
 wedge-cocone-evalₗ-path ∷ {A B ∷ U} (a1 ∷ A) (b0 ∷ B) (X ∷ U) {d d' ∷ wedge-cocone a1 b0 (wedge-coconeₗ a1 b0 X →ᵣ X)}
   (p ∷ d ≡ d') (w : wedge-coconeₗ a1 b0 X) → wedge-cocone-evalₗ a1 b0 X d w ≡ wedge-cocone-evalₗ a1 b0 X d' w
@@ -419,10 +419,10 @@ wedge-cocone-evalₗ-path {A} {B} a1 b0 X {d} refl w = refl
 
 -- evaluating the universal cocone at w gives back w
 wedge-univ-glue-evₗ ∷ {A B ∷ U} (a1 ∷ A) (b0 ∷ B) (X ∷ U) (w : wedge-coconeₗ a1 b0 X) →
-  evᵣ-at {wedge-coconeₗ a1 b0 X} {X} {λ w . wedge-coconeₗ-fst w a1} {λ w . wedge-coconeₗ-snd w b0}
+  happlyᵣ-at {wedge-coconeₗ a1 b0 X} {X} {λ w . wedge-coconeₗ-fst w a1} {λ w . wedge-coconeₗ-snd w b0}
     (wedge-univ-glueₗ a1 b0 X) w ≡ wedge-coconeₗ-glue {A} {B} {a1} {b0} {X} w
 wedge-univ-glue-evₗ {A} {B} a1 b0 X w =
-  trans (ev-r-at-κ {wedge-coconeₗ a1 b0 X} {X} {λ w . wedge-coconeₗ-fst w a1} {λ w . wedge-coconeₗ-snd w b0}
+  trans (happlyᵣ-at-κ {wedge-coconeₗ a1 b0 X} {X} {λ w . wedge-coconeₗ-fst w a1} {λ w . wedge-coconeₗ-snd w b0}
            (wedge-univ-glue-funₗ a1 b0 X) w)
     (happly {wedge-coconeₗ a1 b0 X} {λ w . wedge-coconeₗ-fst w a1 ≡ wedge-coconeₗ-snd w b0}
        {happly {wedge-coconeₗ a1 b0 X} {λ _ . X} {λ w . wedge-coconeₗ-fst w a1} {λ w . wedge-coconeₗ-snd w b0}
