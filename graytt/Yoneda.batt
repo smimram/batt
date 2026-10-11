@@ -19,11 +19,11 @@ open import Covariant
 -- The Yoneda maps
 --
 
-evid ∷ {A ∷ U} (F ∷ A → U) {a : A} → ((x : A) → hom A a x → F x) → F a
+evid ∷ {A ∷ U} (F ∷ A → U) {a : A} → ((x : A) → hom a x → F x) → F a
 evid {A} F {a} φ = φ a (id {A} a)
 
 yon ∷ {A ∷ U} (F ∷ A → U) (sA : is-segal-r A) (sF : is-segal-r (Σ (x : A) . F x)) (c : is-covariant {A} F sA sF)
-  {a : A} → F a → (x : A) → hom A a x → F x
+  {a : A} → F a → (x : A) → hom a x → F x
 yon {A} F sA sF c {a} u x f = push {A} F sA sF c {a} {x} f u
 
 --

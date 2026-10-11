@@ -185,22 +185,22 @@ cells→pair {X} (f , r) =
 -- forgetting the endpoints of a pair of homs
 pair→cells ∷ {X ∷ U} → pairs X → cell-pairs X
 pair→cells {X} (y , a) =
-  let h : (z : X) (b : Σ (t : X) . hom X y z × hom X z t) → cell-pairs X = fun z (t , c) →
-    let k : (c : hom X y z × hom X z t) → cell-pairs X = fun (u , v) →
+  let h : (z : X) (b : Σ (t : X) . hom y z × hom z t) → cell-pairs X = fun z (t , c) →
+    let k : (c : hom y z × hom z t) → cell-pairs X = fun (u , v) →
       (hom-cell {X} {y} {z} u , hom-cell {X} {z} {t} v , trans (hom-tgt {X} {y} {z} u) (sym (hom-src {X} {z} {t} v))) in
     k c in
-  h (fst (λ z . Σ (t : X) . hom X y z × hom X z t) a) (snd (λ z . Σ (t : X) . hom X y z × hom X z t) a)
+  h (fst (λ z . Σ (t : X) . hom y z × hom z t) a) (snd (λ z . Σ (t : X) . hom y z × hom z t) a)
 
 -- the endpoints are contracted by path induction (pair-path-J)
 cells→pair-sec ∷ {X ∷ U} (r : pairs X) → cells→pair {X} (pair→cells {X} r) ≡ r
 cells→pair-sec {X} (y , a) =
-  let h : (z : X) (b : Σ (t : X) . hom X y z × hom X z t) → cells→pair {X} (pair→cells {X} (y , z , b)) ≡
+  let h : (z : X) (b : Σ (t : X) . hom y z × hom z t) → cells→pair {X} (pair→cells {X} (y , z , b)) ≡
     (y , z , b) = fun z (t , c) →
     let m : (g : 𝕀 →ᵣ X) (eg : (g 𝕀0 ≡ y) × (g 𝕀1 ≡ z)) (g' : 𝕀 →ᵣ X) (eh : (g' 𝕀0 ≡ z) × (g' 𝕀1 ≡ t)) →
         cells→pair {X} (pair→cells {X} (y , z , t , (g , eg) , (g' , eh))) ≡ (y , z , t , (g , eg) , (g' , eh)) =
       fun g (e0 , e1) g' (e1' , e2) → pair-path-J {X} g g' {y} e0 {t} e2 {z} e1' e1 in
-    let k : (c : hom X y z × hom X z t) → cells→pair {X} (pair→cells {X} (y , z , t , c)) ≡ (y , z , t , c) = fun (u , v) →
-      let k' : (u : hom X y z) (v : hom X z t) → cells→pair {X} (pair→cells {X} (y , z , t , u , v)) ≡ (y , z , t , u , v) =
+    let k : (c : hom y z × hom z t) → cells→pair {X} (pair→cells {X} (y , z , t , c)) ≡ (y , z , t , c) = fun (u , v) →
+      let k' : (u : hom y z) (v : hom z t) → cells→pair {X} (pair→cells {X} (y , z , t , u , v)) ≡ (y , z , t , u , v) =
         fun (g , eg) (g' , eh) → m g eg g' eh in
       k' u v in
     k c in
@@ -226,22 +226,22 @@ cells→triple {X} (f , a) = cell-pair→triple {X} f (fst (λ r . f 𝕀1 ≡ f
 
 triple→cells ∷ {X ∷ U} → triples X → cell-triples X
 triple→cells {X} (x , a) =
-  let h : (y : X) (b : hom X x y × pair-from X y) → cell-triples X = fun y (u , r) →
+  let h : (y : X) (b : hom x y × pair-from X y) → cell-triples X = fun y (u , r) →
     (hom-cell {X} {x} {y} u , (y , r) , hom-tgt {X} {x} {y} u) in
-  h (fst (λ y . hom X x y × pair-from X y) a) (snd (λ y . hom X x y × pair-from X y) a)
+  h (fst (λ y . hom x y × pair-from X y) a) (snd (λ y . hom x y × pair-from X y) a)
 
 -- the source is contracted by path induction (tri-src-J)
 cells→triple-sec ∷ {X ∷ U} (τ : triples X) → cells→triple {X} (triple→cells {X} τ) ≡ τ
 cells→triple-sec {X} (x , a) =
-  let h : (y : X) (b : hom X x y × pair-from X y) → cells→triple {X} (triple→cells {X} (x , y , b)) ≡
+  let h : (y : X) (b : hom x y × pair-from X y) → cells→triple {X} (triple→cells {X} (x , y , b)) ≡
     (x , y , b) = fun y (u , r) →
-    let k : (u : hom X x y) → cells→triple {X} (triple→cells {X} (x , y , u , r)) ≡ (x , y , u , r) = fun (f , e) →
+    let k : (u : hom x y) → cells→triple {X} (triple→cells {X} (x , y , u , r)) ≡ (x , y , u , r) = fun (f , e) →
       let m : (e : (f 𝕀0 ≡ x) × (f 𝕀1 ≡ y)) → cells→triple {X} (triple→cells {X} (x , y , (f , e) , r)) ≡ (x , y , (f , e) , r) =
         fun (e0 , e1) → tri-src-J {X} f e0 e1 r in
       m e in
     k u in
-  let h0 : (a : Σ (y : X) . hom X x y × pair-from X y) → cells→triple {X} (triple→cells {X} (x , a)) ≡ (x , a) = fun (y , b) →
-    let h1 : (b : hom X x y × pair-from X y) → cells→triple {X} (triple→cells {X} (x , y , b)) ≡ (x , y , b)
+  let h0 : (a : Σ (y : X) . hom x y × pair-from X y) → cells→triple {X} (triple→cells {X} (x , a)) ≡ (x , a) = fun (y , b) →
+    let h1 : (b : hom x y × pair-from X y) → cells→triple {X} (triple→cells {X} (x , y , b)) ≡ (x , y , b)
       = fun (u , r) → h y (u , r) in
     h1 b in
   h0 a

@@ -17,7 +17,7 @@ open import Composable
 -- Edges of a 3-simplex, as homs with refl boundary paths
 --
 
-simplex-3-hom ∷ {X ∷ U} (e ∷ 𝕀 → simplex 3) (Θ : simplex 3 →ᵣ X) → hom X (Θ (e 𝕀0)) (Θ (e 𝕀1))
+simplex-3-hom ∷ {X ∷ U} (e ∷ 𝕀 → simplex 3) (Θ : simplex 3 →ᵣ X) → hom (Θ (e 𝕀0)) (Θ (e 𝕀1))
 simplex-3-hom {X} e Θ = (preᵣ {𝕀} {simplex 3} {X} Θ e , refl , refl)
 
 -- the faces of a 3-simplex
@@ -41,8 +41,8 @@ simplex-3-face {X} d Θ = preᵣ {simplex 2} {simplex 3} {X} Θ d
 -- the associator given by four such paths, for arbitrary homs a, b, c
 assoc-of-faces ∷
   (X ∷ U) (s : is-segal-r X)
-  {x y z t : X} (u : hom X x y) (v : hom X y z) (w : hom X z t)
-  {a : hom X x z} {b : hom X y t} {c : hom X x t}
+  {x y z t : X} (u : hom x y) (v : hom y z) (w : hom z t)
+  {a : hom x z} {b : hom y t} {c : hom x t}
   (c3 : comp-hom-r X s u v ≡ a)
   (c1 : comp-hom-r X s a w ≡ c)
   (c2 : comp-hom-r X s u b ≡ c)
@@ -170,7 +170,7 @@ spine-restr-edges-tri {X} Θ =
 -- Associativity, as a family over composable triples
 --
 
-assoc-stmt ∷ (X ∷ U) (s : is-segal-r X) {x y z t : X} → hom X x y → hom X y z → hom X z t → U
+assoc-stmt ∷ (X ∷ U) (s : is-segal-r X) {x y z t : X} → hom x y → hom y z → hom z t → U
 assoc-stmt X s {x} {y} {z} {t} u v w =
   comp-hom-r X s {x} {z} {t} (comp-hom-r X s {x} {y} {z} u v) w ≡ comp-hom-r X s {x} {y} {t} u (comp-hom-r X s {y} {z} {t} v w)
 
@@ -182,13 +182,13 @@ tri-assoc X s = tri-family X (λ x y z t u v w . assoc-stmt X s {x} {y} {z} {t} 
 --
 
 -- the 3-simplex filling a composable triple
-assoc-filler ∷ (X ∷ U) (s : is-segal-r X) {x y z t : X} (u : hom X x y) (v : hom X y z) (w : hom X z t) → (simplex 3 →ᵣ X)
+assoc-filler ∷ (X ∷ U) (s : is-segal-r X) {x y z t : X} (u : hom x y) (v : hom y z) (w : hom z t) → (simplex 3 →ᵣ X)
 assoc-filler X s {x} {y} {z} {t} u v w =
   section-map (spine-restr-r 3 X) (is-equiv-sec (spine-restr-r 3 X) (is-segal-r-unthick X s 3))
     (cocone→spine-3-r X (tri-section X {x} {y} {z} {t} u v w))
 
 -- its triple of edges is the given triple
-assoc-filler-edges ∷ (X ∷ U) (s : is-segal-r X) {x y z t : X} (u : hom X x y) (v : hom X y z) (w : hom X z t) →
+assoc-filler-edges ∷ (X ∷ U) (s : is-segal-r X) {x y z t : X} (u : hom x y) (v : hom y z) (w : hom z t) →
   edges-tri {X} (assoc-filler X s {x} {y} {z} {t} u v w) ≡ (x , y , u , z , t , v , w)
 assoc-filler-edges X s {x} {y} {z} {t} u v w =
   let Θs : spine 3 →ᵣ X =
@@ -202,22 +202,22 @@ assoc-filler-edges X s {x} {y} {z} {t} u v w =
 
 -- associativity of composition in an oplax-Segal type: the associativity of the 3-simplex
 -- filling the triple, transported along its edges
-comp-hom-r-assoc-def ∷ (X ∷ U) (s : is-segal-r X) {x y z t : X} (u : hom X x y) (v : hom X y z) (w : hom X z t) →
+comp-hom-r-assoc-def ∷ (X ∷ U) (s : is-segal-r X) {x y z t : X} (u : hom x y) (v : hom y z) (w : hom z t) →
   comp-hom-r X s {x} {z} {t} (comp-hom-r X s {x} {y} {z} u v) w ≡ comp-hom-r X s {x} {y} {t} u (comp-hom-r X s {y} {z} {t} v w)
 comp-hom-r-assoc-def X s {x} {y} {z} {t} u v w =
   subst {triples X} (tri-assoc X s) (assoc-filler-edges X s {x} {y} {z} {t} u v w)
     (assoc-simplex-3 X s (assoc-filler X s {x} {y} {z} {t} u v w))
 
 -- frozen, as assoc-simplex-3
-comp-hom-r-assoc-freeze ∷ (X ∷ U) (s : is-segal-r X) {x y z t : X} (u : hom X x y) (v : hom X y z) (w : hom X z t) →
+comp-hom-r-assoc-freeze ∷ (X ∷ U) (s : is-segal-r X) {x y z t : X} (u : hom x y) (v : hom y z) (w : hom z t) →
   Σ (a : comp-hom-r X s {x} {z} {t} (comp-hom-r X s {x} {y} {z} u v) w ≡ comp-hom-r X s {x} {y} {t} u
       (comp-hom-r X s {y} {z} {t} v w)) . a ≡ comp-hom-r-assoc-def X s {x} {y} {z} {t} u v w
 comp-hom-r-assoc-freeze X s {x} {y} {z} {t} u v w = (comp-hom-r-assoc-def X s {x} {y} {z} {t} u v w , refl)
 
-comp-hom-r-assoc ∷ (X ∷ U) (s : is-segal-r X) {x y z t : X} (u : hom X x y) (v : hom X y z) (w : hom X z t) →
+comp-hom-r-assoc ∷ (X ∷ U) (s : is-segal-r X) {x y z t : X} (u : hom x y) (v : hom y z) (w : hom z t) →
   comp-hom-r X s {x} {z} {t} (comp-hom-r X s {x} {y} {z} u v) w ≡ comp-hom-r X s {x} {y} {t} u (comp-hom-r X s {y} {z} {t} v w)
 comp-hom-r-assoc X s {x} {y} {z} {t} u v w = fst _ (comp-hom-r-assoc-freeze X s {x} {y} {z} {t} u v w)
 
-comp-hom-r-assoc-eq ∷ (X ∷ U) (s : is-segal-r X) {x y z t : X} (u : hom X x y) (v : hom X y z) (w : hom X z t) →
+comp-hom-r-assoc-eq ∷ (X ∷ U) (s : is-segal-r X) {x y z t : X} (u : hom x y) (v : hom y z) (w : hom z t) →
   comp-hom-r-assoc X s {x} {y} {z} {t} u v w ≡ comp-hom-r-assoc-def X s {x} {y} {z} {t} u v w
 comp-hom-r-assoc-eq X s {x} {y} {z} {t} u v w = snd _ (comp-hom-r-assoc-freeze X s {x} {y} {z} {t} u v w)

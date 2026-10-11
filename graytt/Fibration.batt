@@ -35,19 +35,19 @@ open import Iso
 --
 
 -- the fibre product hom X x' y ×_{hom A (p x') (p y)} hom A (p x') (p x), over p and (p f) ∘ -
-cart-pb ∷ {X A ∷ U} (sA : is-segal-r A) (p ∷ X → A) {x y : X} (f : hom X x y) (x' : X) → U
+cart-pb ∷ {X A ∷ U} (sA : is-segal-r A) (p ∷ X → A) {x y : X} (f : hom x y) (x' : X) → U
 cart-pb {X} {A} sA p {x} {y} f x' =
-  Σ (h : hom X x' y) . Σ (k : hom A (p x') (p x)) .
+  Σ (h : hom x' y) . Σ (k : hom (p x') (p x)) .
     hom-map {X} {A} p {x'} {y} h ≡ comp-hom-r A sA {p x'} {p x} {p y} k (hom-map {X} {A} p {x} {y} f)
 
 -- the gap map g ↦ (f ∘ g , p g , functoriality of p on (g , f))
-cart-gap ∷ {X A ∷ U} (sX : is-segal-r X) (sA : is-segal-r A) (p ∷ X → A) {x y : X} (f : hom X x y) (x' : X) →
-  hom X x' x → cart-pb {X} {A} sA p {x} {y} f x'
+cart-gap ∷ {X A ∷ U} (sX : is-segal-r X) (sA : is-segal-r A) (p ∷ X → A) {x y : X} (f : hom x y) (x' : X) →
+  hom x' x → cart-pb {X} {A} sA p {x} {y} f x'
 cart-gap {X} {A} sX sA p {x} {y} f x' g =
   (comp-hom-r X sX {x'} {x} {y} g f , hom-map {X} {A} p {x'} {x} g , hom-map-comp X A p sX sA {x'} {x} {y} g f)
 
 -- f is p-cartesian when its gap maps are equivalences
-is-cartesian ∷ {X A ∷ U} (sX : is-segal-r X) (sA : is-segal-r A) (p ∷ X → A) {x y : X} → hom X x y → U
+is-cartesian ∷ {X A ∷ U} (sX : is-segal-r X) (sA : is-segal-r A) (p ∷ X → A) {x y : X} → hom x y → U
 is-cartesian {X} {A} sX sA p {x} {y} f = (x' : X) → is-equiv (cart-gap {X} {A} sX sA p {x} {y} f x')
 
 --
@@ -55,23 +55,23 @@ is-cartesian {X} {A} sX sA p {x} {y} f = (x' : X) → is-equiv (cart-gap {X} {A}
 --
 
 -- the fibre product hom X x y' ×_{hom A (p x) (p y')} hom A (p y) (p y'), over p and - ∘ (p f)
-cocart-pb ∷ {X A ∷ U} (sA : is-segal-r A) (p ∷ X → A) {x y : X} (f : hom X x y) (y' : X) → U
+cocart-pb ∷ {X A ∷ U} (sA : is-segal-r A) (p ∷ X → A) {x y : X} (f : hom x y) (y' : X) → U
 cocart-pb {X} {A} sA p {x} {y} f y' =
-  Σ (h : hom X x y') . Σ (k : hom A (p y) (p y')) .
+  Σ (h : hom x y') . Σ (k : hom (p y) (p y')) .
     hom-map {X} {A} p {x} {y'} h ≡ comp-hom-r A sA {p x} {p y} {p y'} (hom-map {X} {A} p {x} {y} f) k
 
 -- the gap map g ↦ (g ∘ f , p g , functoriality of p on (f , g))
-cocart-gap ∷ {X A ∷ U} (sX : is-segal-r X) (sA : is-segal-r A) (p ∷ X → A) {x y : X} (f : hom X x y) (y' : X) →
-  hom X y y' → cocart-pb {X} {A} sA p {x} {y} f y'
+cocart-gap ∷ {X A ∷ U} (sX : is-segal-r X) (sA : is-segal-r A) (p ∷ X → A) {x y : X} (f : hom x y) (y' : X) →
+  hom y y' → cocart-pb {X} {A} sA p {x} {y} f y'
 cocart-gap {X} {A} sX sA p {x} {y} f y' g =
   (comp-hom-r X sX {x} {y} {y'} f g , hom-map {X} {A} p {y} {y'} g , hom-map-comp X A p sX sA {x} {y} {y'} f g)
 
 -- f is p-cocartesian when its gap maps are equivalences
-is-cocartesian ∷ {X A ∷ U} (sX : is-segal-r X) (sA : is-segal-r A) (p ∷ X → A) {x y : X} → hom X x y → U
+is-cocartesian ∷ {X A ∷ U} (sX : is-segal-r X) (sA : is-segal-r A) (p ∷ X → A) {x y : X} → hom x y → U
 is-cocartesian {X} {A} sX sA p {x} {y} f = (y' : X) → is-equiv (cocart-gap {X} {A} sX sA p {x} {y} f y')
 
 -- being cocartesian is a proposition
-is-prop-is-cocartesian ∷ {X A ∷ U} (sX : is-segal-r X) (sA : is-segal-r A) (p ∷ X → A) {x y : X} (f : hom X x y) →
+is-prop-is-cocartesian ∷ {X A ∷ U} (sX : is-segal-r X) (sA : is-segal-r A) (p ∷ X → A) {x y : X} (f : hom x y) →
   is-prop (is-cocartesian {X} {A} sX sA p {x} {y} f)
 is-prop-is-cocartesian {X} {A} sX sA p {x} {y} f =
   is-prop-Π (λ y' . is-equiv (cocart-gap {X} {A} sX sA p {x} {y} f y'))
@@ -89,7 +89,7 @@ is-prop-is-cocartesian {X} {A} sX sA p {x} {y} f =
 --
 
 -- a 1-cell, as a hom between its endpoints
-cell-hom ∷ {X ∷ U} (f : 𝕀 →ᵣ X) → hom X (f 𝕀0) (f 𝕀1)
+cell-hom ∷ {X ∷ U} (f : 𝕀 →ᵣ X) → hom (f 𝕀0) (f 𝕀1)
 cell-hom {X} f = (f , refl , refl)
 
 -- cartesian 1-cells
@@ -154,24 +154,24 @@ is-contr-fib-sym {A} {B} f e y =
     cong {y ≡ f a} {Σ (a' : A) . y ≡ f a'} (λ q' . (a , q')) (sym-sym q) in
   is-contr-retract s (r , rs) (is-contr-fib f e y)
 
-is-cocartesian-iso ∷ {X A ∷ U} (sX : is-segal-r X) (sA : is-segal-r A) (p ∷ X → A) {x y : X} (f : hom X x y) →
+is-cocartesian-iso ∷ {X A ∷ U} (sX : is-segal-r X) (sA : is-segal-r A) (p ∷ X → A) {x y : X} (f : hom x y) →
   is-iso-hom {X} sX {x} {y} f → is-cocartesian {X} {A} sX sA p {x} {y} f
 is-cocartesian-iso {X} {A} sX sA p {x} {y} f i y' =
-  let pf : hom A (p x) (p y) = hom-map {X} {A} p {x} {y} f in
-  let P : hom X x y' → U = λ h . Σ (k : hom A (p y) (p y')) . hom-map {X} {A} p {x} {y'} h ≡ comp-hom-r A sA {p x} {p y} {p y'} pf k in
-  let π : cocart-pb {X} {A} sA p {x} {y} f y' → hom X x y' = fst P in
+  let pf : hom (p x) (p y) = hom-map {X} {A} p {x} {y} f in
+  let P : hom x y' → U = λ h . Σ (k : hom (p y) (p y')) . hom-map {X} {A} p {x} {y'} h ≡ comp-hom-r A sA {p x} {p y} {p y'} pf k in
+  let π : cocart-pb {X} {A} sA p {x} {y} f y' → hom x y' = fst P in
   let eπ : is-equiv π =
     is-equiv-fst-contr P (λ h . is-contr-fib-sym (λ k . comp-hom-r A sA {p x} {p y} {p y'} pf k)
       (is-equiv-comp-iso-l {A} sA {p x} {p y} pf (is-iso-hom-map {X} {A} sX sA p {x} {y} f i) (p y'))
       (hom-map {X} {A} p {x} {y'} h)) in
   is-equiv-cancel-l π (cocart-gap {X} {A} sX sA p {x} {y} f y') eπ (is-equiv-comp-iso-l {X} sX {x} {y} f i y')
 
-is-cartesian-iso ∷ {X A ∷ U} (sX : is-segal-r X) (sA : is-segal-r A) (p ∷ X → A) {x y : X} (f : hom X x y) →
+is-cartesian-iso ∷ {X A ∷ U} (sX : is-segal-r X) (sA : is-segal-r A) (p ∷ X → A) {x y : X} (f : hom x y) →
   is-iso-hom {X} sX {x} {y} f → is-cartesian {X} {A} sX sA p {x} {y} f
 is-cartesian-iso {X} {A} sX sA p {x} {y} f i x' =
-  let pf : hom A (p x) (p y) = hom-map {X} {A} p {x} {y} f in
-  let P : hom X x' y → U = λ h . Σ (k : hom A (p x') (p x)) . hom-map {X} {A} p {x'} {y} h ≡ comp-hom-r A sA {p x'} {p x} {p y} k pf in
-  let π : cart-pb {X} {A} sA p {x} {y} f x' → hom X x' y = fst P in
+  let pf : hom (p x) (p y) = hom-map {X} {A} p {x} {y} f in
+  let P : hom x' y → U = λ h . Σ (k : hom (p x') (p x)) . hom-map {X} {A} p {x'} {y} h ≡ comp-hom-r A sA {p x'} {p x} {p y} k pf in
+  let π : cart-pb {X} {A} sA p {x} {y} f x' → hom x' y = fst P in
   let eπ : is-equiv π =
     is-equiv-fst-contr P (λ h . is-contr-fib-sym (λ k . comp-hom-r A sA {p x'} {p x} {p y} k pf)
       (is-equiv-comp-iso-r {A} sA {p x} {p y} pf (is-iso-hom-map {X} {A} sX sA p {x} {y} f i) (p x'))
@@ -190,32 +190,32 @@ is-cartesian-iso {X} {A} sX sA p {x} {y} f i x' =
 --
 
 -- the comparison map between the fibre products of g and of comp f g
-cancel-R ∷ {X A ∷ U} (sX : is-segal-r X) (sA : is-segal-r A) (p ∷ X → A) {x y z : X} (f : hom X x y) (g : hom X y z) (z' : X)
-  (k : hom A (p z) (p z')) →
+cancel-R ∷ {X A ∷ U} (sX : is-segal-r X) (sA : is-segal-r A) (p ∷ X → A) {x y z : X} (f : hom x y) (g : hom y z) (z' : X)
+  (k : hom (p z) (p z')) →
   comp-hom-r A sA {p x} {p y} {p z'} (hom-map {X} {A} p {x} {y} f) (comp-hom-r A sA {p y} {p z} {p z'} (hom-map {X} {A} p {y} {z} g) k)
     ≡ comp-hom-r A sA {p x} {p z} {p z'} (hom-map {X} {A} p {x} {z} (comp-hom-r X sX {x} {y} {z} f g)) k
 cancel-R {X} {A} sX sA p {x} {y} {z} f g z' k =
   trans (sym (comp-hom-r-assoc A sA {p x} {p y} {p z} {p z'} (hom-map {X} {A} p {x} {y} f) (hom-map {X} {A} p {y} {z} g) k))
     (sym (cong (λ m . comp-hom-r A sA {p x} {p z} {p z'} m k) (hom-map-comp X A p sX sA {x} {y} {z} f g)))
 
-cancel-Φ ∷ {X A ∷ U} (sX : is-segal-r X) (sA : is-segal-r A) (p ∷ X → A) {x y z : X} (f : hom X x y) (g : hom X y z) (z' : X) →
+cancel-Φ ∷ {X A ∷ U} (sX : is-segal-r X) (sA : is-segal-r A) (p ∷ X → A) {x y z : X} (f : hom x y) (g : hom y z) (z' : X) →
   cocart-pb {X} {A} sA p {y} {z} g z' → cocart-pb {X} {A} sA p {x} {z} (comp-hom-r X sX {x} {y} {z} f g) z'
 cancel-Φ {X} {A} sX sA p {x} {y} {z} f g z' v =
-  let a : hom X x z' → hom A (p x) (p z') = hom-map {X} {A} p {x} {z'} in
-  let b : hom A (p y) (p z') → hom A (p x) (p z') = λ l . comp-hom-r A sA {p x} {p y} {p z'} (hom-map {X} {A} p {x} {y} f) l in
-  let c : hom A (p z) (p z') → hom A (p y) (p z') = λ k . comp-hom-r A sA {p y} {p z} {p z'} (hom-map {X} {A} p {y} {z} g) k in
-  let d : hom A (p z) (p z') → hom A (p x) (p z') =
+  let a : hom x z' → hom (p x) (p z') = hom-map {X} {A} p {x} {z'} in
+  let b : hom (p y) (p z') → hom (p x) (p z') = λ l . comp-hom-r A sA {p x} {p y} {p z'} (hom-map {X} {A} p {x} {y} f) l in
+  let c : hom (p z) (p z') → hom (p y) (p z') = λ k . comp-hom-r A sA {p y} {p z} {p z'} (hom-map {X} {A} p {y} {z} g) k in
+  let d : hom (p z) (p z') → hom (p x) (p z') =
     λ k . comp-hom-r A sA {p x} {p z} {p z'} (hom-map {X} {A} p {x} {z} (comp-hom-r X sX {x} {y} {z} f g)) k in
   pb-paste a b c d (cancel-R {X} {A} sX sA p {x} {y} {z} f g z')
     (Σ-base (cocart-gap {X} {A} sX sA p {x} {y} f z') (pb-Q a b c) v)
 
-is-equiv-cancel-Φ ∷ {X A ∷ U} (sX : is-segal-r X) (sA : is-segal-r A) (p ∷ X → A) {x y z : X} (f : hom X x y) (g : hom X y z) →
+is-equiv-cancel-Φ ∷ {X A ∷ U} (sX : is-segal-r X) (sA : is-segal-r A) (p ∷ X → A) {x y z : X} (f : hom x y) (g : hom y z) →
   is-cocartesian {X} {A} sX sA p {x} {y} f → (z' : X) → is-equiv (cancel-Φ {X} {A} sX sA p {x} {y} {z} f g z')
 is-equiv-cancel-Φ {X} {A} sX sA p {x} {y} {z} f g cf z' =
-  let a : hom X x z' → hom A (p x) (p z') = hom-map {X} {A} p {x} {z'} in
-  let b : hom A (p y) (p z') → hom A (p x) (p z') = λ l . comp-hom-r A sA {p x} {p y} {p z'} (hom-map {X} {A} p {x} {y} f) l in
-  let c : hom A (p z) (p z') → hom A (p y) (p z') = λ k . comp-hom-r A sA {p y} {p z} {p z'} (hom-map {X} {A} p {y} {z} g) k in
-  let d : hom A (p z) (p z') → hom A (p x) (p z') =
+  let a : hom x z' → hom (p x) (p z') = hom-map {X} {A} p {x} {z'} in
+  let b : hom (p y) (p z') → hom (p x) (p z') = λ l . comp-hom-r A sA {p x} {p y} {p z'} (hom-map {X} {A} p {x} {y} f) l in
+  let c : hom (p z) (p z') → hom (p y) (p z') = λ k . comp-hom-r A sA {p y} {p z} {p z'} (hom-map {X} {A} p {y} {z} g) k in
+  let d : hom (p z) (p z') → hom (p x) (p z') =
     λ k . comp-hom-r A sA {p x} {p z} {p z'} (hom-map {X} {A} p {x} {z} (comp-hom-r X sX {x} {y} {z} f g)) k in
   is-equiv-circ (pb-paste a b c d (cancel-R {X} {A} sX sA p {x} {y} {z} f g z'))
     (Σ-base (cocart-gap {X} {A} sX sA p {x} {y} f z') (pb-Q a b c))
@@ -224,12 +224,12 @@ is-equiv-cancel-Φ {X} {A} sX sA p {x} {y} {z} f g cf z' =
 
 -- Φ sends the gap map of g to the gap map of comp f g
 cancel-Φ-gap ∷ {X A ∷ U} (sX : is-segal-r X) (sA : is-segal-r A) (p ∷ X → A)
-  {x y z : X} (f : hom X x y) (g : hom X y z) (z' : X) (w : hom X z z') →
+  {x y z : X} (f : hom x y) (g : hom y z) (z' : X) (w : hom z z') →
   cancel-Φ {X} {A} sX sA p {x} {y} {z} f g z' (cocart-gap {X} {A} sX sA p {y} {z} g z' w)
     ≡ cocart-gap {X} {A} sX sA p {x} {z} (comp-hom-r X sX {x} {y} {z} f g) z' w
 cancel-Φ-gap {X} {A} sX sA p {x} {y} {z} f g z' w =
-  let a : hom X x z' → hom A (p x) (p z') = hom-map {X} {A} p {x} {z'} in
-  let d : hom A (p z) (p z') → hom A (p x) (p z') =
+  let a : hom x z' → hom (p x) (p z') = hom-map {X} {A} p {x} {z'} in
+  let d : hom (p z) (p z') → hom (p x) (p z') =
     λ k . comp-hom-r A sA {p x} {p z} {p z'} (hom-map {X} {A} p {x} {z} (comp-hom-r X sX {x} {y} {z} f g)) k in
   let α : comp-hom-r X sX {x} {z} {z'} (comp-hom-r X sX {x} {y} {z} f g) w ≡ comp-hom-r X sX {x} {y} {z'} f (comp-hom-r X sX {y} {z} {z'} g w) =
     comp-hom-r-assoc X sX {x} {y} {z} {z'} f g w in
@@ -246,7 +246,7 @@ is-cocartesian-cancel ∷
   (sX : is-segal-r X)
   (sA : is-segal-r A)
   (p ∷ X → A)
-  → {x y z : X} (f : hom X x y) (g : hom X y z) 
+  → {x y z : X} (f : hom x y) (g : hom y z) 
   → is-cocartesian {X} {A} sX sA p {x} {y} f
   → (is-cocartesian {X} {A} sX sA p {y} {z} g 
       → is-cocartesian {X} {A} sX sA p {x} {z} (comp-hom-r X sX {x} {y} {z} f g))
@@ -255,16 +255,16 @@ is-cocartesian-cancel ∷
 is-cocartesian-cancel {X} {A} sX sA p {x} {y} {z} f g cf =
   let Φ : (z' : X) → cocart-pb {X} {A} sA p {y} {z} g z' → cocart-pb {X} {A} sA p {x} {z} (comp-hom-r X sX {x} {y} {z} f g) z' =
     cancel-Φ {X} {A} sX sA p {x} {y} {z} f g in
-  let gg : (z' : X) → hom X z z' → cocart-pb {X} {A} sA p {y} {z} g z' = cocart-gap {X} {A} sX sA p {y} {z} g in
-  let gfg : (z' : X) → hom X z z' → cocart-pb {X} {A} sA p {x} {z} (comp-hom-r X sX {x} {y} {z} f g) z' =
+  let gg : (z' : X) → hom z z' → cocart-pb {X} {A} sA p {y} {z} g z' = cocart-gap {X} {A} sX sA p {y} {z} g in
+  let gfg : (z' : X) → hom z z' → cocart-pb {X} {A} sA p {x} {z} (comp-hom-r X sX {x} {y} {z} f g) z' =
     cocart-gap {X} {A} sX sA p {x} {z} (comp-hom-r X sX {x} {y} {z} f g) in
   ((λ cg z' .
-    is-equiv-htpy {hom X z z'} {cocart-pb {X} {A} sA p {x} {z} (comp-hom-r X sX {x} {y} {z} f g) z'} {Φ z' ∘ gg z'} {gfg z'}
+    is-equiv-htpy {hom z z'} {cocart-pb {X} {A} sA p {x} {z} (comp-hom-r X sX {x} {y} {z} f g) z'} {Φ z' ∘ gg z'} {gfg z'}
       (cancel-Φ-gap {X} {A} sX sA p {x} {y} {z} f g z')
       (is-equiv-circ (Φ z') (gg z') (is-equiv-cancel-Φ {X} {A} sX sA p {x} {y} {z} f g cf z') (cg z'))) ,
   (λ cgf z' .
     is-equiv-cancel-l (Φ z') (gg z') (is-equiv-cancel-Φ {X} {A} sX sA p {x} {y} {z} f g cf z')
-      (is-equiv-htpy {hom X z z'} {cocart-pb {X} {A} sA p {x} {z} (comp-hom-r X sX {x} {y} {z} f g) z'} {gfg z'} {Φ z' ∘ gg z'}
+      (is-equiv-htpy {hom z z'} {cocart-pb {X} {A} sA p {x} {z} (comp-hom-r X sX {x} {y} {z} f g) z'} {gfg z'} {Φ z' ∘ gg z'}
         (λ w . sym (cancel-Φ-gap {X} {A} sX sA p {x} {y} {z} f g z' w))
         (cgf z'))))
 
@@ -278,7 +278,7 @@ is-cocartesian-cancel {X} {A} sX sA p {x} {y} {z} f g cf =
 is-cocartesian-map ∷ {A ∷ U} (F G ∷ A → U) (sA : is-segal-r A)
   (sF : is-segal-r (Σ (x : A) . F x)) (sG : is-segal-r (Σ (x : A) . G x)) (φ ∷ (x : A) → F x → G x) → U
 is-cocartesian-map {A} F G sA sF sG φ =
-  {u v : Σ (x : A) . F x} (f : hom (Σ (x : A) . F x) u v) →
+  {u v : Σ (x : A) . F x} (f : hom u v) →
   is-cocartesian {Σ (x : A) . F x} {A} sF sA (fst F) {u} {v} f →
   is-cocartesian {Σ (x : A) . G x} {A} sG sA (fst G)
     {tot {A} {F} {G} φ u} {tot {A} {F} {G} φ v} (hom-map {Σ (x : A) . F x} {Σ (x : A) . G x} (tot {A} {F} {G} φ) {u} {v} f)
@@ -291,11 +291,11 @@ is-prop-is-cocartesian-map {A} F G sA sF sG φ =
   let S ∷ U = Σ (x : A) . F x in
   let T ∷ U = Σ (x : A) . G x in
   let Φ ∷ S → T = tot {A} {F} {G} φ in
-  let C : {u v : S} → hom S u v → U = λ {u} {v} f . is-cocartesian {S} {A} sF sA (fst F) {u} {v} f in
-  let D : {u v : S} → hom S u v → U = λ {u} {v} f .
+  let C : {u v : S} → hom u v → U = λ {u} {v} f . is-cocartesian {S} {A} sF sA (fst F) {u} {v} f in
+  let D : {u v : S} → hom u v → U = λ {u} {v} f .
     is-cocartesian {T} {A} sG sA (fst G) {Φ u} {Φ v} (hom-map {S} {T} Φ {u} {v} f) in
-  is-prop-Π-impl (λ u . {v : S} (f : hom S u v) → C {u} {v} f → D {u} {v} f) (λ u .
-    is-prop-Π-impl (λ v . (f : hom S u v) → C {u} {v} f → D {u} {v} f) (λ v .
+  is-prop-Π-impl (λ u . {v : S} (f : hom u v) → C {u} {v} f → D {u} {v} f) (λ u .
+    is-prop-Π-impl (λ v . (f : hom u v) → C {u} {v} f → D {u} {v} f) (λ v .
       is-prop-Π (λ f . C {u} {v} f → D {u} {v} f) (λ f .
         is-prop-Π (λ _ . D {u} {v} f) (λ _ .
           is-prop-is-cocartesian {T} {A} sG sA (fst G) {Φ u} {Φ v} (hom-map {S} {T} Φ {u} {v} f)))))

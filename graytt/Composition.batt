@@ -148,7 +148,7 @@ spine-2-edge-2→𝕀 ∷ spine-2-edge-2 → 𝕀
 spine-2-edge-2→𝕀 (c , b) = cube-2-x2 c
 
 -- the oplax cocone formed by two consecutive homs
-homs→spine-2-cocone ∷ {X ∷ U} {x y z : X} → hom X x y → hom X y z → spine-2-cocone-r X
+homs→spine-2-cocone ∷ {X ∷ U} {x y z : X} → hom x y → hom y z → spine-2-cocone-r X
 homs→spine-2-cocone {X} {x} {y} {z} u v =
   let ca ∷ spine-2-edge-1 → 𝕀 = spine-2-edge-1→𝕀 in
   let cb ∷ spine-2-edge-2 → 𝕀 = spine-2-edge-2→𝕀 in
@@ -157,7 +157,7 @@ homs→spine-2-cocone {X} {x} {y} {z} u v =
    trans (hom-tgt {X} {x} {y} u) (sym (hom-src {X} {y} {z} v)))
 
 -- the composable pair they define
-homs→spine-2 ∷ (X ∷ U) {x y z : X} → hom X x y → hom X y z → (spine 2 →ᵣ X)
+homs→spine-2 ∷ (X ∷ U) {x y z : X} → hom x y → hom y z → (spine 2 →ᵣ X)
 homs→spine-2 X {x} {y} {z} u v = cocone→spine-2-r X (homs→spine-2-cocone {X} {x} {y} {z} u v)
 
 -- restriction of a 2-simplex to an oplax cocone on the two edges of the spine
@@ -170,10 +170,10 @@ is-equiv-simplex-2→cocone-r X s =
     (spine-oplax-up X) (is-segal-r-unthick X s 2)
 
 -- fillers of the pair (u , v)
-hom-fill ∷ (X ∷ U) {x y z : X} → hom X x y → hom X y z → U
+hom-fill ∷ (X ∷ U) {x y z : X} → hom x y → hom y z → U
 hom-fill X {x} {y} {z} u v = fib (simplex-2→cocone-r X) (homs→spine-2-cocone {X} {x} {y} {z} u v)
 
-is-contr-hom-fill ∷ (X ∷ U) (s : is-segal-r X) {x y z : X} (u : hom X x y) (v : hom X y z) →
+is-contr-hom-fill ∷ (X ∷ U) (s : is-segal-r X) {x y z : X} (u : hom x y) (v : hom y z) →
   is-contr (hom-fill X {x} {y} {z} u v)
 is-contr-hom-fill X s {x} {y} {z} u v =
   is-contr-fib (simplex-2→cocone-r X) (is-equiv-simplex-2→cocone-r X s) (homs→spine-2-cocone {X} {x} {y} {z} u v)
@@ -191,7 +191,7 @@ long-edge-tgt =
 
 -- the hom given by a filler: its cell is the long edge, its boundary is read off at the outer
 -- vertices of the spine
-fill-hom ∷ (X ∷ U) {x y z : X} (u : hom X x y) (v : hom X y z) → hom-fill X {x} {y} {z} u v → hom X x z
+fill-hom ∷ (X ∷ U) {x y z : X} (u : hom x y) (v : hom y z) → hom-fill X {x} {y} {z} u v → hom x z
 fill-hom X {x} {y} {z} u v (Ψ , P) =
   let δ ∷ 𝕀 → simplex 2 = long-edge in
   (preᵣ {𝕀} {simplex 2} {X} Ψ δ ,
@@ -201,7 +201,7 @@ fill-hom X {x} {y} {z} u v (Ψ , P) =
      (trans (ev-r {spine-2-edge-2} {X} spine-2-edge-2-end (cong (spine-2-cocone-edge-2 {X}) P)) (hom-tgt {X} {y} {z} v)))
 
 -- the canonical filler: the Segal filler of the composable pair homs→spine-2
-comp-fill ∷ (X ∷ U) (s : is-segal-r X) {x y z : X} (u : hom X x y) (v : hom X y z) → hom-fill X {x} {y} {z} u v
+comp-fill ∷ (X ∷ U) (s : is-segal-r X) {x y z : X} (u : hom x y) (v : hom y z) → hom-fill X {x} {y} {z} u v
 comp-fill X s {x} {y} {z} u v =
   (comp-filler-r X s (homs→spine-2 X {x} {y} {z} u v) ,
    trans (cong {spine 2 →ᵣ X} {spine-2-cocone-r X} (spine-2→cocone-r X)
@@ -209,15 +209,15 @@ comp-fill X s {x} {y} {z} u v =
      (spine-2→cocone-r-sec X (homs→spine-2-cocone {X} {x} {y} {z} u v)))
 
 -- composition of 1-cells of an oplax-Segal type; its cell is comp-r X s (homs→spine-2 X u v)
-comp-hom-r ∷ (X ∷ U) → is-segal-r X → {x y z : X} → hom X x y → hom X y z → hom X x z
+comp-hom-r ∷ (X ∷ U) → is-segal-r X → {x y z : X} → hom x y → hom y z → hom x z
 comp-hom-r X s {x} {y} {z} u v = fill-hom X {x} {y} {z} u v (comp-fill X s {x} {y} {z} u v)
 
 -- any two fillers give the same hom
-fill-hom-unique ∷ (X ∷ U) (s : is-segal-r X) {x y z : X} (u : hom X x y) (v : hom X y z)
+fill-hom-unique ∷ (X ∷ U) (s : is-segal-r X) {x y z : X} (u : hom x y) (v : hom y z)
   (F : hom-fill X {x} {y} {z} u v) →
   comp-hom-r X s {x} {y} {z} u v ≡ fill-hom X {x} {y} {z} u v F
 fill-hom-unique X s {x} {y} {z} u v F =
-  cong {hom-fill X {x} {y} {z} u v} {hom X x z} (fill-hom X {x} {y} {z} u v)
+  cong {hom-fill X {x} {y} {z} u v} {hom x z} (fill-hom X {x} {y} {z} u v)
     (is-contr-eq (is-contr-hom-fill X s {x} {y} {z} u v) (comp-fill X s {x} {y} {z} u v) F)
 
 --
@@ -229,17 +229,17 @@ fill-hom-unique X s {x} {y} {z} u v F =
 -- pair is the hom read off Ψ, which is its long edge (comp-simplex-2).
 --
 
-simplex-2-hom01 ∷ {X ∷ U} (Ψ : simplex 2 →ᵣ X) → hom X (Ψ (simplex-2-e01 𝕀0)) (Ψ (simplex-2-e01 𝕀1))
+simplex-2-hom01 ∷ {X ∷ U} (Ψ : simplex 2 →ᵣ X) → hom (Ψ (simplex-2-e01 𝕀0)) (Ψ (simplex-2-e01 𝕀1))
 simplex-2-hom01 {X} Ψ =
   let e ∷ 𝕀 → simplex 2 = simplex-2-e01 in
   (preᵣ {𝕀} {simplex 2} {X} Ψ e , refl , refl)
 
-simplex-2-hom12 ∷ {X ∷ U} (Ψ : simplex 2 →ᵣ X) → hom X (Ψ (simplex-2-e12 𝕀0)) (Ψ (simplex-2-e12 𝕀1))
+simplex-2-hom12 ∷ {X ∷ U} (Ψ : simplex 2 →ᵣ X) → hom (Ψ (simplex-2-e12 𝕀0)) (Ψ (simplex-2-e12 𝕀1))
 simplex-2-hom12 {X} Ψ =
   let e ∷ 𝕀 → simplex 2 = simplex-2-e12 in
   (preᵣ {𝕀} {simplex 2} {X} Ψ e , refl , refl)
 
-simplex-2-hom02 ∷ {X ∷ U} (Ψ : simplex 2 →ᵣ X) → hom X (Ψ (long-edge 𝕀0)) (Ψ (long-edge 𝕀1))
+simplex-2-hom02 ∷ {X ∷ U} (Ψ : simplex 2 →ᵣ X) → hom (Ψ (long-edge 𝕀0)) (Ψ (long-edge 𝕀1))
 simplex-2-hom02 {X} Ψ =
   let e ∷ 𝕀 → simplex 2 = long-edge in
   (preᵣ {𝕀} {simplex 2} {X} Ψ e , refl , refl)
@@ -366,7 +366,7 @@ fill-hom-simplex-2 {X} Ψ =
         (ap-r-set (is-set-simplex 1) (trans long-edge-tgt
               (happly {spine-2-edge-2} {λ _ . simplex 2} PB spine-2-edge-2-end)) refl Ψ)) in
   cong {(Ψ (long-edge 𝕀0) ≡ Ψ (long-edge 𝕀0)) × (Ψ (long-edge 𝕀1) ≡ Ψ (long-edge 𝕀1))}
-    {hom X (Ψ (long-edge 𝕀0)) (Ψ (long-edge 𝕀1))}
+    {hom (Ψ (long-edge 𝕀0)) (Ψ (long-edge 𝕀1))}
     (λ w . (preᵣ {𝕀} {simplex 2} {X} Ψ long-edge , w))
     (cong2 {Ψ (long-edge 𝕀0) ≡ Ψ (long-edge 𝕀0)} {Ψ (long-edge 𝕀1) ≡ Ψ (long-edge 𝕀1)}
         {(Ψ (long-edge 𝕀0) ≡ Ψ (long-edge 𝕀0)) × (Ψ (long-edge 𝕀1) ≡ Ψ (long-edge 𝕀1))}

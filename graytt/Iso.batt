@@ -21,9 +21,9 @@ open import Associativity
 open import Functoriality
 
 -- two-sided inverses
-is-iso-hom ∷ {X ∷ U} (s : is-segal-r X) {x y : X} (f : hom X x y) → U
+is-iso-hom ∷ {X ∷ U} (s : is-segal-r X) {x y : X} (f : hom x y) → U
 is-iso-hom {X} s {x} {y} f =
-  Σ (g : hom X y x) . (comp-hom-r X s {x} {y} {x} f g ≡ Hom.id {X} x) × (comp-hom-r X s {y} {x} {y} g f ≡ Hom.id {X} y)
+  Σ (g : hom y x) . (comp-hom-r X s {x} {y} {x} f g ≡ Hom.id {X} x) × (comp-hom-r X s {y} {x} {y} g f ≡ Hom.id {X} y)
 
 -- identities are isomorphisms
 is-iso-id ∷ {X ∷ U} (s : is-segal-r X) (x : X) → is-iso-hom {X} s {x} {x} (Hom.id {X} x)
@@ -33,32 +33,32 @@ is-iso-id {X} s x = (Hom.id {X} x , comp-hom-r-lunit X s {x} {x} (Hom.id {X} x) 
 -- Composition with an isomorphism is an equivalence
 --
 
-is-equiv-comp-iso-l ∷ {X ∷ U} (s : is-segal-r X) {x y : X} (f : hom X x y) → is-iso-hom {X} s {x} {y} f → (y' : X) →
+is-equiv-comp-iso-l ∷ {X ∷ U} (s : is-segal-r X) {x y : X} (f : hom x y) → is-iso-hom {X} s {x} {y} f → (y' : X) →
   is-equiv (λ g . comp-hom-r X s {x} {y} {y'} f g)
 is-equiv-comp-iso-l {X} s {x} {y} f (g , e) y' =
   let fg : comp-hom-r X s {x} {y} {x} f g ≡ Hom.id {X} x = prod-fst e in
   let gf : comp-hom-r X s {y} {x} {y} g f ≡ Hom.id {X} y = prod-snd e in
-  let inv : hom X x y' → hom X y y' = λ h . comp-hom-r X s {y} {x} {y'} g h in
-  let sec : (h : hom X x y') → comp-hom-r X s {x} {y} {y'} f (inv h) ≡ h = λ h .
+  let inv : hom x y' → hom y y' = λ h . comp-hom-r X s {y} {x} {y'} g h in
+  let sec : (h : hom x y') → comp-hom-r X s {x} {y} {y'} f (inv h) ≡ h = λ h .
     trans (sym (comp-hom-r-assoc X s {x} {y} {x} {y'} f g h))
-      (trans (cong {hom X x x} {hom X x y'} (λ k . comp-hom-r X s {x} {x} {y'} k h) fg) (comp-hom-r-lunit X s {x} {y'} h)) in
-  let ret : (k : hom X y y') → inv (comp-hom-r X s {x} {y} {y'} f k) ≡ k = λ k .
+      (trans (cong {hom x x} {hom x y'} (λ k . comp-hom-r X s {x} {x} {y'} k h) fg) (comp-hom-r-lunit X s {x} {y'} h)) in
+  let ret : (k : hom y y') → inv (comp-hom-r X s {x} {y} {y'} f k) ≡ k = λ k .
     trans (sym (comp-hom-r-assoc X s {y} {x} {y} {y'} g f k))
-      (trans (cong {hom X y y} {hom X y y'} (λ l . comp-hom-r X s {y} {y} {y'} l k) gf) (comp-hom-r-lunit X s {y} {y'} k)) in
+      (trans (cong {hom y y} {hom y y'} (λ l . comp-hom-r X s {y} {y} {y'} l k) gf) (comp-hom-r-lunit X s {y} {y'} k)) in
   ((inv , sec) , (inv , ret))
 
-is-equiv-comp-iso-r ∷ {X ∷ U} (s : is-segal-r X) {x y : X} (f : hom X x y) → is-iso-hom {X} s {x} {y} f → (x' : X) →
+is-equiv-comp-iso-r ∷ {X ∷ U} (s : is-segal-r X) {x y : X} (f : hom x y) → is-iso-hom {X} s {x} {y} f → (x' : X) →
   is-equiv (λ g . comp-hom-r X s {x'} {x} {y} g f)
 is-equiv-comp-iso-r {X} s {x} {y} f (g , e) x' =
   let fg : comp-hom-r X s {x} {y} {x} f g ≡ Hom.id {X} x = prod-fst e in
   let gf : comp-hom-r X s {y} {x} {y} g f ≡ Hom.id {X} y = prod-snd e in
-  let inv : hom X x' y → hom X x' x = λ h . comp-hom-r X s {x'} {y} {x} h g in
-  let sec : (h : hom X x' y) → comp-hom-r X s {x'} {x} {y} (inv h) f ≡ h = λ h .
+  let inv : hom x' y → hom x' x = λ h . comp-hom-r X s {x'} {y} {x} h g in
+  let sec : (h : hom x' y) → comp-hom-r X s {x'} {x} {y} (inv h) f ≡ h = λ h .
     trans (comp-hom-r-assoc X s {x'} {y} {x} {y} h g f)
-      (trans (cong {hom X y y} {hom X x' y} (λ k . comp-hom-r X s {x'} {y} {y} h k) gf) (comp-hom-r-runit X s {x'} {y} h)) in
-  let ret : (k : hom X x' x) → inv (comp-hom-r X s {x'} {x} {y} k f) ≡ k = λ k .
+      (trans (cong {hom y y} {hom x' y} (λ k . comp-hom-r X s {x'} {y} {y} h k) gf) (comp-hom-r-runit X s {x'} {y} h)) in
+  let ret : (k : hom x' x) → inv (comp-hom-r X s {x'} {x} {y} k f) ≡ k = λ k .
     trans (comp-hom-r-assoc X s {x'} {x} {y} {x} k f g)
-      (trans (cong {hom X x x} {hom X x' x} (λ l . comp-hom-r X s {x'} {x} {x} k l) fg) (comp-hom-r-runit X s {x'} {x} k)) in
+      (trans (cong {hom x x} {hom x' x} (λ l . comp-hom-r X s {x'} {x} {x} k l) fg) (comp-hom-r-runit X s {x'} {x} k)) in
   ((inv , sec) , (inv , ret))
 
 --
@@ -69,7 +69,7 @@ is-equiv-comp-iso-r {X} s {x} {y} f (g , e) x' =
 hom-map-id ∷ {X A ∷ U} (p ∷ X → A) (x : X) → hom-map {X} {A} p {x} {x} (Hom.id {X} x) ≡ Hom.id {A} (p x)
 hom-map-id {X} {A} p x = refl
 
-is-iso-hom-map ∷ {X A ∷ U} (sX : is-segal-r X) (sA : is-segal-r A) (p ∷ X → A) {x y : X} (f : hom X x y) →
+is-iso-hom-map ∷ {X A ∷ U} (sX : is-segal-r X) (sA : is-segal-r A) (p ∷ X → A) {x y : X} (f : hom x y) →
   is-iso-hom {X} sX {x} {y} f → is-iso-hom {A} sA {p x} {p y} (hom-map {X} {A} p {x} {y} f)
 is-iso-hom-map {X} {A} sX sA p {x} {y} f (g , e) =
   let fg : comp-hom-r X sX {x} {y} {x} f g ≡ Hom.id {X} x = prod-fst e in

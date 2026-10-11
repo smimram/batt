@@ -154,7 +154,7 @@ degen-r-glue-snd X u =
 --
 
 -- on cocones: the first edge is u, the second edge is constant at u 1 ≡ y, the glue is trivial
-runit-coc ∷ (X ∷ U) {x y : X} (u : hom X x y) →
+runit-coc ∷ (X ∷ U) {x y : X} (u : hom x y) →
   spine-2→cocone-r X (degen-r X simplex-2-fst (hom-cell {X} {x} {y} u)) ≡ homs→spine-2-cocone {X} {x} {y} {y} u (id {X} y)
 runit-coc X {x} {y} u =
   spine-2-cocone-path X
@@ -201,14 +201,14 @@ runit-coc X {x} {y} u =
               simplex-2-fst-on-edge-1-vertex (hom-cell {X} {x} {y} u)))))))
 
 -- hence the degenerate simplex restricts to the composable pair (u , id y)
-runit-fill ∷ (X ∷ U) {x y : X} (u : hom X x y) →
+runit-fill ∷ (X ∷ U) {x y : X} (u : hom x y) →
   degen-r X simplex-2-fst (hom-cell {X} {x} {y} u) ≡ homs→spine-2 X {x} {y} {y} u (id {X} y)
 runit-fill X {x} {y} u =
   trans (sym (spine-2→cocone-r-retr X (degen-r X simplex-2-fst (hom-cell {X} {x} {y} u))))
     (cong {spine-2-cocone-r X} {spine 2 →ᵣ X} (cocone→spine-2-r X) (runit-coc X {x} {y} u))
 
 -- right unitality: the composite of u and id y is u
-comp-hom-r-runit-cell ∷ (X ∷ U) (s : is-segal-r X) {x y : X} (u : hom X x y) →
+comp-hom-r-runit-cell ∷ (X ∷ U) (s : is-segal-r X) {x y : X} (u : hom x y) →
   hom-cell {X} {x} {y} (comp-hom-r X s {x} {y} {y} u (id {X} y)) ≡ hom-cell {X} {x} {y} u
 comp-hom-r-runit-cell X s {x} {y} u =
   comp-r-unique X s (homs→spine-2 X {x} {y} {y} u (id {X} y))
@@ -219,7 +219,7 @@ comp-hom-r-runit-cell X s {x} {y} u =
 -- left unit: the degenerate simplex (t₁ , t₂) ↦ u t₂ fills the pair (id x , u)
 --
 
-lunit-coc ∷ (X ∷ U) {x y : X} (u : hom X x y) →
+lunit-coc ∷ (X ∷ U) {x y : X} (u : hom x y) →
   spine-2→cocone-r X (degen-r X simplex-2-snd (hom-cell {X} {x} {y} u)) ≡ homs→spine-2-cocone {X} {x} {x} {y} (id {X} x) u
 lunit-coc X {x} {y} u =
   spine-2-cocone-path X
@@ -269,14 +269,14 @@ lunit-coc X {x} {y} u =
           (trans-refl-l (sym (hom-src {X} {x} {y} u))))
         (trans-sym-r (hom-src {X} {x} {y} u)))))
 
-lunit-fill ∷ (X ∷ U) {x y : X} (u : hom X x y) →
+lunit-fill ∷ (X ∷ U) {x y : X} (u : hom x y) →
   degen-r X simplex-2-snd (hom-cell {X} {x} {y} u) ≡ homs→spine-2 X {x} {x} {y} (id {X} x) u
 lunit-fill X {x} {y} u =
   trans (sym (spine-2→cocone-r-retr X (degen-r X simplex-2-snd (hom-cell {X} {x} {y} u))))
     (cong {spine-2-cocone-r X} {spine 2 →ᵣ X} (cocone→spine-2-r X) (lunit-coc X {x} {y} u))
 
 -- left unitality: the composite of id x and u is u
-comp-hom-r-lunit-cell ∷ (X ∷ U) (s : is-segal-r X) {x y : X} (u : hom X x y) →
+comp-hom-r-lunit-cell ∷ (X ∷ U) (s : is-segal-r X) {x y : X} (u : hom x y) →
   hom-cell (comp-hom-r X s (id x) u) ≡ hom-cell u
 comp-hom-r-lunit-cell X s {x} {y} u =
   comp-r-unique X s (homs→spine-2 X {x} {x} {y} (id {X} x) u)
@@ -321,7 +321,7 @@ trans-refl-l2 {A} {x} {y} p = trans (trans-refl-l (trans refl p)) (trans-refl-l 
 --
 
 -- the filler of (u , id y) given by the degenerate simplex (t₁ , t₂) ↦ u t₁
-runit-hom-fill ∷ (X ∷ U) {x y : X} (u : hom X x y) → hom-fill X {x} {y} {y} u (id {X} y)
+runit-hom-fill ∷ (X ∷ U) {x y : X} (u : hom x y) → hom-fill X {x} {y} {y} u (id {X} y)
 runit-hom-fill X {x} {y} u = (preᵣ {simplex 2} {𝕀} {X} (hom-cell {X} {x} {y} u) simplex-2-fst , runit-coc X {x} {y} u)
 
 runit-src ∷ (X ∷ U) {x y : X} (f : 𝕀 →ᵣ X) (e0 : f 𝕀0 ≡ x) (e1 : f 𝕀1 ≡ y) →
@@ -387,11 +387,11 @@ runit-tgt X {x} {y} f e0 e1 =
   trans (cong2 {f 𝕀1 ≡ f 𝕀1} {f 𝕀1 ≡ y} {f 𝕀1 ≡ y} (λ α β . trans α β) L1 L2) (trans-refl-l2 e1)
 
 -- right unitality on hom types: the composite of u and id y is u
-comp-hom-r-runit ∷ (X ∷ U) (s : is-segal-r X) {x y : X} (u : hom X x y) → comp-hom-r X s {x} {y} {y} u (id {X} y) ≡ u
+comp-hom-r-runit ∷ (X ∷ U) (s : is-segal-r X) {x y : X} (u : hom x y) → comp-hom-r X s {x} {y} {y} u (id {X} y) ≡ u
 comp-hom-r-runit X s {x} {y} (f , e) =
   let h : (e : (f 𝕀0 ≡ x) × (f 𝕀1 ≡ y)) → comp-hom-r X s {x} {y} {y} (f , e) (id {X} y) ≡ (f , e) = fun (e0 , e1) →
     trans (fill-hom-unique X s {x} {y} {y} (f , e0 , e1) (id {X} y) (runit-hom-fill X {x} {y} (f , e0 , e1)))
-      (cong {(f 𝕀0 ≡ x) × (f 𝕀1 ≡ y)} {hom X x y} (λ w . (f , w))
+      (cong {(f 𝕀0 ≡ x) × (f 𝕀1 ≡ y)} {hom x y} (λ w . (f , w))
         (cong2 {f 𝕀0 ≡ x} {f 𝕀1 ≡ y} {(f 𝕀0 ≡ x) × (f 𝕀1 ≡ y)} pair (runit-src X {x} {y} f e0 e1) (runit-tgt X {x} {y} f e0 e1)))
   in
   h e
@@ -401,7 +401,7 @@ comp-hom-r-runit X s {x} {y} (f , e) =
 --
 
 -- the filler of (id x , u) given by the degenerate simplex (t₁ , t₂) ↦ u t₂
-lunit-hom-fill ∷ (X ∷ U) {x y : X} (u : hom X x y) → hom-fill X {x} {x} {y} (id {X} x) u
+lunit-hom-fill ∷ (X ∷ U) {x y : X} (u : hom x y) → hom-fill X {x} {x} {y} (id {X} x) u
 lunit-hom-fill X {x} {y} u = (preᵣ {simplex 2} {𝕀} {X} (hom-cell {X} {x} {y} u) simplex-2-snd , lunit-coc X {x} {y} u)
 
 lunit-src ∷ (X ∷ U) {x y : X} (f : 𝕀 →ᵣ X) (e0 : f 𝕀0 ≡ x) (e1 : f 𝕀1 ≡ y) →
@@ -467,11 +467,11 @@ lunit-tgt X {x} {y} f e0 e1 =
     (trans-refl-l2 e1)
 
 -- left unitality on hom types: the composite of id x and u is u
-comp-hom-r-lunit ∷ (X ∷ U) (s : is-segal-r X) {x y : X} (u : hom X x y) → comp-hom-r X s {x} {x} {y} (id {X} x) u ≡ u
+comp-hom-r-lunit ∷ (X ∷ U) (s : is-segal-r X) {x y : X} (u : hom x y) → comp-hom-r X s {x} {x} {y} (id {X} x) u ≡ u
 comp-hom-r-lunit X s {x} {y} (f , e) =
   let h : (e : (f 𝕀0 ≡ x) × (f 𝕀1 ≡ y)) → comp-hom-r X s {x} {x} {y} (id {X} x) (f , e) ≡ (f , e) = fun (e0 , e1) →
     trans (fill-hom-unique X s {x} {x} {y} (id {X} x) (f , e0 , e1) (lunit-hom-fill X {x} {y} (f , e0 , e1)))
-      (cong {(f 𝕀0 ≡ x) × (f 𝕀1 ≡ y)} {hom X x y} (λ w . (f , w))
+      (cong {(f 𝕀0 ≡ x) × (f 𝕀1 ≡ y)} {hom x y} (λ w . (f , w))
         (cong2 {f 𝕀0 ≡ x} {f 𝕀1 ≡ y} {(f 𝕀0 ≡ x) × (f 𝕀1 ≡ y)} pair (lunit-src X {x} {y} f e0 e1) (lunit-tgt X {x} {y} f e0 e1)))
   in
   h e
