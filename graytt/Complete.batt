@@ -26,8 +26,8 @@ open import FreeEquiv
 complete-restr ∷ (a ∷ List ℕ) (b ∷ List ℕ) (X : U) → (grid a ⨂ grid b → X) → (thick-free-equiv a b → X)
 complete-restr a b X g = pre (thick-free-equiv a b) g (thick-τ a b)
 
-complete-restr-flat ∷ (a ∷ List ℕ) (b ∷ List ℕ) (X ∷ U) → ♭(grid a ⨂ grid b → X) → ♭(thick-free-equiv a b → X)
-complete-restr-flat a b X = flat-map (complete-restr a b X)
+complete-restr♭ ∷ (a ∷ List ℕ) (b ∷ List ℕ) (X ∷ U) → ♭(grid a ⨂ grid b → X) → ♭(thick-free-equiv a b → X)
+complete-restr♭ a b X = flat-map (complete-restr a b X)
 
 complete-restrᵣ ∷ (a ∷ List ℕ) (b ∷ List ℕ) (X ∷ U) → (grid a ⨂ grid b →ᵣ X) → (thick-free-equiv a b →ᵣ X)
 complete-restrᵣ a b X g =
@@ -51,9 +51,9 @@ is-complete X = (a ∷ List ℕ) (b ∷ List ℕ) →
   is-equiv {grid a ⨂ grid b → X} {thick-free-equiv a b → X} (complete-restr a b X)
 
 -- ♭-completeness (global locality): only the global maps out of the shapes are tested
-is-complete-flat ∷ (X ∷ U) → U
-is-complete-flat X = (a ∷ List ℕ) (b ∷ List ℕ) →
-  is-equiv {♭(grid a ⨂ grid b → X)} {♭(thick-free-equiv a b → X)} (complete-restr-flat a b X)
+is-complete♭ ∷ (X ∷ U) → U
+is-complete♭ X = (a ∷ List ℕ) (b ∷ List ℕ) →
+  is-equiv {♭(grid a ⨂ grid b → X)} {♭(thick-free-equiv a b → X)} (complete-restr♭ a b X)
 
 -- oplax completeness: restriction of oplax maps out of the shapes is an equivalence
 is-completeᵣ ∷ (X ∷ U) → U
