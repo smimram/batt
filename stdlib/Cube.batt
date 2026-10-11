@@ -9,14 +9,14 @@
 open import Interval
 open import Unit
 
-two-simplex ∷ Type
-two-simplex = Σ (i : 𝕀) . Σ (j : 𝕀) . i ≥ j
+simplex2 ∷ Type
+simplex2 = Σ (i : 𝕀) . Σ (j : 𝕀) . i ≥ j
 
-two-spine ∷ Type
-two-spine = Σ (i : 𝕀) . Σ (j : 𝕀) . (j ≡ 𝕀0) ∨ (i ≡ 𝕀1)
+spine2 ∷ Type
+spine2 = Σ (i : 𝕀) . Σ (j : 𝕀) . (j ≡ 𝕀0) ∨ (i ≡ 𝕀1)
 
-two-spine→two-simplex ∷ two-spine → two-simplex
-two-spine→two-simplex (i , y) =
+spine2→simplex2 ∷ spine2 → simplex2
+spine2→simplex2 (i , y) =
   let j : 𝕀 = fst _ y in
   let p : (j ≡ 𝕀0) ∨ (i ≡ 𝕀1) = snd _ y in
   -- geq i j is an identity type in the set 𝕀, hence a proposition: the truncation can be eliminated
