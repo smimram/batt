@@ -32,14 +32,14 @@ segal-restr a n b X g = pre (thick-spine a n b) g (thick-incl a n b)
 segal-restr-flat ∷ (a ∷ List ℕ) (n ∷ ℕ) (b ∷ List ℕ) (X ∷ U) → ♭(thick-simplex a n b → X) → ♭(thick-spine a n b → X)
 segal-restr-flat a n b X = flat-map (segal-restr a n b X)
 
-segal-restr-r ∷ (a ∷ List ℕ) (n ∷ ℕ) (b ∷ List ℕ) (X ∷ U) → (thick-simplex a n b →ᵣ X) → (thick-spine a n b →ᵣ X)
-segal-restr-r a n b X g =
+segal-restrᵣ ∷ (a ∷ List ℕ) (n ∷ ℕ) (b ∷ List ℕ) (X ∷ U) → (thick-simplex a n b →ᵣ X) → (thick-spine a n b →ᵣ X)
+segal-restrᵣ a n b X g =
   -- a crisp name for ι, so that the oplax application shares no free variable with its function
   let ι ∷ thick-spine a n b → thick-simplex a n b = thick-incl a n b in
   preᵣ {thick-spine a n b} g ι
 
-segal-restr-l ∷ (a ∷ List ℕ) (n ∷ ℕ) (b ∷ List ℕ) (X ∷ U) → (thick-simplex a n b →ₗ X) → (thick-spine a n b →ₗ X)
-segal-restr-l a n b X g =
+segal-restrₗ ∷ (a ∷ List ℕ) (n ∷ ℕ) (b ∷ List ℕ) (X ∷ U) → (thick-simplex a n b →ₗ X) → (thick-spine a n b →ₗ X)
+segal-restrₗ a n b X g =
   -- a crisp name for ι, so that the lax application shares no free variable with its function
   let ι ∷ thick-spine a n b → thick-simplex a n b = thick-incl a n b in
   preₗ {thick-spine a n b} g ι
@@ -59,14 +59,14 @@ is-segal-flat X = (a ∷ List ℕ) (n ∷ ℕ) (b ∷ List ℕ) →
   is-equiv {♭(thick-simplex a n b → X)} {♭(thick-spine a n b → X)} (segal-restr-flat a n b X)
 
 -- oplax Segalness: restriction of oplax maps out of the shapes is an equivalence
-is-segal-r ∷ (X ∷ U) → U
-is-segal-r X = (a ∷ List ℕ) (n ∷ ℕ) (b ∷ List ℕ) →
-  is-equiv {thick-simplex a n b →ᵣ X} {thick-spine a n b →ᵣ X} (segal-restr-r a n b X)
+is-segalᵣ ∷ (X ∷ U) → U
+is-segalᵣ X = (a ∷ List ℕ) (n ∷ ℕ) (b ∷ List ℕ) →
+  is-equiv {thick-simplex a n b →ᵣ X} {thick-spine a n b →ᵣ X} (segal-restrᵣ a n b X)
 
 -- lax Segalness: restriction of lax maps out of the shapes is an equivalence
-is-segal-l ∷ (X ∷ U) → U
-is-segal-l X = (a ∷ List ℕ) (n ∷ ℕ) (b ∷ List ℕ) →
-  is-equiv {thick-simplex a n b →ₗ X} {thick-spine a n b →ₗ X} (segal-restr-l a n b X)
+is-segalₗ ∷ (X ∷ U) → U
+is-segalₗ X = (a ∷ List ℕ) (n ∷ ℕ) (b ∷ List ℕ) →
+  is-equiv {thick-simplex a n b →ₗ X} {thick-spine a n b →ₗ X} (segal-restrₗ a n b X)
 
 --
 -- The unthickened oplax Segal condition: restriction (Δⁿ →ᵣ X) → (Spₙ →ᵣ X) along the spine
@@ -74,21 +74,21 @@ is-segal-l X = (a ∷ List ℕ) (n ∷ ℕ) (b ∷ List ℕ) →
 -- the unit laws ⊤ ⊗ (− ⊗ ⊤) ≃ −, along which precomposition is an equivalence (preᵣ-equiv).
 --
 
-spine-restr-r ∷ (n ∷ ℕ) (X ∷ U) → (simplex n →ᵣ X) → (spine n →ᵣ X)
-spine-restr-r n X Ψ =
+spine-restrᵣ ∷ (n ∷ ℕ) (X ∷ U) → (simplex n →ᵣ X) → (spine n →ᵣ X)
+spine-restrᵣ n X Ψ =
   let ι ∷ spine n → simplex n = spine→simplex n in
   preᵣ {spine n} {simplex n} {X} Ψ ι
 
-is-segal-r-unthick ∷ (X ∷ U) → is-segal-r X → (n ∷ ℕ) → is-equiv (spine-restr-r n X)
-is-segal-r-unthick X s n =
+is-segalᵣ-unthick ∷ (X ∷ U) → is-segalᵣ X → (n ∷ ℕ) → is-equiv (spine-restrᵣ n X)
+is-segalᵣ-unthick X s n =
   let u ∷ thick-simplex nil n nil → simplex n = thicken-unit {simplex n} in
   let c ∷ spine n → thick-spine nil n nil = thicken-counit {spine n} in
   is-equiv-circ {simplex n →ᵣ X} {thick-spine nil n nil →ᵣ X} {spine n →ᵣ X}
     (λ ψ . preᵣ {spine n} {thick-spine nil n nil} {X} ψ c)
-    (λ Ψ . segal-restr-r nil n nil X (preᵣ {thick-simplex nil n nil} {simplex n} {X} Ψ u))
+    (λ Ψ . segal-restrᵣ nil n nil X (preᵣ {thick-simplex nil n nil} {simplex n} {X} Ψ u))
     (preᵣ-equiv (spine n) (thick-spine nil n nil) c (is-equiv-thicken-counit {spine n}) X)
     (is-equiv-circ {simplex n →ᵣ X} {thick-simplex nil n nil →ᵣ X} {thick-spine nil n nil →ᵣ X}
-      (segal-restr-r nil n nil X)
+      (segal-restrᵣ nil n nil X)
       (λ Ψ . preᵣ {thick-simplex nil n nil} {simplex n} {X} Ψ u)
       (s nil n nil)
       (preᵣ-equiv (thick-simplex nil n nil) (simplex n) u (is-equiv-thicken-unit {simplex n}) X))
@@ -121,7 +121,7 @@ cur-restr ∷ {Q S S' T ∷ U} (ι ∷ S' → S) → (Q →ᵣ S →ᵣ T) → (
 cur-restr {Q} {S} {S'} {T} ι k q s = k q (ι s)
 
 cur-segal-restr ∷ (a ∷ List ℕ) (n ∷ ℕ) (b ∷ List ℕ) (X ∷ U) (f : thick-simplex a n b →ᵣ X) →
-  cur2 {grid a} {spine n} {grid b} {X} (segal-restr-r a n b X f)
+  cur2 {grid a} {spine n} {grid b} {X} (segal-restrᵣ a n b X f)
     ≡ cur-restr {grid a} {simplex n} {spine n} {grid b →ᵣ X} (spine→simplex n) (cur2 {grid a} {simplex n} {grid b} {X} f)
 cur-segal-restr a n b X f = refl
 
@@ -162,13 +162,13 @@ is-equiv-𝕀→simplex-1 = ((simplex-1→𝕀 , simplex-1-eta) , (simplex-1→�
 -- Arrow types are oplax-Segal
 --
 
-is-segal-arrᵣ ∷ {A ∷ U} → is-segal-r A → is-segal-r (arrᵣ A)
+is-segal-arrᵣ ∷ {A ∷ U} → is-segalᵣ A → is-segalᵣ (arrᵣ A)
 is-segal-arrᵣ {A} sA a n b =
   let c ∷ List ℕ = cons 1 b in
   let ι ∷ spine n → simplex n = spine→simplex n in
   -- grid c is grid b ⨂ simplex 1, judgmentally
   let e2 : is-equiv (cur-restr {grid a} {simplex n} {spine n} {grid b ⨂ simplex 1 →ᵣ A} ι) =
-    is-equiv-conj (segal-restr-r a n c A) (cur-restr {grid a} {simplex n} {spine n} {grid c →ᵣ A} ι)
+    is-equiv-conj (segal-restrᵣ a n c A) (cur-restr {grid a} {simplex n} {spine n} {grid c →ᵣ A} ι)
       (cur2 {grid a} {simplex n} {grid c} {A}) (cur2 {grid a} {spine n} {grid c} {A})
       (λ f . refl) (is-equiv-cur2 {grid a} {simplex n} {grid c} {A}) (is-equiv-cur2 {grid a} {spine n} {grid c} {A})
       (sA a n c) in
@@ -180,7 +180,7 @@ is-segal-arrᵣ {A} sA a n b =
       (postᵣ {grid b} {simplex 1 →ᵣ A} {𝕀 →ᵣ A} (λ φ . preᵣ {𝕀} {simplex 1} {A} φ 𝕀→simplex-1))
       (postᵣ-equiv (grid b) {simplex 1 →ᵣ A} {𝕀 →ᵣ A} (λ φ . preᵣ {𝕀} {simplex 1} {A} φ 𝕀→simplex-1)
         (preᵣ-equiv 𝕀 (simplex 1) 𝕀→simplex-1 is-equiv-𝕀→simplex-1 A)) e3 in
-  is-equiv-conj' (segal-restr-r a n b (arrᵣ A)) (cur-restr {grid a} {simplex n} {spine n} {grid b →ᵣ arrᵣ A} ι)
+  is-equiv-conj' (segal-restrᵣ a n b (arrᵣ A)) (cur-restr {grid a} {simplex n} {spine n} {grid b →ᵣ arrᵣ A} ι)
     (cur2 {grid a} {simplex n} {grid b} {arrᵣ A}) (cur2 {grid a} {spine n} {grid b} {arrᵣ A})
     (λ f . refl) (is-equiv-cur2 {grid a} {simplex n} {grid b} {arrᵣ A}) (is-equiv-cur2 {grid a} {spine n} {grid b} {arrᵣ A})
     e4

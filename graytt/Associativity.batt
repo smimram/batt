@@ -40,7 +40,7 @@ simplex-3-face {X} d Θ = preᵣ {simplex 2} {simplex 3} {X} Θ d
 
 -- the associator given by four such paths, for arbitrary homs a, b, c
 assoc-of-faces ∷
-  (X ∷ U) (s : is-segal-r X)
+  (X ∷ U) (s : is-segalᵣ X)
   {x y z t : X} (u : hom x y) (v : hom y z) (w : hom z t)
   {a : hom x z} {b : hom y t} {c : hom x t}
   (c3 : comp-hom-r X s u v ≡ a)
@@ -55,13 +55,13 @@ assoc-of-faces X s {x} {y} {z} {t} u v w {a} {b} {c} c3 c1 c2 c0 =
         (cong (λ h . comp-hom-r X s {x} {y} {t} u h) (sym c0))))
 
 -- the path given by a face of a 3-simplex
-simplex-3-face-path ∷ (X ∷ U) (s : is-segal-r X) (d ∷ simplex 2 → simplex 3) (Θ : simplex 3 →ᵣ X) →
+simplex-3-face-path ∷ (X ∷ U) (s : is-segalᵣ X) (d ∷ simplex 2 → simplex 3) (Θ : simplex 3 →ᵣ X) →
   comp-hom-r X s (simplex-2-hom01 {X} (simplex-3-face {X} d Θ)) (simplex-2-hom12 {X} (simplex-3-face {X} d Θ))
     ≡ simplex-2-hom02 {X} (simplex-3-face {X} d Θ)
 simplex-3-face-path X s d Θ = comp-simplex-2 X s (simplex-3-face {X} d Θ)
 
 -- the associator of the edges of a 3-simplex, from its four faces
-assoc-simplex-3-def ∷ (X ∷ U) (s : is-segal-r X) (Θ : simplex 3 →ᵣ X) →
+assoc-simplex-3-def ∷ (X ∷ U) (s : is-segalᵣ X) (Θ : simplex 3 →ᵣ X) →
   comp-hom-r X s (comp-hom-r X s (simplex-3-hom {X} simplex-3-e01 Θ) (simplex-3-hom {X} simplex-3-e12 Θ))
     (simplex-3-hom {X} simplex-3-e23 Θ)
     ≡ comp-hom-r X s (simplex-3-hom {X} simplex-3-e01 Θ)
@@ -77,7 +77,7 @@ assoc-simplex-3-def X s Θ =
 
 -- frozen: assoc-simplex-3 does not unfold (unfolding it in unified terms is expensive), but it
 -- is equal to its definition (assoc-simplex-3-eq)
-assoc-simplex-3-freeze ∷ (X ∷ U) (s : is-segal-r X) (Θ : simplex 3 →ᵣ X) →
+assoc-simplex-3-freeze ∷ (X ∷ U) (s : is-segalᵣ X) (Θ : simplex 3 →ᵣ X) →
   Σ (a : comp-hom-r X s (comp-hom-r X s (simplex-3-hom {X} simplex-3-e01 Θ)
         (simplex-3-hom {X} simplex-3-e12 Θ)) (simplex-3-hom {X} simplex-3-e23 Θ)
     ≡ comp-hom-r X s (simplex-3-hom {X} simplex-3-e01 Θ)
@@ -85,14 +85,14 @@ assoc-simplex-3-freeze ∷ (X ∷ U) (s : is-segal-r X) (Θ : simplex 3 →ᵣ X
     a ≡ assoc-simplex-3-def X s Θ
 assoc-simplex-3-freeze X s Θ = (assoc-simplex-3-def X s Θ , refl)
 
-assoc-simplex-3 ∷ (X ∷ U) (s : is-segal-r X) (Θ : simplex 3 →ᵣ X) →
+assoc-simplex-3 ∷ (X ∷ U) (s : is-segalᵣ X) (Θ : simplex 3 →ᵣ X) →
   comp-hom-r X s (comp-hom-r X s (simplex-3-hom {X} simplex-3-e01 Θ) (simplex-3-hom {X} simplex-3-e12 Θ))
     (simplex-3-hom {X} simplex-3-e23 Θ)
     ≡ comp-hom-r X s (simplex-3-hom {X} simplex-3-e01 Θ)
       (comp-hom-r X s (simplex-3-hom {X} simplex-3-e12 Θ) (simplex-3-hom {X} simplex-3-e23 Θ))
 assoc-simplex-3 X s Θ = fst _ (assoc-simplex-3-freeze X s Θ)
 
-assoc-simplex-3-eq ∷ (X ∷ U) (s : is-segal-r X) (Θ : simplex 3 →ᵣ X) → assoc-simplex-3 X s Θ ≡ assoc-simplex-3-def X s Θ
+assoc-simplex-3-eq ∷ (X ∷ U) (s : is-segalᵣ X) (Θ : simplex 3 →ᵣ X) → assoc-simplex-3 X s Θ ≡ assoc-simplex-3-def X s Θ
 assoc-simplex-3-eq X s Θ = snd _ (assoc-simplex-3-freeze X s Θ)
 
 --
@@ -151,7 +151,7 @@ spine-3-edge-3-in-simplex-path = funext-htpy {𝕀} {λ _ . simplex 3} spine-3-e
 
 -- the triple read off the restriction of a 3-simplex to the 3-spine is its triple of edges
 spine-restr-edges-tri ∷ {X ∷ U} (Θ : simplex 3 →ᵣ X) →
-  spine-3-cocone→triple {X} (spine-3→cocone-r X (spine-restr-r 3 X Θ)) ≡ edges-tri {X} Θ
+  spine-3-cocone→triple {X} (spine-3→cocone-r X (spine-restrᵣ 3 X Θ)) ≡ edges-tri {X} Θ
 spine-restr-edges-tri {X} Θ =
   trans
     (cong2 {Θ (spine-3-edge-1-in-simplex 𝕀1) ≡ Θ (spine-3-edge-2-in-simplex 𝕀0)}
@@ -170,11 +170,11 @@ spine-restr-edges-tri {X} Θ =
 -- Associativity, as a family over composable triples
 --
 
-assoc-stmt ∷ (X ∷ U) (s : is-segal-r X) {x y z t : X} → hom x y → hom y z → hom z t → U
+assoc-stmt ∷ (X ∷ U) (s : is-segalᵣ X) {x y z t : X} → hom x y → hom y z → hom z t → U
 assoc-stmt X s {x} {y} {z} {t} u v w =
   comp-hom-r X s {x} {z} {t} (comp-hom-r X s {x} {y} {z} u v) w ≡ comp-hom-r X s {x} {y} {t} u (comp-hom-r X s {y} {z} {t} v w)
 
-tri-assoc ∷ (X ∷ U) (s : is-segal-r X) → triples X → U
+tri-assoc ∷ (X ∷ U) (s : is-segalᵣ X) → triples X → U
 tri-assoc X s = tri-family X (λ x y z t u v w . assoc-stmt X s {x} {y} {z} {t} u v w)
 
 --
@@ -182,42 +182,42 @@ tri-assoc X s = tri-family X (λ x y z t u v w . assoc-stmt X s {x} {y} {z} {t} 
 --
 
 -- the 3-simplex filling a composable triple
-assoc-filler ∷ (X ∷ U) (s : is-segal-r X) {x y z t : X} (u : hom x y) (v : hom y z) (w : hom z t) → (simplex 3 →ᵣ X)
+assoc-filler ∷ (X ∷ U) (s : is-segalᵣ X) {x y z t : X} (u : hom x y) (v : hom y z) (w : hom z t) → (simplex 3 →ᵣ X)
 assoc-filler X s {x} {y} {z} {t} u v w =
-  section-map (spine-restr-r 3 X) (is-equiv-sec (spine-restr-r 3 X) (is-segal-r-unthick X s 3))
+  section-map (spine-restrᵣ 3 X) (is-equiv-sec (spine-restrᵣ 3 X) (is-segalᵣ-unthick X s 3))
     (cocone→spine-3-r X (tri-section X {x} {y} {z} {t} u v w))
 
 -- its triple of edges is the given triple
-assoc-filler-edges ∷ (X ∷ U) (s : is-segal-r X) {x y z t : X} (u : hom x y) (v : hom y z) (w : hom z t) →
+assoc-filler-edges ∷ (X ∷ U) (s : is-segalᵣ X) {x y z t : X} (u : hom x y) (v : hom y z) (w : hom z t) →
   edges-tri {X} (assoc-filler X s {x} {y} {z} {t} u v w) ≡ (x , y , u , z , t , v , w)
 assoc-filler-edges X s {x} {y} {z} {t} u v w =
   let Θs : spine 3 →ᵣ X =
     cocone→spine-3-r X (tri-section X {x} {y} {z} {t} u v w) in
   trans (sym (spine-restr-edges-tri {X} (assoc-filler X s {x} {y} {z} {t} u v w)))
     (trans (cong {spine 3 →ᵣ X} {triples X} (λ φ . spine-3-cocone→triple {X} (spine-3→cocone-r X φ))
-             (snd (is-section (spine-restr-r 3 X)) (is-equiv-sec (spine-restr-r 3 X) (is-segal-r-unthick X s 3)) Θs))
+             (snd (is-section (spine-restrᵣ 3 X)) (is-equiv-sec (spine-restrᵣ 3 X) (is-segalᵣ-unthick X s 3)) Θs))
       (trans (cong {spine-3-cocone-r X} {triples X} (spine-3-cocone→triple {X})
                (spine-3→cocone-r-sec X (tri-section X {x} {y} {z} {t} u v w)))
         (tri-section-path X {x} {y} {z} {t} u v w)))
 
 -- associativity of composition in an oplax-Segal type: the associativity of the 3-simplex
 -- filling the triple, transported along its edges
-comp-hom-r-assoc-def ∷ (X ∷ U) (s : is-segal-r X) {x y z t : X} (u : hom x y) (v : hom y z) (w : hom z t) →
+comp-hom-r-assoc-def ∷ (X ∷ U) (s : is-segalᵣ X) {x y z t : X} (u : hom x y) (v : hom y z) (w : hom z t) →
   comp-hom-r X s {x} {z} {t} (comp-hom-r X s {x} {y} {z} u v) w ≡ comp-hom-r X s {x} {y} {t} u (comp-hom-r X s {y} {z} {t} v w)
 comp-hom-r-assoc-def X s {x} {y} {z} {t} u v w =
   subst {triples X} (tri-assoc X s) (assoc-filler-edges X s {x} {y} {z} {t} u v w)
     (assoc-simplex-3 X s (assoc-filler X s {x} {y} {z} {t} u v w))
 
 -- frozen, as assoc-simplex-3
-comp-hom-r-assoc-freeze ∷ (X ∷ U) (s : is-segal-r X) {x y z t : X} (u : hom x y) (v : hom y z) (w : hom z t) →
+comp-hom-r-assoc-freeze ∷ (X ∷ U) (s : is-segalᵣ X) {x y z t : X} (u : hom x y) (v : hom y z) (w : hom z t) →
   Σ (a : comp-hom-r X s {x} {z} {t} (comp-hom-r X s {x} {y} {z} u v) w ≡ comp-hom-r X s {x} {y} {t} u
       (comp-hom-r X s {y} {z} {t} v w)) . a ≡ comp-hom-r-assoc-def X s {x} {y} {z} {t} u v w
 comp-hom-r-assoc-freeze X s {x} {y} {z} {t} u v w = (comp-hom-r-assoc-def X s {x} {y} {z} {t} u v w , refl)
 
-comp-hom-r-assoc ∷ (X ∷ U) (s : is-segal-r X) {x y z t : X} (u : hom x y) (v : hom y z) (w : hom z t) →
+comp-hom-r-assoc ∷ (X ∷ U) (s : is-segalᵣ X) {x y z t : X} (u : hom x y) (v : hom y z) (w : hom z t) →
   comp-hom-r X s {x} {z} {t} (comp-hom-r X s {x} {y} {z} u v) w ≡ comp-hom-r X s {x} {y} {t} u (comp-hom-r X s {y} {z} {t} v w)
 comp-hom-r-assoc X s {x} {y} {z} {t} u v w = fst _ (comp-hom-r-assoc-freeze X s {x} {y} {z} {t} u v w)
 
-comp-hom-r-assoc-eq ∷ (X ∷ U) (s : is-segal-r X) {x y z t : X} (u : hom x y) (v : hom y z) (w : hom z t) →
+comp-hom-r-assoc-eq ∷ (X ∷ U) (s : is-segalᵣ X) {x y z t : X} (u : hom x y) (v : hom y z) (w : hom z t) →
   comp-hom-r-assoc X s {x} {y} {z} {t} u v w ≡ comp-hom-r-assoc-def X s {x} {y} {z} {t} u v w
 comp-hom-r-assoc-eq X s {x} {y} {z} {t} u v w = snd _ (comp-hom-r-assoc-freeze X s {x} {y} {z} {t} u v w)

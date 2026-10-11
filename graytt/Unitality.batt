@@ -115,7 +115,7 @@ simplex-2-snd-on-edge-2-vertex =
 
 -- the restriction to the spine of the degenerate simplex u ∘ k, for a coordinate k
 degen-r ∷ (X ∷ U) (k ∷ simplex 2 → 𝕀) (u : 𝕀 →ᵣ X) → (spine 2 →ᵣ X)
-degen-r X k u = spine-restr-r 2 X (preᵣ {simplex 2} {𝕀} {X} u k)
+degen-r X k u = spine-restrᵣ 2 X (preᵣ {simplex 2} {𝕀} {X} u k)
 
 -- its glue at the vertex is the image in u of the image of the vertex path in 𝕀
 degen-r-glue ∷ (X ∷ U) (k ∷ simplex 2 → 𝕀) (u : 𝕀 →ᵣ X) →
@@ -208,7 +208,7 @@ runit-fill X {x} {y} u =
     (cong {spine-2-cocone-r X} {spine 2 →ᵣ X} (cocone→spine-2-r X) (runit-coc X {x} {y} u))
 
 -- right unitality: the composite of u and id y is u
-comp-hom-r-runit-cell ∷ (X ∷ U) (s : is-segal-r X) {x y : X} (u : hom x y) →
+comp-hom-r-runit-cell ∷ (X ∷ U) (s : is-segalᵣ X) {x y : X} (u : hom x y) →
   hom-cell {X} {x} {y} (comp-hom-r X s {x} {y} {y} u (id {X} y)) ≡ hom-cell {X} {x} {y} u
 comp-hom-r-runit-cell X s {x} {y} u =
   comp-r-unique X s (homs→spine-2 X {x} {y} {y} u (id {X} y))
@@ -276,7 +276,7 @@ lunit-fill X {x} {y} u =
     (cong {spine-2-cocone-r X} {spine 2 →ᵣ X} (cocone→spine-2-r X) (lunit-coc X {x} {y} u))
 
 -- left unitality: the composite of id x and u is u
-comp-hom-r-lunit-cell ∷ (X ∷ U) (s : is-segal-r X) {x y : X} (u : hom x y) →
+comp-hom-r-lunit-cell ∷ (X ∷ U) (s : is-segalᵣ X) {x y : X} (u : hom x y) →
   hom-cell (comp-hom-r X s (id x) u) ≡ hom-cell u
 comp-hom-r-lunit-cell X s {x} {y} u =
   comp-r-unique X s (homs→spine-2 X {x} {x} {y} (id {X} x) u)
@@ -387,7 +387,7 @@ runit-tgt X {x} {y} f e0 e1 =
   trans (cong2 {f 𝕀1 ≡ f 𝕀1} {f 𝕀1 ≡ y} {f 𝕀1 ≡ y} (λ α β . trans α β) L1 L2) (trans-refl-l2 e1)
 
 -- right unitality on hom types: the composite of u and id y is u
-comp-hom-r-runit ∷ (X ∷ U) (s : is-segal-r X) {x y : X} (u : hom x y) → comp-hom-r X s {x} {y} {y} u (id {X} y) ≡ u
+comp-hom-r-runit ∷ (X ∷ U) (s : is-segalᵣ X) {x y : X} (u : hom x y) → comp-hom-r X s {x} {y} {y} u (id {X} y) ≡ u
 comp-hom-r-runit X s {x} {y} (f , e) =
   let h : (e : (f 𝕀0 ≡ x) × (f 𝕀1 ≡ y)) → comp-hom-r X s {x} {y} {y} (f , e) (id {X} y) ≡ (f , e) = fun (e0 , e1) →
     trans (fill-hom-unique X s {x} {y} {y} (f , e0 , e1) (id {X} y) (runit-hom-fill X {x} {y} (f , e0 , e1)))
@@ -467,7 +467,7 @@ lunit-tgt X {x} {y} f e0 e1 =
     (trans-refl-l2 e1)
 
 -- left unitality on hom types: the composite of id x and u is u
-comp-hom-r-lunit ∷ (X ∷ U) (s : is-segal-r X) {x y : X} (u : hom x y) → comp-hom-r X s {x} {x} {y} (id {X} x) u ≡ u
+comp-hom-r-lunit ∷ (X ∷ U) (s : is-segalᵣ X) {x y : X} (u : hom x y) → comp-hom-r X s {x} {x} {y} (id {X} x) u ≡ u
 comp-hom-r-lunit X s {x} {y} (f , e) =
   let h : (e : (f 𝕀0 ≡ x) × (f 𝕀1 ≡ y)) → comp-hom-r X s {x} {x} {y} (id {X} x) (f , e) ≡ (f , e) = fun (e0 , e1) →
     trans (fill-hom-unique X s {x} {x} {y} (id {X} x) (f , e0 , e1) (lunit-hom-fill X {x} {y} (f , e0 , e1)))

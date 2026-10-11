@@ -400,7 +400,7 @@ spine-2-edge-2-in-simplex-path = funext-htpy {𝕀} {λ _ . simplex 2} spine-2-e
 
 -- the pair read off the restriction of a 2-simplex to the 2-spine is its pair of edges
 spine-restr-edges-2 ∷ {X ∷ U} (Ψ : simplex 2 →ᵣ X) →
-  spine-2-cocone→pair {X} (spine-2→cocone-r X (spine-restr-r 2 X Ψ)) ≡ edges-2 {X} Ψ
+  spine-2-cocone→pair {X} (spine-2→cocone-r X (spine-restrᵣ 2 X Ψ)) ≡ edges-2 {X} Ψ
 spine-restr-edges-2 {X} Ψ =
   trans (cong {Ψ (spine-2-edge-1-in-simplex 𝕀1) ≡ Ψ (spine-2-edge-2-in-simplex 𝕀0)} {pairs X}
       (λ α . pair-shape {X} Ψ spine-2-edge-1-in-simplex spine-2-edge-2-in-simplex α)
@@ -411,31 +411,31 @@ spine-restr-edges-2 {X} Ψ =
 
 -- edges-2 is the composite of the Segal restriction, the restriction to the pieces of the spine
 -- and spine-2-cocone→pair, all of which are equivalences
-is-equiv-edges-2 ∷ (X ∷ U) → is-segal-r X → is-equiv (edges-2 {X})
+is-equiv-edges-2 ∷ (X ∷ U) → is-segalᵣ X → is-equiv (edges-2 {X})
 is-equiv-edges-2 X s =
-  let sr : (simplex 2 →ᵣ X) → (spine 2 →ᵣ X) = spine-restr-r 2 X in
+  let sr : (simplex 2 →ᵣ X) → (spine 2 →ᵣ X) = spine-restrᵣ 2 X in
   let wr : (spine 2 →ᵣ X) → spine-2-cocone-r X = spine-2→cocone-r X in
   is-equiv-htpy {simplex 2 →ᵣ X} {pairs X} {λ Ψ . spine-2-cocone→pair {X} (wr (sr Ψ))} {edges-2 {X}} (spine-restr-edges-2 {X})
     (is-equiv-circ (spine-2-cocone→pair {X}) (λ Ψ . wr (sr Ψ)) (is-equiv-spine-2-cocone→pair {X})
-      (is-equiv-circ wr sr (spine-oplax-up X) (is-segal-r-unthick X s 2)))
+      (is-equiv-circ wr sr (spine-oplax-up X) (is-segalᵣ-unthick X s 2)))
 
 --
 -- 3-simplices are composable triples
 --
 
 -- as above, with spine-restr-edges-tri (Associativity.batt) in place of spine-restr-edges-2
-is-equiv-edges-tri ∷ (X ∷ U) → is-segal-r X → is-equiv (edges-tri {X})
+is-equiv-edges-tri ∷ (X ∷ U) → is-segalᵣ X → is-equiv (edges-tri {X})
 is-equiv-edges-tri X s =
-  let sr : (simplex 3 →ᵣ X) → (spine 3 →ᵣ X) = spine-restr-r 3 X in
+  let sr : (simplex 3 →ᵣ X) → (spine 3 →ᵣ X) = spine-restrᵣ 3 X in
   let wr : (spine 3 →ᵣ X) → spine-3-cocone-r X = spine-3→cocone-r X in
   is-equiv-htpy {simplex 3 →ᵣ X} {triples X} {λ Θ . spine-3-cocone→triple {X} (wr (sr Θ))} {edges-tri {X}}
     (spine-restr-edges-tri {X})
     (is-equiv-circ (spine-3-cocone→triple {X}) (λ Θ . wr (sr Θ)) (is-equiv-spine-3-cocone→triple {X})
-      (is-equiv-circ wr sr (spine-3-oplax-up X) (is-segal-r-unthick X s 3)))
+      (is-equiv-circ wr sr (spine-3-oplax-up X) (is-segalᵣ-unthick X s 3)))
 
 -- on the edges of a 3-simplex, the associator is the one given by its four faces
 -- (assoc-simplex-3-def, Associativity.batt): the fibres of edges-tri are contractible
-comp-hom-r-assoc-edges ∷ (X ∷ U) (s : is-segal-r X) (Θ : simplex 3 →ᵣ X) →
+comp-hom-r-assoc-edges ∷ (X ∷ U) (s : is-segalᵣ X) (Θ : simplex 3 →ᵣ X) →
   comp-hom-r-assoc X s (simplex-3-hom {X} simplex-3-e01 Θ) (simplex-3-hom {X} simplex-3-e12 Θ) (simplex-3-hom {X} simplex-3-e23 Θ)
     ≡ assoc-simplex-3-def X s Θ
 comp-hom-r-assoc-edges X s Θ =

@@ -22,7 +22,7 @@ open import Covariant
 evid ∷ {A ∷ U} (F ∷ A → U) {a : A} → ((x : A) → hom a x → F x) → F a
 evid {A} F {a} φ = φ a (id {A} a)
 
-yon ∷ {A ∷ U} (F ∷ A → U) (sA : is-segal-r A) (sF : is-segal-r (Σ (x : A) . F x)) (c : is-covariant {A} F sA sF)
+yon ∷ {A ∷ U} (F ∷ A → U) (sA : is-segalᵣ A) (sF : is-segalᵣ (Σ (x : A) . F x)) (c : is-covariant {A} F sA sF)
   {a : A} → F a → (x : A) → hom a x → F x
 yon {A} F sA sF c {a} u x f = push {A} F sA sF c {a} {x} f u
 
@@ -30,6 +30,6 @@ yon {A} F sA sF c {a} u x f = push {A} F sA sF c {a} {x} f u
 -- evid is a retraction of yon
 --
 
-evid-yon ∷ {A ∷ U} (F ∷ A → U) (sA : is-segal-r A) (sF : is-segal-r (Σ (x : A) . F x)) (c : is-covariant {A} F sA sF)
+evid-yon ∷ {A ∷ U} (F ∷ A → U) (sA : is-segalᵣ A) (sF : is-segalᵣ (Σ (x : A) . F x)) (c : is-covariant {A} F sA sF)
   {a : A} (u : F a) → evid {A} F {a} (yon {A} F sA sF c {a} u) ≡ u
 evid-yon {A} F sA sF c {a} u = push-id {A} F sA sF c {a} u

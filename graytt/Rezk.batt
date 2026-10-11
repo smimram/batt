@@ -6,8 +6,8 @@
 --
 --   internal : is-segal X      × is-complete X        any X
 --   flat     : is-segal-flat X × is-complete-flat X   crisp X
---   oplax    : is-segal-r X    × is-complete-r X      crisp X
---   lax      : is-segal-l X    × is-complete-l X      crisp X
+--   oplax    : is-segalᵣ X    × is-complete-r X      crisp X
+--   lax      : is-segalₗ X    × is-complete-l X      crisp X
 --
 -- Rezk types are the intended (∞,ω)-categories.
 --
@@ -29,8 +29,8 @@ is-rezk-flat X = is-segal-flat X × is-complete-flat X
 
 -- oplax Rezk types
 is-rezk-r ∷ (X ∷ U) → U
-is-rezk-r X = is-segal-r X × is-complete-r X
+is-rezk-r X = is-segalᵣ X × is-complete-r X
 
 -- lax Rezk types
 is-rezk-l ∷ (X ∷ U) → U
-is-rezk-l X = is-segal-l X × is-complete-l X
+is-rezk-l X = is-segalₗ X × is-complete-l X
