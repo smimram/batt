@@ -92,21 +92,21 @@ trans-sym-r {A} {x} refl = refl
 --- Paths and directed functions
 ---
 
--- an oplax map sends a crisp path between crisp points to a path (crisp path induction)
-apᵣ ∷ {A B ∷ U} {x y ∷ A} (p ∷ x ≡ y) (f : A →ᵣ B) → f x ≡ f y
-apᵣ {A} {B} {x} refl f = refl
-
--- evaluation of a path between oplax maps at a crisp point
-evᵣ ∷ {A B ∷ U} (x ∷ A) {f g : A →ᵣ B} → f ≡ g → f x ≡ g x
-evᵣ {A} {B} x p = cong {A →ᵣ B} {B} (λ f . f x) p
-
 -- a lax map sends a crisp path between crisp points to a path (crisp path induction)
 apₗ ∷ {A B ∷ U} {x y ∷ A} (p ∷ x ≡ y) (f : A →ₗ B) → f x ≡ f y
 apₗ {A} {B} {x} refl φ = refl
 
+-- an oplax map sends a crisp path between crisp points to a path (crisp path induction)
+apᵣ ∷ {A B ∷ U} {x y ∷ A} (p ∷ x ≡ y) (f : A →ᵣ B) → f x ≡ f y
+apᵣ {A} {B} {x} refl f = refl
+
 -- evaluation of a path between lax maps at a crisp point
 evₗ ∷ {A B ∷ U} (x ∷ A) {f g : A →ₗ B} → f ≡ g → f x ≡ g x
 evₗ {A} {B} x p = cong {A →ₗ B} (λ f . f x) p
+
+-- evaluation of a path between oplax maps at a crisp point
+evᵣ ∷ {A B ∷ U} (x ∷ A) {f g : A →ᵣ B} → f ≡ g → f x ≡ g x
+evᵣ {A} {B} x p = cong {A →ᵣ B} {B} (λ f . f x) p
 
 ---
 --- More path algebra
