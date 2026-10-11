@@ -1,14 +1,14 @@
 ind ∷ (C : Bool → U) → C false → C true → (b : Bool) → C b
-ind C cf ct false = cf
-ind C cf ct true  = ct
+ind C f t false = f
+ind C f t true  = t
 
-rec ∷ (C : U) → C → C → Bool → C
-rec C cf ct false = cf
-rec C cf ct true  = ct
+rec ∷ {C : U} → C → C → Bool → C
+rec f t false = f
+rec f t true  = t
 
-REC ∷ (C : TYPE) → C → C → Bool → C
-REC C cf ct false = cf
-REC C cf ct true = ct
+REC ∷ {C : TYPE} → C → C → Bool → C
+REC f t false = f
+REC f t true  = t
 
 not ∷ Bool → Bool
 not false = true
