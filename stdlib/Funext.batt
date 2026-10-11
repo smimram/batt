@@ -14,6 +14,7 @@ open import Contr
 open import Equivalence
 open import Univalence
 open import Path
+open import Sigma
 
 ---
 --- Non-dependent function extensionality from univalence (Voevodsky)
@@ -172,10 +173,10 @@ is-contr-total-htpyᵣ A B f =
   let T : U = Σ (g : A →ᵣ B) . Htpyᵣ A B f g in
   let Q : (g : A →ᵣ B) → (A →ᵣ path B) → U = fun g H → (postᵣ {A} (path-src {B}) H ≡ f) × (postᵣ {A} (path-tgt {B}) H ≡ g) in
   let F : U = fib (postᵣ {A} (path-src {B})) f in
-  let s : T → F = fun (g , v) → (fst (Q g) v , prod-fst (snd (Q g) v)) in
+  let s : T → F = fun (g , v) → (fst (Q g) v , Product.fst (snd (Q g) v)) in
   let r : F → T = fun (H , s1) → (postᵣ {A} (path-tgt {B}) H , H , s1 , refl) in
   -- contracting the free endpoint g together with t
-  let k : (g : A →ᵣ B) (H : A →ᵣ path B) (w : Q g H) → r (H , prod-fst w) ≡{T} (g , H , w) =
+  let k : (g : A →ᵣ B) (H : A →ᵣ path B) (w : Q g H) → r (H , Product.fst w) ≡{T} (g , H , w) =
     fun g → fun H → fun (s1 , t) → J (postᵣ {A} (path-tgt {B}) H) (fun g t → r (H , s1) ≡{T} (g , H , s1 , t)) refl t in
   let k2 : (g : A →ᵣ B) (v : Htpyᵣ A B f g) → r (s (g , v)) ≡{T} (g , v) = fun g → fun (H , w) → k g H w in
   let rs : (w : T) → r (s w) ≡ w = fun (g , v) → k2 g v in
@@ -213,10 +214,10 @@ is-contr-total-htpyₗ A B f =
   let T : U = Σ (g : A →ₗ B) . Htpyₗ A B f g in
   let Q : (g : A →ₗ B) → (A →ₗ path B) → U = fun g H → (postₗ {A} (path-src {B}) H ≡ f) × (postₗ {A} (path-tgt {B}) H ≡ g) in
   let F : U = fib (postₗ {A} (path-src {B})) f in
-  let s : T → F = fun (g , v) → (fst (Q g) v , prod-fst (snd (Q g) v)) in
+  let s : T → F = fun (g , v) → (fst (Q g) v , Product.fst (snd (Q g) v)) in
   let r : F → T = fun (H , s1) → (postₗ {A} (path-tgt {B}) H , H , s1 , refl) in
   -- contracting the free endpoint g together with t
-  let k : (g : A →ₗ B) (H : A →ₗ path B) (w : Q g H) → r (H , prod-fst w) ≡{T} (g , H , w) =
+  let k : (g : A →ₗ B) (H : A →ₗ path B) (w : Q g H) → r (H , Product.fst w) ≡{T} (g , H , w) =
     fun g → fun H → fun (s1 , t) → J (postₗ {A} (path-tgt {B}) H) (fun g t → r (H , s1) ≡{T} (g , H , s1 , t)) refl t in
   let k2 : (g : A →ₗ B) (v : Htpyₗ A B f g) → r (s (g , v)) ≡{T} (g , v) = fun g → fun (H , w) → k g H w in
   let rs : (w : T) → r (s w) ≡ w = fun (g , v) → k2 g v in

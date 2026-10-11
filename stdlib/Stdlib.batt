@@ -7,6 +7,7 @@ open import Unit
 open import Bool
 open import Sum
 open import Product
+open import Sigma
 open import Function
 open import Equality
 open import Contr

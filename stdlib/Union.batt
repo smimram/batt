@@ -51,6 +51,7 @@ open import Trunc
 open import Sum
 open import Logic
 open import Funext
+open import Sigma
 
 -- the union and its two pieces
 union ∷ {X : U} (A B : X → U) → U
@@ -387,10 +388,10 @@ uI-x ∷ {X : U} (A B : X → U) → union-I A B → X
 uI-x {X} A B (x , w) = x
 
 uI-p ∷ {X : U} (A B : X → U) (t : union-I A B) → A (uI-x A B t)
-uI-p {X} A B (x , w) = prod-fst {A x} {B x} w
+uI-p {X} A B (x , w) = Product.fst {A x} {B x} w
 
 uI-q ∷ {X : U} (A B : X → U) (t : union-I A B) → B (uI-x A B t)
-uI-q {X} A B (x , w) = prod-snd {A x} {B x} w
+uI-q {X} A B (x , w) = Product.snd {A x} {B x} w
 
 -- cocones over a point of the intersection, and evaluation of the glue at that point
 union-pt-cocone ∷ {X : U} (A B : X → U) (Y : U) (x0 : X) (p0 : A x0) (q0 : B x0) → U

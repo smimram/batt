@@ -6,6 +6,7 @@
 
 open import Equality
 open import Product
+open import Sigma
 
 -- Dependent eliminator
 ind ∷ (A : ℕ → U) → A zero → ((n : ℕ) → A n → A (succ n)) → (n : ℕ) → A n
@@ -69,8 +70,8 @@ lt m n = le (succ m) n
 ---
 
 recᵣ-family ∷ (A ∷ U) → ℕ → (A × (ℕ → A → A)) →ₗ A
-recᵣ-family A zero = λ w . prod-fst {A} {ℕ → A → A} w
-recᵣ-family A (succ n) = λ w . prod-snd {A} {ℕ → A → A} w n (rec w)
+recᵣ-family A zero = λ w . Product.fst {A} {ℕ → A → A} w
+recᵣ-family A (succ n) = λ w . Product.snd {A} {ℕ → A → A} w n (rec w)
 
 -- oplax recursion
 recᵣ ∷ (A ∷ U) → A → (ℕ → A → A) → (ℕ →ᵣ A)
@@ -89,8 +90,8 @@ recᵣ-succ' ∷ (A ∷ U) (z : A) (s : ℕ → A → A) →
 recᵣ-succ' A z s = refl
 
 recₗ-family ∷ (A ∷ U) → ℕ → (A × (ℕ → A → A)) →ᵣ A
-recₗ-family A zero = λ w . prod-fst {A} {ℕ → A → A} w
-recₗ-family A (succ n) = λ w . prod-snd {A} {ℕ → A → A} w n (rec w)
+recₗ-family A zero = λ w . Product.fst {A} {ℕ → A → A} w
+recₗ-family A (succ n) = λ w . Product.snd {A} {ℕ → A → A} w n (rec w)
 
 -- lax recursion
 recₗ ∷ (A ∷ U) → A → (ℕ → A → A) → (ℕ →ₗ A)

@@ -84,7 +84,7 @@ is-equiv-𝕀→spine-2-edge-1 = ((spine-2-edge-1→𝕀 , 𝕀→spine-2-edge-1
   ≡{spine-2-edge-2} ((c1 , x2 , u) , w)
 𝕀→spine-2-edge-2-sec-aux c1 x2 u w =
   subtype-path spine-2-on-edge-2 is-prop-spine-2-on-edge-2 {(𝕀1 , x2 , tt)} {(c1 , x2 , u)}
-    (cong2 {𝕀} {cart-cube 1} {cart-cube 2} pair (sym (prod-fst {c1 ≡ 𝕀1} {is-in-spine 1 (x2 , u)} w))
+    (cong2 {𝕀} {cart-cube 1} {cart-cube 2} pair (sym (Product.fst {c1 ≡ 𝕀1} {is-in-spine 1 (x2 , u)} w))
       (cong {⊤} {cart-cube 1} (λ v . (x2 , v)) (prop-path is-prop-unit tt u)))
     (refl , spine-1-pt x2) w
 
@@ -121,8 +121,8 @@ spine-2→spine-3-tail-sec-aux ∷ (c1 : 𝕀) (xs : cart-cube 2) (w : spine-3-o
   spine-2→spine-3-tail (spine-3-tail→spine-2 ((c1 , xs) , w)) ≡{spine-3-tail} ((c1 , xs) , w)
 spine-2→spine-3-tail-sec-aux c1 xs w =
   subtype-path spine-3-on-tail is-prop-spine-3-on-tail {(𝕀1 , xs)} {(c1 , xs)}
-    (cong {𝕀} {cart-cube 3} (λ z . (z , xs)) (sym (prod-fst {c1 ≡ 𝕀1} {is-in-spine 2 xs} w)))
-    (refl , prod-snd {c1 ≡ 𝕀1} {is-in-spine 2 xs} w) w
+    (cong {𝕀} {cart-cube 3} (λ z . (z , xs)) (sym (Product.fst {c1 ≡ 𝕀1} {is-in-spine 2 xs} w)))
+    (refl , Product.snd {c1 ≡ 𝕀1} {is-in-spine 2 xs} w) w
 
 spine-2→spine-3-tail-sec ∷ (b : spine-3-tail) → spine-2→spine-3-tail (spine-3-tail→spine-2 b) ≡ b
 spine-2→spine-3-tail-sec (c , w) =

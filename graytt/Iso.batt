@@ -36,8 +36,8 @@ is-iso-id {X} s x = (Hom.id {X} x , comp-homᵣ-lunit X s {x} {x} (Hom.id {X} x)
 is-equiv-comp-iso-l ∷ {X ∷ U} (s : is-segalᵣ X) {x y : X} (f : hom x y) → is-iso-hom {X} s {x} {y} f → (y' : X) →
   is-equiv (λ g . comp-homᵣ X s {x} {y} {y'} f g)
 is-equiv-comp-iso-l {X} s {x} {y} f (g , e) y' =
-  let fg : comp-homᵣ X s {x} {y} {x} f g ≡ Hom.id {X} x = prod-fst e in
-  let gf : comp-homᵣ X s {y} {x} {y} g f ≡ Hom.id {X} y = prod-snd e in
+  let fg : comp-homᵣ X s {x} {y} {x} f g ≡ Hom.id {X} x = Product.fst e in
+  let gf : comp-homᵣ X s {y} {x} {y} g f ≡ Hom.id {X} y = Product.snd e in
   let inv : hom x y' → hom y y' = λ h . comp-homᵣ X s {y} {x} {y'} g h in
   let sec : (h : hom x y') → comp-homᵣ X s {x} {y} {y'} f (inv h) ≡ h = λ h .
     trans (sym (comp-homᵣ-assoc X s {x} {y} {x} {y'} f g h))
@@ -50,8 +50,8 @@ is-equiv-comp-iso-l {X} s {x} {y} f (g , e) y' =
 is-equiv-comp-iso-r ∷ {X ∷ U} (s : is-segalᵣ X) {x y : X} (f : hom x y) → is-iso-hom {X} s {x} {y} f → (x' : X) →
   is-equiv (λ g . comp-homᵣ X s {x'} {x} {y} g f)
 is-equiv-comp-iso-r {X} s {x} {y} f (g , e) x' =
-  let fg : comp-homᵣ X s {x} {y} {x} f g ≡ Hom.id {X} x = prod-fst e in
-  let gf : comp-homᵣ X s {y} {x} {y} g f ≡ Hom.id {X} y = prod-snd e in
+  let fg : comp-homᵣ X s {x} {y} {x} f g ≡ Hom.id {X} x = Product.fst e in
+  let gf : comp-homᵣ X s {y} {x} {y} g f ≡ Hom.id {X} y = Product.snd e in
   let inv : hom x' y → hom x' x = λ h . comp-homᵣ X s {x'} {y} {x} h g in
   let sec : (h : hom x' y) → comp-homᵣ X s {x'} {x} {y} (inv h) f ≡ h = λ h .
     trans (comp-homᵣ-assoc X s {x'} {y} {x} {y} h g f)
@@ -72,8 +72,8 @@ hom-map-id {X} {A} p x = refl
 is-iso-hom-map ∷ {X A ∷ U} (sX : is-segalᵣ X) (sA : is-segalᵣ A) (p ∷ X → A) {x y : X} (f : hom x y) →
   is-iso-hom {X} sX {x} {y} f → is-iso-hom {A} sA {p x} {p y} (hom-map {X} {A} p {x} {y} f)
 is-iso-hom-map {X} {A} sX sA p {x} {y} f (g , e) =
-  let fg : comp-homᵣ X sX {x} {y} {x} f g ≡ Hom.id {X} x = prod-fst e in
-  let gf : comp-homᵣ X sX {y} {x} {y} g f ≡ Hom.id {X} y = prod-snd e in
+  let fg : comp-homᵣ X sX {x} {y} {x} f g ≡ Hom.id {X} x = Product.fst e in
+  let gf : comp-homᵣ X sX {y} {x} {y} g f ≡ Hom.id {X} y = Product.snd e in
   (hom-map {X} {A} p {y} {x} g ,
    trans (sym (hom-map-comp X A p sX sA {x} {y} {x} f g)) (cong (hom-map {X} {A} p {x} {x}) fg) ,
    trans (sym (hom-map-comp X A p sX sA {y} {x} {y} g f)) (cong (hom-map {X} {A} p {y} {y}) gf))

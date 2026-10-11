@@ -8,6 +8,7 @@
 open import Product
 open import Function
 open import Equality
+open import Sigma
 
 ---
 --- sections and retractions
@@ -107,7 +108,7 @@ is-iso ∷ {A B : U} → (A → B) → U
 is-iso {A} {B} f = Σ (g : B → A) . (is-section f g) × (is-retraction f g)
 
 is-iso→is-equiv ∷ {A B : U} → (f : A → B) → is-iso {A} {B} f → is-equiv f
-is-iso→is-equiv f (g , sr) = (g , prod-fst sr) , (g , prod-snd sr)
+is-iso→is-equiv f (g , sr) = (g , Product.fst sr) , (g , Product.snd sr)
 
 iso→equiv ∷ {A B : U} → (f : A → B) (g : B → A) → is-section f g → is-retraction f g → A ≃ B
 iso→equiv f g sec ret = (f , (g , sec) , (g , ret))

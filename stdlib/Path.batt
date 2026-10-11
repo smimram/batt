@@ -4,6 +4,8 @@
 -- The type of free paths of a type, which is equivalent to the type itself.
 --
 
+open import Sigma
+
 -- free paths
 path ∷ U → U
 path A = Σ (x : A) . Σ (y : A) . x ≡ y

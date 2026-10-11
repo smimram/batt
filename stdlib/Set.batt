@@ -6,6 +6,7 @@
 
 open import Equality
 open import Product
+open import Sigma
 open import Prop
 
 is-set ∷ U → U
@@ -43,7 +44,7 @@ is-set-Σ-prop {X} P sX pP u u' =
     λ π . J u (λ u' π . subtype-path' P pP u u' (cong (fst P) π) ≡ π) (subtype-path'-refl P pP u) π in
   is-prop-retract (cong (fst P)) (subtype-path' P pP u u') rs (sX (fst P u) (fst P u'))
 
-prod-path ∷ {A B : U} (u u' : A × B) → (prod-fst u ≡ prod-fst u') × (prod-snd u ≡ prod-snd u') → u ≡ u'
+prod-path ∷ {A B : U} (u u' : A × B) → (Product.fst u ≡ Product.fst u') × (Product.snd u ≡ Product.snd u') → u ≡ u'
 prod-path {A} {B} (a , b) (a' , b') (e1 , e2) = cong2 {A} {B} {A × B} pair e1 e2
 
 prod-path-refl ∷ {A B : U} (u : A × B) → prod-path u u (refl , refl) ≡ refl
@@ -51,10 +52,10 @@ prod-path-refl (a , b) = refl
 
 is-set-prod ∷ {A B : U} → is-set A → is-set B → is-set (A × B)
 is-set-prod {A} {B} sA sB u u' =
-  let s : u ≡ u' → (prod-fst u ≡ prod-fst u') × (prod-snd u ≡ prod-snd u') = λ π . (cong prod-fst π , cong prod-snd π) in
+  let s : u ≡ u' → (Product.fst u ≡ Product.fst u') × (Product.snd u ≡ Product.snd u') = λ π . (cong Product.fst π , cong Product.snd π) in
   let rs : (π : u ≡ u') → prod-path u u' (s π) ≡ π =
-    λ π . J u (λ u' π . prod-path u u' (cong prod-fst π , cong prod-snd π) ≡ π) (prod-path-refl u) π in
-  is-prop-retract s (prod-path u u') rs (is-prop-prod (sA (prod-fst u) (prod-fst u')) (sB (prod-snd u) (prod-snd u')))
+    λ π . J u (λ u' π . prod-path u u' (cong Product.fst π , cong Product.snd π) ≡ π) (prod-path-refl u) π in
+  is-prop-retract s (prod-path u u') rs (is-prop-prod (sA (Product.fst u) (Product.fst u')) (sB (Product.snd u) (Product.snd u')))
 
 -- an oplax map identifies any two crisp paths between two crisp points of a crisp set
 apᵣ-set ∷ {S X ∷ U} (h ∷ is-set S) {y0 y1 ∷ S} (p q ∷ y0 ≡ y1) (φ : S →ᵣ X) → apᵣ {S} {X} {y0} {y1} p φ ≡ apᵣ {S} {X} {y0} {y1} q φ

@@ -226,7 +226,8 @@ and app t u =
     | RecordField (x, []) as t ->
       (
         match force u with
-        | Record l -> List.assoc x l
+        (* When a field occurs multiple times, the last one shadows the others. *)
+        | Record l -> List.assoc x (List.rev l)
         | _ -> failwith @@ Printf.sprintf "vapp: %s vs %s" (show t) (show u)
       )
     | t -> failwith @@ Printf.sprintf "vapp: %s vs %s" (show t) (show u)

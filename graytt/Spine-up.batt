@@ -29,13 +29,13 @@ open import Wedge
 
 -- coordinates, with explicit implicit arguments
 cube-2-x1 ∷ cart-cube 2 → 𝕀
-cube-2-x1 c = prod-fst {𝕀} {cart-cube 1} c
+cube-2-x1 c = Product.fst {𝕀} {cart-cube 1} c
 
 cube-2-tail ∷ cart-cube 2 → cart-cube 1
-cube-2-tail c = prod-snd {𝕀} {cart-cube 1} c
+cube-2-tail c = Product.snd {𝕀} {cart-cube 1} c
 
 cube-2-x2 ∷ cart-cube 2 → 𝕀
-cube-2-x2 c = prod-fst {𝕀} {⊤} (cube-2-tail c)
+cube-2-x2 c = Product.fst {𝕀} {⊤} (cube-2-tail c)
 
 -- the two propositions whose disjunction defines the spine
 spine-2-on-edge-1 ∷ cart-cube 2 → U
@@ -96,8 +96,8 @@ spine-2-meet-contr-aux2 c1 xs w =
     (λ c . is-prop-prod (is-prop-spine-2-on-edge-1 c) (is-prop-spine-2-on-edge-2 c)) {(𝕀1 , 𝕀0 , tt)}
     {(c1 , xs)}
     (cong2 {𝕀} {cart-cube 1} {cart-cube 2} pair
-      (sym (prod-fst {c1 ≡ 𝕀1} {is-in-spine 1 xs} (prod-snd {spine-2-on-edge-1 (c1 , xs)} {spine-2-on-edge-2 (c1 , xs)} w)))
-      (sym (prod-fst {spine-2-on-edge-1 (c1 , xs)} {spine-2-on-edge-2 (c1 , xs)} w)))
+      (sym (Product.fst {c1 ≡ 𝕀1} {is-in-spine 1 xs} (Product.snd {spine-2-on-edge-1 (c1 , xs)} {spine-2-on-edge-2 (c1 , xs)} w)))
+      (sym (Product.fst {spine-2-on-edge-1 (c1 , xs)} {spine-2-on-edge-2 (c1 , xs)} w)))
     (refl , (refl , spine-1-pt 𝕀0)) w
 
 spine-2-meet-contr-aux1 ∷ (c : cart-cube 2) (w : spine-2-on-edge-1 c × spine-2-on-edge-2 c) →
@@ -225,10 +225,10 @@ spine-2-cocone-path-maps = wedge-coconeᵣ-path-maps spine-2-edge-1 spine-2-edge
 
 -- coordinates
 cube-3-x1 ∷ cart-cube 3 → 𝕀
-cube-3-x1 c = prod-fst {𝕀} {cart-cube 2} c
+cube-3-x1 c = Product.fst {𝕀} {cart-cube 2} c
 
 cube-3-tail ∷ cart-cube 3 → cart-cube 2
-cube-3-tail c = prod-snd {𝕀} {cart-cube 2} c
+cube-3-tail c = Product.snd {𝕀} {cart-cube 2} c
 
 spine-3-on-edge-1 ∷ cart-cube 3 → U
 spine-3-on-edge-1 c = cube-3-tail c ≡{cart-cube 2} zero-cube 2
@@ -263,7 +263,7 @@ spine-2→spine-3-tail ∷ spine 2 → spine-3-tail
 spine-2→spine-3-tail (xs , w) = ((𝕀1 , xs) , (refl , w))
 
 spine-3-tail→spine-2 ∷ spine-3-tail → spine 2
-spine-3-tail→spine-2 (c , w) = (cube-3-tail c , prod-snd {cube-3-x1 c ≡ 𝕀1} {is-in-spine 2 (cube-3-tail c)} w)
+spine-3-tail→spine-2 (c , w) = (cube-3-tail c , Product.snd {cube-3-x1 c ≡ 𝕀1} {is-in-spine 2 (cube-3-tail c)} w)
 
 -- the vertex (1 , 0 , 0), on each piece; on the second one it is the vertex 0 of the 2-spine
 spine-3-edge-1-end ∷ spine-3-edge-1
@@ -286,8 +286,8 @@ spine-3-meet-contr-aux2 c1 xs w =
     (λ c . is-prop-prod (is-prop-spine-3-on-edge-1 c) (is-prop-spine-3-on-tail c)) {(𝕀1 , 𝕀0 , 𝕀0 , tt)}
     {(c1 , xs)}
     (cong2 {𝕀} {cart-cube 2} {cart-cube 3} pair
-      (sym (prod-fst {c1 ≡ 𝕀1} {is-in-spine 2 xs} (prod-snd {spine-3-on-edge-1 (c1 , xs)} {spine-3-on-tail (c1 , xs)} w)))
-      (sym (prod-fst {spine-3-on-edge-1 (c1 , xs)} {spine-3-on-tail (c1 , xs)} w)))
+      (sym (Product.fst {c1 ≡ 𝕀1} {is-in-spine 2 xs} (Product.snd {spine-3-on-edge-1 (c1 , xs)} {spine-3-on-tail (c1 , xs)} w)))
+      (sym (Product.fst {spine-3-on-edge-1 (c1 , xs)} {spine-3-on-tail (c1 , xs)} w)))
     (refl , spine-3-on-tail-vertex) w
 
 spine-3-meet-contr-aux1 ∷ (c : cart-cube 3) (w : spine-3-on-edge-1 c × spine-3-on-tail c) →

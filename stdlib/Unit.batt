@@ -17,6 +17,7 @@ terminal A x = tt
 ---
 
 open import Funext
+open import Sigma
 
 unit→-equiv ∷ {A ∷ U} → (⊤ → A) ≃ A
 unit→-equiv {A} = iso→equiv {⊤ → A} {A} (λ f . f tt) (λ a _ . a) (λ a . refl) (λ f . funext-nd (λ _ . f tt) f (λ tt . refl))

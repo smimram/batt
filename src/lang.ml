@@ -977,7 +977,8 @@ and infer k env ctx (t:term) : term * value =
       | _ -> error ~t:t0 "record type expected but got %s" (string_of_value k env a)
     in
     let a =
-      match List.find_opt (fun (y,_,_) -> y = x) l with
+      (* When a field occurs multiple times, the last one shadows the others. *)
+      match List.find_opt (fun (y,_,_) -> y = x) (List.rev l) with
       | Some (_,_,a) -> a
       | None -> error ~t:t0 "no field %s in %s" x (string_of_value k env a);
     in
@@ -1052,7 +1053,7 @@ and check_decls k env ctx (decls:T.decls) =
         | Record r ->
           fun x ->
             (
-              match List.assoc_opt x !env, List.assoc_opt x r with
+              match List.assoc_opt x !env, List.assoc_opt x (List.rev r) with
               | Some v, Some v' -> V.same_head v v'
               | _ -> false
             )

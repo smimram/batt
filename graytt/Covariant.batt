@@ -72,16 +72,16 @@ push {A} F sA sF c {a} {x} f u =
 --
 
 push-id ∷ {A ∷ U} (F ∷ A → U) (sA : is-segalᵣ A) (sF : is-segalᵣ (Σ (x : A) . F x)) (c : is-covariant {A} F sA sF)
-  {a : A} (u : F a) → push {A} F sA sF c {a} {a} (id {A} a) u ≡ u
+  {a : A} (u : F a) → push {A} F sA sF c {a} {a} (Hom.id {A} a) u ≡ u
 push-id {A} F sA sF c {a} u =
   let L : (cocart-cell {Σ (x : A) . F x} {A} sF sA (fst F) → pullback {Σ (x : A) . F x} {arrᵣ A} {A} (fst F) (λ g . srcᵣ g)) =
     cocart-cell-lift {Σ (x : A) . F x} {A} sF sA (fst F) in
-  let d : pullback {Σ (x : A) . F x} {arrᵣ A} {A} (fst F) (λ g . srcᵣ g) = cocart-lift-data {A} F {a} {a} (id {A} a) u in
+  let d : pullback {Σ (x : A) . F x} {arrᵣ A} {A} (fst F) (λ g . srcᵣ g) = cocart-lift-data {A} F {a} {a} (Hom.id {A} a) u in
   let w : cocart-cell {Σ (x : A) . F x} {A} sF sA (fst F) =
     ((λ t . (a , u)) ,
-     is-cocartesian-iso {Σ (x : A) . F x} {A} sF sA (fst F) {(a , u)} {(a , u)} (id {Σ (x : A) . F x} (a , u))
+     is-cocartesian-iso {Σ (x : A) . F x} {A} sF sA (fst F) {(a , u)} {(a , u)} (Hom.id {Σ (x : A) . F x} (a , u))
        (is-iso-id {Σ (x : A) . F x} sF (a , u))) in
-  cong {fib L d} {F a} (push-fib {A} F sA sF {a} {a} (id {A} a) u)
+  cong {fib L d} {F a} (push-fib {A} F sA sF {a} {a} (Hom.id {A} a) u)
     (is-contr-eq (is-contr-fib L c d)
-      (cocart-lift {A} F sA sF c {a} {a} (id {A} a) u , cocart-lift-over {A} F sA sF c {a} {a} (id {A} a) u)
+      (cocart-lift {A} F sA sF c {a} {a} (Hom.id {A} a) u , cocart-lift-over {A} F sA sF c {a} {a} (Hom.id {A} a) u)
       (w , refl))

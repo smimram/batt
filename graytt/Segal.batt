@@ -144,7 +144,7 @@ cur-restr-equiv {Q} {S} {S'} ι {T} {T'} h eh e =
 𝕀→simplex-1 t = ((t , tt) , tt)
 
 simplex-1→𝕀 ∷ simplex 1 → 𝕀
-simplex-1→𝕀 x = prod-fst {𝕀} {⊤} (fst (is-sorted 0) x)
+simplex-1→𝕀 x = Product.fst {𝕀} {⊤} (fst (is-sorted 0) x)
 
 simplex-1-eta-aux ∷ (t : 𝕀) (u v : ⊤) → ((t , tt) , tt) ≡{simplex 1} ((t , u) , v)
 simplex-1-eta-aux t = λ tt . λ tt . refl

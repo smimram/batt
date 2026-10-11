@@ -8,6 +8,7 @@ open import Set
 open import Empty
 open import Logic
 open import Product
+open import Sigma
 
 postulate is-set-𝕀 ∷ is-set 𝕀
 

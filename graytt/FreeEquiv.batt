@@ -20,7 +20,7 @@ open import Spine
 
 -- the coordinate of a point of Δ¹
 simplex-1-coord ∷ simplex 1 → 𝕀
-simplex-1-coord x = prod-fst {𝕀} {⊤} (fst (is-sorted 0) x)
+simplex-1-coord x = Product.fst {𝕀} {⊤} (fst (is-sorted 0) x)
 
 -- the edge [0,2] of Δ³, t ↦ (t, t, 0)
 edge-02 ∷ simplex 1 → simplex 3

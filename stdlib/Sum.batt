@@ -8,6 +8,7 @@
 
 open import Bool
 open import Product
+open import Sigma
 
 sum ∷ Type → Type → Type
 sum A B = Σ (b : Bool) . Bool.rec A B b
@@ -32,8 +33,8 @@ rec {A} {B} {C} l r = ind {A} {B} (λ _ . C) l r
 -- the family sum A B → (G →ₗ C), with G = (A →ᵣ C) × (B →ᵣ C)
 recᵣ-family ∷ (A B C ∷ U) → sum A B → ((A →ᵣ C) × (B →ᵣ C)) →ₗ C
 recᵣ-family A B C = rec {A} {B} {((A →ᵣ C) × (B →ᵣ C)) →ₗ C}
-  (λ a . λ w . prod-fst {A →ᵣ C} {B →ᵣ C} w a)
-  (λ b . λ w . prod-snd {A →ᵣ C} {B →ᵣ C} w b)
+  (λ a . λ w . Product.fst {A →ᵣ C} {B →ᵣ C} w a)
+  (λ b . λ w . Product.snd {A →ᵣ C} {B →ᵣ C} w b)
 
 -- oplax eliminator
 recᵣ ∷ (A B C ∷ U) → (A →ᵣ C) → (B →ᵣ C) → (sum A B →ᵣ C)
@@ -44,8 +45,8 @@ recᵣ A B C l r =
 -- the family sum A B → (G →ᵣ C), with G = (A →ₗ C) × (B →ₗ C)
 recₗ-family ∷ (A B C ∷ U) → sum A B → ((A →ₗ C) × (B →ₗ C)) →ᵣ C
 recₗ-family A B C = rec {A} {B} {((A →ₗ C) × (B →ₗ C)) →ᵣ C}
-  (λ a . λ w . prod-fst {A →ₗ C} {B →ₗ C} w a)
-  (λ b . λ w . prod-snd {A →ₗ C} {B →ₗ C} w b)
+  (λ a . λ w . Product.fst {A →ₗ C} {B →ₗ C} w a)
+  (λ b . λ w . Product.snd {A →ₗ C} {B →ₗ C} w b)
 
 -- lax eliminator
 recₗ ∷ (A B C ∷ U) → (A →ₗ C) → (B →ₗ C) → (sum A B →ₗ C)
