@@ -15,10 +15,10 @@ case-l A C k c = λ u . Sum.recₗ A ⊤ C k (λ _ . c) u
 
 -- iterating a non-crisp endofunction, oplax and lax in the index
 iter-r ∷ (C ∷ U) → (C → C) → C → (ℕ →ᵣ C)
-iter-r C f x = rec-nat-r C x (λ _ c . f c)
+iter-r C f x = Nat.recᵣ C x (λ _ c . f c)
 
 iter-l ∷ (C ∷ U) → (C → C) → C → (ℕ →ₗ C)
-iter-l C f x = rec-nat-l C x (λ _ c . f c)
+iter-l C f x = Nat.recₗ C x (λ _ c . f c)
 
 iter-r-2 ∷ (C ∷ U) (f : C → C) (x : C) → iter-r C f x 2 ≡ f (f x)
 iter-r-2 C f x = refl

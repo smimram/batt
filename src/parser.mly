@@ -80,7 +80,7 @@ atom:
   | REFL { mk ~pos:$loc @@ Refl (meta ~pos:$loc) }
   | HOLE { mk ~pos:$loc @@ Hole $loc }
   | META { meta ~pos:$loc }
-  | NAT { mk ~pos:$loc @@ IndType (`Nat, []) }
+  | NAT %prec below_DOT { mk ~pos:$loc @@ IndType (`Nat, []) }
   | ZERO { mk ~pos:$loc @@ IndTerm (`Zero, []) }
   | n=INT { nat ~pos:$loc n }
   | SUCC { mk ~pos:$loc @@ Var "succ" }
@@ -92,6 +92,7 @@ atom:
   | LPAR t=term RPAR { t }
   | t=atom DOT x=IDENT { mk ~pos:$loc @@ RecordField (t, x) }
   | BOOL DOT x=IDENT { mk ~pos:$loc @@ RecordField (mk ~pos:$loc($1) @@ Var "Bool", x) }
+  | NAT DOT x=IDENT { mk ~pos:$loc @@ RecordField (mk ~pos:$loc($1) @@ Var "Nat", x) }
 
 prefix_term:
   | atom { $1 }
