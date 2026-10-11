@@ -1,6 +1,6 @@
 --
--- Binary sums, encoded as Σ (b : bool) . (A if b = false, B if b = true).
--- The family needs a large elimination of bool: rec-bool only eliminates into
+-- Binary sums, encoded as Σ (b : Bool) . (A if b = false, B if b = true).
+-- The family needs a large elimination of Bool: rec-bool only eliminates into
 -- C : U (and U is not in U), so it is defined by clauses instead.
 -- The cartesian eliminators are primitive. The non-dependent oplax and lax eliminators,
 -- with non-crisp branches, (A →ᵣ C) → (B →ᵣ C) → (sum A B →ᵣ C) and its lax counterpart, are derived
@@ -10,12 +10,12 @@
 open import Bool
 open import Product
 
-sum-fam ∷ Type → Type → bool → Type
+sum-fam ∷ Type → Type → Bool → Type
 sum-fam A B false = A
 sum-fam A B true  = B
 
 sum ∷ Type → Type → Type
-sum A B = Σ (b : bool) . sum-fam A B b
+sum A B = Σ (b : Bool) . sum-fam A B b
 
 inl ∷ {A B : Type} → A → sum A B
 inl a = (false , a)

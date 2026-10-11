@@ -4,21 +4,21 @@ id {A} x = x
 id : {A : U} → A → A
 id x = x
 
-b : bool
+b : Bool
 b = id false
 
 comp : {A B C : U} → (B → C) → (A → B) → (A → C)
 comp g f a = g (f a)
 
-not : bool → bool
+not : Bool → Bool
 not false = true
 not true  = false
 
-f : bool → bool
-f = comp not (id {bool})
+f : Bool → Bool
+f = comp not (id {Bool})
 
 double : {A : U} → (A → A) → (A → A)
 double f = comp f f
 
-test : ((⊤ → ⊤) → bool) → bool
+test : ((⊤ → ⊤) → Bool) → Bool
 test f = f id

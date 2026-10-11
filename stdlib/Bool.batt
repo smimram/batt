@@ -1,23 +1,23 @@
-ind-bool ∷ (C : bool → U) → C false → C true → (b : bool) → C b
+ind-bool ∷ (C : Bool → U) → C false → C true → (b : Bool) → C b
 ind-bool C cf ct false = cf
 ind-bool C cf ct true  = ct
 
-rec-bool ∷ (C : U) → C → C → bool → C
+rec-bool ∷ (C : U) → C → C → Bool → C
 rec-bool C cf ct false = cf
 rec-bool C cf ct true  = ct
 
-rec-bool-TYPE ∷ (C : TYPE) → C → C → bool → C
+rec-bool-TYPE ∷ (C : TYPE) → C → C → Bool → C
 rec-bool-TYPE C cf ct false = cf
 rec-bool-TYPE C cf ct true = ct
 
-bool-not ∷ bool → bool
+bool-not ∷ Bool → Bool
 bool-not false = true
 bool-not true  = false
 
-bool-and ∷ bool → bool → bool
+bool-and ∷ Bool → Bool → Bool
 bool-and false _ = false
 bool-and true  b = b
 
-bool-or ∷ bool → bool → bool
+bool-or ∷ Bool → Bool → Bool
 bool-or false b = b
 bool-or true  b = b

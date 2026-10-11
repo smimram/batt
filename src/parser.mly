@@ -19,7 +19,7 @@ let meta ~pos = mk ~pos @@ Meta (`Fresh (Some pos))
 %token<int> INT
 %token EMPTY
 %token UNIT TT
-%token FALSE TRUE
+%token BOOL FALSE TRUE
 %token TO TOL TOR FUN DOT SIGMA TIMES TENS TENSP
 %token FLAT FLATTEN
 %token IDEQ REFL
@@ -71,6 +71,7 @@ atom:
   | EMPTY { mk ~pos:$loc @@ IndType (`Empty, []) }
   | UNIT { mk ~pos:$loc @@ IndType (`Unit, []) }
   | TT { mk ~pos:$loc @@ IndTerm (`Unit, []) }
+  | BOOL { mk ~pos:$loc @@ IndType (`Bool, []) }
   | FALSE { mk ~pos:$loc @@ IndTerm (`Bool false, []) }
   | TRUE { mk ~pos:$loc @@ IndTerm (`Bool true, []) }
   | IDENT { mk ~pos:$loc @@ Var $1 }

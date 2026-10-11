@@ -1,2 +1,2 @@
-f : bool → bool
+f : Bool → Bool
 f false = true

@@ -4,5 +4,5 @@ id A x = x
 id' : (A : U) -> A -> A
 id' A x = id _ x
 
-b : bool
+b : Bool
 b = _

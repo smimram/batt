@@ -1,6 +1,6 @@
-id : bool → bool
+id : Bool → Bool
 id b = b
 
 -- test pairs without parenthesis
-x : bool × bool
+x : Bool × Bool
 x = id false, true

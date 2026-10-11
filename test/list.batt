@@ -35,6 +35,6 @@ append-nil nil = refl
 append-nil (cons x l) = cong (cons x) rec
 
 -- Variable patterns mixed with constructor patterns.
-is-empty ∷ {A : Type} → List A → bool
+is-empty ∷ {A : Type} → List A → Bool
 is-empty nil = true
 is-empty l = false
