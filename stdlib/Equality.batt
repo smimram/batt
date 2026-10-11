@@ -142,11 +142,11 @@ ap-trans-mid X {m} refl Z {n} refl = refl
 --- Crisp paths and directed functions
 ---
 
-happlyₗ-at ∷ {G X ∷ U} {h h' ∷ G →ₗ X} (q ∷ h ≡ h') (w : G) → h w ≡ h' w
-happlyₗ-at {G} {X} {h} refl w = refl
+happlyₗ-at ∷ {A B ∷ U} {f g ∷ A →ₗ B} (p ∷ f ≡ g) (x : A) → f x ≡ g x
+happlyₗ-at {A} {B} {f} refl x = refl
 
-happlyᵣ-at ∷ {G X ∷ U} {h h' ∷ G →ᵣ X} (q ∷ h ≡ h') (w : G) → h w ≡ h' w
-happlyᵣ-at {G} {X} {h} refl w = refl
+happlyᵣ-at ∷ {A B ∷ U} {f g ∷ A →ᵣ B} (p ∷ f ≡ g) (x : A) → f x ≡ g x
+happlyᵣ-at {A} {B} {f} refl x = refl
 
 -- evaluating the image of a cartesian path under arr→arrₗ (resp. arr→arrᵣ) gives back the pointwise path
 happlyₗ-at-κ ∷ {G X ∷ U} {k k' ∷ G → X} (p ∷ k ≡ k') (w : G) →
