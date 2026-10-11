@@ -1,6 +1,15 @@
 open import Equality
 open import Product
 
+-- Dependent eliminator
+ind ∷ (C : ℕ → U) → C zero → ((n : ℕ) → C n → C (succ n)) → (n : ℕ) → C n
+ind C z s zero = z
+ind C z s (succ n) = s n rec
+
+-- Recursor
+rec ∷ {C : U} → C → (ℕ → C → C) → ℕ → C
+rec {C} z s = ind (λ _ . C) z s
+
 -- Predecessor
 pred ∷ ℕ → ℕ
 pred zero = zero
