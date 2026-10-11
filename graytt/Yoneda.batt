@@ -20,7 +20,7 @@ open import Covariant
 --
 
 evid ∷ {A ∷ U} (F ∷ A → U) {a : A} → ((x : A) → hom A a x → F x) → F a
-evid {A} F {a} φ = φ a (id-hom {A} a)
+evid {A} F {a} φ = φ a (id {A} a)
 
 yon ∷ {A ∷ U} (F ∷ A → U) (sA : is-segal-r A) (sF : is-segal-r (Σ (x : A) . F x)) (c : is-covariant {A} F sA sF)
   {a : A} → F a → (x : A) → hom A a x → F x

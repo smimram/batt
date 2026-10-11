@@ -23,11 +23,11 @@ open import Functoriality
 -- two-sided inverses
 is-iso-hom ∷ {X ∷ U} (s : is-segal-r X) {x y : X} (f : hom X x y) → U
 is-iso-hom {X} s {x} {y} f =
-  Σ (g : hom X y x) . (comp-hom-r X s {x} {y} {x} f g ≡ id-hom {X} x) × (comp-hom-r X s {y} {x} {y} g f ≡ id-hom {X} y)
+  Σ (g : hom X y x) . (comp-hom-r X s {x} {y} {x} f g ≡ Hom.id {X} x) × (comp-hom-r X s {y} {x} {y} g f ≡ Hom.id {X} y)
 
 -- identities are isomorphisms
-is-iso-hom-id ∷ {X ∷ U} (s : is-segal-r X) (x : X) → is-iso-hom {X} s {x} {x} (id-hom {X} x)
-is-iso-hom-id {X} s x = (id-hom {X} x , comp-hom-r-lunit X s {x} {x} (id-hom {X} x) , comp-hom-r-lunit X s {x} {x} (id-hom {X} x))
+is-iso-id ∷ {X ∷ U} (s : is-segal-r X) (x : X) → is-iso-hom {X} s {x} {x} (Hom.id {X} x)
+is-iso-id {X} s x = (Hom.id {X} x , comp-hom-r-lunit X s {x} {x} (Hom.id {X} x) , comp-hom-r-lunit X s {x} {x} (Hom.id {X} x))
 
 --
 -- Composition with an isomorphism is an equivalence
@@ -36,8 +36,8 @@ is-iso-hom-id {X} s x = (id-hom {X} x , comp-hom-r-lunit X s {x} {x} (id-hom {X}
 is-equiv-comp-iso-l ∷ {X ∷ U} (s : is-segal-r X) {x y : X} (f : hom X x y) → is-iso-hom {X} s {x} {y} f → (y' : X) →
   is-equiv (λ g . comp-hom-r X s {x} {y} {y'} f g)
 is-equiv-comp-iso-l {X} s {x} {y} f (g , e) y' =
-  let fg : comp-hom-r X s {x} {y} {x} f g ≡ id-hom {X} x = prod-fst e in
-  let gf : comp-hom-r X s {y} {x} {y} g f ≡ id-hom {X} y = prod-snd e in
+  let fg : comp-hom-r X s {x} {y} {x} f g ≡ Hom.id {X} x = prod-fst e in
+  let gf : comp-hom-r X s {y} {x} {y} g f ≡ Hom.id {X} y = prod-snd e in
   let inv : hom X x y' → hom X y y' = λ h . comp-hom-r X s {y} {x} {y'} g h in
   let sec : (h : hom X x y') → comp-hom-r X s {x} {y} {y'} f (inv h) ≡ h = λ h .
     trans (sym (comp-hom-r-assoc X s {x} {y} {x} {y'} f g h))
@@ -50,8 +50,8 @@ is-equiv-comp-iso-l {X} s {x} {y} f (g , e) y' =
 is-equiv-comp-iso-r ∷ {X ∷ U} (s : is-segal-r X) {x y : X} (f : hom X x y) → is-iso-hom {X} s {x} {y} f → (x' : X) →
   is-equiv (λ g . comp-hom-r X s {x'} {x} {y} g f)
 is-equiv-comp-iso-r {X} s {x} {y} f (g , e) x' =
-  let fg : comp-hom-r X s {x} {y} {x} f g ≡ id-hom {X} x = prod-fst e in
-  let gf : comp-hom-r X s {y} {x} {y} g f ≡ id-hom {X} y = prod-snd e in
+  let fg : comp-hom-r X s {x} {y} {x} f g ≡ Hom.id {X} x = prod-fst e in
+  let gf : comp-hom-r X s {y} {x} {y} g f ≡ Hom.id {X} y = prod-snd e in
   let inv : hom X x' y → hom X x' x = λ h . comp-hom-r X s {x'} {y} {x} h g in
   let sec : (h : hom X x' y) → comp-hom-r X s {x'} {x} {y} (inv h) f ≡ h = λ h .
     trans (comp-hom-r-assoc X s {x'} {y} {x} {y} h g f)
@@ -66,14 +66,14 @@ is-equiv-comp-iso-r {X} s {x} {y} f (g , e) x' =
 --
 
 -- the image of an identity is an identity
-hom-map-id ∷ {X A ∷ U} (p ∷ X → A) (x : X) → hom-map {X} {A} p {x} {x} (id-hom {X} x) ≡ id-hom {A} (p x)
+hom-map-id ∷ {X A ∷ U} (p ∷ X → A) (x : X) → hom-map {X} {A} p {x} {x} (Hom.id {X} x) ≡ Hom.id {A} (p x)
 hom-map-id {X} {A} p x = refl
 
 is-iso-hom-map ∷ {X A ∷ U} (sX : is-segal-r X) (sA : is-segal-r A) (p ∷ X → A) {x y : X} (f : hom X x y) →
   is-iso-hom {X} sX {x} {y} f → is-iso-hom {A} sA {p x} {p y} (hom-map {X} {A} p {x} {y} f)
 is-iso-hom-map {X} {A} sX sA p {x} {y} f (g , e) =
-  let fg : comp-hom-r X sX {x} {y} {x} f g ≡ id-hom {X} x = prod-fst e in
-  let gf : comp-hom-r X sX {y} {x} {y} g f ≡ id-hom {X} y = prod-snd e in
+  let fg : comp-hom-r X sX {x} {y} {x} f g ≡ Hom.id {X} x = prod-fst e in
+  let gf : comp-hom-r X sX {y} {x} {y} g f ≡ Hom.id {X} y = prod-snd e in
   (hom-map {X} {A} p {y} {x} g ,
    trans (sym (hom-map-comp X A p sX sA {x} {y} {x} f g)) (cong (hom-map {X} {A} p {x} {x}) fg) ,
    trans (sym (hom-map-comp X A p sX sA {y} {x} {y} g f)) (cong (hom-map {X} {A} p {y} {y}) gf))
