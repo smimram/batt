@@ -248,7 +248,7 @@ wedge-univ-glue-preᵣ {S} {A} {B} i j a1 b0 γ X =
     {cong {wedge-coconeᵣ a1 b0 X → X} {(S →ᵣ X) → X}
         (λ m . λ φ . m (wedge→coconeᵣ i j a1 b0 γ X φ)) (wedge-univ-glue-funᵣ a1 b0 X)}
     {evᵣ-path {S} {X} γ}
-    (trans (happly-cong-pre {wedge-coconeᵣ a1 b0 X} {S →ᵣ X} {X} (wedge→coconeᵣ i j a1 b0 γ X)
+    (trans (happly-cong-pre {S →ᵣ X} {wedge-coconeᵣ a1 b0 X} {X} (wedge→coconeᵣ i j a1 b0 γ X)
               {λ w . wedge-coconeᵣ-fst w a1} {λ w . wedge-coconeᵣ-snd w b0} (wedge-univ-glue-funᵣ a1 b0 X))
       (trans (cong {(w : wedge-coconeᵣ a1 b0 X) → wedge-coconeᵣ-fst w a1 ≡ wedge-coconeᵣ-snd w b0}
                    {(φ : S →ᵣ X) → φ (i a1) ≡ φ (j b0)}
@@ -478,7 +478,7 @@ wedge-univ-glue-preₗ {S} {A} {B} i j a1 b0 γ X =
     {cong {wedge-coconeₗ a1 b0 X → X} {(S →ₗ X) → X}
         (λ m . λ φ . m (wedge→coconeₗ i j a1 b0 γ X φ)) (wedge-univ-glue-funₗ a1 b0 X)}
     {evₗ-path {S} {X} γ}
-    (trans (happly-cong-pre {wedge-coconeₗ a1 b0 X} {S →ₗ X} {X} (wedge→coconeₗ i j a1 b0 γ X)
+    (trans (happly-cong-pre {S →ₗ X} {wedge-coconeₗ a1 b0 X} {X} (wedge→coconeₗ i j a1 b0 γ X)
               {λ w . wedge-coconeₗ-fst w a1} {λ w . wedge-coconeₗ-snd w b0} (wedge-univ-glue-funₗ a1 b0 X))
       (trans (cong {(w : wedge-coconeₗ a1 b0 X) → wedge-coconeₗ-fst w a1 ≡ wedge-coconeₗ-snd w b0}
                    {(φ : S →ₗ X) → φ (i a1) ≡ φ (j b0)}
