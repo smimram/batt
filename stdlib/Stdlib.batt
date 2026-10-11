@@ -1,3 +1,7 @@
+--
+-- Standard library: imports all the modules
+--
+
 open import Empty
 open import Unit
 open import Bool

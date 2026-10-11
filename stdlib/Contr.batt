@@ -1,3 +1,9 @@
+--
+-- Contractible types
+--
+-- Singletons, equality in contractible types, and Σ-types over contractible bases.
+--
+
 is-contr ∷ U → U
 is-contr A = Σ (a : A) . (x : A) → (a ≡ x)
 

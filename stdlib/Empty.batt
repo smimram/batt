@@ -1,3 +1,7 @@
+--
+-- The empty type and negation
+--
+
 not ∷ (A : Type) → Type
 not A = A → ⊥
 

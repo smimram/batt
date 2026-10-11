@@ -1,3 +1,10 @@
+--
+-- Function extensionality
+--
+-- Function extensionality follows from univalence (Voevodsky), for cartesian, oplax and lax
+-- maps. Also: being an equivalence is a proposition.
+--
+
 open import Prop
 open import Set
 open import Function
@@ -7,8 +14,6 @@ open import Contr
 open import Equivalence
 open import Univalence
 open import Path
-
--- Function extensionality follows from univalence
 
 ---
 --- Non-dependent function extensionality from univalence (Voevodsky)

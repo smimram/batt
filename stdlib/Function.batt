@@ -1,3 +1,10 @@
+--
+-- Functions
+--
+-- Identity, composition, pre- and postcomposition and fibres, for cartesian, oplax (→ᵣ) and
+-- lax (→ₗ) functions.
+--
+
 ---
 --- Regular functions
 ---

@@ -1,3 +1,7 @@
+--
+-- Cocones over a span X → A, X → B
+--
+
 open import Equality
 open import Function
 open import Product

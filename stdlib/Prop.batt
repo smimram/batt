@@ -1,3 +1,7 @@
+--
+-- Propositions
+--
+
 open import Contr
 
 is-prop ∷ U → U

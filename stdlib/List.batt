@@ -1,6 +1,6 @@
----
---- Operations on lists.
----
+--
+-- Operations on lists
+--
 
 open import Equality
 open import Nat

@@ -1,3 +1,11 @@
+--
+-- The flat modality ♭
+--
+-- Following Shulman, Brouwer's fixed-point theorem in real-cohesive homotopy type theory
+-- (https://arxiv.org/abs/1509.07584v3): discreteness, and the interaction of ♭ with tensors
+-- and with cartesian, oplax and lax function types.
+--
+
 open import Tensor
 open import Empty
 open import Unit

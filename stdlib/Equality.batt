@@ -1,3 +1,10 @@
+--
+-- Identity types
+--
+-- Path induction, path algebra, homotopies, and the action of oplax and lax maps on crisp
+-- paths.
+--
+
 open import Function
 
 ---
@@ -86,20 +93,20 @@ trans-sym-r {A} {x} refl = refl
 ---
 
 -- an oplax map sends a crisp path between crisp points to a path (crisp path induction)
-ap-r ∷ {S X ∷ U} {y0 y1 ∷ S} (q ∷ y0 ≡ y1) (φ : S →ᵣ X) → φ y0 ≡ φ y1
-ap-r {S} {X} {y0} refl φ = refl
+apᵣ ∷ {S X ∷ U} {y0 y1 ∷ S} (q ∷ y0 ≡ y1) (φ : S →ᵣ X) → φ y0 ≡ φ y1
+apᵣ {S} {X} {y0} refl φ = refl
 
 -- evaluation of a path between oplax maps at a crisp point
-ev-r ∷ {S X ∷ U} (y ∷ S) {φ ψ : S →ᵣ X} → φ ≡ ψ → φ y ≡ ψ y
-ev-r {S} {X} y {φ} {ψ} p = cong {S →ᵣ X} {X} (λ h . h y) p
+evᵣ ∷ {S X ∷ U} (y ∷ S) {φ ψ : S →ᵣ X} → φ ≡ ψ → φ y ≡ ψ y
+evᵣ {S} {X} y {φ} {ψ} p = cong {S →ᵣ X} {X} (λ h . h y) p
 
 -- a lax map sends a crisp path between crisp points to a path (crisp path induction)
-ap-l ∷ {S X ∷ U} {y0 y1 ∷ S} (q ∷ y0 ≡ y1) (φ : S →ₗ X) → φ y0 ≡ φ y1
-ap-l {S} {X} {y0} refl φ = refl
+apₗ ∷ {S X ∷ U} {y0 y1 ∷ S} (q ∷ y0 ≡ y1) (φ : S →ₗ X) → φ y0 ≡ φ y1
+apₗ {S} {X} {y0} refl φ = refl
 
 -- evaluation of a path between lax maps at a crisp point
-ev-l ∷ {S X ∷ U} (y ∷ S) {φ ψ : S →ₗ X} → φ ≡ ψ → φ y ≡ ψ y
-ev-l {S} {X} y {φ} {ψ} p = cong {S →ₗ X} {X} (λ h . h y) p
+evₗ ∷ {S X ∷ U} (y ∷ S) {φ ψ : S →ₗ X} → φ ≡ ψ → φ y ≡ ψ y
+evₗ {S} {X} y {φ} {ψ} p = cong {S →ₗ X} {X} (λ h . h y) p
 
 ---
 --- More path algebra
@@ -135,33 +142,33 @@ ap-trans-mid X {m} refl Z {n} refl = refl
 --- Crisp paths and directed functions
 ---
 
-ev-l-at ∷ {G X ∷ U} {h h' ∷ G →ₗ X} (q ∷ h ≡ h') (w : G) → h w ≡ h' w
-ev-l-at {G} {X} {h} refl w = refl
+evₗ-at ∷ {G X ∷ U} {h h' ∷ G →ₗ X} (q ∷ h ≡ h') (w : G) → h w ≡ h' w
+evₗ-at {G} {X} {h} refl w = refl
 
-ev-r-at ∷ {G X ∷ U} {h h' ∷ G →ᵣ X} (q ∷ h ≡ h') (w : G) → h w ≡ h' w
-ev-r-at {G} {X} {h} refl w = refl
+evᵣ-at ∷ {G X ∷ U} {h h' ∷ G →ᵣ X} (q ∷ h ≡ h') (w : G) → h w ≡ h' w
+evᵣ-at {G} {X} {h} refl w = refl
 
 -- the glue of the restriction of λ x . e x w is the evaluation of the glue of the restriction of e
-ap-r-family ∷ {S G X ∷ U} {y0 y1 ∷ S} (c ∷ y0 ≡ y1) (e ∷ S → (G →ₗ X)) (w : G) →
-  ap-r {S} {X} {y0} {y1} c (λ x . e x w) ≡ ev-l-at {G} {X} {e y0} {e y1} (cong e c) w
-ap-r-family {S} {G} {X} {y0} refl e w = refl
+apᵣ-family ∷ {S G X ∷ U} {y0 y1 ∷ S} (c ∷ y0 ≡ y1) (e ∷ S → (G →ₗ X)) (w : G) →
+  apᵣ {S} {X} {y0} {y1} c (λ x . e x w) ≡ evₗ-at {G} {X} {e y0} {e y1} (cong e c) w
+apᵣ-family {S} {G} {X} {y0} refl e w = refl
 
 -- applying a crisp path of families to a point
-family-r-path ∷ {S G X ∷ U} {e e' ∷ S → (G →ₗ X)} (p ∷ e ≡ e') (φ : G) → (λ x . e x φ) ≡{S →ᵣ X} (λ x . e' x φ)
-family-r-path {S} {G} {X} {e} refl φ = refl
+familyᵣ-path ∷ {S G X ∷ U} {e e' ∷ S → (G →ₗ X)} (p ∷ e ≡ e') (φ : G) → (λ x . e x φ) ≡{S →ᵣ X} (λ x . e' x φ)
+familyᵣ-path {S} {G} {X} {e} refl φ = refl
 
 -- the cartesian map "evaluate at y" and its action on crisp paths
-ev-r-path ∷ {S X ∷ U} {y0 y1 ∷ S} (c ∷ y0 ≡ y1) → (λ φ . φ y0) ≡{(S →ᵣ X) → X} (λ φ . φ y1)
-ev-r-path {S} {X} {y0} refl = refl
+evᵣ-path ∷ {S X ∷ U} {y0 y1 ∷ S} (c ∷ y0 ≡ y1) → (λ φ . φ y0) ≡{(S →ᵣ X) → X} (λ φ . φ y1)
+evᵣ-path {S} {X} {y0} refl = refl
 
-happly-ev-r-path ∷ {S X ∷ U} {y0 y1 ∷ S} (c ∷ y0 ≡ y1) →
-  happly {S →ᵣ X} {λ _ . X} {λ φ . φ y0} {λ φ . φ y1} (ev-r-path {S} {X} c) ≡ (λ φ . ap-r {S} {X} {y0} {y1} c φ)
-happly-ev-r-path {S} {X} {y0} refl = refl
+happly-evᵣ-path ∷ {S X ∷ U} {y0 y1 ∷ S} (c ∷ y0 ≡ y1) →
+  happly {S →ᵣ X} {λ _ . X} {λ φ . φ y0} {λ φ . φ y1} (evᵣ-path {S} {X} c) ≡ (λ φ . apᵣ {S} {X} {y0} {y1} c φ)
+happly-evᵣ-path {S} {X} {y0} refl = refl
 
 -- evaluating the path between two constant oplax maps induced by a path of values
-ev-r-const ∷ {S X ∷ U} (y ∷ S) {z z' : X} (p : z ≡ z') →
-  ev-r {S} {X} y {λ b . z} {λ b . z'} (cong {X} {S →ᵣ X} (λ v . λ b . v) p) ≡ p
-ev-r-const {S} {X} y {z} refl = refl
+evᵣ-const ∷ {S X ∷ U} (y ∷ S) {z z' : X} (p : z ≡ z') →
+  evᵣ {S} {X} y {λ b . z} {λ b . z'} (cong {X} {S →ᵣ X} (λ v . λ b . v) p) ≡ p
+evᵣ-const {S} {X} y {z} refl = refl
 
 -- a crisp path of maps k ≡ k' gives a path between the precompositions of an oplax (lax) map
 preᵣ-path ∷ (A ∷ U) {B X ∷ U} {k k' ∷ A → B} (p ∷ k ≡ k') (φ : B →ᵣ X) → preᵣ {A} {B} {X} φ k ≡ preᵣ {A} {B} {X} φ k'
@@ -171,39 +178,39 @@ preₗ-path ∷ (A ∷ U) {B X ∷ U} {k k' ∷ A → B} (p ∷ k ≡ k') (φ : 
 preₗ-path A {B} {X} {k} refl φ = refl
 
 -- evaluated at a crisp point, it is the image of the pointwise path
-ev-r-preᵣ-path ∷ (A ∷ U) {B X ∷ U} {k k' ∷ A → B} (p ∷ k ≡ k') (y ∷ A) (φ : B →ᵣ X) →
-  ev-r {A} {X} y {preᵣ {A} {B} {X} φ k} {preᵣ {A} {B} {X} φ k'} (preᵣ-path A {B} {X} {k} {k'} p φ)
-    ≡ ap-r {B} {X} {k y} {k' y} (happly {A} {λ _ . B} {k} {k'} p y) φ
-ev-r-preᵣ-path A {B} {X} {k} refl y φ = refl
+evᵣ-preᵣ-path ∷ (A ∷ U) {B X ∷ U} {k k' ∷ A → B} (p ∷ k ≡ k') (y ∷ A) (φ : B →ᵣ X) →
+  evᵣ {A} {X} y {preᵣ {A} {B} {X} φ k} {preᵣ {A} {B} {X} φ k'} (preᵣ-path A {B} {X} {k} {k'} p φ)
+    ≡ apᵣ {B} {X} {k y} {k' y} (happly {A} {λ _ . B} {k} {k'} p y) φ
+evᵣ-preᵣ-path A {B} {X} {k} refl y φ = refl
 
--- ap-r only depends on its crisp path up to a crisp path
-ap-r-path ∷ {S X ∷ U} {y0 y1 ∷ S} {e e' ∷ y0 ≡ y1} (E ∷ e ≡ e') (φ : S →ᵣ X) → ap-r {S} {X} {y0} {y1} e φ ≡ ap-r {S} {X} {y0} {y1} e' φ
-ap-r-path {S} {X} {y0} {y1} {e} refl φ = refl
+-- apᵣ only depends on its crisp path up to a crisp path
+apᵣ-path ∷ {S X ∷ U} {y0 y1 ∷ S} {e e' ∷ y0 ≡ y1} (E ∷ e ≡ e') (φ : S →ᵣ X) → apᵣ {S} {X} {y0} {y1} e φ ≡ apᵣ {S} {X} {y0} {y1} e' φ
+apᵣ-path {S} {X} {y0} {y1} {e} refl φ = refl
 
--- ap-r of a concatenation of crisp paths
-ap-r-trans ∷ {S X ∷ U} {y0 y1 ∷ S} (p ∷ y0 ≡ y1) {y2 ∷ S} (q ∷ y1 ≡ y2) (φ : S →ᵣ X) →
-  ap-r {S} {X} {y0} {y2} (trans p q) φ ≡ trans (ap-r {S} {X} {y0} {y1} p φ) (ap-r {S} {X} {y1} {y2} q φ)
-ap-r-trans {S} {X} {y0} {y1} p refl φ = refl
+-- apᵣ of a concatenation of crisp paths
+apᵣ-trans ∷ {S X ∷ U} {y0 y1 ∷ S} (p ∷ y0 ≡ y1) {y2 ∷ S} (q ∷ y1 ≡ y2) (φ : S →ᵣ X) →
+  apᵣ {S} {X} {y0} {y2} (trans p q) φ ≡ trans (apᵣ {S} {X} {y0} {y1} p φ) (apᵣ {S} {X} {y1} {y2} q φ)
+apᵣ-trans {S} {X} {y0} {y1} p refl φ = refl
 
--- ap-r of a precomposition is ap-r of the image path
-ap-r-preᵣ ∷ (A ∷ U) {B X ∷ U} {y0 y1 ∷ A} (c ∷ y0 ≡ y1) (k ∷ A → B) (φ : B →ᵣ X) →
-  ap-r {A} {X} {y0} {y1} c (preᵣ {A} {B} {X} φ k) ≡ ap-r {B} {X} {k y0} {k y1} (cong k c) φ
-ap-r-preᵣ A {B} {X} {y0} refl k φ = refl
+-- apᵣ of a precomposition is apᵣ of the image path
+apᵣ-preᵣ ∷ (A ∷ U) {B X ∷ U} {y0 y1 ∷ A} (c ∷ y0 ≡ y1) (k ∷ A → B) (φ : B →ᵣ X) →
+  apᵣ {A} {X} {y0} {y1} c (preᵣ {A} {B} {X} φ k) ≡ apᵣ {B} {X} {k y0} {k y1} (cong k c) φ
+apᵣ-preᵣ A {B} {X} {y0} refl k φ = refl
 
 -- the lax mirrors of the four lemmas above
-ap-l-family ∷ {S G X ∷ U} {y0 y1 ∷ S} (c ∷ y0 ≡ y1) (e ∷ S → (G →ᵣ X)) (w : G) →
-  ap-l {S} {X} {y0} {y1} c (λ x . e x w) ≡ ev-r-at {G} {X} {e y0} {e y1} (cong e c) w
-ap-l-family {S} {G} {X} {y0} refl e w = refl
+apₗ-family ∷ {S G X ∷ U} {y0 y1 ∷ S} (c ∷ y0 ≡ y1) (e ∷ S → (G →ᵣ X)) (w : G) →
+  apₗ {S} {X} {y0} {y1} c (λ x . e x w) ≡ evᵣ-at {G} {X} {e y0} {e y1} (cong e c) w
+apₗ-family {S} {G} {X} {y0} refl e w = refl
 
-family-l-path ∷ {S G X ∷ U} {e e' ∷ S → (G →ᵣ X)} (p ∷ e ≡ e') (φ : G) → (λ x . e x φ) ≡{S →ₗ X} (λ x . e' x φ)
-family-l-path {S} {G} {X} {e} refl φ = refl
+familyₗ-path ∷ {S G X ∷ U} {e e' ∷ S → (G →ᵣ X)} (p ∷ e ≡ e') (φ : G) → (λ x . e x φ) ≡{S →ₗ X} (λ x . e' x φ)
+familyₗ-path {S} {G} {X} {e} refl φ = refl
 
-ev-l-path ∷ {S X ∷ U} {y0 y1 ∷ S} (c ∷ y0 ≡ y1) → (λ φ . φ y0) ≡{(S →ₗ X) → X} (λ φ . φ y1)
-ev-l-path {S} {X} {y0} refl = refl
+evₗ-path ∷ {S X ∷ U} {y0 y1 ∷ S} (c ∷ y0 ≡ y1) → (λ φ . φ y0) ≡{(S →ₗ X) → X} (λ φ . φ y1)
+evₗ-path {S} {X} {y0} refl = refl
 
-happly-ev-l-path ∷ {S X ∷ U} {y0 y1 ∷ S} (c ∷ y0 ≡ y1) →
-  happly {S →ₗ X} {λ _ . X} {λ φ . φ y0} {λ φ . φ y1} (ev-l-path {S} {X} c) ≡ (λ φ . ap-l {S} {X} {y0} {y1} c φ)
-happly-ev-l-path {S} {X} {y0} refl = refl
+happly-evₗ-path ∷ {S X ∷ U} {y0 y1 ∷ S} (c ∷ y0 ≡ y1) →
+  happly {S →ₗ X} {λ _ . X} {λ φ . φ y0} {λ φ . φ y1} (evₗ-path {S} {X} c) ≡ (λ φ . apₗ {S} {X} {y0} {y1} c φ)
+happly-evₗ-path {S} {X} {y0} refl = refl
 
 happly-cong-pre ∷ {A A' B : U} (h : A' → A) {k k' : A → B} (p : k ≡ k') →
   happly {A'} {λ _ . B} {λ a . k (h a)} {λ a . k' (h a)} (cong {A → B} {A' → B} (λ m . λ a . m (h a)) p)

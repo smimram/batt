@@ -1,3 +1,7 @@
+--
+-- Σ-types and cartesian products
+--
+
 fst ∷ {A : U} (B : A → U) → (Σ (x : A) . B x) → A
 fst B (x,y) = x
 

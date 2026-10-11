@@ -1,3 +1,7 @@
+--
+-- Logical disjunction, as the propositional truncation of the sum
+--
+
 open import Prop
 open import Trunc
 open import Sum

@@ -1,3 +1,7 @@
+--
+-- Pushouts (postulated)
+--
+
 postulate pushout-obj ∷ {X A B : Type} → (f : X → A) (g : X → B) → Type
 postulate pushout-inl ∷ {X A B : Type} → (f : X → A) (g : X → B) → A → pushout-obj f g
 postulate pushout-inr ∷ {X A B : Type} → (f : X → A) (g : X → B) → B → pushout-obj f g

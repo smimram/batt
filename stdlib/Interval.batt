@@ -1,3 +1,9 @@
+--
+-- The directed interval 𝕀
+--
+-- Axioms (𝕀 is a set with distinct endpoints) and its order.
+--
+
 open import Set
 open import Empty
 open import Logic

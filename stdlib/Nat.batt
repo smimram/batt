@@ -1,3 +1,9 @@
+--
+-- Natural numbers
+--
+-- Eliminators (including oplax and lax recursion), arithmetic and order.
+--
+
 open import Equality
 open import Product
 

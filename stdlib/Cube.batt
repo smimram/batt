@@ -1,3 +1,11 @@
+--
+-- Cubes, simplices and spines
+--
+-- Gray (⊗) and cartesian (×) cubes 𝕀ⁿ, the ℕ-indexed simplices Δⁿ (sorted points of the
+-- cartesian cube) and spines Spₙ with their inclusion into Δⁿ, grids □[a₀, …, a_{d-1}], and the
+-- edges and faces of low-dimensional simplices.
+--
+
 open import Interval
 open import Unit
 

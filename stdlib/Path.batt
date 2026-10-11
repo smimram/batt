@@ -1,6 +1,8 @@
----
---- Path type and some properties
----
+--
+-- Free paths
+--
+-- The type of free paths of a type, which is equivalent to the type itself.
+--
 
 -- free paths
 path ∷ U → U

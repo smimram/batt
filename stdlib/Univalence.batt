@@ -1,3 +1,10 @@
+--
+-- Univalence (postulated)
+--
+-- and its consequences for postcomposition with equivalences, for cartesian, oplax and lax
+-- maps.
+--
+
 open import Equivalence
 
 equiv-eq ∷ {A B : U} → A ≡ B → equiv A B

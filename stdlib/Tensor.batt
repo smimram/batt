@@ -1,3 +1,9 @@
+--
+-- Tensor products ⨂
+--
+-- Unit, associativity, currying (into lax and oplax functions) and distributivity over ×.
+--
+
 open import Equivalence
 
 tens-fst ∷ {A B ∷ U} → A ⨂ B → A

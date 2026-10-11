@@ -1,3 +1,10 @@
+--
+-- Arrows
+--
+-- The arrows of a type A are the maps 𝕀 → A (cartesian), 𝕀 →ₗ A (lax) and 𝕀 →ᵣ A (oplax),
+-- with their sources and targets.
+--
+
 arr ∷ U → U
 arr A = 𝕀 → A
 

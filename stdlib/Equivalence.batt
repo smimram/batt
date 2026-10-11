@@ -1,3 +1,10 @@
+--
+-- Equivalences
+--
+-- Sections and retractions, equivalences and isomorphisms, contractible fibres, the
+-- fundamental theorem of identity types, 2-out-of-3 and fiberwise equivalences.
+--
+
 open import Product
 open import Function
 open import Equality

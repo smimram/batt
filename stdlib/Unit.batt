@@ -1,3 +1,7 @@
+--
+-- The unit type ⊤
+--
+
 unit-ind ∷ (A ∷ ⊤ → U) → A tt → (x : ⊤) → A x
 unit-ind A a tt = a
 

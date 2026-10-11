@@ -1,3 +1,7 @@
+--
+-- Propositional truncation (postulated)
+--
+
 open import Prop
 
 postulate type-prop-trunc ∷ U → U

@@ -1,3 +1,9 @@
+--
+-- Booleans
+--
+-- Eliminators (ind, rec into U, REC into TYPE) and the usual operations.
+--
+
 ind ∷ (A : Bool → U) → A false → A true → (b : Bool) → A b
 ind A f t false = f
 ind A f t true  = t
