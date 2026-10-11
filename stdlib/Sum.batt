@@ -46,19 +46,6 @@ rec-r A B C l r =
   let E ∷ sum A B → ((A →ᵣ C) × (B →ᵣ C)) →ₗ C = rec-r-family A B C in
   λ u . E u (l , r)
 
--- β, at a crisp point and as an equation of oplax maps (for any point)
-rec-r-inl ∷ (A B C ∷ U) (l : A →ᵣ C) (r : B →ᵣ C) (a ∷ A) → rec-r A B C l r (inl a) ≡ l a
-rec-r-inl A B C l r a = refl
-
-rec-r-inr ∷ (A B C ∷ U) (l : A →ᵣ C) (r : B →ᵣ C) (b ∷ B) → rec-r A B C l r (inr b) ≡ r b
-rec-r-inr A B C l r b = refl
-
-rec-r-inl' ∷ (A B C ∷ U) (l : A →ᵣ C) (r : B →ᵣ C) → (λ a . rec-r A B C l r (inl a)) ≡{A →ᵣ C} l
-rec-r-inl' A B C l r = refl
-
-rec-r-inr' ∷ (A B C ∷ U) (l : A →ᵣ C) (r : B →ᵣ C) → (λ b . rec-r A B C l r (inr b)) ≡{B →ᵣ C} r
-rec-r-inr' A B C l r = refl
-
 -- the family sum A B → (G →ᵣ C), with G = (A →ₗ C) × (B →ₗ C)
 rec-l-family ∷ (A B C ∷ U) → sum A B → ((A →ₗ C) × (B →ₗ C)) →ᵣ C
 rec-l-family A B C = rec {A} {B} {((A →ₗ C) × (B →ₗ C)) →ᵣ C}
@@ -70,15 +57,3 @@ rec-l ∷ (A B C ∷ U) → (A →ₗ C) → (B →ₗ C) → (sum A B →ₗ C)
 rec-l A B C l r =
   let E ∷ sum A B → ((A →ₗ C) × (B →ₗ C)) →ᵣ C = rec-l-family A B C in
   λ u . E u (l , r)
-
-rec-l-inl ∷ (A B C ∷ U) (l : A →ₗ C) (r : B →ₗ C) (a ∷ A) → rec-l A B C l r (inl a) ≡ l a
-rec-l-inl A B C l r a = refl
-
-rec-l-inr ∷ (A B C ∷ U) (l : A →ₗ C) (r : B →ₗ C) (b ∷ B) → rec-l A B C l r (inr b) ≡ r b
-rec-l-inr A B C l r b = refl
-
-rec-l-inl' ∷ (A B C ∷ U) (l : A →ₗ C) (r : B →ₗ C) → (λ a . rec-l A B C l r (inl a)) ≡{A →ₗ C} l
-rec-l-inl' A B C l r = refl
-
-rec-l-inr' ∷ (A B C ∷ U) (l : A →ₗ C) (r : B →ₗ C) → (λ b . rec-l A B C l r (inr b)) ≡{B →ₗ C} r
-rec-l-inr' A B C l r = refl
