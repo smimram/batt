@@ -11,9 +11,9 @@ ind A f t true  = t
 rec ∷ {A : U} → A → A → Bool → A
 rec = ind (λ _ . A)
 
-REA ∷ {A : TYPE} → A → A → Bool → A
-REA f t false = f
-REA f t true  = t
+REC ∷ {A : TYPE} → A → A → Bool → A
+REC f t false = f
+REC f t true  = t
 
 not ∷ Bool → Bool
 not false = true
