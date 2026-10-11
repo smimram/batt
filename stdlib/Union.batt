@@ -178,7 +178,7 @@ union-D-contr ∷ {X : U} (A B : X → U) (pA : (x : X) → is-prop (A x)) (pB :
   (x : X) → or (A x) (B x) → is-contr (union-D A B Y a b c x)
 union-D-contr {X} A B pA pB Y a b c x w =
   rec-prop-trunc' (sum (A x) (B x)) (is-contr (union-D A B Y a b c x)) (is-prop-is-contr (union-D A B Y a b c x))
-    (rec-sum {A x} {B x} {is-contr (union-D A B Y a b c x)} (union-D-contr-A A B pA Y a b c x) (union-D-contr-B A B pB Y a b c x)) w
+    (Sum.rec {A x} {B x} {is-contr (union-D A B Y a b c x)} (union-D-contr-A A B pA Y a b c x) (union-D-contr-B A B pB Y a b c x)) w
 
 --
 -- accessors of the descent family

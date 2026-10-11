@@ -60,7 +60,7 @@ crispify-bool false = 𝄫false
 crispify-bool true  = 𝄫true
 
 is-section-crispify-bool ∷ (b : Bool) → unflatten (crispify-bool b) ≡ b
-is-section-crispify-bool = ind-bool (λb. unflatten (crispify-bool b) ≡ b) refl refl
+is-section-crispify-bool = Bool.ind (λb. unflatten (crispify-bool b) ≡ b) refl refl
 
 ---
 --- Discreteness

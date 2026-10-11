@@ -31,6 +31,8 @@ let meta ~pos = mk ~pos @@ Meta (`Fresh (Some pos))
 %token OPEN
 %token<string> IMPORT
 
+%nonassoc below_DOT
+%nonassoc DOT
 %nonassoc below_INT
 %nonassoc INT
 %nonassoc INFIX0
@@ -71,7 +73,7 @@ atom:
   | EMPTY { mk ~pos:$loc @@ IndType (`Empty, []) }
   | UNIT { mk ~pos:$loc @@ IndType (`Unit, []) }
   | TT { mk ~pos:$loc @@ IndTerm (`Unit, []) }
-  | BOOL { mk ~pos:$loc @@ IndType (`Bool, []) }
+  | BOOL %prec below_DOT { mk ~pos:$loc @@ IndType (`Bool, []) }
   | FALSE { mk ~pos:$loc @@ IndTerm (`Bool false, []) }
   | TRUE { mk ~pos:$loc @@ IndTerm (`Bool true, []) }
   | IDENT { mk ~pos:$loc @@ Var $1 }
@@ -89,6 +91,7 @@ atom:
   | I1 { mk ~pos:$loc @@ I1 }
   | LPAR t=term RPAR { t }
   | t=atom DOT x=IDENT { mk ~pos:$loc @@ RecordField (t, x) }
+  | BOOL DOT x=IDENT { mk ~pos:$loc @@ RecordField (mk ~pos:$loc($1) @@ Var "Bool", x) }
 
 prefix_term:
   | atom { $1 }

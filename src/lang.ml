@@ -82,7 +82,8 @@ module Bunch = struct
     in
     let to_string = to_string ?vars k in
     if !Common.show_debug then debug "SPLIT %s as %s / %s\n" (to_string b) (FV.to_string fvl) (FV.to_string fvr);
-    let fvc = FV.of_list @@ List.map fst crisp in
+    (* Crisp variables shadowed by variables of the bunch are not considered as crisp (as in Context.assoc_opt). *)
+    let fvc = FV.diff (FV.of_list @@ List.map fst crisp) (dom b) in
     let shared = FV.diff (FV.inter fvl fvr) fvc in
     if not (FV.is_empty shared) then failwith @@ Printf.sprintf "non-crisp variables used on both sides of a tensor: %s" (FV.to_string shared);
     let is_crisp fv = FV.subset fv fvc in
