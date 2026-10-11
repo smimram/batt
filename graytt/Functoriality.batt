@@ -6,7 +6,7 @@
 --
 --   fn u v : P (u ; v) ≡ P u ; P v
 --
--- where u ; v is comp-hom-r X sX u v (composition in diagrammatic order). This commutation is
+-- where u ; v is comp-homᵣ X sX u v (composition in diagrammatic order). This commutation is
 -- coherent with associativity (hom-map-comp-assoc).
 --
 -- Both statements are proved on simplices, then extended to all composable pairs and triples,
@@ -47,7 +47,7 @@ hom-map-comp-stmt ∷
   {x y z : X} (u : hom x y) (v : hom y z)
   → U
 hom-map-comp-stmt X A p sX sA {x} {y} {z} u v =
-  hom-map p (comp-hom-r X sX u v) ≡ comp-hom-r A sA (hom-map p u) (hom-map p v)
+  hom-map p (comp-homᵣ X sX u v) ≡ comp-homᵣ A sA (hom-map p u) (hom-map p v)
 
 -- the statement, as a family over composable pairs
 pair-stmt ∷ (X A ∷ U) (p ∷ X → A) (sX : is-segalᵣ X) (sA : is-segalᵣ A) → pairs X → U
@@ -66,7 +66,7 @@ hom-map-comp-simplex X A p sX sA Ψ =
 hom-map-comp-def ∷
   (X A ∷ U) (p ∷ X → A) (sX : is-segalᵣ X) (sA : is-segalᵣ A)
   {x y z : X} (u : hom x y) (v : hom y z)
-  → hom-map p (comp-hom-r X sX u v) ≡ comp-hom-r A sA (hom-map p u) (hom-map p v)
+  → hom-map p (comp-homᵣ X sX u v) ≡ comp-homᵣ A sA (hom-map p u) (hom-map p v)
 hom-map-comp-def X A p sX sA {x} {y} {z} u v =
   let s : section (edges-2 {X}) = is-equiv-sec (edges-2 {X}) (is-equiv-edges-2 X sX) in
   let r : pairs X = (x , y , z , u , v) in
@@ -77,7 +77,7 @@ hom-map-comp-def X A p sX sA {x} {y} {z} u v =
 hom-map-comp-freeze ∷
   (X A ∷ U) (p ∷ X → A) (sX : is-segalᵣ X) (sA : is-segalᵣ A)
   {x y z : X} (u : hom x y) (v : hom y z)
-  → Σ (e : hom-map p (comp-hom-r X sX u v) ≡ comp-hom-r A sA (hom-map p u) (hom-map p v)) .
+  → Σ (e : hom-map p (comp-homᵣ X sX u v) ≡ comp-homᵣ A sA (hom-map p u) (hom-map p v)) .
       e ≡ hom-map-comp-def X A p sX sA {x} {y} {z} u v
 hom-map-comp-freeze X A p sX sA {x} {y} {z} u v = (hom-map-comp-def X A p sX sA {x} {y} {z} u v , refl)
 
@@ -85,7 +85,7 @@ hom-map-comp-freeze X A p sX sA {x} {y} {z} u v = (hom-map-comp-def X A p sX sA 
 hom-map-comp ∷
   (X A ∷ U) (p ∷ X → A) (sX : is-segalᵣ X) (sA : is-segalᵣ A)
   {x y z : X} (u : hom x y) (v : hom y z)
-  → hom-map p (comp-hom-r X sX u v) ≡ comp-hom-r A sA (hom-map p u) (hom-map p v)
+  → hom-map p (comp-homᵣ X sX u v) ≡ comp-homᵣ A sA (hom-map p u) (hom-map p v)
 hom-map-comp X A p sX sA {x} {y} {z} u v = fst _ (hom-map-comp-freeze X A p sX sA {x} {y} {z} u v)
 
 -- on the edges of a 2-simplex, it is the commutation given by that 2-simplex
@@ -113,8 +113,8 @@ hom-map-comp-edges X A p sX sA Ψ =
 -- the image of a face path
 face-image ∷
   (X A ∷ U) (p ∷ X → A) (sX : is-segalᵣ X) (sA : is-segalᵣ A)
-  {x y z : X} (u : hom x y) (v : hom y z) {a : hom x z} (c : comp-hom-r X sX u v ≡ a)
-  → comp-hom-r A sA (hom-map p u) (hom-map p v) ≡ hom-map p a
+  {x y z : X} (u : hom x y) (v : hom y z) {a : hom x z} (c : comp-homᵣ X sX u v ≡ a)
+  → comp-homᵣ A sA (hom-map p u) (hom-map p v) ≡ hom-map p a
 face-image X A p sX sA {x} {y} {z} u v {a} c =
   trans (sym (hom-map-comp X A p sX sA u v)) (cong (hom-map p {x} {z}) c)
 
@@ -159,7 +159,7 @@ hom-map-comp-face X A p sX sA Ψ =
 -- of tetra-alg, where everything cancels.
 --
 -- On the edges of a 3-simplex Θ, the associators are given by the faces of Θ and of p ∘ Θ
--- (comp-hom-r-assoc-edges, Simplex-edges.batt), and the faces of p ∘ Θ are the images of the
+-- (comp-homᵣ-assoc-edges, Simplex-edges.batt), and the faces of p ∘ Θ are the images of the
 -- faces of Θ (hom-map-comp-face): the hexagon commutes (assoc-coh-simplex). It extends to all
 -- composable triples since 3-simplices are composable triples (hom-map-comp-assoc).
 --
@@ -168,16 +168,16 @@ hom-map-comp-face X A p sX sA Ψ =
 hom-map-hexagon ∷
   (X A ∷ U) (p ∷ X → A) (sX : is-segalᵣ X) (sA : is-segalᵣ A)
   {x y z t : X} (u : hom x y) (v : hom y z) (w : hom z t)
-  (αX : comp-hom-r X sX (comp-hom-r X sX u v) w ≡ comp-hom-r X sX u (comp-hom-r X sX v w))
-  (αA : comp-hom-r A sA (comp-hom-r A sA (hom-map p u) (hom-map p v)) (hom-map p w)
-          ≡ comp-hom-r A sA (hom-map p u) (comp-hom-r A sA (hom-map p v) (hom-map p w)))
+  (αX : comp-homᵣ X sX (comp-homᵣ X sX u v) w ≡ comp-homᵣ X sX u (comp-homᵣ X sX v w))
+  (αA : comp-homᵣ A sA (comp-homᵣ A sA (hom-map p u) (hom-map p v)) (hom-map p w)
+          ≡ comp-homᵣ A sA (hom-map p u) (comp-homᵣ A sA (hom-map p v) (hom-map p w)))
   → U
 hom-map-hexagon X A p sX sA {x} {y} {z} {t} u v w αX αA =
   trans (cong (hom-map p {x} {t}) αX)
-    (trans (hom-map-comp X A p sX sA u (comp-hom-r X sX v w))
-      (cong (λ m . comp-hom-r A sA {p x} {p y} {p t} (hom-map p u) m) (hom-map-comp X A p sX sA v w)))
-  ≡ trans (hom-map-comp X A p sX sA (comp-hom-r X sX u v) w)
-      (trans (cong (λ m . comp-hom-r A sA {p x} {p z} {p t} m (hom-map p w)) (hom-map-comp X A p sX sA u v))
+    (trans (hom-map-comp X A p sX sA u (comp-homᵣ X sX v w))
+      (cong (λ m . comp-homᵣ A sA {p x} {p y} {p t} (hom-map p u) m) (hom-map-comp X A p sX sA v w)))
+  ≡ trans (hom-map-comp X A p sX sA (comp-homᵣ X sX u v) w)
+      (trans (cong (λ m . comp-homᵣ A sA {p x} {p z} {p t} m (hom-map p w)) (hom-map-comp X A p sX sA u v))
         αA)
 
 -- the path algebra of the degenerate tetrahedron
@@ -205,28 +205,28 @@ hom-map-tetrahedron ∷
   (X A ∷ U) (p ∷ X → A) (sX : is-segalᵣ X) (sA : is-segalᵣ A)
   {x y z t : X} (u : hom x y) (v : hom y z) (w : hom z t)
   -- the faces in X
-  {a : hom x z} (c3 : comp-hom-r X sX u v ≡ a)
-  {b : hom y t} (c0 : comp-hom-r X sX v w ≡ b)
-  {c : hom x t} (c2 : comp-hom-r X sX u b ≡ c)
-  (c1 : comp-hom-r X sX a w ≡ c)
+  {a : hom x z} (c3 : comp-homᵣ X sX u v ≡ a)
+  {b : hom y t} (c0 : comp-homᵣ X sX v w ≡ b)
+  {c : hom x t} (c2 : comp-homᵣ X sX u b ≡ c)
+  (c1 : comp-homᵣ X sX a w ≡ c)
   -- the faces in A are their images
-  {c3' : comp-hom-r A sA (hom-map p u) (hom-map p v) ≡ hom-map p a} (e3 : face-image X A p sX sA u v c3 ≡ c3')
-  {c0' : comp-hom-r A sA (hom-map p v) (hom-map p w) ≡ hom-map p b} (e0 : face-image X A p sX sA v w c0 ≡ c0')
-  {c1' : comp-hom-r A sA (hom-map p a) (hom-map p w) ≡ hom-map p c} (e1 : face-image X A p sX sA a w c1 ≡ c1')
-  {c2' : comp-hom-r A sA (hom-map p u) (hom-map p b) ≡ hom-map p c} (e2 : face-image X A p sX sA u b c2 ≡ c2')
+  {c3' : comp-homᵣ A sA (hom-map p u) (hom-map p v) ≡ hom-map p a} (e3 : face-image X A p sX sA u v c3 ≡ c3')
+  {c0' : comp-homᵣ A sA (hom-map p v) (hom-map p w) ≡ hom-map p b} (e0 : face-image X A p sX sA v w c0 ≡ c0')
+  {c1' : comp-homᵣ A sA (hom-map p a) (hom-map p w) ≡ hom-map p c} (e1 : face-image X A p sX sA a w c1 ≡ c1')
+  {c2' : comp-homᵣ A sA (hom-map p u) (hom-map p b) ≡ hom-map p c} (e2 : face-image X A p sX sA u b c2 ≡ c2')
   → hom-map-hexagon X A p sX sA u v w
       (assoc-of-faces X sX u v w {a} {b} {c} c3 c1 c2 c0)
       (assoc-of-faces A sA (hom-map p u) (hom-map p v) (hom-map p w) {hom-map p a} {hom-map p b} {hom-map p c} c3' c1' c2' c0')
 hom-map-tetrahedron X A p sX sA {x} {y} {z} {t} u v w refl refl refl c1 refl refl refl refl =
   tetra-alg
     (hom-map p {x} {t})
-    (λ m . comp-hom-r A sA {p x} {p z} {p t} m (hom-map p w))
-    (λ m . comp-hom-r A sA {p x} {p y} {p t} (hom-map p u) m)
+    (λ m . comp-homᵣ A sA {p x} {p z} {p t} m (hom-map p w))
+    (λ m . comp-homᵣ A sA {p x} {p y} {p t} (hom-map p u) m)
     (hom-map-comp X A p sX sA u v)
     (hom-map-comp X A p sX sA v w)
     c1
-    (hom-map-comp X A p sX sA (comp-hom-r X sX u v) w)
-    (hom-map-comp X A p sX sA u (comp-hom-r X sX v w))
+    (hom-map-comp X A p sX sA (comp-homᵣ X sX u v) w)
+    (hom-map-comp X A p sX sA u (comp-homᵣ X sX v w))
 
 -- the coherence, for a composable triple: the hexagon for the associators of X and A
 assoc-coh-stmt ∷
@@ -235,8 +235,8 @@ assoc-coh-stmt ∷
   → U
 assoc-coh-stmt X A p sX sA {x} {y} {z} {t} u v w =
   hom-map-hexagon X A p sX sA u v w
-    (comp-hom-r-assoc X sX u v w)
-    (comp-hom-r-assoc A sA (hom-map p u) (hom-map p v) (hom-map p w))
+    (comp-homᵣ-assoc X sX u v w)
+    (comp-homᵣ-assoc A sA (hom-map p u) (hom-map p v) (hom-map p w))
 
 -- on the edges of a 3-simplex Θ: the associators are given by the faces of Θ and of p ∘ Θ
 assoc-coh-simplex ∷
@@ -248,11 +248,11 @@ assoc-coh-simplex X A p sX sA Θ =
   let u : hom (Θ (simplex-3-e01 𝕀0)) (Θ (simplex-3-e01 𝕀1)) = simplex-3-hom {X} simplex-3-e01 Θ in
   let v : hom (Θ (simplex-3-e12 𝕀0)) (Θ (simplex-3-e12 𝕀1)) = simplex-3-hom {X} simplex-3-e12 Θ in
   let w : hom (Θ (simplex-3-e23 𝕀0)) (Θ (simplex-3-e23 𝕀1)) = simplex-3-hom {X} simplex-3-e23 Θ in
-  let hexagon-for-αA : (comp-hom-r A sA (comp-hom-r A sA (hom-map p u) (hom-map p v)) (hom-map p w)
-                          ≡ comp-hom-r A sA (hom-map p u) (comp-hom-r A sA (hom-map p v) (hom-map p w))) → U =
+  let hexagon-for-αA : (comp-homᵣ A sA (comp-homᵣ A sA (hom-map p u) (hom-map p v)) (hom-map p w)
+                          ≡ comp-homᵣ A sA (hom-map p u) (comp-homᵣ A sA (hom-map p v) (hom-map p w))) → U =
     λ αA . hom-map-hexagon X A p sX sA u v w (assoc-simplex-3-def X sX Θ) αA in
-  let hexagon-for-αX : (comp-hom-r X sX (comp-hom-r X sX u v) w ≡ comp-hom-r X sX u (comp-hom-r X sX v w)) → U =
-    λ αX . hom-map-hexagon X A p sX sA u v w αX (comp-hom-r-assoc A sA (hom-map p u) (hom-map p v) (hom-map p w)) in
+  let hexagon-for-αX : (comp-homᵣ X sX (comp-homᵣ X sX u v) w ≡ comp-homᵣ X sX u (comp-homᵣ X sX v w)) → U =
+    λ αX . hom-map-hexagon X A p sX sA u v w αX (comp-homᵣ-assoc A sA (hom-map p u) (hom-map p v) (hom-map p w)) in
   -- the hexagon for the associators given by the faces of Θ and of p ∘ Θ
   let tetrahedron : hexagon-for-αA (assoc-simplex-3-def A sA pΘ) =
     hom-map-tetrahedron X A p sX sA u v w
@@ -266,8 +266,8 @@ assoc-coh-simplex X A p sX sA Θ =
       (hom-map-comp-face X A p sX sA (simplex-3-face {X} simplex-3-d2 Θ))
   in
   -- the associators on the edges of Θ and of p ∘ Θ are the ones given by the faces
-  subst hexagon-for-αX (sym (comp-hom-r-assoc-edges X sX Θ))
-    (subst hexagon-for-αA (sym (comp-hom-r-assoc-edges A sA pΘ)) tetrahedron)
+  subst hexagon-for-αX (sym (comp-homᵣ-assoc-edges X sX Θ))
+    (subst hexagon-for-αA (sym (comp-homᵣ-assoc-edges A sA pΘ)) tetrahedron)
 
 -- the coherence, as a family over composable triples
 assoc-coh-tri ∷ (X A ∷ U) (p ∷ X → A) (sX : is-segalᵣ X) (sA : is-segalᵣ A) → triples X → U

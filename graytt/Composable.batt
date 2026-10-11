@@ -49,7 +49,7 @@ tri-family X S (x , r) =
 𝕀→spine-2-edge-2 t = ((𝕀1 , t , tt) , (refl , spine-1-pt t))
 
 -- the pair of edges of an oplax cocone on the 2-spine
-spine-2-cocone→pair ∷ {X ∷ U} → spine-2-cocone-r X → pairs X
+spine-2-cocone→pair ∷ {X ∷ U} → spine-2-coconeᵣ X → pairs X
 spine-2-cocone→pair {X} c =
   (spine-2-cocone-edge-1 {X} c spine-2-edge-1-start ,
     spine-2-cocone-edge-2 {X} c spine-2-edge-2-start ,
@@ -88,10 +88,10 @@ pair-section ∷ (X ∷ U) {y z t : X} (v : hom y z) (w : hom z t) → (spine 2 
 pair-section X {y} {z} {t} v w = homs→spine-2 X {y} {z} {t} v w
 
 pair-section-path ∷ (X ∷ U) {y z t : X} (v : hom y z) (w : hom z t) →
-  spine-2-cocone→pair {X} (spine-2→cocone-r X (pair-section X {y} {z} {t} v w)) ≡ (y , z , t , v , w)
+  spine-2-cocone→pair {X} (spine-2→coconeᵣ X (pair-section X {y} {z} {t} v w)) ≡ (y , z , t , v , w)
 pair-section-path X {y} {z} {t} v w =
-  trans (cong {spine-2-cocone-r X} {pairs X} (spine-2-cocone→pair {X})
-          (spine-2→cocone-r-sec X (homs→spine-2-cocone {X} {y} {z} {t} v w)))
+  trans (cong {spine-2-coconeᵣ X} {pairs X} (spine-2-cocone→pair {X})
+          (spine-2→coconeᵣ-sec X (homs→spine-2-cocone {X} {y} {z} {t} v w)))
     (spine-2-cocone→pair-homs {X} {y} {z} {t} v w)
 
 --
@@ -127,12 +127,12 @@ spine-3-tail-glue = cong spine-2→spine-3-tail spine-2-glue
 spine-3-tail-pair ∷ {X ∷ U} → (spine-3-tail →ᵣ X) → pairs X
 spine-3-tail-pair {X} g =
   (g spine-3-tail-start , g (𝕀→spine-3-tail-edge-2 𝕀0) , g (𝕀→spine-3-tail-edge-2 𝕀1) ,
-    ((λ t . g (𝕀→spine-3-tail-edge-1 t)) , refl , ap-r {spine-3-tail} {X} {𝕀→spine-3-tail-edge-1 𝕀1}
+    ((λ t . g (𝕀→spine-3-tail-edge-1 t)) , refl , apᵣ {spine-3-tail} {X} {𝕀→spine-3-tail-edge-1 𝕀1}
         {𝕀→spine-3-tail-edge-2 𝕀0} spine-3-tail-glue g) ,
     ((λ t . g (𝕀→spine-3-tail-edge-2 t)) , refl , refl))
 
 -- the triple of edges of an oplax cocone on the 3-spine
-spine-3-cocone→triple ∷ {X ∷ U} → spine-3-cocone-r X → triples X
+spine-3-cocone→triple ∷ {X ∷ U} → spine-3-coconeᵣ X → triples X
 spine-3-cocone→triple {X} c =
   cell-pair→triple {X} (λ t . spine-3-cocone-edge-1 {X} c (𝕀→spine-3-edge-1 t))
     (spine-3-tail-pair {X} (spine-3-cocone-tail {X} c))
@@ -141,22 +141,22 @@ spine-3-cocone→triple {X} c =
 -- an oplax map out of the 2-spine, seen on the copy of the 2-spine, has the same pair of edges
 spine-3-tail-pair-proj ∷ {X ∷ U} (Φ : spine 2 →ᵣ X) →
   spine-3-tail-pair {X} (preᵣ {spine-3-tail} {spine 2} {X} Φ spine-3-tail→spine-2) ≡ spine-2-cocone→pair {X}
-    (spine-2→cocone-r X Φ)
+    (spine-2→coconeᵣ X Φ)
 spine-3-tail-pair-proj {X} Φ =
   cong {Φ (spine-2-edge-1-incl spine-2-edge-1-end) ≡ Φ (spine-2-edge-2-incl spine-2-edge-2-start)} {pairs X}
     (λ e . (Φ (spine-2-edge-1-incl spine-2-edge-1-start) , Φ (spine-2-edge-2-incl spine-2-edge-2-start) , Φ
           (spine-2-edge-2-incl spine-2-edge-2-end) ,
           ((λ t . Φ (spine-2-edge-1-incl (𝕀→spine-2-edge-1 t))) , refl , e) ,
           ((λ t . Φ (spine-2-edge-2-incl (𝕀→spine-2-edge-2 t))) , refl , refl)))
-    (trans (ap-r-preᵣ spine-3-tail {spine 2} {X} {𝕀→spine-3-tail-edge-1 𝕀1} {𝕀→spine-3-tail-edge-2 𝕀0}
+    (trans (apᵣ-preᵣ spine-3-tail {spine 2} {X} {𝕀→spine-3-tail-edge-1 𝕀1} {𝕀→spine-3-tail-edge-2 𝕀0}
           spine-3-tail-glue spine-3-tail→spine-2 Φ)
-      (ap-r-set (is-set-spine 2) (cong spine-3-tail→spine-2 spine-3-tail-glue) spine-2-glue Φ))
+      (apᵣ-set (is-set-spine 2) (cong spine-3-tail→spine-2 spine-3-tail-glue) spine-2-glue Φ))
 
 -- every composable triple is the triple of edges of an oplax cocone on the 3-spine
 spine-3-edge-1→𝕀 ∷ spine-3-edge-1 → 𝕀
 spine-3-edge-1→𝕀 (c , a) = cube-3-x1 c
 
-tri-section ∷ (X ∷ U) {x y z t : X} (u : hom x y) (v : hom y z) (w : hom z t) → spine-3-cocone-r X
+tri-section ∷ (X ∷ U) {x y z t : X} (u : hom x y) (v : hom y z) (w : hom z t) → spine-3-coconeᵣ X
 tri-section X {x} {y} {z} {t} u v w =
   let P : spine-3-tail-pair {X} (preᵣ {spine-3-tail} {spine 2} {X} (pair-section X {y} {z} {t} v w)
       spine-3-tail→spine-2) ≡ (y , z , t , v , w) =

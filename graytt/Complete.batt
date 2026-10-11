@@ -29,14 +29,14 @@ complete-restr a b X g = pre (thick-free-equiv a b) g (thick-τ a b)
 complete-restr-flat ∷ (a ∷ List ℕ) (b ∷ List ℕ) (X ∷ U) → ♭(grid a ⨂ grid b → X) → ♭(thick-free-equiv a b → X)
 complete-restr-flat a b X = flat-map (complete-restr a b X)
 
-complete-restr-r ∷ (a ∷ List ℕ) (b ∷ List ℕ) (X ∷ U) → (grid a ⨂ grid b →ᵣ X) → (thick-free-equiv a b →ᵣ X)
-complete-restr-r a b X g =
+complete-restrᵣ ∷ (a ∷ List ℕ) (b ∷ List ℕ) (X ∷ U) → (grid a ⨂ grid b →ᵣ X) → (thick-free-equiv a b →ᵣ X)
+complete-restrᵣ a b X g =
   -- a crisp name for τ, so that the oplax application shares no free variable with its function
   let t ∷ thick-free-equiv a b → grid a ⨂ grid b = thick-τ a b in
   preᵣ {thick-free-equiv a b} g t
 
-complete-restr-l ∷ (a ∷ List ℕ) (b ∷ List ℕ) (X ∷ U) → (grid a ⨂ grid b →ₗ X) → (thick-free-equiv a b →ₗ X)
-complete-restr-l a b X g =
+complete-restrₗ ∷ (a ∷ List ℕ) (b ∷ List ℕ) (X ∷ U) → (grid a ⨂ grid b →ₗ X) → (thick-free-equiv a b →ₗ X)
+complete-restrₗ a b X g =
   -- a crisp name for τ, so that the lax application shares no free variable with its function
   let t ∷ thick-free-equiv a b → grid a ⨂ grid b = thick-τ a b in
   preₗ {thick-free-equiv a b} g t
@@ -56,11 +56,11 @@ is-complete-flat X = (a ∷ List ℕ) (b ∷ List ℕ) →
   is-equiv {♭(grid a ⨂ grid b → X)} {♭(thick-free-equiv a b → X)} (complete-restr-flat a b X)
 
 -- oplax completeness: restriction of oplax maps out of the shapes is an equivalence
-is-complete-r ∷ (X ∷ U) → U
-is-complete-r X = (a ∷ List ℕ) (b ∷ List ℕ) →
-  is-equiv {grid a ⨂ grid b →ᵣ X} {thick-free-equiv a b →ᵣ X} (complete-restr-r a b X)
+is-completeᵣ ∷ (X ∷ U) → U
+is-completeᵣ X = (a ∷ List ℕ) (b ∷ List ℕ) →
+  is-equiv {grid a ⨂ grid b →ᵣ X} {thick-free-equiv a b →ᵣ X} (complete-restrᵣ a b X)
 
 -- lax completeness: restriction of lax maps out of the shapes is an equivalence
-is-complete-l ∷ (X ∷ U) → U
-is-complete-l X = (a ∷ List ℕ) (b ∷ List ℕ) →
-  is-equiv {grid a ⨂ grid b →ₗ X} {thick-free-equiv a b →ₗ X} (complete-restr-l a b X)
+is-completeₗ ∷ (X ∷ U) → U
+is-completeₗ X = (a ∷ List ℕ) (b ∷ List ℕ) →
+  is-equiv {grid a ⨂ grid b →ₗ X} {thick-free-equiv a b →ₗ X} (complete-restrₗ a b X)
