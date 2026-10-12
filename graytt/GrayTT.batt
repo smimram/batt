@@ -19,6 +19,7 @@ open import Simplex-edges
 open import Iso
 open import Connection
 open import Covariant
+open import Fibre
 open import Hom-family
 open import Yoneda
 open import Fold
