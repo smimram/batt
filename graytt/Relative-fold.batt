@@ -1,0 +1,219 @@
+--
+-- The relative fold lemma
+--
+-- Let p : X → A be a cocartesian fibration, with a section s of w ↦ (w 0 , p ∘ w , refl) on
+-- cocartesian 1-cells (the cocartesian lifts). For z : X and α : arrᵣ A starting at p z, the
+-- cocartesian lifts at z of the restrictions α_{≤ i} = λ j . α (i ∧ j) form an arrow
+--
+--   Θ = λ i . s (z , α_{≤ i}) : 𝕀 →ᵣ arrᵣ X
+--
+-- (the lifts of the connection Γ_α, i.e. the image of the connection of the coslice under the
+-- lifts). The relative fold lemma states that Θ is (p ∘ ev₁)-cocartesian. For p = id, the lifts
+-- are the restrictions themselves, Θ is the connection Γ_α and this is the fold lemma.
+--
+-- It is postulated here (relative-fold-lemma). This is the step of the proof that yon u is a
+-- cocartesian map (BATT.tex prop:yon_cocart) which is open in the paper: there, Θ is shown to be
+-- invertible by a variant of the fold lemma and completeness.
+--
+-- From it, with the fold lemma, the target i ↦ Θ i 1 of Θ is p-cocartesian (rel-lift-tgt-cocart):
+-- the connection Γ_W of the lift W = Θ 1 is (p ∘ ev₁)-cocartesian (fold lemma and
+-- is-cocartesian-comp-fib), so that Θ = Γ_W ; m for some m over an identity. By cancellation, m
+-- is cocartesian, hence an isomorphism (is-iso-cocartesian), so that the image W ; ev₁ m of Θ by
+-- ev₁ is cocartesian. The only computation is that Θ and Γ_W have the same image in A, both
+-- being α up to the paths of the section s.
+--
+-- Postulates introduced: relative-fold-lemma.
+--
+
+open import Stdlib
+open import Hom
+open import Segal
+open import Unitality
+open import Functoriality
+open import Iso
+open import Fibration
+open import Connection
+open import Fold
+
+--
+-- Path algebra
+--
+
+-- a path between crisp maps gives a path between the homs of their images of a 1-cell
+hom-post-path ∷ {T B ∷ U} (g ∷ T → B) {h ∷ T → B} (P ∷ g ≡ h) (R : 𝕀 →ᵣ T) {x y : B} (e0 : g (R 𝕀0) ≡ x) (e1 : g (R 𝕀1) ≡ y) →
+  (postᵣ {𝕀} {T} {B} g R , e0 , e1) ≡{hom {B} x y}
+    (postᵣ {𝕀} {T} {B} h R , trans (sym (happly P (R 𝕀0))) e0 , trans (sym (happly P (R 𝕀1))) e1)
+hom-post-path {T} {B} g refl R {x} {y} e0 e1 =
+  cong2 {g (R 𝕀0) ≡ x} {g (R 𝕀1) ≡ y} {hom {B} x y} (λ a b . (postᵣ {𝕀} {T} {B} g R , a , b))
+    (sym (trans-refl-l e0)) (sym (trans-refl-l e1))
+
+-- the image of a 1-cell, compared with the arrow of an element of the pullback through a path
+hom-pb-path ∷ {X A ∷ U} (p ∷ X → A) (w : arrᵣ X) {d : pullback {X} {arrᵣ A} {A} p (λ u . srcᵣ u)}
+  (Q : (w 𝕀0 , postᵣ {𝕀} {X} {A} p w , refl) ≡{pullback {X} {arrᵣ A} {A} p (λ u . srcᵣ u)} d) →
+  (postᵣ {𝕀} {X} {A} p w , refl , refl) ≡{hom {A} (p (w 𝕀0)) (p (w 𝕀1))}
+    (fst _ (snd _ d) ,
+     trans (sym (snd _ (snd _ d))) (cong {pullback {X} {arrᵣ A} {A} p (λ u . srcᵣ u)} {A} (λ y . p (fst _ y)) (sym Q)) ,
+     cong {pullback {X} {arrᵣ A} {A} p (λ u . srcᵣ u)} {A} (λ y . fst _ (snd _ y) 𝕀1) (sym Q))
+hom-pb-path {X} {A} p w refl = refl
+
+-- a path in a fibre: the second component of its source factors through the first component
+fib-path-coh ∷ {S T : U} (L : S → T) {x : T} {u v : Σ (w : S) . L w ≡ x} (Q : u ≡ v) →
+  snd _ u ≡ trans (cong L (cong {Σ (w : S) . L w ≡ x} {S} (λ r . fst _ r) Q)) (snd _ v)
+fib-path-coh {S} {T} L {x} {u} refl = sym (trans-refl-l (snd _ u))
+
+-- a constant arrow in the pullback, with its path
+pb-cst-path ∷ {X A ∷ U} (p ∷ X → A) (z : X) {b : A} (e : p z ≡ b) →
+  (z , (λ _ . p z) , refl) ≡{pullback {X} {arrᵣ A} {A} p (λ u . srcᵣ u)} (z , (λ _ . b) , e)
+pb-cst-path {X} {A} p z refl = refl
+
+pb-cst-path-tgt ∷ {X A ∷ U} (p ∷ X → A) (z : X) {b : A} (e : p z ≡ b) →
+  cong {pullback {X} {arrᵣ A} {A} p (λ u . srcᵣ u)} {A} (λ y . fst _ (snd _ y) 𝕀1) (pb-cst-path {X} {A} p z e) ≡ e
+pb-cst-path-tgt {X} {A} p z refl = refl
+
+rel-alg ∷ {A : U} {u v : A} (a : u ≡ v) {w : A} (k : v ≡ w) {m : A} (n : u ≡ m) →
+  trans (sym k) (trans (sym a) n) ≡ trans (sym (trans a k)) n
+rel-alg {A} {u} refl refl refl = refl
+
+--
+-- Lifts of restrictions
+--
+
+-- the pullback data of a 1-cell (cocart-cell-lift on its arrow)
+cell-pb ∷ {X A ∷ U} (p ∷ X → A) → arrᵣ X → pullback {X} {arrᵣ A} {A} p (λ u . srcᵣ u)
+cell-pb {X} {A} p w = (w 𝕀0 , postᵣ {𝕀} {X} {A} p w , refl)
+
+-- the type of sections of cell-pb on cocartesian 1-cells, i.e. of choices of cocartesian lifts
+cocart-lifts ∷ {X A ∷ U} (sX ∷ is-segalᵣ X) (sA ∷ is-segalᵣ A) (p ∷ X → A) → U
+cocart-lifts {X} {A} sX sA p =
+  Σ (s : pullback {X} {arrᵣ A} {A} p (λ u . srcᵣ u) → cocart-cell {X} {A} sX sA p) .
+    (d : pullback {X} {arrᵣ A} {A} p (λ u . srcᵣ u)) → cell-pb {X} {A} p (cocart-cell-arr {X} {A} sX sA p (s d)) ≡ d
+
+-- Θ = λ i . s (z , α_{≤ i}), the lifts at z of the restrictions of α
+rel-lift ∷ {X A ∷ U} (sX ∷ is-segalᵣ X) (sA ∷ is-segalᵣ A) (p ∷ X → A)
+  (s ∷ pullback {X} {arrᵣ A} {A} p (λ u . srcᵣ u) → cocart-cell {X} {A} sX sA p)
+  (z : X) (α : arrᵣ A) (e : p z ≡ α 𝕀0) → 𝕀 →ᵣ arrᵣ X
+rel-lift {X} {A} sX sA p s z α e = λ i . cocart-cell-arr {X} {A} sX sA p (s (z , (λ j . α (i 𝕀∧ j)) , e))
+
+-- its target, the 1-cell i ↦ (α_{≤ i})_! z
+rel-lift-tgt ∷ {X A ∷ U} (sX ∷ is-segalᵣ X) (sA ∷ is-segalᵣ A) (p ∷ X → A)
+  (s ∷ pullback {X} {arrᵣ A} {A} p (λ u . srcᵣ u) → cocart-cell {X} {A} sX sA p)
+  (z : X) (α : arrᵣ A) (e : p z ≡ α 𝕀0) → arrᵣ X
+rel-lift-tgt {X} {A} sX sA p s z α e = λ i . rel-lift {X} {A} sX sA p s z α e i 𝕀1
+
+-- the relative fold lemma: Θ is (p ∘ ev₁)-cocartesian
+postulate relative-fold-lemma ∷ {X A ∷ U} (sX ∷ is-segalᵣ X) (sA ∷ is-segalᵣ A) (p ∷ X → A)
+  (c ∷ is-cocartesian-fibration {X} {A} sX sA p) (sl ∷ cocart-lifts {X} {A} sX sA p)
+  (z : X) (α : arrᵣ A) (e : p z ≡ α 𝕀0) →
+  is-cocartesian {arrᵣ X} {A} (is-segal-arrᵣ {X} sX) sA (λ w . p (tgtᵣ w))
+    {rel-lift {X} {A} sX sA p (fst _ sl) z α e 𝕀0} {rel-lift {X} {A} sX sA p (fst _ sl) z α e 𝕀1}
+    (cell-hom {arrᵣ X} (rel-lift {X} {A} sX sA p (fst _ sl) z α e))
+
+-- cocartesianness of a hom does not depend on the paths identifying its endpoints (converse of
+-- is-cocartesian-endpoints)
+is-cocartesian-endpoints' ∷ {X A ∷ U} (sX : is-segalᵣ X) (sA : is-segalᵣ A) (p ∷ X → A) (f : arrᵣ X)
+  {x : X} (e0 : srcᵣ f ≡ x) {y : X} (e1 : tgtᵣ f ≡ y) →
+  is-cocartesian {X} {A} sX sA p {x} {y} (f , e0 , e1) → is-cocartesian {X} {A} sX sA p {srcᵣ f} {tgtᵣ f} (cell-hom {X} f)
+is-cocartesian-endpoints' {X} {A} sX sA p f refl refl = λ c . c
+
+-- the target of the lifts of the restrictions is cocartesian
+rel-lift-tgt-cocart ∷ {X A ∷ U} (sX ∷ is-segalᵣ X) (sA ∷ is-segalᵣ A) (p ∷ X → A)
+  (c ∷ is-cocartesian-fibration {X} {A} sX sA p) (sl ∷ cocart-lifts {X} {A} sX sA p)
+  (z : X) (α : arrᵣ A) (e : p z ≡ α 𝕀0) →
+  is-cocartesian {X} {A} sX sA p
+    {rel-lift-tgt {X} {A} sX sA p (fst _ sl) z α e 𝕀0} {rel-lift-tgt {X} {A} sX sA p (fst _ sl) z α e 𝕀1}
+    (cell-hom {X} (rel-lift-tgt {X} {A} sX sA p (fst _ sl) z α e))
+rel-lift-tgt-cocart {X} {A} sX sA p c sl z α e =
+  let PB ∷ U = pullback {X} {arrᵣ A} {A} p (λ u . srcᵣ u) in
+  let CC ∷ U = cocart-cell {X} {A} sX sA p in
+  let arr ∷ CC → arrᵣ X = cocart-cell-arr {X} {A} sX sA p in
+  let s ∷ PB → CC = fst _ sl in
+  let ls ∷ (d : PB) → cell-pb {X} {A} p (arr (s d)) ≡ d = snd _ sl in
+  let Λ ∷ CC → PB = λ w . cell-pb {X} {A} p (arr w) in
+  let eΛ : is-equiv Λ =
+    is-equiv-htpy {CC} {PB} {cocart-cell-lift {X} {A} sX sA p} {Λ} (fun (w , cw) → refl) c in
+  let sXA ∷ is-segalᵣ (arrᵣ X) = is-segal-arrᵣ {X} sX in
+  let q ∷ arrᵣ X → A = λ w . p (tgtᵣ w) in
+  -- the restrictions and their lifts
+  let R : 𝕀 →ᵣ PB = λ i . (z , (λ j . α (i 𝕀∧ j)) , e) in
+  let Θ : 𝕀 →ᵣ arrᵣ X = rel-lift {X} {A} sX sA p s z α e in
+  let W : arrᵣ X = Θ 𝕀1 in
+  let cW : is-cocartesian {X} {A} sX sA p {W 𝕀0} {W 𝕀1} (cell-hom {X} W) = snd _ (s (R 𝕀1)) in
+  -- the connection of W is (p ∘ ev₁)-cocartesian
+  let Γ : hom {arrᵣ X} (λ j . W 𝕀0) W = conn-hom {X} W in
+  let cΓ : is-cocartesian {arrᵣ X} {A} sXA sA q {λ j . W 𝕀0} {W} Γ =
+    is-cocartesian-comp-fib {arrᵣ X} {X} {A} sXA sX sA (ev₁ {X}) p {λ j . W 𝕀0} {W} Γ (fold-lemma {X} sX W) cW in
+  -- the lift at the source is the identity at z, by contractibility of the fibre
+  let idc : CC = ((λ _ . z) , is-cocartesian-iso {X} {A} sX sA p {z} {z} (Hom.id {X} z) (is-iso-id {X} sX z)) in
+  let F0 : U = Σ (w : CC) . Λ w ≡ R 𝕀0 in
+  let Q0 : (idc , pb-cst-path {X} {A} p z e) ≡{F0} (s (R 𝕀0) , ls (R 𝕀0)) =
+    is-contr-eq (is-contr-fib Λ eΛ (R 𝕀0)) (idc , pb-cst-path {X} {A} p z e) (s (R 𝕀0) , ls (R 𝕀0)) in
+  let M : idc ≡ s (R 𝕀0) = cong {F0} {CC} (λ r . fst _ r) Q0 in
+  let N : z ≡ W 𝕀0 = cong {PB} {X} (λ y . fst _ y) (sym (ls (R 𝕀1))) in
+  let e0 : Θ 𝕀0 ≡ (λ j . W 𝕀0) =
+    trans (cong {CC} {arrᵣ X} arr (sym M)) (cong {X} {arrᵣ X} (λ y . (λ _ . y)) N) in
+  let h : hom {arrᵣ X} (λ j . W 𝕀0) W = (Θ , e0 , refl) in
+  let ch : is-cocartesian {arrᵣ X} {A} sXA sA q {λ j . W 𝕀0} {W} h =
+    is-cocartesian-endpoints {arrᵣ X} {A} sXA sA q Θ e0 refl (relative-fold-lemma {X} {A} sX sA p c sl z α e) in
+  -- Θ and Γ have the same image in A, both being α up to the paths of the section
+  let g ∷ PB → A = λ y . p (arr (s y) 𝕀1) in
+  let hq ∷ PB → A = λ y . fst _ (snd _ y) 𝕀1 in
+  let Kp ∷ (y : PB) → g y ≡ hq y = λ y . cong {PB} {A} hq (ls y) in
+  let P ∷ g ≡ hq = funext-htpy {PB} {λ _ . A} g hq Kp in
+  let hP : (y : PB) → happly P y ≡ Kp y = λ y . happly (happly-funext-htpy {PB} {λ _ . A} g hq Kp) y in
+  let lq : p (Θ 𝕀0 𝕀1) ≡ p (W 𝕀0) = cong {arrᵣ X} {A} q e0 in
+  let pN : p z ≡ p (W 𝕀0) = cong {X} {A} (λ y . p y) N in
+  let pN' : p z ≡ p (W 𝕀0) = cong {PB} {A} (λ y . p (fst _ y)) (sym (ls (R 𝕀1))) in
+  let A1 : p z ≡ g (R 𝕀0) = cong {CC} {A} (λ w . p (arr w 𝕀1)) M in
+  let C1 : e ≡ trans A1 (Kp (R 𝕀0)) =
+    trans (sym (pb-cst-path-tgt {X} {A} p z e))
+      (trans (cong {(z , (λ _ . p z) , refl) ≡{PB} R 𝕀0} {p z ≡ α 𝕀0} (λ r . cong {PB} {A} hq r) (fib-path-coh {CC} {PB} Λ {R 𝕀0} Q0))
+        (trans (cong-trans hq (cong {CC} {PB} Λ M) (ls (R 𝕀0)))
+          (cong {p z ≡ g (R 𝕀0)} {p z ≡ α 𝕀0} (λ r . trans r (Kp (R 𝕀0))) (sym (cong-comp hq Λ M))))) in
+  let Llq : lq ≡ trans (sym A1) pN =
+    trans (cong-trans q (cong {CC} {arrᵣ X} arr (sym M)) (cong {X} {arrᵣ X} (λ y . (λ _ . y)) N))
+      (cong2 {g (R 𝕀0) ≡ p z} {p z ≡ p (W 𝕀0)} {g (R 𝕀0) ≡ p (W 𝕀0)} (λ a b . trans a b)
+        (trans (sym (cong-comp q arr (sym M))) (cong-sym (λ w . p (arr w 𝕀1)) M))
+        (sym (cong-comp q (λ y . (λ _ . y)) N))) in
+  let LN : pN ≡ pN' = sym (cong-comp {PB} {X} {A} (λ y . p y) (λ y . fst _ y) (sym (ls (R 𝕀1)))) in
+  let T0 : trans (sym (happly P (R 𝕀0))) lq ≡ trans (sym e) pN' =
+    trans (cong {g (R 𝕀0) ≡ α 𝕀0} {α 𝕀0 ≡ p (W 𝕀0)} (λ r . trans (sym r) lq) (hP (R 𝕀0)))
+      (trans (cong {g (R 𝕀0) ≡ p (W 𝕀0)} {α 𝕀0 ≡ p (W 𝕀0)} (λ r . trans (sym (Kp (R 𝕀0))) r) Llq)
+        (trans (rel-alg A1 (Kp (R 𝕀0)) pN)
+          (trans (cong {p z ≡ α 𝕀0} {α 𝕀0 ≡ p (W 𝕀0)} (λ r . trans (sym r) pN) (sym C1))
+            (cong {p z ≡ p (W 𝕀0)} {α 𝕀0 ≡ p (W 𝕀0)} (λ r . trans (sym e) r) LN)))) in
+  let T1 : trans (sym (happly P (R 𝕀1))) refl ≡ cong {PB} {A} hq (sym (ls (R 𝕀1))) =
+    trans (cong {g (R 𝕀1) ≡ α 𝕀1} {α 𝕀1 ≡ g (R 𝕀1)} (λ r . sym r) (hP (R 𝕀1))) (sym (cong-sym hq (ls (R 𝕀1)))) in
+  let E : hom-map {arrᵣ X} {A} q {λ j . W 𝕀0} {W} h ≡ hom-map {arrᵣ X} {A} q {λ j . W 𝕀0} {W} Γ =
+    trans (hom-post-path {PB} {A} g P R lq refl)
+      (trans (cong2 {α 𝕀0 ≡ p (W 𝕀0)} {α 𝕀1 ≡ p (W 𝕀1)} {hom {A} (p (W 𝕀0)) (p (W 𝕀1))} (λ a b . (α , a , b)) T0 T1)
+        (sym (hom-pb-path {X} {A} p W (ls (R 𝕀1))))) in
+  -- so Θ factors as Γ ; m with m over the identity
+  let π : cocart-pb {arrᵣ X} {A} sA q {λ j . W 𝕀0} {W} Γ W =
+    (h , Hom.id {A} (q W) ,
+     trans E (sym (comp-homᵣ-runit A sA {p (W 𝕀0)} {p (W 𝕀1)} (hom-map {arrᵣ X} {A} q {λ j . W 𝕀0} {W} Γ)))) in
+  let G : hom W W → cocart-pb {arrᵣ X} {A} sA q {λ j . W 𝕀0} {W} Γ W = cocart-gap {arrᵣ X} {A} sXA sA q {λ j . W 𝕀0} {W} Γ W in
+  let σ : section G = is-equiv-sec G (cΓ W) in
+  let m : hom W W = section-map G σ π in
+  let Pm : G m ≡ π = snd _ σ π in
+  let Γm : comp-homᵣ (arrᵣ X) sXA {λ j . W 𝕀0} {W} {W} Γ m ≡ h =
+    cong {cocart-pb {arrᵣ X} {A} sA q {λ j . W 𝕀0} {W} Γ W} {hom {arrᵣ X} (λ j . W 𝕀0) W} (λ r . fst _ r) Pm in
+  let qm : hom-map {arrᵣ X} {A} q {W} {W} m ≡ Hom.id {A} (q W) =
+    cong {cocart-pb {arrᵣ X} {A} sA q {λ j . W 𝕀0} {W} Γ W} {hom {A} (q W) (q W)} (λ r . fst _ (snd _ r)) Pm in
+  -- m is cocartesian by cancellation, hence an isomorphism, and so is its target
+  let cm : is-cocartesian {arrᵣ X} {A} sXA sA q {W} {W} m =
+    Product.snd (is-cocartesian-cancel {arrᵣ X} {A} sXA sA q {λ j . W 𝕀0} {W} {W} Γ m cΓ)
+      (subst (λ k . is-cocartesian {arrᵣ X} {A} sXA sA q {λ j . W 𝕀0} {W} k) (sym Γm) ch) in
+  let im : is-iso-hom {arrᵣ X} sXA {W} {W} m =
+    is-iso-cocartesian {arrᵣ X} {A} sXA sA q {W} {W} m cm
+      (subst (λ k . is-iso-hom {A} sA {q W} {q W} k) (sym qm) (is-iso-id {A} sA (q W))) in
+  let m1 : hom (W 𝕀1) (W 𝕀1) = hom-map {arrᵣ X} {X} (ev₁ {X}) {W} {W} m in
+  let cm1 : is-cocartesian {X} {A} sX sA p {W 𝕀1} {W 𝕀1} m1 =
+    is-cocartesian-iso {X} {A} sX sA p {W 𝕀1} {W 𝕀1} m1 (is-iso-hom-map {arrᵣ X} {X} sXA sX (ev₁ {X}) {W} {W} m im) in
+  let cWm : is-cocartesian {X} {A} sX sA p {W 𝕀0} {W 𝕀1} (comp-homᵣ X sX {W 𝕀0} {W 𝕀1} {W 𝕀1} (cell-hom {X} W) m1) =
+    Product.fst (is-cocartesian-cancel {X} {A} sX sA p {W 𝕀0} {W 𝕀1} {W 𝕀1} (cell-hom {X} W) m1 cW) cm1 in
+  let Hev : hom-map {arrᵣ X} {X} (ev₁ {X}) {λ j . W 𝕀0} {W} h ≡ comp-homᵣ X sX {W 𝕀0} {W 𝕀1} {W 𝕀1} (cell-hom {X} W) m1 =
+    trans (cong {hom {arrᵣ X} (λ j . W 𝕀0) W} {hom (W 𝕀0) (W 𝕀1)} (hom-map {arrᵣ X} {X} (ev₁ {X}) {λ j . W 𝕀0} {W}) (sym Γm))
+      (hom-map-comp (arrᵣ X) X (ev₁ {X}) sXA sX {λ j . W 𝕀0} {W} {W} Γ m) in
+  is-cocartesian-endpoints' {X} {A} sX sA p (rel-lift-tgt {X} {A} sX sA p s z α e)
+    (cong {arrᵣ X} {X} (ev₁ {X}) e0) refl
+    (subst (λ k . is-cocartesian {X} {A} sX sA p {W 𝕀0} {W 𝕀1} k) (sym Hev) cWm)
