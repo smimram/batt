@@ -52,7 +52,7 @@ type t =
   | Sigma of string * t * t
   | Pair of t * t
   | Pair_ind of string * string * t
-  | Arr of side * t * t (** lax arrow type *)
+  | Arr of side * string * t * t (** lax arrow type *)
   | Tens of t * t
   | TensPair of t * t
   | Tens_ind of string * string * t
@@ -128,12 +128,12 @@ module FV = struct
     | IndType_ind (_, l) -> list l
     | IndTerm (_, l) -> list l
     | Pi (_, _, x, a, b)
-    | Sigma (x, a, b) -> union (term a) (remove x (term b))
+    | Sigma (x, a, b)
+    | Arr (_, x, a, b) -> union (term a) (remove x (term b))
     | Abs (_, x, t) -> remove x (term t)
     | App (t, _, u)
     | Pair (t, u) -> union (term t) (term u)
     | Pair_ind (x, y, t) -> remove x (remove y (term t))
-    | Arr (_, a, b)
     | Tens (a, b) -> union (term a) (term b)
     | TensPair (t, u) -> union (term t) (term u)
     | Tens_ind (x, y, t) -> remove x (remove y (term t))
@@ -230,7 +230,7 @@ let rec to_string ?(vars=[]) ?(ren=[]) t =
   | Sigma (x, a, t) -> let x, t = bind x t in Printf.sprintf "(Σ(%s : %s).%s)" x (to_string a) t
   | Pair (t, u) -> Printf.sprintf "(%s, %s)" (to_string t) (to_string u)
   | Pair_ind (x, y, t) -> let x, y, t = bind2 x y t in Printf.sprintf "(λ(%s,%s).%s)" x y t
-  | Arr (s, a, b) -> Printf.sprintf "%s →%s %s" (to_string a) (string_of_side s) (to_string b)
+  | Arr (s, x, a, b) -> Printf.sprintf "(%s : %s) →%s %s" x (to_string a) (string_of_side s) (to_string b)
   | Tens (a, b) -> Printf.sprintf "(%s ⨂ %s)" (to_string a) (to_string b)
   | TensPair (t, u) -> Printf.sprintf "(%s ⊗ %s)" (to_string t) (to_string u)
   | Tens_ind (x, y, t) -> let x, y, t = bind2 x y t in Printf.sprintf "(λ(%s⊗%s).%s)" x y t

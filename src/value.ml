@@ -25,7 +25,7 @@ type t =
   | Sigma of t * closure
   | Pair of t * t
   | Pair_ind of closure2 * spine
-  | Arr of side * t * t
+  | Arr of side * t * closure
   | Tens of t * t
   | TensPair of t * t
   | Tens_ind of closure2 * spine
@@ -130,13 +130,13 @@ let rec eval (env:environment) : Term.t -> t = function
   | IndType (a, l) -> IndType (a, List.map (eval env) l)
   | IndTerm (t,l) -> IndTerm (t, List.map (eval env) l)
   | IndType_ind (ind, args) -> IndType_ind (ind, List.map (eval env) args, [])
-  | Pi (i, c, x, a, t) -> Pi (i, c, eval env a, (x, t, env))
+  | Pi (i, c, x, a, b) -> Pi (i, c, eval env a, (x, b, env))
   | Abs (_, x, t) -> Abs (x, t, env)
   | App (t, _, u) -> app (eval env t) (eval env u)
   | Sigma (x, a, t) -> Sigma (eval env a, (x, t, env))
   | Pair (t, u) -> Pair (eval env t, eval env u)
   | Pair_ind (x, y, t) -> Pair_ind ((x, y, t, env), [])
-  | Arr (s, a, b) -> Arr (s, eval env a, eval env b)
+  | Arr (s, x, a, b) -> Arr (s, eval env a, (x, b, env))
   | Tens (a, b) -> Tens (eval env a, eval env b)
   | TensPair (t, u) -> TensPair (eval env t, eval env u)
   | Tens_ind (x, y, t) -> Tens_ind ((x, y, t, env), [])
@@ -311,7 +311,7 @@ and readback k v : Term.t =
   | Sigma (a, ((x,_,_) as b)) -> Sigma (x, readback k a, readback (k+1) (capp b (var k)))
   | Pair (t, u) -> Pair (readback k t, readback k u)
   | Pair_ind ((x,y,_,_) as t, l) -> spine l @@ Pair_ind (x, y, readback (k+2) @@ capp2 t (var k) (var (k+1)))
-  | Arr (s, a, b) -> Arr (s, readback k a, readback k b)
+  | Arr (s, a, ((x,_,_) as b)) -> Arr (s, x, readback k a, readback (k+1) (capp b (var k)))
   | Tens (a, b) -> Tens (readback k a, readback k b)
   | TensPair (t, u) -> TensPair (readback k t, readback k u)
   | Tens_ind ((x,y,_,_) as t, l) -> spine l @@ Tens_ind (x, y, readback (k+2) @@ capp2 t (var k) (var (k+1)))

@@ -875,7 +875,7 @@ and infer k env ctx (t:term) : term * value =
     let a, la = check_type k env (Context.crisp ctx) a in
     let b, lb = check_type k env (Context.crisp ctx) b in
     Tens (a, b), Type (max la lb)
-  | Arr (s, a, b) ->
+  | Arr (s, x, a, b) ->
     let a, la = check_type k env (Context.crisp ctx) a in
     let b, lb = check_type k env (Context.crisp ctx) b in
     Arr (s, a, b), Type (max la lb)
