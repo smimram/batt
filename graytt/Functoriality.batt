@@ -26,11 +26,8 @@ open import Associativity
 -- Action of a map on homs
 --
 
-hom-map ∷ {X A ∷ U} (p ∷ X → A) {x y : X} → hom x y → hom (p x) (p y)
-hom-map {X} {A} p {x} {y} u =
-  (postᵣ {𝕀} {X} {A} p (hom-cell {X} {x} {y} u) ,
-   cong p (hom-src {X} {x} {y} u) ,
-   cong p (hom-tgt {X} {x} {y} u))
+hom-map ∷ {A B ∷ U} (f ∷ A → B) {x y : A} → hom x y → hom (f x) (f y)
+hom-map f u = (postᵣ f (hom-cell u) , cong f (hom-src u) , cong f (hom-tgt u))
 
 --
 -- Commutation with composition
