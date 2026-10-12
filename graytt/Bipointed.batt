@@ -12,31 +12,31 @@ U⁎⁎ = Σ (X : U) . (X × X)
 type ∷ U⁎⁎ → U
 type (X, _) = X
 
-left ∷ (X' : U⁎⁎) → ⟨ X' ⟩
+left ∷ (X : U⁎⁎) → ⟨ X ⟩
 left (X, u) = fst (λ_.X) u
 
-right ∷ (X' : U⁎⁎) → ⟨ X' ⟩
+right ∷ (X : U⁎⁎) → ⟨ X ⟩
 right (X, u) = snd (λ_.X) u
 
 -- type of bipointed maps between bipointed types
-map⁎⁎ ∷ (X' Y' : U⁎⁎) → U
+map⁎⁎ ∷ U⁎⁎ → U⁎⁎ → U
 map⁎⁎ X' Y' =
   let X : U = ⟨ X' ⟩ in
   let Y : U = ⟨ Y' ⟩ in
   Σ (f : X → Y) . ((f (left X') ≡{ Y } left Y') × (f (right X') ≡{ Y } right Y'))
 
-map-map⁎⁎ ∷ {X' Y' : U⁎⁎} → map⁎⁎ X' Y' → ⟨ X' ⟩ → ⟨ Y' ⟩
+map-map⁎⁎ ∷ {X Y : U⁎⁎} → map⁎⁎ X Y → ⟨ X ⟩ → ⟨ Y ⟩
 map-map⁎⁎ (f, _) = f
 
-map⁎⁎-left ∷ {X' Y' : U⁎⁎} → (f' : map⁎⁎ X' Y') → map-map⁎⁎ f' (left X') ≡ left Y'
-map⁎⁎-left {X'} {Y'} (f, u) = fst (λ_. f (right X') ≡ right Y') u
+map⁎⁎-left ∷ {X Y : U⁎⁎} → (f : map⁎⁎ X Y) → map-map⁎⁎ f (left X) ≡ left Y
+map⁎⁎-left {X} {Y} (f, u) = fst (λ_. f (right X) ≡ right Y) u
 
-map⁎⁎-right ∷ {X' Y' : U⁎⁎} → (f' : map⁎⁎ X' Y') → map-map⁎⁎ f' (right X') ≡ right Y'
-map⁎⁎-right {X'} {Y'} (f, u) = snd (λ_. f (right X') ≡ right Y') u
+map⁎⁎-right ∷ {X Y : U⁎⁎} → (f : map⁎⁎ X Y) → map-map⁎⁎ f (right X) ≡ right Y
+map⁎⁎-right {X} {Y} (f, u) = snd (λ_. f (right X) ≡ right Y) u
 
 -- identity and composition for bipointed maps
-id⁎⁎ ∷ {X' : U⁎⁎} → map⁎⁎ X' X'
-id⁎⁎ {X'} = (id, refl, refl)
+id⁎⁎ ∷ {X : U⁎⁎} → map⁎⁎ X X
+id⁎⁎ = (id, refl, refl)
 
 circ⁎⁎ ∷ {X' Y' Z' : U⁎⁎} → map⁎⁎ Y' Z' → map⁎⁎ X' Y' → map⁎⁎ X' Z'
 circ⁎⁎ {X'} {Y'} {Z'} g' f' =
@@ -69,14 +69,14 @@ oplax⁎⁎ X' Y' =
   let Y ∷ U = ⟨ Y' ⟩ in
   Σ (f : X →ᵣ Y) . ((f (left X') ≡ left Y') × (f (right X') ≡ right Y'))
 
-oplax-oplax⁎⁎ ∷ {X' Y' ∷ U⁎⁎} → oplax⁎⁎ X' Y' → ⟨ X' ⟩ →ᵣ ⟨ Y' ⟩
+oplax-oplax⁎⁎ ∷ {X Y ∷ U⁎⁎} → oplax⁎⁎ X Y → ⟨ X ⟩ →ᵣ ⟨ Y ⟩
 oplax-oplax⁎⁎ (f, _) = f
 
-oplax⁎⁎-left ∷ {X' Y' ∷ U⁎⁎} → (f' : oplax⁎⁎ X' Y') → oplax-oplax⁎⁎ f' (left X') ≡ left Y'
-oplax⁎⁎-left {X'} {Y'} (f, u) = fst (λ_. f (right X') ≡ right Y') u
+oplax⁎⁎-left ∷ {X Y ∷ U⁎⁎} → (f : oplax⁎⁎ X Y) → oplax-oplax⁎⁎ f (left X) ≡ left Y
+oplax⁎⁎-left {X} {Y} (f, u) = fst (λ_. f (right X) ≡ right Y) u
 
-oplax⁎⁎-right ∷ {X' Y' ∷ U⁎⁎} → (f' : oplax⁎⁎ X' Y') → oplax-oplax⁎⁎ f' (right X') ≡ right Y'
-oplax⁎⁎-right {X'} {Y'} (f, u) = snd (λ_. f (right X') ≡ right Y') u
+oplax⁎⁎-right ∷ {X Y ∷ U⁎⁎} → (f : oplax⁎⁎ X Y) → oplax-oplax⁎⁎ f (right X) ≡ right Y
+oplax⁎⁎-right {X} {Y} (f, u) = snd (λ_. f (right X) ≡ right Y) u
 
 -- bipointed homotopies of bipointed maps
 
@@ -97,5 +97,5 @@ ho⁎⁎ {X'} {Y'} f' g' =
   Σ (H : ho f g) . (f0 ≡ trans (H x0) g0) × (f1 ≡ trans (H x1) g1)
 
 -- Bipointed interval
-𝕀' ∷ U⁎⁎
-𝕀' = (𝕀, 𝕀0, 𝕀1)
+𝕀⁎⁎ ∷ U⁎⁎
+𝕀⁎⁎ = (𝕀, 𝕀0, 𝕀1)

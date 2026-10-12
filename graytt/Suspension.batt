@@ -67,7 +67,7 @@ lcoh-merid x = cyl-to-susp-leftcoh x
 rcoh-merid ∷ {X ∷ U} (x : X) → merid x 𝕀1 ≡ right-susp X
 rcoh-merid x = cyl-to-susp-rightcoh x
 
-merid' ∷ {X ∷ U} (x : X) → oplax⁎⁎ 𝕀' (susp' X)
+merid' ∷ {X ∷ U} (x : X) → oplax⁎⁎ 𝕀⁎⁎ (susp' X)
 merid' x = (merid(x), (lcoh-merid(x), rcoh-merid(x)))
 
 --

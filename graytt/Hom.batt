@@ -4,7 +4,7 @@ open import Bipointed
 
 -- hom type of a crisp bipointed type (both endpoints crisp)
 hom' ∷ (X' ∷ U⁎⁎) → U
-hom' X' = oplax⁎⁎ 𝕀' X'
+hom' X' = oplax⁎⁎ 𝕀⁎⁎ X'
 
 -- hom type between arbitrary (possibly non-crisp) endpoints of a crisp type: only X has to be
 -- crisp, for 𝕀 →ᵣ X to be formed
