@@ -9,7 +9,7 @@ hom' X' = oplax⁎⁎ 𝕀⁎⁎ X'
 -- hom type between arbitrary (possibly non-crisp) endpoints of a crisp type: only X has to be
 -- crisp, for 𝕀 →ᵣ X to be formed
 hom ∷ {X ∷ U} (x0 x1 : X) → U
-hom {X} x0 x1 = Σ (f : arrᵣ X) . (srcᵣ f ≡ x0) × (tgtᵣ f ≡ x1)
+hom x0 x1 = Σ (f : arrᵣ X) . (srcᵣ f ≡ x0) × (tgtᵣ f ≡ x1)
 
 -- the underlying 1-cell and its boundary
 hom-cell ∷ {X ∷ U} {x0 x1 : X} → hom x0 x1 → (arrᵣ X)
@@ -27,4 +27,4 @@ hom-crisp x0 x1 = refl
 
 -- the identity 1-cell on a point: the constant oplax map
 id ∷ {X ∷ U} (x : X) → hom x x
-id {X} x = ((λ t . x) , refl , refl)
+id x = ((λ t . x) , refl , refl)
