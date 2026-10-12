@@ -44,10 +44,10 @@ to-hom-from-susp {X} {Y'} f' x =
   let f : susp X → Y = map⁎⁎-map {susp' X} f' in
   let f0 : f (left-susp X)  ≡ y0 = map⁎⁎-left  {susp' X} f' in
   let f1 : f (right-susp X) ≡ y1 = map⁎⁎-right {susp' X} f' in
-  let cyl-to-Y : X ⨂ 𝕀 → Y = circ f (cyl-to-susp X) in
+  let cyl-to-Y : X ⨂ 𝕀 → Y = circ f (cyl→susp X) in
   let arrow-x : 𝕀 →ᵣ Y = λ s. cyl-to-Y (x ⊗ s) in
-  let p0 : arrow-x 𝕀0 ≡ f (left-susp X)  = cong f (cyl-to-susp-leftcoh x)  in
-  let p1 : arrow-x 𝕀1 ≡ f (right-susp X) = cong f (cyl-to-susp-rightcoh x) in
+  let p0 : arrow-x 𝕀0 ≡ f (left-susp X)  = cong f (cyl→susp-leftcoh x)  in
+  let p1 : arrow-x 𝕀1 ≡ f (right-susp X) = cong f (cyl→susp-rightcoh x) in
   let leftcoh-arrow-x  : arrow-x 𝕀0 ≡ y0 = trans p0 f0 in
   let rightcoh-arrow-x : arrow-x 𝕀1 ≡ y1 = trans p1 f1 in
   (arrow-x, (leftcoh-arrow-x, rightcoh-arrow-x))
