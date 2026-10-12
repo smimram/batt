@@ -24,3 +24,5 @@ open import Hom-family
 open import Relative-fold
 open import Yoneda
 open import Fold
+open import Codomain
+open import Univalent

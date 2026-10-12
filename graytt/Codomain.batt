@@ -1,0 +1,151 @@
+--
+-- The codomain fibration: cocartesian lifts
+--
+-- For a crisp oplax-Segal type A, the codomain projection ev₁ : (𝕀 →ᵣ A) → A has cocartesian
+-- lifts. A composable pair (t , u) of arrows of A is the pair of first edges of a 2-simplex σ
+-- (Simplex-edges.batt), and the lift of u at t is the square
+--
+--   χ_σ := λ i . λ j . σ (j , j ∧ i) : t → u ∘ t        (lift-sq)
+--
+-- in 𝕀 →ᵣ A, read horizontally: at i = 0 it is the first edge t of σ, at i = 1 its long edge,
+-- the composite u ∘ t, and its image along ev₁ is λ i . σ (1 , i), the second edge u. All three
+-- hold judgmentally (lift-sq-src, lift-sq-tgt, lift-sq-over).
+--
+-- χ_σ is ev₁-cocartesian (lift-sq-cocart). The 2-simplex of 𝕀 →ᵣ A
+--
+--   τ_σ := λ y . λ k . σ (y₁ ∧ k , y₂ ∧ k)               (lift-tri)
+--
+-- has edges Γ_t, χ_σ and Γ_{u ∘ t} (judgmentally), so that Γ_t ; χ_σ = Γ_{u ∘ t}
+-- (comp-simplex-2, Composition.batt). Both connections are ev₁-cocartesian by the fold lemma,
+-- hence so is χ_σ, by cancellation (is-cocartesian-cancel, Fibration.batt).
+--
+-- Postulates relied on: fold-lemma (Fold.batt); univalence, truncation and is-set-𝕀 through
+-- the Segal machinery.
+--
+
+open import Stdlib
+open import Hom
+open import Segal
+open import Composition
+open import Fibration
+open import Connection
+open import Fold
+
+--
+-- The lift and the triangle
+--
+
+-- χ_σ = λ i . λ j . σ (j , j ∧ i)
+lift-sq ∷ {A ∷ U} → (simplex 2 →ᵣ A) → arrᵣ (arrᵣ A)
+lift-sq {A} σ = λ i . λ j . σ ((j , j 𝕀∧ i , tt) , (refl , tt))
+
+-- its source is the first edge of σ, its target the long edge, its image the second edge
+lift-sq-src ∷ {A ∷ U} (σ : simplex 2 →ᵣ A) → srcᵣ (lift-sq {A} σ) ≡ hom-cell (simplex-2-hom₀₁ {A} σ)
+lift-sq-src {A} σ = refl
+
+lift-sq-tgt ∷ {A ∷ U} (σ : simplex 2 →ᵣ A) → tgtᵣ (lift-sq {A} σ) ≡ hom-cell (simplex-2-hom₀₂ {A} σ)
+lift-sq-tgt {A} σ = refl
+
+lift-sq-over ∷ {A ∷ U} (σ : simplex 2 →ᵣ A) →
+  hom-map {arrᵣ A} {A} (ev₁ {A}) (cell-hom {arrᵣ A} (lift-sq {A} σ)) ≡ simplex-2-hom₁₂ {A} σ
+lift-sq-over {A} σ = refl
+
+-- τ_σ = λ y . λ k . σ (y₁ ∧ k , y₂ ∧ k), sorted since y₁ ≥ y₂ gives y₁ ∧ k ≥ y₂ ∧ k
+lift-tri ∷ {A ∷ U} → (simplex 2 →ᵣ A) → (simplex 2 →ᵣ arrᵣ A)
+lift-tri {A} σ = λ y . λ k .
+  σ ((simplex-2-fst y 𝕀∧ k , simplex-2-snd y 𝕀∧ k , tt) ,
+     (cong {𝕀} {𝕀} (λ z . z 𝕀∧ k) (simplex-2-geq y) , tt))
+
+-- its edges are Γ_t, χ_σ and Γ_{u ∘ t}, judgmentally
+lift-tri-edges ∷ {A ∷ U} (σ : simplex 2 →ᵣ A) →
+  (simplex-2-hom₀₁ {arrᵣ A} (lift-tri {A} σ) ≡ conn-hom {A} (hom-cell (simplex-2-hom₀₁ {A} σ))) ×
+  (simplex-2-hom₁₂ {arrᵣ A} (lift-tri {A} σ) ≡ cell-hom {arrᵣ A} (lift-sq {A} σ)) ×
+  (simplex-2-hom₀₂ {arrᵣ A} (lift-tri {A} σ) ≡ conn-hom {A} (hom-cell (simplex-2-hom₀₂ {A} σ)))
+lift-tri-edges {A} σ = (refl , refl , refl)
+
+--
+-- χ_σ is ev₁-cocartesian
+--
+
+-- Γ_t ; χ_σ = Γ_{u ∘ t}
+lift-sq-comp ∷ {A ∷ U} (sA : is-segalᵣ A) (σ : simplex 2 →ᵣ A) →
+  comp-homᵣ (arrᵣ A) (is-segal-arrᵣ {A} sA) (conn-hom {A} (hom-cell (simplex-2-hom₀₁ {A} σ))) (cell-hom {arrᵣ A} (lift-sq {A} σ))
+    ≡ conn-hom {A} (hom-cell (simplex-2-hom₀₂ {A} σ))
+lift-sq-comp {A} sA σ = comp-simplex-2 (arrᵣ A) (is-segal-arrᵣ {A} sA) (lift-tri {A} σ)
+
+lift-sq-cocart ∷ {A ∷ U} (sA : is-segalᵣ A) (σ : simplex 2 →ᵣ A) →
+  is-cocartesian {arrᵣ A} {A} (is-segal-arrᵣ {A} sA) sA (ev₁ {A}) (cell-hom {arrᵣ A} (lift-sq {A} σ))
+lift-sq-cocart {A} sA σ =
+  let sV : is-segalᵣ (arrᵣ A) = is-segal-arrᵣ {A} sA in
+  let t : arrᵣ A = hom-cell (simplex-2-hom₀₁ {A} σ) in
+  let ut : arrᵣ A = hom-cell (simplex-2-hom₀₂ {A} σ) in
+  let Γt : hom {arrᵣ A} (λ j . srcᵣ t) t = conn-hom {A} t in
+  let χ : hom {arrᵣ A} t ut = cell-hom {arrᵣ A} (lift-sq {A} σ) in
+  -- Γ_{u ∘ t} is cocartesian, hence so is Γ_t ; χ_σ
+  let c-comp : is-cocartesian {arrᵣ A} {A} sV sA (ev₁ {A}) {λ j . srcᵣ t} {ut} (comp-homᵣ (arrᵣ A) sV {λ j . srcᵣ t} {t} {ut} Γt χ) =
+    subst {hom {arrᵣ A} (λ j . srcᵣ t) ut} (λ h . is-cocartesian {arrᵣ A} {A} sV sA (ev₁ {A}) {λ j . srcᵣ t} {ut} h)
+      (sym (lift-sq-comp {A} sA σ)) (fold-lemma {A} sA ut) in
+  -- cancel the cocartesian Γ_t
+  snd _ (is-cocartesian-cancel {arrᵣ A} {A} sV sA (ev₁ {A}) {λ j . srcᵣ t} {t} {ut} Γt χ (fold-lemma {A} sA t)) c-comp
+
+-- the cocartesian 1-cell
+lift-cell ∷ {A ∷ U} (sA : is-segalᵣ A) (σ : simplex 2 →ᵣ A) → cocart-cell {arrᵣ A} {A} (is-segal-arrᵣ {A} sA) sA (ev₁ {A})
+lift-cell {A} sA σ = (lift-sq {A} σ , lift-sq-cocart {A} sA σ)
+
+--
+-- Every arrow has a cocartesian lift at every source
+--
+-- The data of a lift, an element (z , u , e) of the pullback of ev₁ and ev₀ (an arrow z of A
+-- and an arrow u starting where z ends), is a composable pair; it is the pair of edges of a
+-- 2-simplex σ (is-equiv-edges-2, Simplex-edges.batt), and χ_σ lies over it.
+--
+
+open import Composable
+open import Simplex-edges
+
+-- composable pairs and lifting data
+pair→lift-data ∷ {A ∷ U} → pairs A → pullback {arrᵣ A} {arrᵣ A} {A} (ev₁ {A}) (λ u . srcᵣ u)
+pair→lift-data {A} (y , r) =
+  let h : (r : pair-from A y) → pullback {arrᵣ A} {arrᵣ A} {A} (ev₁ {A}) (λ u . srcᵣ u) = fun (z , s) →
+    let h' : (s : Σ (t : A) . hom y z × hom z t) → pullback {arrᵣ A} {arrᵣ A} {A} (ev₁ {A}) (λ u . srcᵣ u) = fun (t , vw) →
+      let h'' : (vw : hom y z × hom z t) → pullback {arrᵣ A} {arrᵣ A} {A} (ev₁ {A}) (λ u . srcᵣ u) = fun (v , w) →
+        (hom-cell {A} {y} {z} v , hom-cell {A} {z} {t} w , trans (hom-tgt {A} {y} {z} v) (sym (hom-src {A} {z} {t} w))) in
+      h'' vw in
+    h' s in
+  h r
+
+lift-data→pair ∷ {A ∷ U} → pullback {arrᵣ A} {arrᵣ A} {A} (ev₁ {A}) (λ u . srcᵣ u) → pairs A
+lift-data→pair {A} (z , r) =
+  let h : (r : Σ (u : arrᵣ A) . tgtᵣ z ≡ srcᵣ u) → pairs A = fun (u , e) →
+    (srcᵣ z , tgtᵣ z , tgtᵣ u , (z , refl , refl) , (u , sym e , refl)) in
+  h r
+
+lift-data-ret ∷ {A ∷ U} (d : pullback {arrᵣ A} {arrᵣ A} {A} (ev₁ {A}) (λ u . srcᵣ u)) →
+  pair→lift-data {A} (lift-data→pair {A} d) ≡ d
+lift-data-ret {A} (z , r) =
+  let h : (r : Σ (u : arrᵣ A) . tgtᵣ z ≡ srcᵣ u) → pair→lift-data {A} (lift-data→pair {A} (z , r)) ≡ (z , r) = fun (u , e) →
+    cong {tgtᵣ z ≡ srcᵣ u} {pullback {arrᵣ A} {arrᵣ A} {A} (ev₁ {A}) (λ u' . srcᵣ u')} (λ q . (z , u , q))
+      (trans (trans-refl-l (sym (sym e))) (sym-sym e)) in
+  h r
+
+-- the 2-simplex with given first edges
+lift-simplex ∷ {A ∷ U} (sA : is-segalᵣ A) → pullback {arrᵣ A} {arrᵣ A} {A} (ev₁ {A}) (λ u . srcᵣ u) → (simplex 2 →ᵣ A)
+lift-simplex {A} sA d =
+  section-map (edges-2 {A}) (is-equiv-sec (edges-2 {A}) (is-equiv-edges-2 A sA)) (lift-data→pair {A} d)
+
+-- the cocartesian lift of d
+codomain-lift ∷ {A ∷ U} (sA : is-segalᵣ A) → pullback {arrᵣ A} {arrᵣ A} {A} (ev₁ {A}) (λ u . srcᵣ u) →
+  cocart-cell {arrᵣ A} {A} (is-segal-arrᵣ {A} sA) sA (ev₁ {A})
+codomain-lift {A} sA d = lift-cell {A} sA (lift-simplex {A} sA d)
+
+-- it lies over d
+codomain-lift-over ∷ {A ∷ U} (sA : is-segalᵣ A) (d : pullback {arrᵣ A} {arrᵣ A} {A} (ev₁ {A}) (λ u . srcᵣ u)) →
+  cocart-cell-lift {arrᵣ A} {A} (is-segal-arrᵣ {A} sA) sA (ev₁ {A}) (codomain-lift {A} sA d) ≡ d
+codomain-lift-over {A} sA d =
+  trans (cong {pairs A} {pullback {arrᵣ A} {arrᵣ A} {A} (ev₁ {A}) (λ u . srcᵣ u)} (pair→lift-data {A})
+          (snd _ (is-equiv-sec (edges-2 {A}) (is-equiv-edges-2 A sA)) (lift-data→pair {A} d)))
+    (lift-data-ret {A} d)
+
+-- cocart-cell-lift has a section: every arrow of A has a cocartesian lift at every source
+codomain-lift-section ∷ {A ∷ U} (sA : is-segalᵣ A) → section (cocart-cell-lift {arrᵣ A} {A} (is-segal-arrᵣ {A} sA) sA (ev₁ {A}))
+codomain-lift-section {A} sA = (codomain-lift {A} sA , codomain-lift-over {A} sA)
