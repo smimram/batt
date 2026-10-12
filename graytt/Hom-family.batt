@@ -10,20 +10,27 @@
 -- whose underlying square is the connection Γ_t (Connection.batt). The source is the identity at a
 -- (up to e0) and the target is f (up to e1).
 --
--- Γ̄_f is cocartesian for the projection to A: this is the hom fibration proposition of BATT.tex
--- (prop:hom_fib), which follows from the fold lemma (fold-lemma, Fold.batt: Γ_t is
--- ev₁-cocartesian in 𝕀 →ᵣ A) by base change along a : 1 → A and ev₀ (lem:cocart_arrow_comp_fib,
--- lem:cocart_arrow_base_change, lem:hom_pb). Formalizing this transfer requires the oplax universal
--- property of pullbacks (lem:pb_oplax_up) and coherences between hom types of pullbacks and
--- composition, so it is postulated here.
+-- Γ̄_f is cocartesian for the projection to A (hom-fam-conn-cocart, the hom fibration proposition
+-- prop:hom_fib of BATT.tex). The total space is equivalent to the coslice a/A, the fibre of
+-- ev₀ : (𝕀 →ᵣ A) → A over a, through which the connection Γ̄_f is the connection Γ_t:
 --
--- Postulates introduced: hom-fam-conn-cocart.
+--   - Γ_t is ev₁-cocartesian in 𝕀 →ᵣ A (fold-lemma, Fold.batt);
+--   - every arrow of the fibre a/A is cocartesian for its projection to 𝕀 →ᵣ A (is-cocartesian-fib,
+--     Fibre.batt);
+--   - hence Γ̄_f is cocartesian for ev₁ ∘ fst : a/A → A (is-cocartesian-comp-fib, Fibration.batt);
+--   - and this is preserved by the equivalence a/A ≃ Σ (x : A) . hom a x over A
+--     (is-cocartesian-equiv, Fibration.batt).
+--
+-- Postulates relied on: fold-lemma (Fold.batt), is-equiv-fib-hom-map (Fibre.batt).
 --
 
 open import Stdlib
 open import Hom
 open import Segal
 open import Fibration
+open import Coslice
+open import Fold
+open import Fibre
 
 -- the connection of f, as a 1-cell of the total space of the hom family
 hom-fam-conn ∷ {A ∷ U} {a ∷ A} {x : A} (f : hom a x) → arrᵣ (Σ (y : A) . hom {A} a y)
@@ -32,11 +39,54 @@ hom-fam-conn {A} {a} {x} f =
   let e0 : srcᵣ t ≡ a = hom-src {A} {a} {x} f in
   λ i . (t i , ((λ j . t (i 𝕀∧ j)) , e0 , refl))
 
+--
+-- The coslice a/A (Coslice.batt) is equivalent to the total space of the hom family, over A
+--
+
+cosl→hom-fam ∷ {A ∷ U} {a ∷ A} → coslice A a → Σ (y : A) . hom {A} a y
+cosl→hom-fam {A} {a} w = (tgtᵣ (fst _ w) , (fst _ w , snd _ w , refl))
+
+hom-fam→cosl ∷ {A ∷ U} {a ∷ A} → (Σ (y : A) . hom {A} a y) → coslice A a
+hom-fam→cosl {A} {a} (y , f) = (hom-cell {A} {a} {y} f , hom-src {A} {a} {y} f)
+
+cosl-ret ∷ {A ∷ U} {a ∷ A} (w : coslice A a) → hom-fam→cosl {A} {a} (cosl→hom-fam {A} {a} w) ≡ w
+cosl-ret {A} {a} (g , p) = refl
+
+cosl-sec-aux ∷ {A ∷ U} {a ∷ A} (c : arrᵣ A) (e0 : srcᵣ c ≡ a) {y : A} (e1 : tgtᵣ c ≡ y) →
+  (tgtᵣ c , (c , e0 , refl)) ≡{Σ (y : A) . hom {A} a y} (y , (c , e0 , e1))
+cosl-sec-aux {A} {a} c e0 refl = refl
+
+cosl-sec ∷ {A ∷ U} {a ∷ A} (z : Σ (y : A) . hom {A} a y) → cosl→hom-fam {A} {a} (hom-fam→cosl {A} {a} z) ≡ z
+cosl-sec {A} {a} (y , f) =
+  trans (cosl-sec-aux {A} {a} (hom-cell {A} {a} {y} f) (hom-src {A} {a} {y} f) {y} (hom-tgt {A} {a} {y} f))
+    (cong {hom a y} {Σ (y : A) . hom {A} a y} (λ f' . (y , f')) (hom-eta {A} {a} {y} f))
+
+is-equiv-cosl→hom-fam ∷ {A ∷ U} {a ∷ A} → is-equiv (cosl→hom-fam {A} {a})
+is-equiv-cosl→hom-fam {A} {a} = ((hom-fam→cosl {A} {a} , cosl-sec {A} {a}) , (hom-fam→cosl {A} {a} , cosl-ret {A} {a}))
+
 -- [prop:hom_fib] the connection of f is cocartesian for the projection to A
-postulate hom-fam-conn-cocart ∷ {A ∷ U} (sA : is-segalᵣ A) {a ∷ A} (sH : is-segalᵣ (Σ (y : A) . hom {A} a y))
+hom-fam-conn-cocart ∷ {A ∷ U} (sA : is-segalᵣ A) {a ∷ A} (sH : is-segalᵣ (Σ (y : A) . hom {A} a y))
   {x : A} (f : hom a x) →
   is-cocartesian {Σ (y : A) . hom {A} a y} {A} sH sA (fst (λ y . hom {A} a y))
     {srcᵣ (hom-fam-conn {A} {a} {x} f)} {tgtᵣ (hom-fam-conn {A} {a} {x} f)} (cell-hom {Σ (y : A) . hom {A} a y} (hom-fam-conn {A} {a} {x} f))
+hom-fam-conn-cocart {A} sA {a} sH {x} f =
+  let S ∷ U = coslice A a in
+  let X ∷ U = Σ (y : A) . hom {A} a y in
+  let e ∷ S → X = cosl→hom-fam {A} {a} in
+  let ee ∷ is-equiv e = is-equiv-cosl→hom-fam {A} {a} in
+  let sS : is-segalᵣ S = is-segalᵣ-equiv {S} {X} e ee sH in
+  let sY : is-segalᵣ (arrᵣ A) = is-segal-arrᵣ {A} sA in
+  let ι ∷ S → arrᵣ A = λ w . fst _ w in
+  let t : arrᵣ A = hom-cell {A} {a} {x} f in
+  let e0 : srcᵣ t ≡ a = hom-src {A} {a} {x} f in
+  let Γ : arrᵣ S = λ i . ((λ j . t (i 𝕀∧ j)) , e0) in
+  let cι : is-cocartesian {S} {arrᵣ A} sS sY ι {srcᵣ Γ} {tgtᵣ Γ} (cell-hom {S} Γ) =
+    is-cocartesian-fib {arrᵣ A} {A} sY sA (λ g . srcᵣ g) a sS {srcᵣ Γ} {tgtᵣ Γ} (cell-hom {S} Γ) in
+  let cq : is-cocartesian {arrᵣ A} {A} sY sA (λ g . tgtᵣ g) {ι (srcᵣ Γ)} {ι (tgtᵣ Γ)} (hom-map {S} {arrᵣ A} ι {srcᵣ Γ} {tgtᵣ Γ} (cell-hom {S} Γ)) =
+    fold-lemma {A} sA t in
+  let cp : is-cocartesian {S} {A} sS sA (λ w . tgtᵣ (ι w)) {srcᵣ Γ} {tgtᵣ Γ} (cell-hom {S} Γ) =
+    is-cocartesian-comp-fib {S} {arrᵣ A} {A} sS sY sA ι (λ g . tgtᵣ g) {srcᵣ Γ} {tgtᵣ Γ} (cell-hom {S} Γ) cι cq in
+  is-cocartesian-equiv {S} {X} {A} sS sH sA e ee (fst (λ y . hom {A} a y)) {srcᵣ Γ} {tgtᵣ Γ} (cell-hom {S} Γ) cp
 
 --
 -- The connection, as a hom out of (a , id a)

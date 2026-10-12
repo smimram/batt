@@ -17,8 +17,8 @@
 --
 --   yon-cocart : yon u is a cocartesian map, for a crisp u (prop:yon_cocart in BATT.tex)
 --
--- Postulates relied on: hom-fam-conn-cocart (Hom-family.batt), for both; conn-cocart
--- (Fold.batt), for yon-cocart.
+-- Postulates relied on: fold-lemma (Fold.batt) and is-equiv-fib-hom-map (Fibre.batt), through
+-- hom-fam-conn-cocart (Hom-family.batt), for both; conn-cocart (Fold.batt), for yon-cocart.
 --
 
 open import Stdlib
