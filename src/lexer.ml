@@ -4,6 +4,7 @@ open Parser
 let greek = [%sedlex.regexp? 0x391 .. 0x3A1 | 0x3A3 .. 0x3A9 | 0x3B1 .. 0x3BA | 0x3BC .. 0x3C9]
 let letter = [%sedlex.regexp? 'A'..'Z' | 'a'..'z' | greek]
 let digit = [%sedlex.regexp? '0'..'9']
+let digit_subscript = [%sedlex.regexp? 0x2080 .. 0x2089]
 let space = [%sedlex.regexp? ' ' | '\t' | '\r']
 
 let rec token lexbuf =
@@ -70,7 +71,7 @@ let rec token lexbuf =
     let s = Sedlexing.Utf8.lexeme lexbuf in
     IMPORT (String.sub s 7 (String.length s - 7))
   | Plus ('0'..'9') -> INT (int_of_string @@ Sedlexing.Utf8.lexeme lexbuf)
-  | ((letter | Utf8 "𝕀"), Star (letter | digit | '\'' | '-' | '_' | Utf8 "→" | Utf8 "⁻" | Utf8 "ₗ" | Utf8 "ᵣ" | Utf8 "♭" | Utf8 "₀" | Utf8 "₁" | Utf8 "₂" | Utf8 "₃" | Utf8 "𝕀" | Utf8 "≡" | Utf8 "≃" | Utf8 "⁎")) | Utf8 "_≃_" -> IDENT (Sedlexing.Utf8.lexeme lexbuf)
+  | ((letter | Utf8 "𝕀"), Star (letter | digit | '\'' | '-' | '_' | Utf8 "→" | Utf8 "⁻" | Utf8 "ₗ" | Utf8 "ᵣ" | Utf8 "♭" | digit_subscript | Utf8 "𝕀" | Utf8 "≡" | Utf8 "≃" | Utf8 "⁎")) | Utf8 "_≃_" -> IDENT (Sedlexing.Utf8.lexeme lexbuf)
   | "--", Star (Compl '\n') -> token lexbuf
   | Plus space -> token lexbuf
   | "\n " -> token lexbuf (* quick hack, we should properly handle indentation *)
