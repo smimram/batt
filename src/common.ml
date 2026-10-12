@@ -12,6 +12,9 @@ let builtins = ref true
 (** Use de Bruijn indices for variables. *)
 let de_bruijn = ref false
 
+(** Whether targets of (co)lax arrows should be crisp. *)
+let crisp_arr_target = ref false
+
 let print fmt =
   Printf.ksprintf (fun s -> !print_string s; flush stdout) fmt
 

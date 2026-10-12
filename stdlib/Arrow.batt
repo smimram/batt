@@ -8,10 +8,10 @@
 arr ∷ U → U
 arr A = 𝕀 → A
 
-arrₗ ∷ (A ∷ U) → U
+arrₗ ∷ (A : U) → U
 arrₗ A = 𝕀 →ₗ A
 
-arrᵣ ∷ (A ∷ U) → U
+arrᵣ ∷ (A : U) → U
 arrᵣ A = 𝕀 →ᵣ A
 
 src ∷ {A : U} → arr A → A
@@ -20,14 +20,14 @@ src f = f 𝕀0
 tgt ∷ {A : U} → arr A → A
 tgt f = f 𝕀1
 
-srcₗ ∷ {A ∷ U} → arrₗ A → A
+srcₗ ∷ {A : U} → arrₗ A → A
 srcₗ f = f 𝕀0
 
-tgtₗ ∷ {A ∷ U} → arrₗ A → A
+tgtₗ ∷ {A : U} → arrₗ A → A
 tgtₗ f = f 𝕀1
 
-srcᵣ ∷ {A ∷ U} → arrᵣ A → A
+srcᵣ ∷ {A : U} → arrᵣ A → A
 srcᵣ f = f 𝕀0
 
-tgtᵣ ∷ {A ∷ U} → arrᵣ A → A
+tgtᵣ ∷ {A : U} → arrᵣ A → A
 tgtᵣ f = f 𝕀1

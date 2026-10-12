@@ -14,6 +14,7 @@ let () =
     (Arg.align
        [
          "-I", Arg.String (fun s -> Common.include_directories_list := s :: !Common.include_directories_list), " Include directory";
+         "--crisp-arrow-target", Arg.Set Common.crisp_arr_target, " Ensure that targets of arrows are crisp";
          "--debug", Arg.Set Common.show_debug, " Show debug messages";
          "--de-bruijn", Arg.Set Common.de_bruijn, " Use de Bruijn indices";
          "--no-colors", Arg.Clear Terminal.enable_colors, " Disable colors";
