@@ -1,5 +1,4 @@
 open import Stdlib
-open import Interval
 open import Bipointed
 
 -- hom type of a crisp bipointed type (both endpoints crisp)
