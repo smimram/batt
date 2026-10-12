@@ -27,6 +27,8 @@ open import Stdlib
 open import Hom
 open import Segal
 open import Composition
+open import Unitality
+open import Associativity
 open import Functoriality
 open import Iso
 
@@ -123,6 +125,10 @@ is-prop-is-cartesian-fibration {X} {A} sX sA p = is-prop-is-equiv (cart-cell-lif
 -- cocartesian 1-cells
 cocart-cell ∷ {X A ∷ U} (sX : is-segalᵣ X) (sA : is-segalᵣ A) (p ∷ X → A) → U
 cocart-cell {X} {A} sX sA p = Σ (f : arrᵣ X) . is-cocartesian {X} {A} sX sA p {srcᵣ f} {tgtᵣ f} (cell-hom {X} f)
+
+-- the underlying 1-cell of a cocartesian 1-cell
+cocart-cell-arr ∷ {X A ∷ U} (sX : is-segalᵣ X) (sA : is-segalᵣ A) (p ∷ X → A) → cocart-cell {X} {A} sX sA p → arrᵣ X
+cocart-cell-arr {X} {A} sX sA p w = fst _ w
 
 -- the source of a cocartesian 1-cell together with its image
 cocart-cell-lift ∷ {X A ∷ U} (sX : is-segalᵣ X) (sA : is-segalᵣ A) (p ∷ X → A) →
@@ -267,6 +273,67 @@ is-cocartesian-cancel {X} {A} sX sA p {x} {y} {z} f g cf =
       (is-equiv-htpy {hom z z'} {cocart-pb {X} {A} sA p {x} {z} (comp-homᵣ X sX {x} {y} {z} f g) z'} {gfg z'} {Φ z' ∘ gg z'}
         (λ w . sym (cancel-Φ-gap {X} {A} sX sA p {x} {y} {z} f g z' w))
         (cgf z'))))
+
+--
+-- Endpoints and isomorphisms
+--
+
+-- cocartesianness of a 1-cell does not depend on the paths identifying its endpoints
+is-cocartesian-endpoints ∷ {X A ∷ U} (sX : is-segalᵣ X) (sA : is-segalᵣ A) (p ∷ X → A) (f : arrᵣ X)
+  {x : X} (e0 : srcᵣ f ≡ x) {y : X} (e1 : tgtᵣ f ≡ y) →
+  is-cocartesian {X} {A} sX sA p {srcᵣ f} {tgtᵣ f} (cell-hom {X} f) → is-cocartesian {X} {A} sX sA p {x} {y} (f , e0 , e1)
+is-cocartesian-endpoints {X} {A} sX sA p f refl refl = λ c . c
+
+-- a cocartesian arrow m whose image has a right inverse k has a right inverse lying over k
+cocart-right-inv ∷ {X A ∷ U} (sX : is-segalᵣ X) (sA : is-segalᵣ A) (p ∷ X → A) {y1 y2 : X} (m : hom y1 y2) →
+  is-cocartesian {X} {A} sX sA p {y1} {y2} m →
+  (k : hom (p y2) (p y1)) → comp-homᵣ A sA {p y1} {p y2} {p y1} (hom-map {X} {A} p {y1} {y2} m) k ≡ Hom.id {A} (p y1) →
+  Σ (n : hom y2 y1) . (comp-homᵣ X sX {y1} {y2} {y1} m n ≡ Hom.id {X} y1) × (hom-map {X} {A} p {y2} {y1} n ≡ k)
+cocart-right-inv {X} {A} sX sA p {y1} {y2} m cm k e =
+  let G : hom y2 y1 → cocart-pb {X} {A} sA p {y1} {y2} m y1 = cocart-gap {X} {A} sX sA p {y1} {y2} m y1 in
+  let σ : section G = is-equiv-sec G (cm y1) in
+  let π : cocart-pb {X} {A} sA p {y1} {y2} m y1 = (Hom.id {X} y1 , k , sym e) in
+  let n : hom y2 y1 = section-map G σ π in
+  let P : G n ≡ π = snd _ σ π in
+  (n ,
+   cong {cocart-pb {X} {A} sA p {y1} {y2} m y1} {hom y1 y1} (λ z . fst _ z) P ,
+   cong {cocart-pb {X} {A} sA p {y1} {y2} m y1} {hom (p y2) (p y1)} (λ z . fst _ (snd _ z)) P)
+
+-- a cocartesian arrow whose image is an isomorphism is an isomorphism: it has a right inverse n
+-- over the inverse of its image, n is cocartesian by cancellation, so it has a right inverse n'
+-- too, and n' is m
+is-iso-cocartesian ∷ {X A ∷ U} (sX : is-segalᵣ X) (sA : is-segalᵣ A) (p ∷ X → A) {y1 y2 : X} (m : hom y1 y2) →
+  is-cocartesian {X} {A} sX sA p {y1} {y2} m →
+  is-iso-hom {A} sA {p y1} {p y2} (hom-map {X} {A} p {y1} {y2} m) → is-iso-hom {X} sX {y1} {y2} m
+is-iso-cocartesian {X} {A} sX sA p {y1} {y2} m cm (k , ek) =
+  let pm : hom (p y1) (p y2) = hom-map {X} {A} p {y1} {y2} m in
+  let ek1 : comp-homᵣ A sA {p y1} {p y2} {p y1} pm k ≡ Hom.id {A} (p y1) = Product.fst ek in
+  let ek2 : comp-homᵣ A sA {p y2} {p y1} {p y2} k pm ≡ Hom.id {A} (p y2) = Product.snd ek in
+  let r1 : Σ (n : hom y2 y1) . (comp-homᵣ X sX {y1} {y2} {y1} m n ≡ Hom.id {X} y1) × (hom-map {X} {A} p {y2} {y1} n ≡ k) =
+    cocart-right-inv {X} {A} sX sA p {y1} {y2} m cm k ek1 in
+  let n : hom y2 y1 = fst _ r1 in
+  let mn : comp-homᵣ X sX {y1} {y2} {y1} m n ≡ Hom.id {X} y1 = Product.fst (snd _ r1) in
+  let pn : hom-map {X} {A} p {y2} {y1} n ≡ k = Product.snd (snd _ r1) in
+  let cmn : is-cocartesian {X} {A} sX sA p {y1} {y1} (comp-homᵣ X sX {y1} {y2} {y1} m n) =
+    subst (λ h . is-cocartesian {X} {A} sX sA p {y1} {y1} h) (sym mn)
+      (is-cocartesian-iso {X} {A} sX sA p {y1} {y1} (Hom.id {X} y1) (is-iso-id {X} sX y1)) in
+  let cn : is-cocartesian {X} {A} sX sA p {y2} {y1} n =
+    Product.snd (is-cocartesian-cancel {X} {A} sX sA p {y1} {y2} {y1} m n cm) cmn in
+  let e2 : comp-homᵣ A sA {p y2} {p y1} {p y2} (hom-map {X} {A} p {y2} {y1} n) pm ≡ Hom.id {A} (p y2) =
+    trans (cong {hom (p y2) (p y1)} {hom (p y2) (p y2)} (λ l . comp-homᵣ A sA {p y2} {p y1} {p y2} l pm) pn) ek2 in
+  let r2 : Σ (n' : hom y1 y2) . (comp-homᵣ X sX {y2} {y1} {y2} n n' ≡ Hom.id {X} y2) × (hom-map {X} {A} p {y1} {y2} n' ≡ pm) =
+    cocart-right-inv {X} {A} sX sA p {y2} {y1} n cn pm e2 in
+  let n' : hom y1 y2 = fst _ r2 in
+  let nn' : comp-homᵣ X sX {y2} {y1} {y2} n n' ≡ Hom.id {X} y2 = Product.fst (snd _ r2) in
+  -- m = m (n n') = (m n) n' = n'
+  let mn' : m ≡ n' =
+    trans (sym (comp-homᵣ-runit X sX {y1} {y2} m))
+      (trans (cong {hom y2 y2} {hom y1 y2} (λ l . comp-homᵣ X sX {y1} {y2} {y2} m l) (sym nn'))
+        (trans (sym (comp-homᵣ-assoc X sX {y1} {y2} {y1} {y2} m n n'))
+          (trans (cong {hom y1 y1} {hom y1 y2} (λ l . comp-homᵣ X sX {y1} {y1} {y2} l n') mn)
+            (comp-homᵣ-lunit X sX {y1} {y2} n')))) in
+  (n , mn ,
+   trans (cong {hom y1 y2} {hom y2 y2} (λ l . comp-homᵣ X sX {y2} {y1} {y2} n l) mn') nn')
 
 --
 -- Cocartesian maps
