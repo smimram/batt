@@ -881,8 +881,7 @@ and infer k env ctx (t:term) : term * value =
     let k = k+1 in
     let ctx =
       let a = V.eval env a in
-      (* The codomain is checked in the crisp context (as is the domain), so that the variable has to be crisp in order to be usable in nested arrows. *)
-      Context.ext_crisp (Context.crisp ctx) x a
+      Context.ext_tens (Context.crisp ctx) s x a
     in
     let env = (x,xv)::env in
     let b, lb = check_type k env ctx b in
