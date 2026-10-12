@@ -41,7 +41,7 @@ to-hom-from-susp {X} {Y'} f' x =
   let Y ∷ U = ⟨ Y' ⟩ in
   let y0 ∷ Y = left Y'  in
   let y1 ∷ Y = right Y' in
-  let f : susp X → Y = map-map⁎⁎ {susp' X} f' in
+  let f : susp X → Y = map⁎⁎-map {susp' X} f' in
   let f0 : f (left-susp X)  ≡ y0 = map⁎⁎-left  {susp' X} f' in
   let f1 : f (right-susp X) ≡ y1 = map⁎⁎-right {susp' X} f' in
   let cyl-to-Y : X ⨂ 𝕀 → Y = circ f (cyl-to-susp X) in
@@ -73,7 +73,7 @@ to-hom-from-susp {X} {Y'} f' x =
   -- let Y ∷ U = type Y' in
   -- let y0 ∷ Y = left  Y' in
   -- let y1 ∷ Y = right Y' in
-  -- let f : susp X → Y = map-map⁎⁎ {susp' X} f' in
+  -- let f : susp X → Y = map⁎⁎-map {susp' X} f' in
   -- let f0 : f (left-susp  X) ≡ y0 = map⁎⁎-left  {susp' X} f' in
   -- let f1 : f (right-susp X) ≡ y1 = map⁎⁎-right {susp' X} f' in
   -- ? -- : (x : X) → 

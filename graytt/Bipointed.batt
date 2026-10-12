@@ -25,13 +25,13 @@ map⁎⁎ X' Y' =
   let Y : U = ⟨ Y' ⟩ in
   Σ (f : X → Y) . ((f (left X') ≡{ Y } left Y') × (f (right X') ≡{ Y } right Y'))
 
-map-map⁎⁎ ∷ {X Y : U⁎⁎} → map⁎⁎ X Y → ⟨ X ⟩ → ⟨ Y ⟩
-map-map⁎⁎ (f, _) = f
+map⁎⁎-map ∷ {X Y : U⁎⁎} → map⁎⁎ X Y → ⟨ X ⟩ → ⟨ Y ⟩
+map⁎⁎-map (f, _) = f
 
-map⁎⁎-left ∷ {X Y : U⁎⁎} → (f : map⁎⁎ X Y) → map-map⁎⁎ f (left X) ≡ left Y
+map⁎⁎-left ∷ {X Y : U⁎⁎} → (f : map⁎⁎ X Y) → map⁎⁎-map f (left X) ≡ left Y
 map⁎⁎-left {X} {Y} (f, u) = fst (λ_. f (right X) ≡ right Y) u
 
-map⁎⁎-right ∷ {X Y : U⁎⁎} → (f : map⁎⁎ X Y) → map-map⁎⁎ f (right X) ≡ right Y
+map⁎⁎-right ∷ {X Y : U⁎⁎} → (f : map⁎⁎ X Y) → map⁎⁎-map f (right X) ≡ right Y
 map⁎⁎-right {X} {Y} (f, u) = snd (λ_. f (right X) ≡ right Y) u
 
 -- identity and composition for bipointed maps
@@ -49,8 +49,8 @@ circ⁎⁎ {X'} {Y'} {Z'} g' f' =
   let Z : U = ⟨ Z' ⟩ in
   let z0 : Z = left Z' in
   let z1 : Z = right Z' in
-  let f : X → Y = map-map⁎⁎ {X'} {Y'} f' in
-  let g : Y → Z = map-map⁎⁎ {Y'} {Z'} g' in
+  let f : X → Y = map⁎⁎-map {X'} {Y'} f' in
+  let g : Y → Z = map⁎⁎-map {Y'} {Z'} g' in
   let fx0-y0 : f x0 ≡{Y} y0 = map⁎⁎-left {X'} {Y'} f' in
   let fx1-y1 : f x1 ≡{Y} y1 = map⁎⁎-right {X'} {Y'} f' in
   let gy0-z0 : g y0 ≡{Z} z0 = map⁎⁎-left {Y'} {Z'} g' in
@@ -88,10 +88,10 @@ ho⁎⁎ {X'} {Y'} f' g' =
   let x1 : X = right X' in
   let y0 : Y = left Y' in
   let y1 : Y = right Y' in
-  let f : X → Y = map-map⁎⁎ f' in
+  let f : X → Y = map⁎⁎-map f' in
   let f0 : f x0 ≡ y0 = map⁎⁎-left f' in
   let f1 : f x1 ≡ y1 = map⁎⁎-right f' in
-  let g : X → Y = map-map⁎⁎ g' in
+  let g : X → Y = map⁎⁎-map g' in
   let g0 : g x0 ≡ y0 = map⁎⁎-left g' in
   let g1 : g x1 ≡ y1 = map⁎⁎-right g' in
   Σ (H : ho f g) . (f0 ≡ trans (H x0) g0) × (f1 ≡ trans (H x1) g1)
