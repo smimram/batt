@@ -12,16 +12,16 @@ susphom-unit ∷ (X ∷ U) → X → hom' (susp' X)
 susphom-unit X = merid' {X}
 
 -- counit
-susphom-counit ∷ (X' ∷ Ubipt) → mapbipt (susp' (hom' X')) X'
+susphom-counit ∷ (X' ∷ U⁎⁎) → map⁎⁎ (susp' (hom' X')) X'
 susphom-counit X' =
-  let X ∷ U = type-Ubipt X' in
-  let x0 ∷ X = leftpt X' in
-  let x1 ∷ X = rightpt X' in
-  let leg-cyl ∷ hom' X' ⨂ 𝕀 → X = λ (f' ⊗ s) . oplax-oplaxbipt {𝕀'} f' s in
+  let X ∷ U = ⟨ X' ⟩ in
+  let x0 ∷ X = left X' in
+  let x1 ∷ X = right X' in
+  let leg-cyl ∷ hom' X' ⨂ 𝕀 → X = λ (f' ⊗ s) . oplax-oplax⁎⁎ {𝕀'} f' s in
   let leg-bool ∷ Bool → X = Bool.rec x0 x1 in
   let ho-legs ∷ (u : hom' X' ⨂ Bool) → leg-cyl (cylbnd-inclusion (hom' X') u) ≡ leg-bool (tens-snd u) =
     λ (f' ⊗ b) . Bool.ind (λb. leg-cyl (cylbnd-inclusion (hom' X') (f' ⊗ b)) ≡ leg-bool (tens-snd (f' ⊗ b)))
-      (oplaxleftcoh {𝕀'} f') (oplaxrightcoh {𝕀'} f') b
+      (oplax⁎⁎-left {𝕀'} f') (oplax⁎⁎-right {𝕀'} f') b
   in
   let counit-map : susp (hom' X') → X = pushout-univ (cylbnd-inclusion (hom' X')) tens-snd X leg-cyl leg-bool ho-legs in
   let counit-lcoh : counit-map (left-susp (hom' X')) ≡ x0 =
@@ -36,14 +36,14 @@ susphom-counit X' =
 -- susp X →.. (Y,y₀,y₁) // X → hom (Y,y₀,y₁)
 --
 
-to-hom-from-susp ∷ {X ∷ U} {Y' ∷ Ubipt} → mapbipt (susp' X) Y' → X → hom' Y'
+to-hom-from-susp ∷ {X ∷ U} {Y' ∷ U⁎⁎} → map⁎⁎ (susp' X) Y' → X → hom' Y'
 to-hom-from-susp {X} {Y'} f' x =
-  let Y ∷ U = type-Ubipt Y' in
-  let y0 ∷ Y = leftpt Y'  in
-  let y1 ∷ Y = rightpt Y' in
-  let f : susp X → Y = map-mapbipt {susp' X} f' in
-  let f0 : f (left-susp X)  ≡ y0 = leftcoh  {susp' X} f' in
-  let f1 : f (right-susp X) ≡ y1 = rightcoh {susp' X} f' in
+  let Y ∷ U = ⟨ Y' ⟩ in
+  let y0 ∷ Y = left Y'  in
+  let y1 ∷ Y = right Y' in
+  let f : susp X → Y = map-map⁎⁎ {susp' X} f' in
+  let f0 : f (left-susp X)  ≡ y0 = map⁎⁎-left  {susp' X} f' in
+  let f1 : f (right-susp X) ≡ y1 = map⁎⁎-right {susp' X} f' in
   let cyl-to-Y : X ⨂ 𝕀 → Y = circ f (cyl-to-susp X) in
   let arrow-x : 𝕀 →ᵣ Y = λ s. cyl-to-Y (x ⊗ s) in
   let p0 : arrow-x 𝕀0 ≡ f (left-susp X)  = cong f (cyl-to-susp-leftcoh x)  in
@@ -52,29 +52,29 @@ to-hom-from-susp {X} {Y'} f' x =
   let rightcoh-arrow-x : arrow-x 𝕀1 ≡ y1 = trans p1 f1 in
   (arrow-x, (leftcoh-arrow-x, rightcoh-arrow-x))
 
--- from-susp-to-hom ∷ {X ∷ U} {Y' ∷ Ubipt} → (X → hom' Y') → mapbipt (susp' X) Y'
+-- from-susp-to-hom ∷ {X ∷ U} {Y' ∷ U⁎⁎} → (X → hom' Y') → map⁎⁎ (susp' X) Y'
 -- from-susp-to-hom {X} {Y'} g =
-  -- let Y ∷ U = type-Ubipt Y' in
-  -- let y0 ∷ Y = leftpt Y'  in
-  -- let y1 ∷ Y = rightpt Y' in
-  -- let leg-cyl : X ⨂ 𝕀 → Y = λ (x ⊗ s) . oplax-oplaxbipt {𝕀'} (g x) s in
+  -- let Y ∷ U = type Y' in
+  -- let y0 ∷ Y = left Y'  in
+  -- let y1 ∷ Y = right Y' in
+  -- let leg-cyl : X ⨂ 𝕀 → Y = λ (x ⊗ s) . oplax-oplax⁎⁎ {𝕀'} (g x) s in
   -- let leg-bool : Bool → Y = Bool.rec y0 y1 in
   -- let ho-legs : (u : X ⨂ Bool) → leg-cyl (cylbnd-inclusion X u) ≡ leg-bool (tens-snd u) =
     -- λ (x ⊗ b) . Bool.ind (λb. leg-cyl (cylbnd-inclusion X (x ⊗ b)) ≡ leg-bool (tens-snd (x ⊗ b)))
-      -- (oplaxleftcoh {𝕀'} (g x)) (oplaxrightcoh {𝕀'} (g x)) b
+      -- (oplax⁎⁎-left {𝕀'} (g x)) (oplax⁎⁎-right {𝕀'} (g x)) b
   -- in
   -- let f : susp X → Y = pushout-univ (cylbnd-inclusion X) tens-snd Y leg-cyl leg-bool ho-legs in
   -- let f0  : f (left-susp  X) ≡ y0 = pushout-univr (cylbnd-inclusion X) tens-snd Y leg-cyl leg-bool ho-legs false in
   -- let f1 : f (right-susp X) ≡ y1 = pushout-univr (cylbnd-inclusion X) tens-snd Y leg-cyl leg-bool ho-legs true in 
   -- (f, (f0, f1))
 
--- from-susp-to-hom-from-susp ∷ {X ∷ U} {Y' ∷ Ubipt} → (f' : mapbipt (susp' X) Y') → biptho {susp' X} (from-susp-to-hom (to-hom-from-susp f')) f'
+-- from-susp-to-hom-from-susp ∷ {X ∷ U} {Y' ∷ U⁎⁎} → (f' : map⁎⁎ (susp' X) Y') → ho⁎⁎ {susp' X} (from-susp-to-hom (to-hom-from-susp f')) f'
 -- from-susp-to-hom-from-susp {X} {Y'} f' =
-  -- let Y ∷ U = type-Ubipt Y' in
-  -- let y0 ∷ Y = leftpt  Y' in
-  -- let y1 ∷ Y = rightpt Y' in
-  -- let f : susp X → Y = map-mapbipt {susp' X} f' in
-  -- let f0 : f (left-susp  X) ≡ y0 = leftcoh  {susp' X} f' in
-  -- let f1 : f (right-susp X) ≡ y1 = rightcoh {susp' X} f' in
+  -- let Y ∷ U = type Y' in
+  -- let y0 ∷ Y = left  Y' in
+  -- let y1 ∷ Y = right Y' in
+  -- let f : susp X → Y = map-map⁎⁎ {susp' X} f' in
+  -- let f0 : f (left-susp  X) ≡ y0 = map⁎⁎-left  {susp' X} f' in
+  -- let f1 : f (right-susp X) ≡ y1 = map⁎⁎-right {susp' X} f' in
   -- ? -- : (x : X) → 
 -- aïe ma tête

@@ -35,7 +35,7 @@ right-susp ∷ (X ∷ U) → susp X
 right-susp X = bool-to-susp X true
 
 -- bipointed suspension type
-susp' ∷ (X ∷ U) → Ubipt
+susp' ∷ (X ∷ U) → U⁎⁎
 susp' X = (susp(X), (left-susp(X), right-susp(X)))
 
 cyl-to-susp-leftcoh ∷ {X ∷ U} (x : X) → cyl-to-susp X (x ⊗ 𝕀0) ≡ left-susp X
@@ -67,7 +67,7 @@ lcoh-merid x = cyl-to-susp-leftcoh x
 rcoh-merid ∷ {X ∷ U} (x : X) → merid x 𝕀1 ≡ right-susp X
 rcoh-merid x = cyl-to-susp-rightcoh x
 
-merid' ∷ {X ∷ U} (x : X) → oplaxbipt 𝕀' (susp' X)
+merid' ∷ {X ∷ U} (x : X) → oplax⁎⁎ 𝕀' (susp' X)
 merid' x = (merid(x), (lcoh-merid(x), rcoh-merid(x)))
 
 --

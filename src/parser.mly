@@ -14,7 +14,7 @@ let binder_names ~pos t =
 let meta ~pos = mk ~pos @@ Meta (`Fresh (Some pos))
 %}
 
-%token COLON CCOLON EQ LPAR RPAR LRPAR LACC RACC COMMA LET IN POSTULATE ABSTRACT META HOLE N EOF
+%token COLON CCOLON EQ LPAR RPAR LRPAR LACC RACC LANGLE RANGLE COMMA LET IN POSTULATE ABSTRACT META HOLE N EOF
 %token TYPE LARGETYPE
 %token<int> INT
 %token EMPTY
@@ -90,6 +90,7 @@ atom:
   | I0 { mk ~pos:$loc @@ I0 }
   | I1 { mk ~pos:$loc @@ I1 }
   | LPAR t=term RPAR { t }
+  | LANGLE t=term RANGLE { app ~pos:$loc (mk ~pos:$loc($1) @@ Var "type") t }
   | t=atom DOT x=IDENT { mk ~pos:$loc @@ RecordField (t, x) }
   | BOOL DOT x=IDENT { mk ~pos:$loc @@ RecordField (mk ~pos:$loc($1) @@ Var "Bool", x) }
   | NAT DOT x=IDENT { mk ~pos:$loc @@ RecordField (mk ~pos:$loc($1) @@ Var "Nat", x) }

@@ -25,6 +25,8 @@ let rec token lexbuf =
   | ")" -> RPAR
   | "{" -> LACC
   | "}" -> RACC
+  | Utf8 "⟨" -> LANGLE
+  | Utf8 "⟩" -> RANGLE
   | "," -> COMMA
   | "." -> DOT
   | Utf8 "→" | "->" | "\\to" -> TO
@@ -68,7 +70,7 @@ let rec token lexbuf =
     let s = Sedlexing.Utf8.lexeme lexbuf in
     IMPORT (String.sub s 7 (String.length s - 7))
   | Plus ('0'..'9') -> INT (int_of_string @@ Sedlexing.Utf8.lexeme lexbuf)
-  | ((letter | Utf8 "𝕀"), Star (letter | digit | '\'' | '-' | '_' | Utf8 "→" | Utf8 "⁻" | Utf8 "ₗ" | Utf8 "ᵣ" | Utf8 "♭" | Utf8 "𝕀" | Utf8 "≡" | Utf8 "≃")) | Utf8 "_≃_" -> IDENT (Sedlexing.Utf8.lexeme lexbuf)
+  | ((letter | Utf8 "𝕀"), Star (letter | digit | '\'' | '-' | '_' | Utf8 "→" | Utf8 "⁻" | Utf8 "ₗ" | Utf8 "ᵣ" | Utf8 "♭" | Utf8 "𝕀" | Utf8 "≡" | Utf8 "≃" | Utf8 "⁎")) | Utf8 "_≃_" -> IDENT (Sedlexing.Utf8.lexeme lexbuf)
   | "--", Star (Compl '\n') -> token lexbuf
   | Plus space -> token lexbuf
   | "\n " -> token lexbuf (* quick hack, we should properly handle indentation *)
