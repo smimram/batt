@@ -336,6 +336,160 @@ is-iso-cocartesian {X} {A} sX sA p {y1} {y2} m cm (k , ek) =
    trans (cong {hom y1 y2} {hom y2 y2} (λ l . comp-homᵣ X sX {y2} {y1} {y2} n l) mn') nn')
 
 --
+-- Composite maps
+--
+-- [lem:cocart_arrow_comp_fib] For ι : X → Y and q : Y → A, if ι γ is q-cocartesian and γ is
+-- ι-cocartesian, then γ is (q ∘ ι)-cocartesian. The fibre product of γ for q ∘ ι is obtained from
+-- the one for ι by replacing the arrow of Y by its image under the gap map of ι γ (an
+-- equivalence), contracting a singleton, and adjusting the paths by hom-map-circ. Under this
+-- equivalence, the gap map of γ for ι is sent to the one for q ∘ ι, by the coherence of the
+-- commutations with composition (hom-map-comp-circ, Functoriality.batt).
+--
+
+-- pre- and post-composition with fixed paths is an equivalence
+is-equiv-trans-trans ∷ {T : U} {x y : T} (p : x ≡ y) {z w : T} (r : z ≡ w) →
+  is-equiv {y ≡ z} {x ≡ w} (λ f . trans p (trans f r))
+is-equiv-trans-trans {T} {x} refl {z} refl =
+  is-equiv-htpy {x ≡ z} {x ≡ z} {id} {λ f . trans refl (trans f refl)} (λ f . sym (trans-refl-l f)) (is-equiv-id (x ≡ z))
+
+-- contracting a singleton in a fibre product
+singl-r ∷ {H M L T : U} (a : H → M) (Q : M → T) (b : L → T) (h : H) {m : M} (e : a h ≡ m) (s : Σ (l : L) . Q m ≡ b l) →
+  Σ (l : L) . Q (a h) ≡ b l
+singl-r {H} {M} {L} {T} a Q b h e (l , f) = (l , trans (cong Q e) f)
+
+singl-z ∷ {H M L T : U} (a : H → M) (Q : M → T) (b : L → T) (h : H) (z : Σ (m : M) . Σ (l : L) . Q m ≡ b l) →
+  a h ≡ fst (λ m . Σ (l : L) . Q m ≡ b l) z → Σ (l : L) . Q (a h) ≡ b l
+singl-z {H} {M} {L} {T} a Q b h (m , s) e = singl-r a Q b h {m} e s
+
+singl ∷ {H M L T : U} (a : H → M) (Q : M → T) (b : L → T) →
+  (Σ (h : H) . Σ (z : Σ (m : M) . Σ (l : L) . Q m ≡ b l) . a h ≡ fst (λ m . Σ (l : L) . Q m ≡ b l) z) →
+  Σ (h : H) . Σ (l : L) . Q (a h) ≡ b l
+singl {H} {M} {L} {T} a Q b (h , r) =
+  let k : (r : Σ (z : Σ (m : M) . Σ (l : L) . Q m ≡ b l) . a h ≡ fst (λ m . Σ (l : L) . Q m ≡ b l) z) → Σ (l : L) . Q (a h) ≡ b l =
+    fun (z , e) → singl-z a Q b h z e in
+  (h , k r)
+
+unsingl ∷ {H M L T : U} (a : H → M) (Q : M → T) (b : L → T) →
+  (Σ (h : H) . Σ (l : L) . Q (a h) ≡ b l) →
+  Σ (h : H) . Σ (z : Σ (m : M) . Σ (l : L) . Q m ≡ b l) . a h ≡ fst (λ m . Σ (l : L) . Q m ≡ b l) z
+unsingl {H} {M} {L} {T} a Q b (h , s) = (h , ((a h , s) , refl))
+
+singl-sec-r ∷ {H M L T : U} (a : H → M) (Q : M → T) (b : L → T) (h : H) (s : Σ (l : L) . Q (a h) ≡ b l) →
+  singl a Q b (unsingl a Q b (h , s)) ≡{Σ (h : H) . Σ (l : L) . Q (a h) ≡ b l} (h , s)
+singl-sec-r {H} {M} {L} {T} a Q b h (l , f) =
+  cong {Q (a h) ≡ b l} {Σ (h : H) . Σ (l : L) . Q (a h) ≡ b l} (λ f' . (h , (l , f'))) (trans-refl-l f)
+
+singl-ret-r ∷ {H M L T : U} (a : H → M) (Q : M → T) (b : L → T) (h : H) {m : M} (e : a h ≡ m) (l : L) (f : Q m ≡ b l) →
+  unsingl a Q b (singl a Q b (h , ((m , (l , f)) , e)))
+    ≡{Σ (h : H) . Σ (z : Σ (m : M) . Σ (l : L) . Q m ≡ b l) . a h ≡ fst (λ m . Σ (l : L) . Q m ≡ b l) z} (h , ((m , (l , f)) , e))
+singl-ret-r {H} {M} {L} {T} a Q b h refl l f =
+  cong {Q (a h) ≡ b l} {Σ (h : H) . Σ (z : Σ (m : M) . Σ (l : L) . Q m ≡ b l) . a h ≡ fst (λ m . Σ (l : L) . Q m ≡ b l) z}
+    (λ f' . (h , ((a h , (l , f')) , refl))) (trans-refl-l f)
+
+singl-ret-s ∷ {H M L T : U} (a : H → M) (Q : M → T) (b : L → T) (h : H) (m : M) (s : Σ (l : L) . Q m ≡ b l) (e : a h ≡ m) →
+  unsingl a Q b (singl a Q b (h , ((m , s) , e)))
+    ≡{Σ (h : H) . Σ (z : Σ (m : M) . Σ (l : L) . Q m ≡ b l) . a h ≡ fst (λ m . Σ (l : L) . Q m ≡ b l) z} (h , ((m , s) , e))
+singl-ret-s {H} {M} {L} {T} a Q b h m (l , f) e = singl-ret-r a Q b h {m} e l f
+
+singl-ret-z ∷ {H M L T : U} (a : H → M) (Q : M → T) (b : L → T) (h : H) (z : Σ (m : M) . Σ (l : L) . Q m ≡ b l)
+  (e : a h ≡ fst (λ m . Σ (l : L) . Q m ≡ b l) z) →
+  unsingl a Q b (singl a Q b (h , (z , e)))
+    ≡{Σ (h : H) . Σ (z : Σ (m : M) . Σ (l : L) . Q m ≡ b l) . a h ≡ fst (λ m . Σ (l : L) . Q m ≡ b l) z} (h , (z , e))
+singl-ret-z {H} {M} {L} {T} a Q b h (m , s) e = singl-ret-s a Q b h m s e
+
+singl-ret ∷ {H M L T : U} (a : H → M) (Q : M → T) (b : L → T)
+  (w : Σ (h : H) . Σ (z : Σ (m : M) . Σ (l : L) . Q m ≡ b l) . a h ≡ fst (λ m . Σ (l : L) . Q m ≡ b l) z) →
+  unsingl a Q b (singl a Q b w) ≡ w
+singl-ret {H} {M} {L} {T} a Q b (h , r) =
+  let k : (r : Σ (z : Σ (m : M) . Σ (l : L) . Q m ≡ b l) . a h ≡ fst (λ m . Σ (l : L) . Q m ≡ b l) z) →
+          unsingl a Q b (singl a Q b (h , r))
+            ≡{Σ (h : H) . Σ (z : Σ (m : M) . Σ (l : L) . Q m ≡ b l) . a h ≡ fst (λ m . Σ (l : L) . Q m ≡ b l) z} (h , r) =
+    fun (z , e) → singl-ret-z a Q b h z e in
+  k r
+
+singl-sec ∷ {H M L T : U} (a : H → M) (Q : M → T) (b : L → T) (w : Σ (h : H) . Σ (l : L) . Q (a h) ≡ b l) →
+  singl a Q b (unsingl a Q b w) ≡ w
+singl-sec {H} {M} {L} {T} a Q b (h , s) = singl-sec-r a Q b h s
+
+is-equiv-singl ∷ {H M L T : U} (a : H → M) (Q : M → T) (b : L → T) → is-equiv (singl a Q b)
+is-equiv-singl {H} {M} {L} {T} a Q b =
+  ((unsingl a Q b , singl-sec a Q b) , (unsingl a Q b , singl-ret a Q b))
+
+-- paths in a fibre product with the same first component
+pb-path2 ∷ {H L T : U} (a : H → T) (b : L → T) (h : H) {l1 l2 : L} (α : l1 ≡ l2) (e1 : a h ≡ b l1) (e2 : a h ≡ b l2) →
+  trans e1 (cong b α) ≡ e2 → (h , l1 , e1) ≡{Σ (h : H) . Σ (l : L) . a h ≡ b l} (h , l2 , e2)
+pb-path2 {H} {L} {T} a b h {l1} refl e1 e2 E =
+  cong {a h ≡ b l1} {Σ (h : H) . Σ (l : L) . a h ≡ b l} (λ e . (h , l1 , e)) E
+
+comp-fib-alg ∷ {T S1 S2 : U} (f : S1 → S2 → T) {t0 t1 t2 : T} (a : t0 ≡ t1) (b : t1 ≡ t2)
+  {x x' : S1} (d : x ≡ x') {y y' : S2} (e : y ≡ y') (c : t2 ≡ f x' y') →
+  trans (trans a (trans b (trans c (sym (cong2 f d e))))) (cong (f x) e)
+    ≡ trans a (trans (trans b c) (cong (λ m . f m y') (sym d)))
+comp-fib-alg {T} {S1} {S2} f a b {x} refl {y} refl c = refl
+
+-- [lem:cocart_arrow_comp_fib] if ι γ is q-cocartesian and γ is ι-cocartesian, then γ is (q ∘ ι)-cocartesian
+is-cocartesian-comp-fib ∷ {X Y A ∷ U} (sX : is-segalᵣ X) (sY : is-segalᵣ Y) (sA : is-segalᵣ A) (ι ∷ X → Y) (q ∷ Y → A)
+  {u v : X} (γ : hom u v) →
+  is-cocartesian {X} {Y} sX sY ι {u} {v} γ →
+  is-cocartesian {Y} {A} sY sA q {ι u} {ι v} (hom-map {X} {Y} ι {u} {v} γ) →
+  is-cocartesian {X} {A} sX sA (λ w . q (ι w)) {u} {v} γ
+is-cocartesian-comp-fib {X} {Y} {A} sX sY sA ι q {u} {v} γ cι cq s =
+  let p ∷ X → A = λ w . q (ι w) in
+  let ιγ : hom (ι u) (ι v) = hom-map {X} {Y} ι {u} {v} γ in
+  let qιγ : hom (q (ι u)) (q (ι v)) = hom-map {Y} {A} q {ι u} {ι v} ιγ in
+  let pγ : hom (p u) (p v) = hom-map {X} {A} p {u} {v} γ in
+  let hι : hom u s → hom (ι u) (ι s) = hom-map {X} {Y} ι {u} {s} in
+  let hq : hom (ι u) (ι s) → hom (q (ι u)) (q (ι s)) = hom-map {Y} {A} q {ι u} {ι s} in
+  let bq : hom (q (ι v)) (q (ι s)) → hom (q (ι u)) (q (ι s)) = λ l . comp-homᵣ A sA {p u} {p v} {p s} qιγ l in
+  let bp : hom (q (ι v)) (q (ι s)) → hom (q (ι u)) (q (ι s)) = λ l . comp-homᵣ A sA {p u} {p v} {p s} pγ l in
+  let Gι : hom v s → cocart-pb {X} {Y} sY ι {u} {v} γ s = cocart-gap {X} {Y} sX sY ι {u} {v} γ s in
+  let Gq : hom (ι v) (ι s) → cocart-pb {Y} {A} sA q {ι u} {ι v} ιγ (ι s) = cocart-gap {Y} {A} sY sA q {ι u} {ι v} ιγ (ι s) in
+  let Gp : hom v s → cocart-pb {X} {A} sA p {u} {v} γ s = cocart-gap {X} {A} sX sA p {u} {v} γ s in
+  let CPq : U = cocart-pb {Y} {A} sA q {ι u} {ι v} ιγ (ι s) in
+  let Qz : hom u s → CPq → U = λ h z . hι h ≡ fst (λ m . Σ (l : hom (q (ι v)) (q (ι s))) . hq m ≡ bq l) z in
+  -- replace the second component by its gap (an equivalence), contract, and adjust the paths
+  let E1 : cocart-pb {X} {Y} sY ι {u} {v} γ s → Σ (h : hom u s) . Σ (z : CPq) . Qz h z =
+    tot {hom u s} {λ h . Σ (k : hom (ι v) (ι s)) . Qz h (Gq k)} {λ h . Σ (z : CPq) . Qz h z} (λ h . Σ-base Gq (Qz h)) in
+  let eE1 : is-equiv E1 =
+    is-equiv-tot {hom u s} {λ h . Σ (k : hom (ι v) (ι s)) . Qz h (Gq k)} {λ h . Σ (z : CPq) . Qz h z} (λ h . Σ-base Gq (Qz h))
+      (λ h . is-equiv-Σ-base Gq (cq (ι s)) (Qz h)) in
+  let E2 : (Σ (h : hom u s) . Σ (z : CPq) . Qz h z) → Σ (h : hom u s) . Σ (l : hom (q (ι v)) (q (ι s))) . hq (hι h) ≡ bq l =
+    singl hι hq bq in
+  let eE2 : is-equiv E2 = is-equiv-singl hι hq bq in
+  let adj : (h : hom u s) (l : hom (q (ι v)) (q (ι s))) → hq (hι h) ≡ bq l → hom-map {X} {A} p {u} {s} h ≡ bp l =
+    λ h l f . trans (hom-map-circ {X} {Y} {A} ι q {u} {s} h)
+      (trans f (cong {hom (p u) (p v)} {hom (p u) (p s)} (λ m . comp-homᵣ A sA {p u} {p v} {p s} m l) (sym (hom-map-circ {X} {Y} {A} ι q {u} {v} γ)))) in
+  let E3 : (Σ (h : hom u s) . Σ (l : hom (q (ι v)) (q (ι s))) . hq (hι h) ≡ bq l) → cocart-pb {X} {A} sA p {u} {v} γ s =
+    tot {hom u s} {λ h . Σ (l : hom (q (ι v)) (q (ι s))) . hq (hι h) ≡ bq l} {λ h . Σ (l : hom (q (ι v)) (q (ι s))) . hom-map {X} {A} p {u} {s} h ≡ bp l}
+      (λ h . tot {hom (q (ι v)) (q (ι s))} {λ l . hq (hι h) ≡ bq l} {λ l . hom-map {X} {A} p {u} {s} h ≡ bp l} (adj h)) in
+  let eE3 : is-equiv E3 =
+    is-equiv-tot {hom u s} {λ h . Σ (l : hom (q (ι v)) (q (ι s))) . hq (hι h) ≡ bq l} {λ h . Σ (l : hom (q (ι v)) (q (ι s))) . hom-map {X} {A} p {u} {s} h ≡ bp l}
+      (λ h . tot {hom (q (ι v)) (q (ι s))} {λ l . hq (hι h) ≡ bq l} {λ l . hom-map {X} {A} p {u} {s} h ≡ bp l} (adj h))
+      (λ h . is-equiv-tot {hom (q (ι v)) (q (ι s))} {λ l . hq (hι h) ≡ bq l} {λ l . hom-map {X} {A} p {u} {s} h ≡ bp l} (adj h)
+        (λ l . is-equiv-trans-trans (hom-map-circ {X} {Y} {A} ι q {u} {s} h)
+          (cong {hom (p u) (p v)} {hom (p u) (p s)} (λ m . comp-homᵣ A sA {p u} {p v} {p s} m l) (sym (hom-map-circ {X} {Y} {A} ι q {u} {v} γ))))) in
+  let Ψ : cocart-pb {X} {Y} sY ι {u} {v} γ s → cocart-pb {X} {A} sA p {u} {v} γ s = λ w . E3 (E2 (E1 w)) in
+  let eΨ : is-equiv Ψ = is-equiv-circ E3 (λ w . E2 (E1 w)) eE3 (is-equiv-circ E2 E1 eE2 eE1) in
+  -- the gap maps agree, by the coherence of the commutations
+  let H : (g : hom v s) → Gp g ≡ Ψ (Gι g) = λ g .
+    let C : hom u s = comp-homᵣ X sX {u} {v} {s} γ g in
+    let pg : hom (p v) (p s) = hom-map {X} {A} p {v} {s} g in
+    let qιg : hom (p v) (p s) = hom-map {Y} {A} q {ι v} {ι s} (hom-map {X} {Y} ι {v} {s} g) in
+    pb-path2 (hom-map {X} {A} p {u} {s}) bp C (hom-map-circ {X} {Y} {A} ι q {v} {s} g)
+      (hom-map-comp X A p sX sA {u} {v} {s} γ g) (snd _ (snd _ (Ψ (Gι g))))
+      (trans (cong {hom-map {X} {A} p {u} {s} C ≡ bp pg} {hom-map {X} {A} p {u} {s} C ≡ bp qιg}
+                (λ z . trans z (cong bp (hom-map-circ {X} {Y} {A} ι q {v} {s} g)))
+                (hom-map-comp-circ X Y A ι q sX sY sA {u} {v} {s} γ g))
+        (comp-fib-alg (λ m n . comp-homᵣ A sA {p u} {p v} {p s} m n)
+          (hom-map-circ {X} {Y} {A} ι q {u} {s} C)
+          (cong hq (hom-map-comp X Y ι sX sY {u} {v} {s} γ g))
+          (hom-map-circ {X} {Y} {A} ι q {u} {v} γ)
+          (hom-map-circ {X} {Y} {A} ι q {v} {s} g)
+          (hom-map-comp Y A q sY sA {ι u} {ι v} {ι s} ιγ (hom-map {X} {Y} ι {v} {s} g)))) in
+  is-equiv-htpy {hom v s} {cocart-pb {X} {A} sA p {u} {v} γ s} {λ g . Ψ (Gι g)} {Gp} (λ g . sym (H g))
+    (is-equiv-circ Ψ Gι eΨ (cι s))
+
+--
 -- Cocartesian maps
 --
 -- A fiberwise map φ : (x : A) → F x → G x between families over A is cocartesian when its total
