@@ -11,6 +11,7 @@
 --
 
 open import Stdlib
+open import Segal
 
 coslice ∷ (A ∷ U) (a : A) → U
 coslice A a = Σ (f : 𝕀 →ᵣ A) . f 𝕀0 ≡ a

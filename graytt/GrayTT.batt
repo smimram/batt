@@ -20,3 +20,4 @@ open import Iso
 open import Connection
 open import Covariant
 open import Yoneda
+open import Fold

@@ -59,7 +59,7 @@ hom-map-comp-simplex ∷
   (Ψ : simplex 2 →ᵣ X)
   → pair-stmt X A p sX sA (edges-2 {X} Ψ)
 hom-map-comp-simplex X A p sX sA Ψ =
-  trans (cong (hom-map p {Ψ (simplex-2-e01 𝕀0)} {Ψ (simplex-2-e12 𝕀1)}) (comp-simplex-2 X sX Ψ))
+  trans (cong (hom-map p {Ψ (simplex-2-e₀₁ 𝕀0)} {Ψ (simplex-2-e₁₂ 𝕀1)}) (comp-simplex-2 X sX Ψ))
     (sym (comp-simplex-2 A sA (postᵣ {simplex 2} {X} {A} p Ψ)))
 
 -- for an arbitrary composable pair, by transport along the section of the edges
@@ -92,10 +92,10 @@ hom-map-comp X A p sX sA {x} {y} {z} u v = fst _ (hom-map-comp-freeze X A p sX s
 hom-map-comp-edges ∷
   (X A ∷ U) (p ∷ X → A) (sX : is-segalᵣ X) (sA : is-segalᵣ A)
   (Ψ : simplex 2 →ᵣ X)
-  → hom-map-comp X A p sX sA (simplex-2-hom01 {X} Ψ) (simplex-2-hom12 {X} Ψ) ≡ hom-map-comp-simplex X A p sX sA Ψ
+  → hom-map-comp X A p sX sA (simplex-2-hom₀₁ {X} Ψ) (simplex-2-hom₁₂ {X} Ψ) ≡ hom-map-comp-simplex X A p sX sA Ψ
 hom-map-comp-edges X A p sX sA Ψ =
   let s : section (edges-2 {X}) = is-equiv-sec (edges-2 {X}) (is-equiv-edges-2 X sX) in
-  trans (snd _ (hom-map-comp-freeze X A p sX sA (simplex-2-hom01 {X} Ψ) (simplex-2-hom12 {X} Ψ)))
+  trans (snd _ (hom-map-comp-freeze X A p sX sA (simplex-2-hom₀₁ {X} Ψ) (simplex-2-hom₁₂ {X} Ψ)))
     (transfer-equiv (edges-2 {X}) (is-equiv-edges-2 X sX) (pair-stmt X A p sX sA) (hom-map-comp-simplex X A p sX sA) Ψ
       (section-map (edges-2 {X}) s (edges-2 {X} Ψ)) (snd (is-section (edges-2 {X})) s (edges-2 {X} Ψ)))
 
@@ -125,11 +125,11 @@ trans-solve {T} {x} {y} refl q refl = trans-sym-l q
 hom-map-comp-face ∷
   (X A ∷ U) (p ∷ X → A) (sX : is-segalᵣ X) (sA : is-segalᵣ A)
   (Ψ : simplex 2 →ᵣ X)
-  → face-image X A p sX sA (simplex-2-hom01 {X} Ψ) (simplex-2-hom12 {X} Ψ) (comp-simplex-2 X sX Ψ)
+  → face-image X A p sX sA (simplex-2-hom₀₁ {X} Ψ) (simplex-2-hom₁₂ {X} Ψ) (comp-simplex-2 X sX Ψ)
       ≡ comp-simplex-2 A sA (postᵣ {simplex 2} {X} {A} p Ψ)
 hom-map-comp-face X A p sX sA Ψ =
   trans-solve (comp-simplex-2 A sA (postᵣ {simplex 2} {X} {A} p Ψ))
-    (cong (hom-map p {Ψ (simplex-2-e01 𝕀0)} {Ψ (simplex-2-e12 𝕀1)}) (comp-simplex-2 X sX Ψ))
+    (cong (hom-map p {Ψ (simplex-2-e₀₁ 𝕀0)} {Ψ (simplex-2-e₁₂ 𝕀1)}) (comp-simplex-2 X sX Ψ))
     (sym (hom-map-comp-edges X A p sX sA Ψ))
 
 --
@@ -242,12 +242,12 @@ assoc-coh-stmt X A p sX sA {x} {y} {z} {t} u v w =
 assoc-coh-simplex ∷
   (X A ∷ U) (p ∷ X → A) (sX : is-segalᵣ X) (sA : is-segalᵣ A)
   (Θ : simplex 3 →ᵣ X)
-  → assoc-coh-stmt X A p sX sA (simplex-3-hom {X} simplex-3-e01 Θ) (simplex-3-hom {X} simplex-3-e12 Θ) (simplex-3-hom {X} simplex-3-e23 Θ)
+  → assoc-coh-stmt X A p sX sA (simplex-3-hom {X} simplex-3-e₀₁ Θ) (simplex-3-hom {X} simplex-3-e₁₂ Θ) (simplex-3-hom {X} simplex-3-e₂₃ Θ)
 assoc-coh-simplex X A p sX sA Θ =
   let pΘ : simplex 3 →ᵣ A = postᵣ {simplex 3} {X} {A} p Θ in
-  let u : hom (Θ (simplex-3-e01 𝕀0)) (Θ (simplex-3-e01 𝕀1)) = simplex-3-hom {X} simplex-3-e01 Θ in
-  let v : hom (Θ (simplex-3-e12 𝕀0)) (Θ (simplex-3-e12 𝕀1)) = simplex-3-hom {X} simplex-3-e12 Θ in
-  let w : hom (Θ (simplex-3-e23 𝕀0)) (Θ (simplex-3-e23 𝕀1)) = simplex-3-hom {X} simplex-3-e23 Θ in
+  let u : hom (Θ (simplex-3-e₀₁ 𝕀0)) (Θ (simplex-3-e₀₁ 𝕀1)) = simplex-3-hom {X} simplex-3-e₀₁ Θ in
+  let v : hom (Θ (simplex-3-e₁₂ 𝕀0)) (Θ (simplex-3-e₁₂ 𝕀1)) = simplex-3-hom {X} simplex-3-e₁₂ Θ in
+  let w : hom (Θ (simplex-3-e₂₃ 𝕀0)) (Θ (simplex-3-e₂₃ 𝕀1)) = simplex-3-hom {X} simplex-3-e₂₃ Θ in
   let hexagon-for-αA : (comp-homᵣ A sA (comp-homᵣ A sA (hom-map p u) (hom-map p v)) (hom-map p w)
                           ≡ comp-homᵣ A sA (hom-map p u) (comp-homᵣ A sA (hom-map p v) (hom-map p w))) → U =
     λ αA . hom-map-hexagon X A p sX sA u v w (assoc-simplex-3-def X sX Θ) αA in
@@ -256,14 +256,14 @@ assoc-coh-simplex X A p sX sA Θ =
   -- the hexagon for the associators given by the faces of Θ and of p ∘ Θ
   let tetrahedron : hexagon-for-αA (assoc-simplex-3-def A sA pΘ) =
     hom-map-tetrahedron X A p sX sA u v w
-      {simplex-3-hom {X} simplex-3-e02 Θ} (simplex-3-face-path X sX simplex-3-d3 Θ)
-      {simplex-3-hom {X} simplex-3-e13 Θ} (simplex-3-face-path X sX simplex-3-d0 Θ)
-      {simplex-3-hom {X} simplex-3-e03 Θ} (simplex-3-face-path X sX simplex-3-d2 Θ)
-      (simplex-3-face-path X sX simplex-3-d1 Θ)
-      (hom-map-comp-face X A p sX sA (simplex-3-face {X} simplex-3-d3 Θ))
-      (hom-map-comp-face X A p sX sA (simplex-3-face {X} simplex-3-d0 Θ))
-      (hom-map-comp-face X A p sX sA (simplex-3-face {X} simplex-3-d1 Θ))
-      (hom-map-comp-face X A p sX sA (simplex-3-face {X} simplex-3-d2 Θ))
+      {simplex-3-hom {X} simplex-3-e₀₂ Θ} (simplex-3-face-path X sX simplex-3-d₃ Θ)
+      {simplex-3-hom {X} simplex-3-e₁₃ Θ} (simplex-3-face-path X sX simplex-3-d₀ Θ)
+      {simplex-3-hom {X} simplex-3-e₀₃ Θ} (simplex-3-face-path X sX simplex-3-d₂ Θ)
+      (simplex-3-face-path X sX simplex-3-d₁ Θ)
+      (hom-map-comp-face X A p sX sA (simplex-3-face {X} simplex-3-d₃ Θ))
+      (hom-map-comp-face X A p sX sA (simplex-3-face {X} simplex-3-d₀ Θ))
+      (hom-map-comp-face X A p sX sA (simplex-3-face {X} simplex-3-d₁ Θ))
+      (hom-map-comp-face X A p sX sA (simplex-3-face {X} simplex-3-d₂ Θ))
   in
   -- the associators on the edges of Θ and of p ∘ Θ are the ones given by the faces
   subst hexagon-for-αX (sym (comp-homᵣ-assoc-edges X sX Θ))
