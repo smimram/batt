@@ -26,4 +26,4 @@ hom-crisp x0 x1 = refl
 
 -- the identity 1-cell on a point: the constant oplax map
 id ∷ {X ∷ U} (x : X) → hom x x
-id x = ((λ t . x) , refl , refl)
+id x = ((λ _ . x) , refl , refl)
