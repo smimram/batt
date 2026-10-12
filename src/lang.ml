@@ -881,7 +881,7 @@ and infer k env ctx (t:term) : term * value =
     let k = k+1 in
     let ctx =
       let a = V.eval env a in
-      Context.ext_tens (Context.crisp ctx) s x a
+      Context.ext_tens ctx s x a
     in
     let env = (x,xv)::env in
     let b, lb = check_type k env ctx b in
