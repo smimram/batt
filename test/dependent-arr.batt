@@ -1,0 +1,39 @@
+-- Dependent lax and oplax arrows
+
+-- dependent (op)lax identity
+idᵣ ∷ (A ∷ U) → (x : A) →ᵣ A
+idᵣ A x = x
+
+idₗ ∷ (A ∷ U) → (x : A) →ₗ A
+idₗ A x = x
+
+-- the codomain depends on the argument
+reflᵣ ∷ (A ∷ U) → (x : A) →ᵣ x ≡ x
+reflᵣ A x = refl
+
+reflₗ ∷ (A ∷ U) → (x y : A) →ₗ x ≡ x
+reflₗ A x y = refl
+
+-- application instantiates the codomain
+reflᵣ-app ∷ (A ∷ U) (a : A) → a ≡ a
+reflᵣ-app A a = reflᵣ A a
+
+-- a dependent family over the argument
+sectionᵣ ∷ (A ∷ U) (B ∷ A → U) (s ∷ (x : A) → B x) → (x : A) →ᵣ B x
+sectionᵣ A B s x = s x
+
+apply-sectionᵣ ∷ (A ∷ U) (B ∷ A → U) (f ∷ (x : A) →ᵣ B x) (a : A) → B a
+apply-sectionᵣ A B f a = f a
+
+-- eliminating a tensor against a dependent oplax arrow
+tens-elim ∷ (A B ∷ U) (C ∷ A ⨂ B → U) (f ∷ (a : A) →ᵣ (b : B) →ᵣ C (a ⊗ b)) → (p : A ⨂ B) →ᵣ C p
+tens-elim A B C f (a ⊗ b) = f a b
+
+-- eliminating a boolean against a dependent lax arrow
+bool-elim ∷ (C ∷ Bool → U) (cf ∷ C false) (ct ∷ C true) → (b : Bool) →ₗ C b
+bool-elim C cf ct false = cf
+bool-elim C cf ct true = ct
+
+-- non-dependent arrows are a special case
+nondep ∷ (A B ∷ U) → (A →ᵣ B) → ((x : A) →ᵣ B)
+nondep A B f = f

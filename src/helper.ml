@@ -49,7 +49,16 @@ let rec pis ~pos l b =
   match l with
   | [] -> b
   | (i,c,x,a)::l -> pis' i c x a (pis ~pos l b)
-  
+
+(** Multiple lax arrows. *)
+let arrs ~pos s l b =
+  List.fold_right
+    (fun (i,c,x,a) b ->
+       if i <> Explicit then failwith @@ Printf.sprintf "%s: lax arrows cannot have implicit arguments" (Pos.to_string pos);
+       if c <> Normal then failwith @@ Printf.sprintf "%s: lax arrows cannot have crisp arguments" (Pos.to_string pos);
+       List.fold_right (fun x b -> mk ~pos @@ Arr (s, x, a, b)) x b
+    ) l b
+
 
 (** Compile a definition by multiple clauses, each consisting of a list of patterns and a body. *)
 let rec compile_clauses ~pos rows =
