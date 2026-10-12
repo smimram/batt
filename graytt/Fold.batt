@@ -1,0 +1,96 @@
+--
+-- The fold lemmas
+--
+-- For a crisp oplax-Segal type C, the arrow type 𝕀 →ᵣ C is oplax-Segal (is-segal-arrᵣ, Segal.batt)
+-- and comes with the two evaluations ev₀ = srcᵣ, ev₁ = tgtᵣ : (𝕀 →ᵣ C) → C. For an arrow t of C,
+-- the connection and coconnection squares (Connection.batt) are arrows of 𝕀 →ᵣ C:
+--
+--   Γ_t  : id (t 0) → t      lying over t along ev₁       (fold-conn-over-ev₁)
+--   Γ'_t : t → id (t 1)      lying over t along ev₀       (fold-coconn-over-ev₀)
+--
+-- (squares are read horizontally: the first variable i is the arrow of 𝕀 →ᵣ C, the second j the
+-- arrow of C).
+--
+--   fold lemma       : Γ_t is ev₁-cocartesian                  (fold-lemma)
+--   dual fold lemma  : Γ'_t is ev₀-cartesian                   (dual-fold-lemma)
+--
+-- Both are postulated here, in the precise form needed for the Yoneda lemma for covariant
+-- families: the fold lemma identifies the cocartesian lift of an arrow f of A at the identity of
+-- the coslice (the connection Γ_f), and the dual fold lemma gives representability of the fibre
+-- by its cocartesian lift.
+--
+-- The dual fold lemma is a conjecture: it is not a formal consequence of the fold
+-- lemma, since no involution of 𝕀 exchanging ∧ and ∨ is assumed, and the mirror proof puts the
+-- spine in the left factor of ⊗, where currying is not available.
+--
+-- Postulates introduced: fold-lemma, dual-fold-lemma.
+--
+
+open import Stdlib
+open import Hom
+open import Segal
+open import Fibration
+open import Connection
+
+--
+-- The arrow type and its evaluations
+--
+
+-- evaluation at the source and at the target, as crisp maps (the projections of the fibrations)
+ev₀ ∷ {C ∷ U} → arrᵣ C → C
+ev₀ {C} = srcᵣ {C}
+
+ev₁ ∷ {C ∷ U} → arrᵣ C → C
+ev₁ {C} = tgtᵣ {C}
+
+-- the arrow type of an oplax-Segal type is oplax-Segal
+arr-segalᵣ ∷ {C ∷ U} → is-segalᵣ C → is-segalᵣ (arrᵣ C)
+arr-segalᵣ {C} sC = is-segal-arrᵣ {C} sC
+
+--
+-- The (co)connection lies over the arrow itself, judgmentally
+--
+
+-- along ev₁, Γ_t is t : λ i . t (i ∧ 1) ≡ t
+fold-conn-over-ev₁ ∷ {C ∷ U} (t : arrᵣ C) →
+  hom-map {arrᵣ C} {C} (ev₁ {C}) {λ j . srcᵣ t} {t} (conn-hom {C} t) ≡ cell-hom {C} t
+fold-conn-over-ev₁ {C} t = refl
+
+-- along ev₀, Γ'_t is t : λ i . t (i ∨ 0) ≡ t
+fold-coconn-over-ev₀ ∷ {C ∷ U} (t : arrᵣ C) →
+  hom-map {arrᵣ C} {C} (ev₀ {C}) {t} {λ j . tgtᵣ t} (coconn-hom {C} t) ≡ cell-hom {C} t
+fold-coconn-over-ev₀ {C} t = refl
+
+--
+-- Statements
+--
+
+-- Γ_t is ev₁-cocartesian
+fold-stmt ∷ {C ∷ U} (sC : is-segalᵣ C) (t : arrᵣ C) → U
+fold-stmt {C} sC t =
+  is-cocartesian {arrᵣ C} {C} (arr-segalᵣ {C} sC) sC (ev₁ {C}) {λ j . srcᵣ t} {t} (conn-hom {C} t)
+
+-- Γ'_t is ev₀-cartesian
+dual-fold-stmt ∷ {C ∷ U} (sC : is-segalᵣ C) (t : arrᵣ C) → U
+dual-fold-stmt {C} sC t =
+  is-cartesian {arrᵣ C} {C} (arr-segalᵣ {C} sC) sC (ev₀ {C}) {t} {λ j . tgtᵣ t} (coconn-hom {C} t)
+
+-- both statements are propositions, so postulating them adds no structure
+is-prop-fold-stmt ∷ {C ∷ U} (sC : is-segalᵣ C) (t : arrᵣ C) → is-prop (fold-stmt {C} sC t)
+is-prop-fold-stmt {C} sC t =
+  is-prop-is-cocartesian {arrᵣ C} {C} (arr-segalᵣ {C} sC) sC (ev₁ {C}) {λ j . srcᵣ t} {t} (conn-hom {C} t)
+
+is-prop-dual-fold-stmt ∷ {C ∷ U} (sC : is-segalᵣ C) (t : arrᵣ C) → is-prop (dual-fold-stmt {C} sC t)
+is-prop-dual-fold-stmt {C} sC t =
+  is-prop-Π (λ x' . is-equiv (cart-gap {arrᵣ C} {C} (arr-segalᵣ {C} sC) sC (ev₀ {C}) {t} {λ j . tgtᵣ t} (coconn-hom {C} t) x'))
+    (λ x' . is-prop-is-equiv (cart-gap {arrᵣ C} {C} (arr-segalᵣ {C} sC) sC (ev₀ {C}) {t} {λ j . tgtᵣ t} (coconn-hom {C} t) x'))
+
+--
+-- Postulates
+--
+
+-- the fold lemma: the connection Γ_t is ev₁-cocartesian, for every arrow t of an oplax-Segal type
+postulate fold-lemma ∷ {C ∷ U} (sC : is-segalᵣ C) (t : arrᵣ C) → fold-stmt {C} sC t
+
+-- [conjecture] the dual fold lemma: the coconnection Γ'_t is ev₀-cartesian
+postulate dual-fold-lemma ∷ {C ∷ U} (sC : is-segalᵣ C) (t : arrᵣ C) → dual-fold-stmt {C} sC t
