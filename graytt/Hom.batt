@@ -16,14 +16,14 @@ hom-cell ∷ {X ∷ U} {x0 x1 : X} → hom x0 x1 → (arrᵣ X)
 hom-cell (f , _) = f
 
 hom-src ∷ {X ∷ U} {x0 x1 : X} (u : hom x0 x1) → srcᵣ (hom-cell u) ≡ x0
-hom-src {X} {x0} {x1} (f , p) = Product.fst p
+hom-src (f , p) = Product.fst p
 
 hom-tgt ∷ {X ∷ U} {x0 x1 : X} (u : hom x0 x1) → tgtᵣ (hom-cell u) ≡ x1
-hom-tgt {X} {x0} {x1} (f , p) = Product.snd p
+hom-tgt (f , p) = Product.snd p
 
 -- for crisp endpoints, hom is the hom of the bipointed type (X, x0, x1), judgmentally
-hom-crisp ∷ (X ∷ U) (x0 x1 ∷ X) → hom x0 x1 ≡ hom' (X , (x0 , x1))
-hom-crisp X x0 x1 = refl
+hom-crisp ∷ {X ∷ U} (x0 x1 ∷ X) → hom x0 x1 ≡ hom' (X , (x0 , x1))
+hom-crisp x0 x1 = refl
 
 -- the identity 1-cell on a point: the constant oplax map
 id ∷ {X ∷ U} (x : X) → hom x x
