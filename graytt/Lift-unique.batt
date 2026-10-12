@@ -1,0 +1,127 @@
+--
+-- Uniqueness of cocartesian lifts
+--
+-- p ∷ X → A is a cocartesian fibration when cocart-cell-lift : cocart-cell → pullback p ev₀ is an
+-- equivalence (Fibration.batt). Since is-equiv is bi-invertibility, it suffices to give a section
+-- (existence of cocartesian lifts, e.g. codomain-lift-section, Codomain.batt) and a retraction,
+-- which follows from injectivity: two cocartesian 1-cells with the same lifting data are equal
+-- (uniqueness of cocartesian lifts).
+--
+-- Injectivity is reduced to a statement on homs with free endpoints (cocart-homs, lift-homs):
+--
+--   cocart-cell  ──cell→cocart-hom──▶  Σ x y (f : hom x y) . is-cocartesian f
+--       │cocart-cell-lift                    │lift-homs = (x , y , f , c) ↦ (x , p y , p f)
+--       ▼                                    ▼
+--   pullback p ev₀ ──lift-data→homs──▶ Σ x b . hom (p x) b
+--
+-- The square commutes judgmentally (lift-square), and the top map has a retraction, so that
+-- injectivity of lift-homs implies injectivity of cocart-cell-lift (cocart-cell-lift-inj), hence
+-- that p is a cocartesian fibration given a section (is-cocartesian-fibration-from-inj).
+--
+
+open import Stdlib
+open import Hom
+open import Segal
+open import Functoriality
+open import Fibration
+
+--
+-- Cocartesian cells as cocartesian homs with free endpoints
+--
+
+-- cocartesianness does not depend on the endpoint paths, in the other direction
+is-cocartesian-endpoints-inv ∷ {X A ∷ U} (sX : is-segalᵣ X) (sA : is-segalᵣ A) (p ∷ X → A) (f : arrᵣ X)
+  {x : X} (e0 : srcᵣ f ≡ x) {y : X} (e1 : tgtᵣ f ≡ y) →
+  is-cocartesian {X} {A} sX sA p {x} {y} (f , e0 , e1) → is-cocartesian {X} {A} sX sA p {srcᵣ f} {tgtᵣ f} (cell-hom {X} f)
+is-cocartesian-endpoints-inv {X} {A} sX sA p f refl refl = λ c . c
+
+cocart-homs ∷ {X A ∷ U} (sX : is-segalᵣ X) (sA : is-segalᵣ A) (p ∷ X → A) → U
+cocart-homs {X} {A} sX sA p = Σ (x : X) . Σ (y : X) . Σ (f : hom x y) . is-cocartesian {X} {A} sX sA p {x} {y} f
+
+cell→cocart-hom ∷ {X A ∷ U} (sX : is-segalᵣ X) (sA : is-segalᵣ A) (p ∷ X → A) →
+  cocart-cell {X} {A} sX sA p → cocart-homs {X} {A} sX sA p
+cell→cocart-hom {X} {A} sX sA p (f , c) = (srcᵣ f , tgtᵣ f , cell-hom {X} f , c)
+
+cocart-hom→cell ∷ {X A ∷ U} (sX : is-segalᵣ X) (sA : is-segalᵣ A) (p ∷ X → A) →
+  cocart-homs {X} {A} sX sA p → cocart-cell {X} {A} sX sA p
+cocart-hom→cell {X} {A} sX sA p (x , r) =
+  let h : (r : Σ (y : X) . Σ (f : hom x y) . is-cocartesian {X} {A} sX sA p {x} {y} f) → cocart-cell {X} {A} sX sA p = fun (y , s) →
+    let h' : (s : Σ (f : hom x y) . is-cocartesian {X} {A} sX sA p {x} {y} f) → cocart-cell {X} {A} sX sA p = fun (f , c) →
+      let h'' : (f : hom x y) → is-cocartesian {X} {A} sX sA p {x} {y} f → cocart-cell {X} {A} sX sA p = fun (g , e) c →
+        let k : (e : (srcᵣ g ≡ x) × (tgtᵣ g ≡ y)) → is-cocartesian {X} {A} sX sA p {x} {y} (g , e) → cocart-cell {X} {A} sX sA p =
+          fun (e0 , e1) c → (g , is-cocartesian-endpoints-inv {X} {A} sX sA p g e0 e1 c) in
+        k e c in
+      h'' f c in
+    h' s in
+  h r
+
+-- cocart-hom→cell is a retraction (cocartesianness is a proposition)
+cell→cocart-hom-retr ∷ {X A ∷ U} (sX : is-segalᵣ X) (sA : is-segalᵣ A) (p ∷ X → A) →
+  retraction (cell→cocart-hom {X} {A} sX sA p)
+cell→cocart-hom-retr {X} {A} sX sA p =
+  (cocart-hom→cell {X} {A} sX sA p ,
+   fun (f , c) →
+     cong {is-cocartesian {X} {A} sX sA p {srcᵣ f} {tgtᵣ f} (cell-hom {X} f)} {cocart-cell {X} {A} sX sA p} (λ c' . (f , c'))
+       (prop-path (is-prop-is-cocartesian {X} {A} sX sA p {srcᵣ f} {tgtᵣ f} (cell-hom {X} f)) _ c))
+
+--
+-- Lifting data as homs out of p x
+--
+
+lift-homs-data ∷ {X A ∷ U} (p ∷ X → A) → U
+lift-homs-data {X} {A} p = Σ (x : X) . Σ (b : A) . hom (p x) b
+
+lift-data→homs ∷ {X A ∷ U} (p ∷ X → A) → pullback {X} {arrᵣ A} {A} p (λ u . srcᵣ u) → lift-homs-data {X} {A} p
+lift-data→homs {X} {A} p (x , r) =
+  let h : (r : Σ (α : arrᵣ A) . p x ≡ srcᵣ α) → lift-homs-data {X} {A} p = fun (α , e) → (x , tgtᵣ α , (α , sym e , refl)) in
+  h r
+
+-- the map on cocartesian homs
+lift-homs ∷ {X A ∷ U} (sX : is-segalᵣ X) (sA : is-segalᵣ A) (p ∷ X → A) → cocart-homs {X} {A} sX sA p → lift-homs-data {X} {A} p
+lift-homs {X} {A} sX sA p (x , r) =
+  let h : (r : Σ (y : X) . Σ (f : hom x y) . is-cocartesian {X} {A} sX sA p {x} {y} f) → lift-homs-data {X} {A} p = fun (y , s) →
+    (x , p y , hom-map {X} {A} p {x} {y} (fst (λ f . is-cocartesian {X} {A} sX sA p {x} {y} f) s)) in
+  h r
+
+-- the square commutes judgmentally
+lift-square ∷ {X A ∷ U} (sX : is-segalᵣ X) (sA : is-segalᵣ A) (p ∷ X → A) (w : cocart-cell {X} {A} sX sA p) →
+  lift-data→homs {X} {A} p (cocart-cell-lift {X} {A} sX sA p w) ≡ lift-homs {X} {A} sX sA p (cell→cocart-hom {X} {A} sX sA p w)
+lift-square {X} {A} sX sA p (f , c) = refl
+
+--
+-- From injectivity on homs to cocartesian fibrations
+--
+
+is-inj ∷ {S T : U} → (S → T) → U
+is-inj {S} {T} g = (s s' : S) → g s ≡ g s' → s ≡ s'
+
+cocart-cell-lift-inj ∷ {X A ∷ U} (sX : is-segalᵣ X) (sA : is-segalᵣ A) (p ∷ X → A) →
+  is-inj (lift-homs {X} {A} sX sA p) → is-inj (cocart-cell-lift {X} {A} sX sA p)
+cocart-cell-lift-inj {X} {A} sX sA p inj w w' q =
+  retraction-inj (cell→cocart-hom {X} {A} sX sA p) (cell→cocart-hom-retr {X} {A} sX sA p) {w} {w'}
+    (inj (cell→cocart-hom {X} {A} sX sA p w) (cell→cocart-hom {X} {A} sX sA p w')
+      (trans (sym (lift-square {X} {A} sX sA p w))
+        (trans (cong (lift-data→homs {X} {A} p) q) (lift-square {X} {A} sX sA p w'))))
+
+-- a section and injectivity make cocart-cell-lift an equivalence
+is-cocartesian-fibration-from-inj ∷ {X A ∷ U} (sX : is-segalᵣ X) (sA : is-segalᵣ A) (p ∷ X → A) →
+  section (cocart-cell-lift {X} {A} sX sA p) → is-inj (lift-homs {X} {A} sX sA p) → is-cocartesian-fibration {X} {A} sX sA p
+is-cocartesian-fibration-from-inj {X} {A} sX sA p sec inj =
+  let L : cocart-cell {X} {A} sX sA p → pullback {X} {arrᵣ A} {A} p (λ u . srcᵣ u) = cocart-cell-lift {X} {A} sX sA p in
+  let σ : pullback {X} {arrᵣ A} {A} p (λ u . srcᵣ u) → cocart-cell {X} {A} sX sA p = section-map L sec in
+  let ret : (w : cocart-cell {X} {A} sX sA p) → σ (L w) ≡ w = λ w .
+    cocart-cell-lift-inj {X} {A} sX sA p inj (σ (L w)) w (snd (is-section L) sec (L w)) in
+  (sec , (σ , ret))
+
+--
+-- The codomain projection, given uniqueness
+--
+
+open import Fold
+open import Codomain
+
+codomain-fibration-from-inj ∷ {A ∷ U} (sA : is-segalᵣ A) →
+  is-inj (lift-homs {arrᵣ A} {A} (is-segal-arrᵣ {A} sA) sA (ev₁ {A})) →
+  is-cocartesian-fibration {arrᵣ A} {A} (is-segal-arrᵣ {A} sA) sA (ev₁ {A})
+codomain-fibration-from-inj {A} sA inj =
+  is-cocartesian-fibration-from-inj {arrᵣ A} {A} (is-segal-arrᵣ {A} sA) sA (ev₁ {A}) (codomain-lift-section {A} sA) inj

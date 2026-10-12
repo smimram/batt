@@ -26,3 +26,4 @@ open import Yoneda
 open import Fold
 open import Codomain
 open import Univalent
+open import Lift-unique
