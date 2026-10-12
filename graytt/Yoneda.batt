@@ -18,7 +18,8 @@
 --   yon-cocart : yon u is a cocartesian map, for a crisp u (prop:yon_cocart in BATT.tex)
 --
 -- Postulates relied on: fold-lemma (Fold.batt) and is-equiv-fib-hom-map (Fibre.batt), through
--- hom-fam-conn-cocart (Hom-family.batt), for both; conn-cocart (Fold.batt), for yon-cocart.
+-- hom-fam-conn-cocart (Hom-family.batt), for both; relative-fold-lemma (Relative-fold.batt), for
+-- yon-cocart.
 --
 
 open import Stdlib
@@ -31,6 +32,7 @@ open import Connection
 open import Fold
 open import Covariant
 open import Hom-family
+open import Relative-fold
 
 --
 -- The Yoneda maps
@@ -111,11 +113,8 @@ yon-evid {A} F sA sF c {a} sH φ nφ x f =
 -- Write Y for the total map of yon u, (x , f) ↦ (x , f_* u).
 --
 -- On connections (yon-conn-cocart): the image of the connection Γ̄_f is the 1-cell
--- i ↦ (f_{≤ i})_* u, the targets of the cocartesian lifts Θ i of the restrictions f_{≤ i} of f.
--- The connection of the cocartesian lift f̂ of f is also a 1-cell of cocartesian arrows R
--- (conn-cocart, Fold.batt). Θ and R have the same image in 𝕀 →ᵣ (Σ F ×_A (𝕀 →ᵣ A)) (the
--- restrictions of f at u), and postcomposition with the equivalence cocart-cell-lift is an
--- equivalence (postᵣ-equiv), so Θ ≡ R: taking targets, the image of Γ̄_f is f̂, which is cocartesian.
+-- i ↦ (f_{≤ i})_* u, the targets of the cocartesian lifts Θ i of the restrictions f_{≤ i} of f,
+-- which is cocartesian by the relative fold lemma (rel-lift-tgt-cocart, Relative-fold.batt).
 --
 -- In general (yon-cocart-from-id): a cocartesian arrow h out of (a , id) factors as the connection
 -- of its image followed by a cocartesian arrow m over an identity, which is an isomorphism
@@ -150,39 +149,23 @@ yon-conn-cocart {A} F sA sF c {a} u {x} f =
   let σ ∷ section Λ = is-equiv-sec Λ c in
   let arr ∷ CC → arrᵣ E = cocart-cell-arr {E} {A} sF sA (fst F) in
   let Λ' ∷ arrᵣ E → PB = λ w . (w 𝕀0 , postᵣ {𝕀} {E} {A} (fst F) w , refl) in
-  let Lpt : (z : CC) → Λ z ≡ Λ' (arr z) = fun (w , cw) → refl in
-  let Φ : PB → (𝕀 →ᵣ PB) = λ z . λ i . (fst _ z , (λ j . fst _ (snd _ z) (i 𝕀∧ j)) , snd _ (snd _ z)) in
+  let Lpt ∷ (z : CC) → Λ z ≡ Λ' (arr z) = fun (w , cw) → refl in
   let β : (𝕀 →ᵣ arrᵣ E) → arrᵣ E = λ W . λ i . W i 𝕀1 in
   let t : arrᵣ A = hom-cell {A} {a} {x} f in
   let e0 : srcᵣ t ≡ a = hom-src {A} {a} {x} f in
   -- the lift data of the restrictions of f, and their cocartesian lifts
   let D : 𝕀 →ᵣ PB = λ i . ((a , u) , (λ j . t (i 𝕀∧ j)) , sym e0) in
   let Θ : 𝕀 →ᵣ CC = λ i . section-map Λ σ (D i) in
-  -- the cocartesian lift of f, and its restrictions
-  let fh : CC = section-map Λ σ ((a , u) , t , sym e0) in
-  let RR : Σ (R : 𝕀 →ᵣ CC) . postᵣ {𝕀} {CC} {arrᵣ E} arr R ≡ conn {E} (arr fh) = conn-cocart {E} {A} sF sA (fst F) fh in
-  let R : 𝕀 →ᵣ CC = fst _ RR in
-  let Req : postᵣ {𝕀} {CC} {arrᵣ E} arr R ≡ conn {E} (arr fh) = snd _ RR in
-  -- both lie over D
-  let P1 : postᵣ {𝕀} {CC} {PB} Λ Θ ≡ D = funextᵣ-eq 𝕀 PB (λ i . (Λ (Θ i) , D i , snd _ σ (D i))) in
-  let P2 : postᵣ {𝕀} {CC} {PB} Λ R ≡ postᵣ {𝕀} {arrᵣ E} {PB} Λ' (postᵣ {𝕀} {CC} {arrᵣ E} arr R) =
-    funextᵣ-eq 𝕀 PB (λ i . (Λ (R i) , Λ' (arr (R i)) , Lpt (R i))) in
-  let P3 : postᵣ {𝕀} {arrᵣ E} {PB} Λ' (postᵣ {𝕀} {CC} {arrᵣ E} arr R) ≡ Φ (Λ' (arr fh)) =
-    cong {𝕀 →ᵣ arrᵣ E} {𝕀 →ᵣ PB} (λ W . postᵣ {𝕀} {arrᵣ E} {PB} Λ' W) Req in
-  let P4 : Φ (Λ' (arr fh)) ≡ D = cong {PB} {𝕀 →ᵣ PB} Φ (trans (sym (Lpt fh)) (snd _ σ ((a , u) , t , sym e0))) in
-  let ΘR : Θ ≡ R =
-    retraction-inj (postᵣ {𝕀} {CC} {PB} Λ) (is-equiv-ret (postᵣ {𝕀} {CC} {PB} Λ) (postᵣ-equiv 𝕀 Λ c))
-      (trans P1 (sym (trans P2 (trans P3 P4)))) in
+  -- the chosen cocartesian lifts, as a section of cell-pb
+  let sl ∷ cocart-lifts {E} {A} sF sA (fst F) =
+    ((λ d . section-map Λ σ d) , (λ d . trans (sym (Lpt (section-map Λ σ d))) (snd _ σ d))) in
   -- the image of the connection is the target of the lifts of the restrictions
   let W : arrᵣ E = postᵣ {𝕀} {Σ (y : A) . hom {A} a y} {E} (yon-tot {A} F sA sF c {a} u) (hom-fam-conn {A} {a} {x} f) in
   let P6 : W ≡ β (postᵣ {𝕀} {CC} {arrᵣ E} arr Θ) =
     funextᵣ-eq 𝕀 E (λ i . (W i , arr (Θ i) 𝕀1 ,
       Σ-subst F (arr (Θ i) 𝕀1)
         (lift-tgt {A} F sA sF {a} {t i} ((λ j . t (i 𝕀∧ j)) , e0 , refl) u (Θ i) (snd _ σ (D i))))) in
-  let P7 : β (postᵣ {𝕀} {CC} {arrᵣ E} arr Θ) ≡ arr fh =
-    trans (cong {𝕀 →ᵣ CC} {arrᵣ E} (λ V . β (postᵣ {𝕀} {CC} {arrᵣ E} arr V)) ΘR)
-      (cong {𝕀 →ᵣ arrᵣ E} {arrᵣ E} β Req) in
-  subst CCf (sym (trans P6 P7)) (snd _ fh)
+  subst CCf (sym P6) (rel-lift-tgt-cocart {E} {A} sF sA (fst F) c sl (a , u) t (sym e0))
 
 yon-conn-hom-cocart ∷ {A ∷ U} (F ∷ A → U) (sA ∷ is-segalᵣ A) (sF ∷ is-segalᵣ (Σ (x : A) . F x)) (c ∷ is-covariant {A} F sA sF)
   {a ∷ A} (u ∷ F a) (g : arrᵣ A) (e0 : srcᵣ g ≡ a) {y : A} (e1 : tgtᵣ g ≡ y) →

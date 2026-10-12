@@ -23,11 +23,7 @@
 -- lemma, since no involution of 𝕀 exchanging ∧ and ∨ is assumed, and the mirror proof puts the
 -- spine in the left factor of ⊗, where currying is not available.
 --
--- The connection of a cocartesian arrow f is moreover a 1-cell of cocartesian arrows: the
--- restrictions λ j . f (i ∧ j) are cocartesian, as an oplax family in i (conn-cocart). This is
--- used for the Yoneda lemma (yon u is a cocartesian map, Yoneda.batt).
---
--- Postulates introduced: fold-lemma, dual-fold-lemma, conn-cocart.
+-- Postulates introduced: fold-lemma, dual-fold-lemma.
 --
 
 open import Stdlib
@@ -98,8 +94,3 @@ postulate fold-lemma ∷ {C ∷ U} (sC : is-segalᵣ C) (t : arrᵣ C) → fold-
 
 -- [conjecture] the dual fold lemma: the coconnection Γ'_t is ev₀-cartesian
 postulate dual-fold-lemma ∷ {C ∷ U} (sC : is-segalᵣ C) (t : arrᵣ C) → dual-fold-stmt {C} sC t
-
--- the connection of a cocartesian arrow is a 1-cell of cocartesian arrows
-postulate conn-cocart ∷ {X A ∷ U} (sX ∷ is-segalᵣ X) (sA ∷ is-segalᵣ A) (p ∷ X → A) (w : cocart-cell {X} {A} sX sA p) →
-  Σ (R : 𝕀 →ᵣ cocart-cell {X} {A} sX sA p) .
-    postᵣ {𝕀} {cocart-cell {X} {A} sX sA p} {arrᵣ X} (cocart-cell-arr {X} {A} sX sA p) R ≡ conn {X} (cocart-cell-arr {X} {A} sX sA p w)
