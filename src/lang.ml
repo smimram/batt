@@ -309,10 +309,10 @@ let unify ~pos k (t:value) (u:value) =
           let a = rename r a in
           let b = rename (lift r) @@ V.capp b (V.var r.dom) in
           Pi (i, c, x, a, b)
-        | Arr (s, a, b) ->
+        | Arr (s, a, ((x,_,_) as b)) ->
           let a = rename r a in
-          let b = rename r b in
-          Arr (s, a, b)
+          let b = rename (lift r) @@ V.capp b (V.var r.dom) in
+          Arr (s, x, a, b)
         | Abs ((x,_,_) as t) ->
           let t = V.capp t (V.var r.dom) in
           Abs (Explicit, x, rename (lift r) t)
@@ -473,7 +473,7 @@ let unify ~pos k (t:value) (u:value) =
     | Arr (s, a, b), Arr (s', a', b') ->
       if s <> s' then raise Unification;
       unify k a a';
-      unify k b b'
+      unify (k+1) (V.capp b (V.var k)) (V.capp b' (V.var k))
     | Flat a, Flat a' -> unify k a a'
     | Flatten t, Flatten t' -> unify k t t'
     | Flat_ind (t, l), Flat_ind (t', l') ->
@@ -590,7 +590,7 @@ let rec check k env ctx (t:term) (a:value) : term =
     let k = k+1 in
     let env = (x,xv)::env in
     let ctx = Context.ext_tens ctx s x a in
-    let t = check k env ctx t b in
+    let t = check k env ctx t (V.capp b xv) in
     Abs (i, x, t)
   | Let (c, x, a, t, u), b ->
     let a, _level = check_type k env (Context.crisp ~crispness:c ctx) a in
@@ -662,7 +662,7 @@ let rec check k env ctx (t:term) (a:value) : term =
       let bctx = Bunch.tens ~side bctx (Bunch.Tens (Bunch.Decl (x, a1), Bunch.Decl (y, a2))) in
       cctx, bctx
     in
-    let t = check k env ctx t b in
+    let t = check k env ctx t (V.capp b (TensPair (x', y'))) in
     Tens_ind (x, y, t)
   | IndType_ind (`Empty, []), Pi (Explicit, _, a, _)
   | IndType_ind (`Empty, []), Arr (_, a, _) ->
@@ -674,7 +674,7 @@ let rec check k env ctx (t:term) (a:value) : term =
     IndType_ind (`Unit, [t])
   | IndType_ind (`Unit, [t]), Arr (_, a, b) ->
     unify k env t a (IndType (`Unit, []));
-    let t = check k env ctx t b in
+    let t = check k env ctx t (V.capp b (IndTerm (`Unit, []))) in
     IndType_ind (`Unit, [t])    
   | IndType_ind (`Bool, [tf;tt]), Pi (Explicit, _, a, b) ->
     unify k env t a (IndType (`Bool, []));
@@ -683,8 +683,8 @@ let rec check k env ctx (t:term) (a:value) : term =
     IndType_ind (`Bool, [tf;tt])
   | IndType_ind (`Bool, [tf;tt]), Arr (_, a, b) ->
     unify k env t a (IndType (`Bool, []));
-    let tf = check k env ctx tf b in
-    let tt = check k env ctx tt b in
+    let tf = check k env ctx tf (V.capp b (IndTerm (`Bool false, []))) in
+    let tt = check k env ctx tt (V.capp b (IndTerm (`Bool true, []))) in
     IndType_ind (`Bool, [tf;tt])
   | IndType_ind (`Nat, [tz;ts]), Pi (Explicit, c, a, b) ->
     unify k env t a (IndType (`Nat, []));
@@ -877,8 +877,16 @@ and infer k env ctx (t:term) : term * value =
     Tens (a, b), Type (max la lb)
   | Arr (s, x, a, b) ->
     let a, la = check_type k env (Context.crisp ctx) a in
-    let b, lb = check_type k env (Context.crisp ctx) b in
-    Arr (s, a, b), Type (max la lb)
+    let xv = V.var k in
+    let k = k+1 in
+    let ctx =
+      let a = V.eval env a in
+      (* The codomain is checked in the crisp context (as is the domain), so that the variable has to be crisp in order to be usable in nested arrows. *)
+      Context.ext_crisp (Context.crisp ctx) x a
+    in
+    let env = (x,xv)::env in
+    let b, lb = check_type k env ctx b in
+    Arr (s, x, a, b), Type (max la lb)
   | Flat a ->
     let a, la = check_type k env (Context.crisp ctx) a in
     Flat a, Type la
@@ -922,7 +930,7 @@ and infer k env ctx (t:term) : term * value =
           in
           let t = check k env ctxt t1 (Arr (s, a, b)) in
           let u = check k env ctxu u a in
-          App (t, Explicit, u), b
+          App (t, Explicit, u), V.capp b (V.eval env u)
         | a -> error ~t:t0 "%s is applied to %s but has type %s, which is not a function type" (string_of_term env t1) (string_of_term env u) (string_of_value k env a)
       )
     )

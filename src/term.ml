@@ -183,6 +183,8 @@ let rec to_string ?(vars=[]) ?(ren=[]) t =
   in
   let to_string t = to_string ~vars ~ren t in
   let colon = crispy_colon in
+  (* The domain of a non-dependent arrow. *)
+  let domain a = match a with Pi _ | Arr _ -> "(" ^ to_string a ^ ")" | _ -> to_string a in
   match t with
   | Type 0 -> "Type"
   | Type n -> Printf.sprintf "Type %d" n
@@ -207,6 +209,7 @@ let rec to_string ?(vars=[]) ?(ren=[]) t =
   | IndTerm (`Nil, []) -> "nil"
   | IndTerm (`Cons, [x; l]) -> Printf.sprintf "(cons %s %s)" (to_string x) (to_string l)
   | IndTerm _ -> assert false
+  | Pi (Explicit, Normal, "_", a, t) -> Printf.sprintf "%s → %s" (domain a) (snd @@ bind "_" t)
   | Pi (i, c, x, a, t) ->
     let x, t = bind x t in
     (
@@ -230,7 +233,8 @@ let rec to_string ?(vars=[]) ?(ren=[]) t =
   | Sigma (x, a, t) -> let x, t = bind x t in Printf.sprintf "(Σ(%s : %s).%s)" x (to_string a) t
   | Pair (t, u) -> Printf.sprintf "(%s, %s)" (to_string t) (to_string u)
   | Pair_ind (x, y, t) -> let x, y, t = bind2 x y t in Printf.sprintf "(λ(%s,%s).%s)" x y t
-  | Arr (s, x, a, b) -> Printf.sprintf "(%s : %s) →%s %s" x (to_string a) (string_of_side s) (to_string b)
+  | Arr (s, "_", a, b) -> Printf.sprintf "%s →%s %s" (domain a) (string_of_side s) (snd @@ bind "_" b)
+  | Arr (s, x, a, b) -> let x, b = bind x b in Printf.sprintf "(%s : %s) →%s %s" x (to_string a) (string_of_side s) b
   | Tens (a, b) -> Printf.sprintf "(%s ⨂ %s)" (to_string a) (to_string b)
   | TensPair (t, u) -> Printf.sprintf "(%s ⊗ %s)" (to_string t) (to_string u)
   | Tens_ind (x, y, t) -> let x, y, t = bind2 x y t in Printf.sprintf "(λ(%s⊗%s).%s)" x y t

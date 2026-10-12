@@ -120,6 +120,8 @@ prod_term:
 
 fun_term:
   | prod_term { $1 }
+  | a=prod_term TO b=fun_term { mk ~pos:$loc @@ Pi (Explicit, Normal, "_", a, b) }
+  | a=prod_term s=arrowlr b=fun_term { mk ~pos:$loc @@ Arr (s, "_", a, b) }
   | a=nonempty_list(binder_group) TO b=fun_term { pis ~pos:$loc a b }
   | a=nonempty_list(binder_group) s=arrowlr b=fun_term { arrs ~pos:$loc s a b }
   | SIGMA LPAR x=IDENT COLON a=term RPAR DOT b=fun_term { mk ~pos:$loc @@ Sigma (x, a, b) }
