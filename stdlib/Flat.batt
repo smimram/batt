@@ -411,30 +411,30 @@ flat-pi≃arrₗ {A} {B} =
 crisp-cong ∷ {X Y ∷ U} (Φ ∷ (x ∷ X) → Y) {x y ∷ X} (p ∷ x ≡ y) → Φ x ≡ Φ y
 crisp-cong {X} {Y} Φ {x} refl = refl
 
--- a crisp T → (K →ᵣ W) is a cartesian map T ⨂ K → W (only for a crisp F: F is used across ⊗)
-tens-uncurry-crisp ∷ {T K W ∷ U} (F ∷ T → K →ᵣ W) → T ⨂ K → W
-tens-uncurry-crisp {T} {K} {W} F (t ⊗ k) = F t k
+-- oplax crisp currying: a crisp T → (K →ᵣ W) is a cartesian map T ⨂ K → W (only for a crisp F: F is used across ⊗)
+tens-uncurry-crispᵣ ∷ {T K W ∷ U} (F ∷ T → K →ᵣ W) → T ⨂ K → W
+tens-uncurry-crispᵣ {T} {K} {W} F (t ⊗ k) = F t k
 
 -- the two round trips
-tens-curry-uncurry-crisp ∷ {T K W ∷ U} (F ∷ T → K →ᵣ W) → tens-curry-right' {T} {K} {W} (tens-uncurry-crisp {T} {K} {W} F) ≡ F
-tens-curry-uncurry-crisp {T} {K} {W} F = refl
+tens-curry-uncurry-crispᵣ ∷ {T K W ∷ U} (F ∷ T → K →ᵣ W) → tens-curry-right' {T} {K} {W} (tens-uncurry-crispᵣ {T} {K} {W} F) ≡ F
+tens-curry-uncurry-crispᵣ {T} {K} {W} F = refl
 
-tens-uncurry-curry-crisp ∷ {T K W ∷ U} (G ∷ T ⨂ K → W) → tens-uncurry-crisp {T} {K} {W} (tens-curry-right' {T} {K} {W} G) ≡ G
-tens-uncurry-curry-crisp {T} {K} {W} G =
-  funext-htpy {T ⨂ K} {λ _ . W} (tens-uncurry-crisp {T} {K} {W} (tens-curry-right' {T} {K} {W} G)) G
-    (λ z . let h : (z : T ⨂ K) → tens-uncurry-crisp {T} {K} {W} (tens-curry-right' {T} {K} {W} G) z ≡ G z = fun (t ⊗ k) → refl in h z)
+tens-uncurry-curry-crispᵣ ∷ {T K W ∷ U} (G ∷ T ⨂ K → W) → tens-uncurry-crispᵣ {T} {K} {W} (tens-curry-right' {T} {K} {W} G) ≡ G
+tens-uncurry-curry-crispᵣ {T} {K} {W} G =
+  funext-htpy {T ⨂ K} {λ _ . W} (tens-uncurry-crispᵣ {T} {K} {W} (tens-curry-right' {T} {K} {W} G)) G
+    (λ z . let h : (z : T ⨂ K) → tens-uncurry-crispᵣ {T} {K} {W} (tens-curry-right' {T} {K} {W} G) z ≡ G z = fun (t ⊗ k) → refl in h z)
 
 -- on global points, currying is an equivalence
-flat-tens-curry ∷ {T K W ∷ U} → ♭(T → K →ᵣ W) → ♭(T ⨂ K → W)
-flat-tens-curry {T} {K} {W} 𝄫F = 𝄫(tens-uncurry-crisp {T} {K} {W} F)
+flat-tens-curryᵣ ∷ {T K W ∷ U} → ♭(T → K →ᵣ W) → ♭(T ⨂ K → W)
+flat-tens-curryᵣ {T} {K} {W} 𝄫F = 𝄫(tens-uncurry-crispᵣ {T} {K} {W} F)
 
-flat-tens-uncurry ∷ {T K W ∷ U} → ♭(T ⨂ K → W) → ♭(T → K →ᵣ W)
-flat-tens-uncurry {T} {K} {W} = flat-map {T ⨂ K → W} {T → K →ᵣ W} (tens-curry-right' {T} {K} {W})
+flat-tens-uncurryᵣ ∷ {T K W ∷ U} → ♭(T ⨂ K → W) → ♭(T → K →ᵣ W)
+flat-tens-uncurryᵣ {T} {K} {W} = flat-map {T ⨂ K → W} {T → K →ᵣ W} (tens-curry-right' {T} {K} {W})
 
-is-equiv-flat-tens-curry ∷ {T K W ∷ U} → is-equiv (flat-tens-curry {T} {K} {W})
-is-equiv-flat-tens-curry {T} {K} {W} =
-  ((flat-tens-uncurry {T} {K} {W} , fun 𝄫G → flat-≡ {T ⨂ K → W} (tens-uncurry-curry-crisp {T} {K} {W} G)) ,
-   (flat-tens-uncurry {T} {K} {W} , fun 𝄫F → refl))
+is-equiv-flat-tens-curryᵣ ∷ {T K W ∷ U} → is-equiv (flat-tens-curryᵣ {T} {K} {W})
+is-equiv-flat-tens-curryᵣ {T} {K} {W} =
+  ((flat-tens-uncurryᵣ {T} {K} {W} , fun 𝄫G → flat-≡ {T ⨂ K → W} (tens-uncurry-curry-crispᵣ {T} {K} {W} G)) ,
+   (flat-tens-uncurryᵣ {T} {K} {W} , fun 𝄫F → refl))
 
 ---
 --- ♭ and equivalences
@@ -504,10 +504,10 @@ flat-cong-equiv {Z} {W} φ eφ z z' =
     (fun 𝄫p → flat-cong-htpy {Z} {W} φ {z} {z'} p)
     (is-equiv-circ E (λ q . A (D q)) eE (is-equiv-circ A D eA eD))
 
-is-equiv-flat-tens-uncurry ∷ {T K W ∷ U} → is-equiv (flat-tens-uncurry {T} {K} {W})
-is-equiv-flat-tens-uncurry {T} {K} {W} =
-  ((flat-tens-curry {T} {K} {W} , fun 𝄫F → refl) ,
-   (flat-tens-curry {T} {K} {W} , fun 𝄫G → flat-≡ {T ⨂ K → W} (tens-uncurry-curry-crisp {T} {K} {W} G)))
+is-equiv-flat-tens-uncurryᵣ ∷ {T K W ∷ U} → is-equiv (flat-tens-uncurryᵣ {T} {K} {W})
+is-equiv-flat-tens-uncurryᵣ {T} {K} {W} =
+  ((flat-tens-curryᵣ {T} {K} {W} , fun 𝄫F → refl) ,
+   (flat-tens-curryᵣ {T} {K} {W} , fun 𝄫G → flat-≡ {T ⨂ K → W} (tens-uncurry-curry-crispᵣ {T} {K} {W} G)))
 
 -- lax crisp currying: a crisp B → (A →ₗ W) is a cartesian map A ⨂ B → W
 tens-uncurry-crispₗ ∷ {A B W ∷ U} (F ∷ B → A →ₗ W) → A ⨂ B → W
@@ -536,3 +536,12 @@ is-equiv-flat-tens-uncurryₗ ∷ {A B W ∷ U} → is-equiv (flat-tens-uncurry�
 is-equiv-flat-tens-uncurryₗ {A} {B} {W} =
   ((flat-tens-curryₗ {A} {B} {W} , fun 𝄫F → refl) ,
    (flat-tens-curryₗ {A} {B} {W} , fun 𝄫G → flat-≡ {A ⨂ B → W} (tens-uncurry-curry-crispₗ {A} {B} {W} G)))
+
+-- on crisp paths, oplax currying is lax currying followed by the crisp swap (and conversely)
+cong-curry-swapₗᵣ ∷ {T X Y ∷ U} {φ₀ φ₁ ∷ T ⨂ X → Y} (p ∷ φ₀ ≡ φ₁) →
+  cong (tens-curry-right' {T} {X} {Y}) p ≡ crisp-cong {X → T →ₗ Y} {T → X →ᵣ Y} (crisp-swapₗᵣ {X} {T} {Y}) (cong (tens-curry-left' {T} {X} {Y}) p)
+cong-curry-swapₗᵣ {T} {X} {Y} {φ₀} refl = refl
+
+cong-curry-swapᵣₗ ∷ {X T Y ∷ U} {φ₀ φ₁ ∷ X ⨂ T → Y} (p ∷ φ₀ ≡ φ₁) →
+  cong (tens-curry-left' {X} {T} {Y}) p ≡ crisp-cong {X → T →ᵣ Y} {T → X →ₗ Y} (crisp-swapᵣₗ {X} {T} {Y}) (cong (tens-curry-right' {X} {T} {Y}) p)
+cong-curry-swapᵣₗ {X} {T} {Y} {φ₀} refl = refl

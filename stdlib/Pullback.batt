@@ -11,6 +11,8 @@ open import Function
 open import Equality
 open import Equivalence
 open import Sigma
+open import Funext
+open import Path
 
 pullback ∷ {A B X : U} (f : A → X) (g : B → X) → U
 pullback {A} {B} f g = Σ (a : A) . Σ (b : B) . f a ≡ g b
@@ -123,94 +125,93 @@ is-equiv-pb-paste {H} {L} {K} {C} a b c d R =
 ---
 --- The universal property of pullbacks
 ---
---- Maps into the pullback of g and h are pullbacks of maps: for every Z,
----   pb-map : (Z → A ×_C B) → (Z → A) ×_{Z → C} (Z → B)
+--- Maps into the pullback of g and h are pullbacks of maps (postcomposition commutes with
+--- pullbacks): for every Z,
+---   pullback-post : (Z → A ×_C B) → (Z → A) ×_{Z → C} (Z → B)
 --- is an equivalence, with inverse (α , β , S) ↦ λ z . (α z , β z , happly S z).
 ---
 
-open import Funext
 
-pb-map ∷ {Z A B C : U} (g : A → C) (h : B → C) → (Z → pullback {A} {B} {C} g h) →
+pullback-post ∷ {Z A B C : U} (g : A → C) (h : B → C) → (Z → pullback {A} {B} {C} g h) →
   pullback {Z → A} {Z → B} {Z → C} (post {Z} {A} {C} g) (post {Z} {B} {C} h)
-pb-map {Z} {A} {B} {C} g h φ =
+pullback-post {Z} {A} {B} {C} g h φ =
   let a : Z → A = λ z . fst (λ a' . Σ (b : B) . g a' ≡ h b) (φ z) in
   let b : Z → B = λ z . fst (λ b' . g (a z) ≡ h b') (snd (λ a' . Σ (b' : B) . g a' ≡ h b') (φ z)) in
   (a , b , funext-htpy {Z} {λ _ . C} (λ z . g (a z)) (λ z . h (b z))
              (λ z . snd (λ b' . g (a z) ≡ h b') (snd (λ a' . Σ (b' : B) . g a' ≡ h b') (φ z))))
 
-pb-unmap ∷ {Z A B C : U} (g : A → C) (h : B → C) →
+pullback-post-inv ∷ {Z A B C : U} (g : A → C) (h : B → C) →
   pullback {Z → A} {Z → B} {Z → C} (post {Z} {A} {C} g) (post {Z} {B} {C} h) → (Z → pullback {A} {B} {C} g h)
-pb-unmap {Z} {A} {B} {C} g h (α , r) z =
+pullback-post-inv {Z} {A} {B} {C} g h (α , r) z =
   let k : (r : Σ (β : Z → B) . post {Z} {A} {C} g α ≡ post {Z} {B} {C} h β) → pullback {A} {B} {C} g h = fun (β , S) →
     (α z , β z , happly {Z} {λ _ . C} {λ z' . g (α z')} {λ z' . h (β z')} S z) in
   k r
 
 -- Σ-η for the pullback, pointwise
-pb-eta ∷ {A B C : U} (g : A → C) (h : B → C) (w : pullback {A} {B} {C} g h) →
+pullback-eta ∷ {A B C : U} (g : A → C) (h : B → C) (w : pullback {A} {B} {C} g h) →
   (fst (λ a . Σ (b : B) . g a ≡ h b) w ,
    fst (λ b . g (fst (λ a . Σ (b' : B) . g a ≡ h b') w) ≡ h b) (snd (λ a . Σ (b : B) . g a ≡ h b) w) ,
    snd (λ b . g (fst (λ a . Σ (b' : B) . g a ≡ h b') w) ≡ h b) (snd (λ a . Σ (b : B) . g a ≡ h b) w))
     ≡{pullback {A} {B} {C} g h} w
-pb-eta {A} {B} {C} g h (a , r) =
+pullback-eta {A} {B} {C} g h (a , r) =
   let k : (r : Σ (b : B) . g a ≡ h b) → (a , fst (λ b . g a ≡ h b) r , snd (λ b . g a ≡ h b) r) ≡{pullback {A} {B} {C} g h} (a , r) =
     fun (b , e) → refl in
   k r
 
-pb-unmap-map ∷ {Z A B C : U} (g : A → C) (h : B → C) (φ : Z → pullback {A} {B} {C} g h) →
-  pb-unmap {Z} {A} {B} {C} g h (pb-map {Z} {A} {B} {C} g h φ) ≡ φ
-pb-unmap-map {Z} {A} {B} {C} g h φ =
+pullback-post-retr ∷ {Z A B C : U} (g : A → C) (h : B → C) (φ : Z → pullback {A} {B} {C} g h) →
+  pullback-post-inv {Z} {A} {B} {C} g h (pullback-post {Z} {A} {B} {C} g h φ) ≡ φ
+pullback-post-retr {Z} {A} {B} {C} g h φ =
   let a : Z → A = λ z . fst (λ a' . Σ (b : B) . g a' ≡ h b) (φ z) in
   let b : Z → B = λ z . fst (λ b' . g (a z) ≡ h b') (snd (λ a' . Σ (b' : B) . g a' ≡ h b') (φ z)) in
   let e : (z : Z) → g (a z) ≡ h (b z) = λ z . snd (λ b' . g (a z) ≡ h b') (snd (λ a' . Σ (b' : B) . g a' ≡ h b') (φ z)) in
   let he : happly {Z} {λ _ . C} {λ z . g (a z)} {λ z . h (b z)} (funext-htpy {Z} {λ _ . C} (λ z . g (a z)) (λ z . h (b z)) e) ≡ e =
     happly-funext-htpy {Z} {λ _ . C} (λ z . g (a z)) (λ z . h (b z)) e in
-  funext-htpy {Z} {λ _ . pullback {A} {B} {C} g h} (pb-unmap {Z} {A} {B} {C} g h (pb-map {Z} {A} {B} {C} g h φ)) φ
+  funext-htpy {Z} {λ _ . pullback {A} {B} {C} g h} (pullback-post-inv {Z} {A} {B} {C} g h (pullback-post {Z} {A} {B} {C} g h φ)) φ
     (λ z . trans (cong {g (a z) ≡ h (b z)} {pullback {A} {B} {C} g h} (λ q . (a z , b z , q))
                    (happly {Z} {λ z' . g (a z') ≡ h (b z')} {happly {Z} {λ _ . C} {λ z' . g (a z')} {λ z' . h (b z')} (funext-htpy {Z} {λ _ . C} (λ z' . g (a z')) (λ z' . h (b z')) e)} {e} he z))
-             (pb-eta {A} {B} {C} g h (φ z)))
+             (pullback-eta {A} {B} {C} g h (φ z)))
 
-pb-map-unmap ∷ {Z A B C : U} (g : A → C) (h : B → C) (d : pullback {Z → A} {Z → B} {Z → C} (post {Z} {A} {C} g) (post {Z} {B} {C} h)) →
-  pb-map {Z} {A} {B} {C} g h (pb-unmap {Z} {A} {B} {C} g h d) ≡ d
-pb-map-unmap {Z} {A} {B} {C} g h (α , r) =
+pullback-post-sec ∷ {Z A B C : U} (g : A → C) (h : B → C) (d : pullback {Z → A} {Z → B} {Z → C} (post {Z} {A} {C} g) (post {Z} {B} {C} h)) →
+  pullback-post {Z} {A} {B} {C} g h (pullback-post-inv {Z} {A} {B} {C} g h d) ≡ d
+pullback-post-sec {Z} {A} {B} {C} g h (α , r) =
   let k : (r : Σ (β : Z → B) . post {Z} {A} {C} g α ≡ post {Z} {B} {C} h β) →
-      pb-map {Z} {A} {B} {C} g h (pb-unmap {Z} {A} {B} {C} g h (α , r)) ≡ (α , r) = fun (β , S) →
+      pullback-post {Z} {A} {B} {C} g h (pullback-post-inv {Z} {A} {B} {C} g h (α , r)) ≡ (α , r) = fun (β , S) →
     cong {post {Z} {A} {C} g α ≡ post {Z} {B} {C} h β} {pullback {Z → A} {Z → B} {Z → C} (post {Z} {A} {C} g) (post {Z} {B} {C} h)}
       (λ q . (α , β , q)) (funext-htpy-happly {Z} {λ _ . C} {λ z . g (α z)} {λ z . h (β z)} S) in
   k r
 
-is-equiv-pb-map ∷ {Z A B C : U} (g : A → C) (h : B → C) → is-equiv (pb-map {Z} {A} {B} {C} g h)
-is-equiv-pb-map {Z} {A} {B} {C} g h =
-  ((pb-unmap {Z} {A} {B} {C} g h , pb-map-unmap {Z} {A} {B} {C} g h) , (pb-unmap {Z} {A} {B} {C} g h , pb-unmap-map {Z} {A} {B} {C} g h))
+is-equiv-pullback-post ∷ {Z A B C : U} (g : A → C) (h : B → C) → is-equiv (pullback-post {Z} {A} {B} {C} g h)
+is-equiv-pullback-post {Z} {A} {B} {C} g h =
+  ((pullback-post-inv {Z} {A} {B} {C} g h , pullback-post-sec {Z} {A} {B} {C} g h) , (pullback-post-inv {Z} {A} {B} {C} g h , pullback-post-retr {Z} {A} {B} {C} g h))
 
 ---
 --- The universal property of pullbacks, homotopy form
 ---
 --- The same, with the commutation given by a homotopy H : Z → path C and two paths fixing its
 --- endpoints (the form used for oplax maps, where the homotopy has to be a map into path C):
----   pb-map-H : (Z → A ×_C B) → pullback-H g h,   φ ↦ ((a , b , λ z . (g (a z) , h (b z) , e z)) , refl , refl)
---- is an equivalence.
+---   pullback→cone : (Z → A ×_C B) → pullback-cone g h,   φ ↦ ((a , b , λ z . (g (a z) , h (b z) , e z)) , refl , refl)
+--- is an equivalence; its inverse cone→pullback is the gap map.
 ---
 
-open import Path
 
-pb-data-H ∷ (Z A B C : U) → U
-pb-data-H Z A B C = (Z → A) × (Z → B) × (Z → path C)
+pullback-cone-data ∷ (Z A B C : U) → U
+pullback-cone-data Z A B C = (Z → A) × (Z → B) × (Z → path C)
 
-pullback-H ∷ {Z A B C : U} (g : A → C) (h : B → C) → U
-pullback-H {Z} {A} {B} {C} g h =
-  Σ (x : pb-data-H Z A B C) .
+pullback-cone ∷ {Z A B C : U} (g : A → C) (h : B → C) → U
+pullback-cone {Z} {A} {B} {C} g h =
+  Σ (x : pullback-cone-data Z A B C) .
     (post {Z} {path C} {C} (path-src {C}) (Product.snd (Product.snd x)) ≡ post {Z} {A} {C} g (Product.fst x)) ×
     (post {Z} {path C} {C} (path-tgt {C}) (Product.snd (Product.snd x)) ≡ post {Z} {B} {C} h (Product.fst (Product.snd x)))
 
-pb-map-H ∷ {Z A B C : U} (g : A → C) (h : B → C) → (Z → pullback {A} {B} {C} g h) → pullback-H {Z} {A} {B} {C} g h
-pb-map-H {Z} {A} {B} {C} g h φ =
+pullback→cone ∷ {Z A B C : U} (g : A → C) (h : B → C) → (Z → pullback {A} {B} {C} g h) → pullback-cone {Z} {A} {B} {C} g h
+pullback→cone {Z} {A} {B} {C} g h φ =
   let a : Z → A = λ z . fst (λ a' . Σ (b : B) . g a' ≡ h b) (φ z) in
   let b : Z → B = λ z . fst (λ b' . g (a z) ≡ h b') (snd (λ a' . Σ (b' : B) . g a' ≡ h b') (φ z)) in
   let e : (z : Z) → g (a z) ≡ h (b z) = λ z . snd (λ b' . g (a z) ≡ h b') (snd (λ a' . Σ (b' : B) . g a' ≡ h b') (φ z)) in
   ((a , b , λ z . (g (a z) , h (b z) , e z)) , refl , refl)
 
-pb-unmap-H ∷ {Z A B C : U} (g : A → C) (h : B → C) → pullback-H {Z} {A} {B} {C} g h → (Z → pullback {A} {B} {C} g h)
-pb-unmap-H {Z} {A} {B} {C} g h (x , ss) z =
+cone→pullback ∷ {Z A B C : U} (g : A → C) (h : B → C) → pullback-cone {Z} {A} {B} {C} g h → (Z → pullback {A} {B} {C} g h)
+cone→pullback {Z} {A} {B} {C} g h (x , ss) z =
   let α : Z → A = Product.fst x in
   let β : Z → B = Product.fst (Product.snd x) in
   let H : Z → path C = Product.snd (Product.snd x) in
@@ -220,39 +221,27 @@ pb-unmap-H {Z} {A} {B} {C} g h (x , ss) z =
    trans (sym (happly {Z} {λ _ . C} {post {Z} {path C} {C} (path-src {C}) H} {post {Z} {A} {C} g α} s z))
      (trans (path-eq {C} (H z)) (happly {Z} {λ _ . C} {post {Z} {path C} {C} (path-tgt {C}) H} {post {Z} {B} {C} h β} s' z)))
 
-pb-unmap-map-H ∷ {Z A B C : U} (g : A → C) (h : B → C) (φ : Z → pullback {A} {B} {C} g h) →
-  pb-unmap-H {Z} {A} {B} {C} g h (pb-map-H {Z} {A} {B} {C} g h φ) ≡ φ
-pb-unmap-map-H {Z} {A} {B} {C} g h φ =
-  funext-htpy {Z} {λ _ . pullback {A} {B} {C} g h} (pb-unmap-H {Z} {A} {B} {C} g h (pb-map-H {Z} {A} {B} {C} g h φ)) φ
+pullback→cone-retr ∷ {Z A B C : U} (g : A → C) (h : B → C) (φ : Z → pullback {A} {B} {C} g h) →
+  cone→pullback {Z} {A} {B} {C} g h (pullback→cone {Z} {A} {B} {C} g h φ) ≡ φ
+pullback→cone-retr {Z} {A} {B} {C} g h φ =
+  funext-htpy {Z} {λ _ . pullback {A} {B} {C} g h} (cone→pullback {Z} {A} {B} {C} g h (pullback→cone {Z} {A} {B} {C} g h φ)) φ
     (λ z .
       let a : A = fst (λ a' . Σ (b : B) . g a' ≡ h b) (φ z) in
       let b : B = fst (λ b' . g a ≡ h b') (snd (λ a' . Σ (b' : B) . g a' ≡ h b') (φ z)) in
       trans (cong {g a ≡ h b} {pullback {A} {B} {C} g h} (λ q . (a , b , q))
                (trans-refl-l (snd (λ b' . g a ≡ h b') (snd (λ a' . Σ (b' : B) . g a' ≡ h b') (φ z)))))
-        (pb-eta {A} {B} {C} g h (φ z)))
-
--- transport in a family of pairs of paths with a fixed endpoint
-subst-path-pair ∷ {X Y Y' : U} (l : X → Y) (l' : X → Y') {c : Y} {c' : Y'} {x x' : X} (P : x ≡ x') (q : l x ≡ c) (q' : l' x ≡ c') →
-  subst (λ w . (l w ≡ c) × (l' w ≡ c')) P (q , q') ≡ (trans (sym (cong l P)) q , trans (sym (cong l' P)) q')
-subst-path-pair {X} {Y} {Y'} l l' {c} {c'} {x} refl q q' = cong2 {l x ≡ c} {l' x ≡ c'} {(l x ≡ c) × (l' x ≡ c')} pair (sym (trans-refl-l q)) (sym (trans-refl-l q'))
-
--- the source and target of the η-path of a free path are trivial
-cong-src-path-eta ∷ {C : U} (w : path C) → cong (path-src {C}) (path-eta {C} w) ≡ refl
-cong-src-path-eta {C} (x , q) = let k : (q : Σ (y : C) . x ≡ y) → cong (path-src {C}) (path-eta {C} (x , q)) ≡ refl = fun (y , e) → refl in k q
-
-cong-tgt-path-eta ∷ {C : U} (w : path C) → cong (path-tgt {C}) (path-eta {C} w) ≡ refl
-cong-tgt-path-eta {C} (x , q) = let k : (q : Σ (y : C) . x ≡ y) → cong (path-tgt {C}) (path-eta {C} (x , q)) ≡ refl = fun (y , e) → refl in k q
+        (pullback-eta {A} {B} {C} g h (φ z)))
 
 -- the coherence of the second round trip: re-gluing a homotopy along its endpoint paths gives it
 -- back (by J on the two endpoint paths, then the η of free paths)
-pb-H-reglue ∷ {Z C : U} (H : Z → path C) {F : Z → C} (s : post {Z} {path C} {C} (path-src {C}) H ≡ F)
+pullback-cone-reglue ∷ {Z C : U} (H : Z → path C) {F : Z → C} (s : post {Z} {path C} {C} (path-src {C}) H ≡ F)
   {F' : Z → C} (s' : post {Z} {path C} {C} (path-tgt {C}) H ≡ F') →
   ((λ z . (F z , F' z , trans (sym (happly {Z} {λ _ . C} {post {Z} {path C} {C} (path-src {C}) H} {F} s z))
                           (trans (path-eq {C} (H z)) (happly {Z} {λ _ . C} {post {Z} {path C} {C} (path-tgt {C}) H} {F'} s' z)))) ,
    refl , refl)
     ≡{Σ (H' : Z → path C) . (post {Z} {path C} {C} (path-src {C}) H' ≡ F) × (post {Z} {path C} {C} (path-tgt {C}) H' ≡ F')}
   (H , s , s')
-pb-H-reglue {Z} {C} H refl refl =
+pullback-cone-reglue {Z} {C} H refl refl =
   let src : Z → C = post {Z} {path C} {C} (path-src {C}) H in
   let tgt : Z → C = post {Z} {path C} {C} (path-tgt {C}) H in
   let H'' : Z → path C = λ z . (src z , tgt z , trans refl (path-eq {C} (H z))) in
@@ -289,30 +278,138 @@ pb-H-reglue {Z} {C} H refl refl =
     (trans (subst-path-pair {Z → path C} {Z → C} {Z → C} (post {Z} {path C} {C} (path-src {C})) (post {Z} {path C} {C} (path-tgt {C})) {src} {tgt} P refl refl)
       (cong2 {src ≡ src} {tgt ≡ tgt} {(src ≡ src) × (tgt ≡ tgt)} pair (cong sym Ps) (cong sym Pt)))
 
-pb-map-unmap-H ∷ {Z A B C : U} (g : A → C) (h : B → C) (d : pullback-H {Z} {A} {B} {C} g h) →
-  pb-map-H {Z} {A} {B} {C} g h (pb-unmap-H {Z} {A} {B} {C} g h d) ≡ d
-pb-map-unmap-H {Z} {A} {B} {C} g h (x , ss) =
+pullback→cone-sec ∷ {Z A B C : U} (g : A → C) (h : B → C) (d : pullback-cone {Z} {A} {B} {C} g h) →
+  pullback→cone {Z} {A} {B} {C} g h (cone→pullback {Z} {A} {B} {C} g h d) ≡ d
+pullback→cone-sec {Z} {A} {B} {C} g h (x , ss) =
   let k : (α : Z → A) (β : Z → B) (H : Z → path C)
           (s : post {Z} {path C} {C} (path-src {C}) H ≡ post {Z} {A} {C} g α) (s' : post {Z} {path C} {C} (path-tgt {C}) H ≡ post {Z} {B} {C} h β) →
-          pb-map-H {Z} {A} {B} {C} g h (pb-unmap-H {Z} {A} {B} {C} g h ((α , β , H) , s , s')) ≡ ((α , β , H) , s , s') =
+          pullback→cone {Z} {A} {B} {C} g h (cone→pullback {Z} {A} {B} {C} g h ((α , β , H) , s , s')) ≡ ((α , β , H) , s , s') =
     λ α β H s s' .
       cong {Σ (H' : Z → path C) . (post {Z} {path C} {C} (path-src {C}) H' ≡ post {Z} {A} {C} g α) × (post {Z} {path C} {C} (path-tgt {C}) H' ≡ post {Z} {B} {C} h β)}
-           {pullback-H {Z} {A} {B} {C} g h}
+           {pullback-cone {Z} {A} {B} {C} g h}
         (λ w . ((α , β , fst (λ H' . (post {Z} {path C} {C} (path-src {C}) H' ≡ post {Z} {A} {C} g α) × (post {Z} {path C} {C} (path-tgt {C}) H' ≡ post {Z} {B} {C} h β)) w) ,
                 snd (λ H' . (post {Z} {path C} {C} (path-src {C}) H' ≡ post {Z} {A} {C} g α) × (post {Z} {path C} {C} (path-tgt {C}) H' ≡ post {Z} {B} {C} h β)) w))
-        (pb-H-reglue {Z} {C} H {post {Z} {A} {C} g α} s {post {Z} {B} {C} h β} s') in
-  let k2 : (x : pb-data-H Z A B C) (ss : (post {Z} {path C} {C} (path-src {C}) (Product.snd (Product.snd x)) ≡ post {Z} {A} {C} g (Product.fst x)) ×
+        (pullback-cone-reglue {Z} {C} H {post {Z} {A} {C} g α} s {post {Z} {B} {C} h β} s') in
+  let k2 : (x : pullback-cone-data Z A B C) (ss : (post {Z} {path C} {C} (path-src {C}) (Product.snd (Product.snd x)) ≡ post {Z} {A} {C} g (Product.fst x)) ×
                                        (post {Z} {path C} {C} (path-tgt {C}) (Product.snd (Product.snd x)) ≡ post {Z} {B} {C} h (Product.fst (Product.snd x)))) →
-           pb-map-H {Z} {A} {B} {C} g h (pb-unmap-H {Z} {A} {B} {C} g h (x , ss)) ≡ (x , ss) =
+           pullback→cone {Z} {A} {B} {C} g h (cone→pullback {Z} {A} {B} {C} g h (x , ss)) ≡ (x , ss) =
     fun (α , r) →
       let k3 : (r : (Z → B) × (Z → path C))
                (ss : (post {Z} {path C} {C} (path-src {C}) (Product.snd r) ≡ post {Z} {A} {C} g α) ×
                      (post {Z} {path C} {C} (path-tgt {C}) (Product.snd r) ≡ post {Z} {B} {C} h (Product.fst r))) →
-               pb-map-H {Z} {A} {B} {C} g h (pb-unmap-H {Z} {A} {B} {C} g h ((α , r) , ss)) ≡ ((α , r) , ss) =
+               pullback→cone {Z} {A} {B} {C} g h (cone→pullback {Z} {A} {B} {C} g h ((α , r) , ss)) ≡ ((α , r) , ss) =
         fun (β , H) (s , s') → k α β H s s' in
       k3 r in
   k2 x ss
 
-is-equiv-pb-map-H ∷ {Z A B C : U} (g : A → C) (h : B → C) → is-equiv (pb-map-H {Z} {A} {B} {C} g h)
-is-equiv-pb-map-H {Z} {A} {B} {C} g h =
-  ((pb-unmap-H {Z} {A} {B} {C} g h , pb-map-unmap-H {Z} {A} {B} {C} g h) , (pb-unmap-H {Z} {A} {B} {C} g h , pb-unmap-map-H {Z} {A} {B} {C} g h))
+is-equiv-pullback→cone ∷ {Z A B C : U} (g : A → C) (h : B → C) → is-equiv (pullback→cone {Z} {A} {B} {C} g h)
+is-equiv-pullback→cone {Z} {A} {B} {C} g h =
+  ((cone→pullback {Z} {A} {B} {C} g h , pullback→cone-sec {Z} {A} {B} {C} g h) , (cone→pullback {Z} {A} {B} {C} g h , pullback→cone-retr {Z} {A} {B} {C} g h))
+
+---
+--- Oplax and lax cones
+---
+--- An oplax (resp. lax) cone over g : A → C, h : B → C with vertex a crisp K is a pair of oplax
+--- (resp. lax) maps K → A, K → B with a homotopy K →ᵣ path C between their images, whose endpoints
+--- are fixed by two paths. Maps K →ᵣ pullback g h give such cones (pullback→coneᵣ), with refl
+--- paths; that this is an equivalence is the oplax universal property of pullbacks
+--- (graytt/Pullback-up.batt).
+---
+
+-- the data of an oplax cone with vertex K: two oplax maps and an oplax homotopy
+pullback-coneᵣ-data ∷ (K A B C ∷ U) → U
+pullback-coneᵣ-data K A B C = (K →ᵣ A) × (K →ᵣ B) × (K →ᵣ path C)
+
+-- the endpoints of the homotopy are the images of the two maps
+pullback-coneᵣ-paths ∷ (K ∷ U) {A B C ∷ U} (g ∷ A → C) (h ∷ B → C) → pullback-coneᵣ-data K A B C → U
+pullback-coneᵣ-paths K {A} {B} {C} g h x =
+  (postᵣ {K} {path C} {C} (path-src {C}) (Product.snd (Product.snd x)) ≡ postᵣ {K} {A} {C} g (Product.fst x)) ×
+  (postᵣ {K} {path C} {C} (path-tgt {C}) (Product.snd (Product.snd x)) ≡ postᵣ {K} {B} {C} h (Product.fst (Product.snd x)))
+
+pullback-coneᵣ ∷ (K ∷ U) {A B C ∷ U} (g ∷ A → C) (h ∷ B → C) → U
+pullback-coneᵣ K {A} {B} {C} g h = Σ (x : pullback-coneᵣ-data K A B C) . pullback-coneᵣ-paths K {A} {B} {C} g h x
+
+-- an oplax map into the pullback gives an oplax cone (with refl endpoint paths)
+pullback→coneᵣ ∷ (K ∷ U) {A B C ∷ U} (g ∷ A → C) (h ∷ B → C) → (K →ᵣ pullback {A} {B} {C} g h) → pullback-coneᵣ K {A} {B} {C} g h
+pullback→coneᵣ K {A} {B} {C} g h φ =
+  (((λ k . fst (λ a . Σ (b : B) . g a ≡ h b) (φ k)) ,
+   (λ k . fst (λ b . g (fst (λ a . Σ (b' : B) . g a ≡ h b') (φ k)) ≡ h b) (snd (λ a . Σ (b : B) . g a ≡ h b) (φ k))) ,
+   (λ k . (g (fst (λ a . Σ (b : B) . g a ≡ h b) (φ k)) ,
+           h (fst (λ b . g (fst (λ a . Σ (b' : B) . g a ≡ h b') (φ k)) ≡ h b) (snd (λ a . Σ (b : B) . g a ≡ h b) (φ k))) ,
+           snd (λ b . g (fst (λ a . Σ (b' : B) . g a ≡ h b') (φ k)) ≡ h b) (snd (λ a . Σ (b : B) . g a ≡ h b) (φ k))))) ,
+  refl , refl)
+
+-- components of an oplax cone
+pullback-coneᵣ-fst ∷ (K ∷ U) {A B C ∷ U} (g ∷ A → C) (h ∷ B → C) → pullback-coneᵣ K {A} {B} {C} g h → K →ᵣ A
+pullback-coneᵣ-fst K {A} {B} {C} g h w = Product.fst (fst (pullback-coneᵣ-paths K {A} {B} {C} g h) w)
+
+pullback-coneᵣ-snd ∷ (K ∷ U) {A B C ∷ U} (g ∷ A → C) (h ∷ B → C) → pullback-coneᵣ K {A} {B} {C} g h → K →ᵣ B
+pullback-coneᵣ-snd K {A} {B} {C} g h w = Product.fst (Product.snd (fst (pullback-coneᵣ-paths K {A} {B} {C} g h) w))
+
+pullback-coneᵣ-htpy ∷ (K ∷ U) {A B C ∷ U} (g ∷ A → C) (h ∷ B → C) → pullback-coneᵣ K {A} {B} {C} g h → K →ᵣ path C
+pullback-coneᵣ-htpy K {A} {B} {C} g h w = Product.snd (Product.snd (fst (pullback-coneᵣ-paths K {A} {B} {C} g h) w))
+
+-- η for oplax cones
+pullback-coneᵣ-eta ∷ (K ∷ U) {A B C ∷ U} (g ∷ A → C) (h ∷ B → C) (w : pullback-coneᵣ K {A} {B} {C} g h) →
+  ((pullback-coneᵣ-fst K {A} {B} {C} g h w , pullback-coneᵣ-snd K {A} {B} {C} g h w , pullback-coneᵣ-htpy K {A} {B} {C} g h w) ,
+   Product.fst (snd (pullback-coneᵣ-paths K {A} {B} {C} g h) w) , Product.snd (snd (pullback-coneᵣ-paths K {A} {B} {C} g h) w))
+    ≡{pullback-coneᵣ K {A} {B} {C} g h} w
+pullback-coneᵣ-eta K {A} {B} {C} g h (x , ps) =
+  let k : (u : K →ᵣ A) (r : (K →ᵣ B) × (K →ᵣ path C)) (ps : pullback-coneᵣ-paths K {A} {B} {C} g h (u , r)) →
+      ((u , Product.fst r , Product.snd r) , Product.fst ps , Product.snd ps) ≡{pullback-coneᵣ K {A} {B} {C} g h} ((u , r) , ps) =
+    λ u r ps . let k2 : (r : (K →ᵣ B) × (K →ᵣ path C)) (ps : pullback-coneᵣ-paths K {A} {B} {C} g h (u , r)) →
+                   ((u , Product.fst r , Product.snd r) , Product.fst ps , Product.snd ps) ≡{pullback-coneᵣ K {A} {B} {C} g h} ((u , r) , ps) =
+                 fun (v , H) (p , p') → refl in k2 r ps in
+  let k1 : (x : pullback-coneᵣ-data K A B C) (ps : pullback-coneᵣ-paths K {A} {B} {C} g h x) →
+      ((Product.fst x , Product.fst (Product.snd x) , Product.snd (Product.snd x)) , Product.fst ps , Product.snd ps) ≡{pullback-coneᵣ K {A} {B} {C} g h} (x , ps) =
+    fun (u , r) ps → k u r ps in
+  k1 x ps
+
+-- the data of a lax cone with vertex K: two lax maps and a lax homotopy
+pullback-coneₗ-data ∷ (K A B C ∷ U) → U
+pullback-coneₗ-data K A B C = (K →ₗ A) × (K →ₗ B) × (K →ₗ path C)
+
+-- the endpoints of the homotopy are the images of the two maps
+pullback-coneₗ-paths ∷ (K ∷ U) {A B C ∷ U} (g ∷ A → C) (h ∷ B → C) → pullback-coneₗ-data K A B C → U
+pullback-coneₗ-paths K {A} {B} {C} g h x =
+  (postₗ {K} {path C} {C} (path-src {C}) (Product.snd (Product.snd x)) ≡ postₗ {K} {A} {C} g (Product.fst x)) ×
+  (postₗ {K} {path C} {C} (path-tgt {C}) (Product.snd (Product.snd x)) ≡ postₗ {K} {B} {C} h (Product.fst (Product.snd x)))
+
+pullback-coneₗ ∷ (K ∷ U) {A B C ∷ U} (g ∷ A → C) (h ∷ B → C) → U
+pullback-coneₗ K {A} {B} {C} g h = Σ (x : pullback-coneₗ-data K A B C) . pullback-coneₗ-paths K {A} {B} {C} g h x
+
+-- a lax map into the pullback gives a lax cone (with refl endpoint paths)
+pullback→coneₗ ∷ (K ∷ U) {A B C ∷ U} (g ∷ A → C) (h ∷ B → C) → (K →ₗ pullback {A} {B} {C} g h) → pullback-coneₗ K {A} {B} {C} g h
+pullback→coneₗ K {A} {B} {C} g h φ =
+  (((λ k . fst (λ a . Σ (b : B) . g a ≡ h b) (φ k)) ,
+   (λ k . fst (λ b . g (fst (λ a . Σ (b' : B) . g a ≡ h b') (φ k)) ≡ h b) (snd (λ a . Σ (b : B) . g a ≡ h b) (φ k))) ,
+   (λ k . (g (fst (λ a . Σ (b : B) . g a ≡ h b) (φ k)) ,
+           h (fst (λ b . g (fst (λ a . Σ (b' : B) . g a ≡ h b') (φ k)) ≡ h b) (snd (λ a . Σ (b : B) . g a ≡ h b) (φ k))) ,
+           snd (λ b . g (fst (λ a . Σ (b' : B) . g a ≡ h b') (φ k)) ≡ h b) (snd (λ a . Σ (b : B) . g a ≡ h b) (φ k))))) ,
+  refl , refl)
+
+-- components of a lax cone
+pullback-coneₗ-fst ∷ (K ∷ U) {A B C ∷ U} (g ∷ A → C) (h ∷ B → C) → pullback-coneₗ K {A} {B} {C} g h → K →ₗ A
+pullback-coneₗ-fst K {A} {B} {C} g h w = Product.fst (fst (pullback-coneₗ-paths K {A} {B} {C} g h) w)
+
+pullback-coneₗ-snd ∷ (K ∷ U) {A B C ∷ U} (g ∷ A → C) (h ∷ B → C) → pullback-coneₗ K {A} {B} {C} g h → K →ₗ B
+pullback-coneₗ-snd K {A} {B} {C} g h w = Product.fst (Product.snd (fst (pullback-coneₗ-paths K {A} {B} {C} g h) w))
+
+pullback-coneₗ-htpy ∷ (K ∷ U) {A B C ∷ U} (g ∷ A → C) (h ∷ B → C) → pullback-coneₗ K {A} {B} {C} g h → K →ₗ path C
+pullback-coneₗ-htpy K {A} {B} {C} g h w = Product.snd (Product.snd (fst (pullback-coneₗ-paths K {A} {B} {C} g h) w))
+
+-- η for lax cones
+pullback-coneₗ-eta ∷ (K ∷ U) {A B C ∷ U} (g ∷ A → C) (h ∷ B → C) (w : pullback-coneₗ K {A} {B} {C} g h) →
+  ((pullback-coneₗ-fst K {A} {B} {C} g h w , pullback-coneₗ-snd K {A} {B} {C} g h w , pullback-coneₗ-htpy K {A} {B} {C} g h w) ,
+   Product.fst (snd (pullback-coneₗ-paths K {A} {B} {C} g h) w) , Product.snd (snd (pullback-coneₗ-paths K {A} {B} {C} g h) w))
+    ≡{pullback-coneₗ K {A} {B} {C} g h} w
+pullback-coneₗ-eta K {A} {B} {C} g h (x , ps) =
+  let k : (u : K →ₗ A) (r : (K →ₗ B) × (K →ₗ path C)) (ps : pullback-coneₗ-paths K {A} {B} {C} g h (u , r)) →
+      ((u , Product.fst r , Product.snd r) , Product.fst ps , Product.snd ps) ≡{pullback-coneₗ K {A} {B} {C} g h} ((u , r) , ps) =
+    λ u r ps . let k2 : (r : (K →ₗ B) × (K →ₗ path C)) (ps : pullback-coneₗ-paths K {A} {B} {C} g h (u , r)) →
+                   ((u , Product.fst r , Product.snd r) , Product.fst ps , Product.snd ps) ≡{pullback-coneₗ K {A} {B} {C} g h} ((u , r) , ps) =
+                 fun (v , H) (p , p') → refl in k2 r ps in
+  let k1 : (x : pullback-coneₗ-data K A B C) (ps : pullback-coneₗ-paths K {A} {B} {C} g h x) →
+      ((Product.fst x , Product.fst (Product.snd x) , Product.snd (Product.snd x)) , Product.fst ps , Product.snd ps) ≡{pullback-coneₗ K {A} {B} {C} g h} (x , ps) =
+    fun (u , r) ps → k u r ps in
+  k1 x ps

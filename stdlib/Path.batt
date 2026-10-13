@@ -26,6 +26,13 @@ path-eq {A} (x , q) = snd (λ y . x ≡ y) q
 path-eta ∷ {A : U} (w : path A) → (path-src {A} w , path-tgt {A} w , path-eq {A} w) ≡{path A} w
 path-eta {A} (x , q) = let h : (q : Σ (y : A) . x ≡ y) → (x , fst (λ y . x ≡ y) q , snd (λ y . x ≡ y) q) ≡{path A} (x , q) = fun (y , e) → refl in h q
 
+-- the source and target of the η-path of a free path are trivial
+cong-src-path-eta ∷ {C : U} (w : path C) → cong (path-src {C}) (path-eta {C} w) ≡ refl
+cong-src-path-eta {C} (x , q) = let k : (q : Σ (y : C) . x ≡ y) → cong (path-src {C}) (path-eta {C} (x , q)) ≡ refl = fun (y , e) → refl in k q
+
+cong-tgt-path-eta ∷ {C : U} (w : path C) → cong (path-tgt {C}) (path-eta {C} w) ≡ refl
+cong-tgt-path-eta {C} (x , q) = let k : (q : Σ (y : C) . x ≡ y) → cong (path-tgt {C}) (path-eta {C} (x , q)) ≡ refl = fun (y , e) → refl in k q
+
 -- constructor
 path-of ∷ {A : U} {x y : A} → x ≡ y → path A
 path-of {A} {x} {y} p = (x , y , p)

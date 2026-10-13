@@ -56,6 +56,15 @@ right-left-swap f b a = f a b
 left-right-swap ∷ {A B C ∷ U} → (A →ₗ B →ᵣ C) → (B →ᵣ A →ₗ C)
 left-right-swap f b a = f a b
 
+-- crisp swaps: a crisp family of lax (resp. oplax) maps indexed by A is a family of oplax
+-- (resp. lax) maps indexed by B; the converse direction is not internal (f would be used on both
+-- sides of the tensor), but on global points both are inverse to each other
+crisp-swapₗᵣ ∷ {A B C ∷ U} (f ∷ A → B →ₗ C) → B → A →ᵣ C
+crisp-swapₗᵣ f b a = f a b
+
+crisp-swapᵣₗ ∷ {A B C ∷ U} (f ∷ A → B →ᵣ C) → B → A →ₗ C
+crisp-swapᵣₗ f b a = f a b
+
 -- r-postcomposition: postᵣ A g f = g ∘ f
 postᵣ ∷ {A B C ∷ U} → (B → C) → (A →ᵣ B) → (A →ᵣ C)
 postᵣ g f a = g (f a)

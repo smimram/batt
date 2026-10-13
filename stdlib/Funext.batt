@@ -380,3 +380,9 @@ cong-post-funext {Z} {X} {Y} f G G' h =
               (λ z . trans (happly-cong-post {Z} {X} {Y} f {G} {G'} P z)
                        (cong {G z ≡ G' z} {fG z ≡ fG' z} (cong f) (happly {Z} {λ z' . G z' ≡ G' z'} {happly {Z} {λ _ . X} {G} {G'} P} {h} (happly-funext-htpy {Z} {λ _ . X} G G' h) z))))
       (sym (happly-funext-htpy {Z} {λ _ . Y} fG fG' (λ z . cong f (h z)))))
+
+-- funext-htpy is an equivalence (its inverse is happly)
+is-equiv-funext-htpy ∷ {A : U} {B : A → U} (f g : (x : A) → B x) → is-equiv (funext-htpy {A} {B} f g)
+is-equiv-funext-htpy {A} {B} f g =
+  ((happly {A} {B} {f} {g} , funext-htpy-happly {A} {B} {f} {g}) ,
+   (happly {A} {B} {f} {g} , happly-funext-htpy {A} {B} f g))

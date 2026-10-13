@@ -1,0 +1,471 @@
+--
+-- Lax and oplax universal properties of pullbacks
+--
+-- Oplax universal property of pullbacks: for crisp g : A → C, h : B → C and a crisp K, oplax maps
+-- into the pullback A ×_C B are pairs of oplax maps whose images are homotopic:
+--
+--   pullback→coneᵣ : (K →ᵣ A ×_C B) → pullback-coneᵣ K g h            (pullback-oplax-up)
+--
+-- is an equivalence. The homotopy is an oplax map H : K →ᵣ path C with two paths fixing its
+-- endpoints, so that the comparison map involves no transport and its endpoint conditions hold
+-- judgmentally.
+--
+-- Proof. The inverse cannot be written directly: it would evaluate a path of oplax maps at a
+-- ⊗-generic point. By the objectwise equivalence axiom it suffices to check global points of
+-- grids T, where objectwise-post pullback→coneᵣ is, judgmentally (flat-pullback→coneᵣ-factored-htpy),
+-- the composite of four equivalences
+--
+--   ♭(T → (K →ᵣ P)) ─flat-tens-curryᵣ─▶ ♭(T ⨂ K → P) ─♭ pullback→cone─▶ ♭(pullback-cone {T ⨂ K} g h)
+--     ─♭ cone→curriedᵣ─▶ ♭(curried cones) ─♭ curried→conesᵣ─▶ ♭(T → pullback-coneᵣ K g h)
+--
+-- namely oplax currying on global points (Flat.batt), the cartesian universal property of pullbacks
+-- in homotopy form (Pullback.batt), the currying of the data and of the paths (an equivalence on
+-- global points only, by flat-Σ-map-equiv and flat-cong-equiv), and the distribution of T over
+-- the Σ (a genuine equivalence, by funext).
+--
+-- The lax universal property (pullback-lax-up, pullback→coneₗ : (K →ₗ A ×_C B) → pullback-coneₗ K g h) is proved
+-- the same way, with lax currying on global points, ♭(T → K →ₗ W) ≃ ♭(K ⨂ T → W) (Flat.batt): the
+-- tensor factor K moves to the left.
+--
+-- Postulates relied on: objectwise-equiv (Axiom.batt), univalence (funext).
+--
+
+open import Stdlib
+open import Axiom
+
+--
+-- Cones curried along T
+--
+
+-- the data of a T-indexed family of oplax cones, curried along T
+curried-cone-dataᵣ ∷ (T K A B C ∷ U) → U
+curried-cone-dataᵣ T K A B C = (T → K →ᵣ A) × (T → K →ᵣ B) × (T → K →ᵣ path C)
+
+curried-cone-pathsᵣ ∷ (T K ∷ U) {A B C ∷ U} (g ∷ A → C) (h ∷ B → C) → curried-cone-dataᵣ T K A B C → U
+curried-cone-pathsᵣ T K {A} {B} {C} g h y =
+  ((λ t . postᵣ {K} {path C} {C} (path-src {C}) (Product.snd (Product.snd y) t)) ≡{T → K →ᵣ C} (λ t . postᵣ {K} {A} {C} g (Product.fst y t))) ×
+  ((λ t . postᵣ {K} {path C} {C} (path-tgt {C}) (Product.snd (Product.snd y) t)) ≡{T → K →ᵣ C} (λ t . postᵣ {K} {B} {C} h (Product.fst (Product.snd y) t)))
+
+-- currying the data and the paths of a cone with vertex T ⨂ K
+cone-data→curriedᵣ ∷ (T K A B C ∷ U) → pullback-cone-data (T ⨂ K) A B C → curried-cone-dataᵣ T K A B C
+cone-data→curriedᵣ T K A B C =
+  flat-Σ-map {T ⨂ K → A} {T → K →ᵣ A} {λ _ . (T ⨂ K → B) × (T ⨂ K → path C)} {λ _ . (T → K →ᵣ B) × (T → K →ᵣ path C)}
+    (tens-curry-right' {T} {K} {A})
+    (λ _ . flat-Σ-map {T ⨂ K → B} {T → K →ᵣ B} {λ _ . T ⨂ K → path C} {λ _ . T → K →ᵣ path C}
+             (tens-curry-right' {T} {K} {B}) (λ _ . tens-curry-right' {T} {K} {path C}))
+
+cone-paths→curriedᵣ ∷ (T K ∷ U) {A B C ∷ U} (g ∷ A → C) (h ∷ B → C) (x : pullback-cone-data (T ⨂ K) A B C) →
+  ((post {T ⨂ K} {path C} {C} (path-src {C}) (Product.snd (Product.snd x)) ≡ post {T ⨂ K} {A} {C} g (Product.fst x)) ×
+   (post {T ⨂ K} {path C} {C} (path-tgt {C}) (Product.snd (Product.snd x)) ≡ post {T ⨂ K} {B} {C} h (Product.fst (Product.snd x)))) →
+  curried-cone-pathsᵣ T K {A} {B} {C} g h (cone-data→curriedᵣ T K A B C x)
+cone-paths→curriedᵣ T K {A} {B} {C} g h (α , r) =
+  let k : (r : (T ⨂ K → B) × (T ⨂ K → path C)) →
+      ((post {T ⨂ K} {path C} {C} (path-src {C}) (Product.snd r) ≡ post {T ⨂ K} {A} {C} g α) ×
+       (post {T ⨂ K} {path C} {C} (path-tgt {C}) (Product.snd r) ≡ post {T ⨂ K} {B} {C} h (Product.fst r))) →
+      curried-cone-pathsᵣ T K {A} {B} {C} g h (cone-data→curriedᵣ T K A B C (α , r)) = fun (β , H) → fun (p , p') →
+    (cong (tens-curry-right' {T} {K} {C}) p , cong (tens-curry-right' {T} {K} {C}) p') in
+  k r
+
+cone→curriedᵣ ∷ (T K ∷ U) {A B C ∷ U} (g ∷ A → C) (h ∷ B → C) →
+  pullback-cone {T ⨂ K} {A} {B} {C} g h → Σ (y : curried-cone-dataᵣ T K A B C) . curried-cone-pathsᵣ T K {A} {B} {C} g h y
+cone→curriedᵣ T K {A} {B} {C} g h =
+  flat-Σ-map {pullback-cone-data (T ⨂ K) A B C} {curried-cone-dataᵣ T K A B C}
+    {λ x . (post {T ⨂ K} {path C} {C} (path-src {C}) (Product.snd (Product.snd x)) ≡ post {T ⨂ K} {A} {C} g (Product.fst x)) ×
+           (post {T ⨂ K} {path C} {C} (path-tgt {C}) (Product.snd (Product.snd x)) ≡ post {T ⨂ K} {B} {C} h (Product.fst (Product.snd x)))}
+    {curried-cone-pathsᵣ T K {A} {B} {C} g h}
+    (cone-data→curriedᵣ T K A B C) (cone-paths→curriedᵣ T K {A} {B} {C} g h)
+
+-- currying cones is an equivalence on global points
+is-equiv-flat-cone-data→curriedᵣ ∷ (T K A B C ∷ U) → is-equiv (flat-map {pullback-cone-data (T ⨂ K) A B C} {curried-cone-dataᵣ T K A B C} (cone-data→curriedᵣ T K A B C))
+is-equiv-flat-cone-data→curriedᵣ T K A B C =
+  flat-Σ-map-equiv {T ⨂ K → A} {T → K →ᵣ A} {λ _ . (T ⨂ K → B) × (T ⨂ K → path C)} {λ _ . (T → K →ᵣ B) × (T → K →ᵣ path C)}
+    (tens-curry-right' {T} {K} {A})
+    (λ _ . flat-Σ-map {T ⨂ K → B} {T → K →ᵣ B} {λ _ . T ⨂ K → path C} {λ _ . T → K →ᵣ path C}
+             (tens-curry-right' {T} {K} {B}) (λ _ . tens-curry-right' {T} {K} {path C}))
+    (is-equiv-flat-tens-uncurryᵣ {T} {K} {A})
+    (λ _ . flat-Σ-map-equiv {T ⨂ K → B} {T → K →ᵣ B} {λ _ . T ⨂ K → path C} {λ _ . T → K →ᵣ path C}
+             (tens-curry-right' {T} {K} {B}) (λ _ . tens-curry-right' {T} {K} {path C})
+             (is-equiv-flat-tens-uncurryᵣ {T} {K} {B}) (λ _ . is-equiv-flat-tens-uncurryᵣ {T} {K} {path C}))
+
+is-equiv-flat-cone-paths→curriedᵣ ∷ (T K ∷ U) {A B C ∷ U} (g ∷ A → C) (h ∷ B → C) (x ∷ pullback-cone-data (T ⨂ K) A B C) →
+  is-equiv (flat-map {(post {T ⨂ K} {path C} {C} (path-src {C}) (Product.snd (Product.snd x)) ≡ post {T ⨂ K} {A} {C} g (Product.fst x)) ×
+                      (post {T ⨂ K} {path C} {C} (path-tgt {C}) (Product.snd (Product.snd x)) ≡ post {T ⨂ K} {B} {C} h (Product.fst (Product.snd x)))}
+                     {curried-cone-pathsᵣ T K {A} {B} {C} g h (cone-data→curriedᵣ T K A B C x)}
+                     (cone-paths→curriedᵣ T K {A} {B} {C} g h x))
+is-equiv-flat-cone-paths→curriedᵣ T K {A} {B} {C} g h (α , r) =
+  let k : (r ∷ (T ⨂ K → B) × (T ⨂ K → path C)) →
+      is-equiv (flat-map {(post {T ⨂ K} {path C} {C} (path-src {C}) (Product.snd r) ≡ post {T ⨂ K} {A} {C} g α) ×
+                          (post {T ⨂ K} {path C} {C} (path-tgt {C}) (Product.snd r) ≡ post {T ⨂ K} {B} {C} h (Product.fst r))}
+                         {curried-cone-pathsᵣ T K {A} {B} {C} g h (cone-data→curriedᵣ T K A B C (α , r))}
+                         (cone-paths→curriedᵣ T K {A} {B} {C} g h (α , r))) = fun (β , H) →
+    let S ∷ T ⨂ K → C = post {T ⨂ K} {path C} {C} (path-src {C}) H in
+    let S' ∷ T ⨂ K → C = post {T ⨂ K} {path C} {C} (path-tgt {C}) H in
+    let G ∷ T ⨂ K → C = post {T ⨂ K} {A} {C} g α in
+    let G' ∷ T ⨂ K → C = post {T ⨂ K} {B} {C} h β in
+    let c ∷ (T ⨂ K → C) → (T → K →ᵣ C) = tens-curry-right' {T} {K} {C} in
+    is-equiv-htpy {♭((S ≡ G) × (S' ≡ G'))} {♭((c S ≡ c G) × (c S' ≡ c G'))}
+      {flat-map {(S ≡ G) × (S' ≡ G')} {(c S ≡ c G) × (c S' ≡ c G')}
+         (flat-Σ-map {S ≡ G} {c S ≡ c G} {λ _ . S' ≡ G'} {λ _ . c S' ≡ c G'} (cong c {S} {G}) (λ _ . cong c {S'} {G'}))}
+      {flat-map {(S ≡ G) × (S' ≡ G')} {(c S ≡ c G) × (c S' ≡ c G')} (cone-paths→curriedᵣ T K {A} {B} {C} g h (α , β , H))}
+      (fun 𝄫w → let hw : (w ∷ (S ≡ G) × (S' ≡ G')) →
+                       flat-map {(S ≡ G) × (S' ≡ G')} {(c S ≡ c G) × (c S' ≡ c G')}
+                         (flat-Σ-map {S ≡ G} {c S ≡ c G} {λ _ . S' ≡ G'} {λ _ . c S' ≡ c G'} (cong c {S} {G}) (λ _ . cong c {S'} {G'})) 𝄫w
+                       ≡ flat-map {(S ≡ G) × (S' ≡ G')} {(c S ≡ c G) × (c S' ≡ c G')} (cone-paths→curriedᵣ T K {A} {B} {C} g h (α , β , H)) 𝄫w =
+                   fun (p , p') → refl in hw w)
+      (flat-Σ-map-equiv {S ≡ G} {c S ≡ c G} {λ _ . S' ≡ G'} {λ _ . c S' ≡ c G'} (cong c {S} {G}) (λ _ . cong c {S'} {G'})
+         (flat-cong-equiv c (is-equiv-flat-tens-uncurryᵣ {T} {K} {C}) S G)
+         (λ _ . flat-cong-equiv c (is-equiv-flat-tens-uncurryᵣ {T} {K} {C}) S' G'))
+  in
+  k r
+
+is-equiv-flat-cone→curriedᵣ ∷ (T K ∷ U) {A B C ∷ U} (g ∷ A → C) (h ∷ B → C) →
+  is-equiv (flat-map {pullback-cone {T ⨂ K} {A} {B} {C} g h} {Σ (y : curried-cone-dataᵣ T K A B C) . curried-cone-pathsᵣ T K {A} {B} {C} g h y}
+                     (cone→curriedᵣ T K {A} {B} {C} g h))
+is-equiv-flat-cone→curriedᵣ T K {A} {B} {C} g h =
+  flat-Σ-map-equiv {pullback-cone-data (T ⨂ K) A B C} {curried-cone-dataᵣ T K A B C}
+    {λ x . (post {T ⨂ K} {path C} {C} (path-src {C}) (Product.snd (Product.snd x)) ≡ post {T ⨂ K} {A} {C} g (Product.fst x)) ×
+           (post {T ⨂ K} {path C} {C} (path-tgt {C}) (Product.snd (Product.snd x)) ≡ post {T ⨂ K} {B} {C} h (Product.fst (Product.snd x)))}
+    {curried-cone-pathsᵣ T K {A} {B} {C} g h}
+    (cone-data→curriedᵣ T K A B C) (cone-paths→curriedᵣ T K {A} {B} {C} g h)
+    (is-equiv-flat-cone-data→curriedᵣ T K A B C) (is-equiv-flat-cone-paths→curriedᵣ T K {A} {B} {C} g h)
+
+--
+-- Distributing T over Σ (a genuine equivalence, by funext)
+--
+
+curried→conesᵣ ∷ (T K ∷ U) {A B C ∷ U} (g ∷ A → C) (h ∷ B → C) →
+  (Σ (y : curried-cone-dataᵣ T K A B C) . curried-cone-pathsᵣ T K {A} {B} {C} g h y) → T → pullback-coneᵣ K {A} {B} {C} g h
+curried→conesᵣ T K {A} {B} {C} g h (y , ps) t =
+  ((Product.fst y t , Product.fst (Product.snd y) t , Product.snd (Product.snd y) t) ,
+   happly {T} {λ _ . K →ᵣ C} {λ t' . postᵣ {K} {path C} {C} (path-src {C}) (Product.snd (Product.snd y) t')} {λ t' . postᵣ {K} {A} {C} g (Product.fst y t')} (Product.fst ps) t ,
+   happly {T} {λ _ . K →ᵣ C} {λ t' . postᵣ {K} {path C} {C} (path-tgt {C}) (Product.snd (Product.snd y) t')} {λ t' . postᵣ {K} {B} {C} h (Product.fst (Product.snd y) t')} (Product.snd ps) t)
+
+cones→curriedᵣ ∷ (T K ∷ U) {A B C ∷ U} (g ∷ A → C) (h ∷ B → C) →
+  (T → pullback-coneᵣ K {A} {B} {C} g h) → Σ (y : curried-cone-dataᵣ T K A B C) . curried-cone-pathsᵣ T K {A} {B} {C} g h y
+cones→curriedᵣ T K {A} {B} {C} g h F =
+  let U' : T → K →ᵣ A = λ t . pullback-coneᵣ-fst K {A} {B} {C} g h (F t) in
+  let V' : T → K →ᵣ B = λ t . pullback-coneᵣ-snd K {A} {B} {C} g h (F t) in
+  let H' : T → K →ᵣ path C = λ t . pullback-coneᵣ-htpy K {A} {B} {C} g h (F t) in
+  ((U' , V' , H') ,
+   funext-htpy {T} {λ _ . K →ᵣ C} (λ t . postᵣ {K} {path C} {C} (path-src {C}) (H' t)) (λ t . postᵣ {K} {A} {C} g (U' t))
+     (λ t . Product.fst (snd (pullback-coneᵣ-paths K {A} {B} {C} g h) (F t))) ,
+   funext-htpy {T} {λ _ . K →ᵣ C} (λ t . postᵣ {K} {path C} {C} (path-tgt {C}) (H' t)) (λ t . postᵣ {K} {B} {C} h (V' t))
+     (λ t . Product.snd (snd (pullback-coneᵣ-paths K {A} {B} {C} g h) (F t))))
+
+curried→conesᵣ-sec ∷ (T K ∷ U) {A B C ∷ U} (g ∷ A → C) (h ∷ B → C) (F : T → pullback-coneᵣ K {A} {B} {C} g h) →
+  curried→conesᵣ T K {A} {B} {C} g h (cones→curriedᵣ T K {A} {B} {C} g h F) ≡ F
+curried→conesᵣ-sec T K {A} {B} {C} g h F =
+  let U' : T → K →ᵣ A = λ t . pullback-coneᵣ-fst K {A} {B} {C} g h (F t) in
+  let V' : T → K →ᵣ B = λ t . pullback-coneᵣ-snd K {A} {B} {C} g h (F t) in
+  let H' : T → K →ᵣ path C = λ t . pullback-coneᵣ-htpy K {A} {B} {C} g h (F t) in
+  let s : (t : T) → postᵣ {K} {path C} {C} (path-src {C}) (H' t) ≡ postᵣ {K} {A} {C} g (U' t) = λ t . Product.fst (snd (pullback-coneᵣ-paths K {A} {B} {C} g h) (F t)) in
+  let s' : (t : T) → postᵣ {K} {path C} {C} (path-tgt {C}) (H' t) ≡ postᵣ {K} {B} {C} h (V' t) = λ t . Product.snd (snd (pullback-coneᵣ-paths K {A} {B} {C} g h) (F t)) in
+  let hs : happly {T} {λ _ . K →ᵣ C} {λ t . postᵣ {K} {path C} {C} (path-src {C}) (H' t)} {λ t . postᵣ {K} {A} {C} g (U' t)}
+             (funext-htpy {T} {λ _ . K →ᵣ C} (λ t . postᵣ {K} {path C} {C} (path-src {C}) (H' t)) (λ t . postᵣ {K} {A} {C} g (U' t)) s) ≡ s =
+    happly-funext-htpy {T} {λ _ . K →ᵣ C} (λ t . postᵣ {K} {path C} {C} (path-src {C}) (H' t)) (λ t . postᵣ {K} {A} {C} g (U' t)) s in
+  let hs' : happly {T} {λ _ . K →ᵣ C} {λ t . postᵣ {K} {path C} {C} (path-tgt {C}) (H' t)} {λ t . postᵣ {K} {B} {C} h (V' t)}
+              (funext-htpy {T} {λ _ . K →ᵣ C} (λ t . postᵣ {K} {path C} {C} (path-tgt {C}) (H' t)) (λ t . postᵣ {K} {B} {C} h (V' t)) s') ≡ s' =
+    happly-funext-htpy {T} {λ _ . K →ᵣ C} (λ t . postᵣ {K} {path C} {C} (path-tgt {C}) (H' t)) (λ t . postᵣ {K} {B} {C} h (V' t)) s' in
+  funext-htpy {T} {λ _ . pullback-coneᵣ K {A} {B} {C} g h} (curried→conesᵣ T K {A} {B} {C} g h (cones→curriedᵣ T K {A} {B} {C} g h F)) F
+    (λ t . trans (cong2 {postᵣ {K} {path C} {C} (path-src {C}) (H' t) ≡ postᵣ {K} {A} {C} g (U' t)}
+                        {postᵣ {K} {path C} {C} (path-tgt {C}) (H' t) ≡ postᵣ {K} {B} {C} h (V' t)} {pullback-coneᵣ K {A} {B} {C} g h}
+                   (λ p p' . ((U' t , V' t , H' t) , p , p'))
+                   (happly {T} {λ t' . postᵣ {K} {path C} {C} (path-src {C}) (H' t') ≡ postᵣ {K} {A} {C} g (U' t')} hs t)
+                   (happly {T} {λ t' . postᵣ {K} {path C} {C} (path-tgt {C}) (H' t') ≡ postᵣ {K} {B} {C} h (V' t')} hs' t))
+             (pullback-coneᵣ-eta K {A} {B} {C} g h (F t)))
+
+curried→conesᵣ-retr ∷ (T K ∷ U) {A B C ∷ U} (g ∷ A → C) (h ∷ B → C) (d : Σ (y : curried-cone-dataᵣ T K A B C) . curried-cone-pathsᵣ T K {A} {B} {C} g h y) →
+  cones→curriedᵣ T K {A} {B} {C} g h (curried→conesᵣ T K {A} {B} {C} g h d) ≡ d
+curried→conesᵣ-retr T K {A} {B} {C} g h (y , ps) =
+  let k : (U' : T → K →ᵣ A) (V' : T → K →ᵣ B) (H' : T → K →ᵣ path C)
+          (p : (λ t . postᵣ {K} {path C} {C} (path-src {C}) (H' t)) ≡{T → K →ᵣ C} (λ t . postᵣ {K} {A} {C} g (U' t)))
+          (p' : (λ t . postᵣ {K} {path C} {C} (path-tgt {C}) (H' t)) ≡{T → K →ᵣ C} (λ t . postᵣ {K} {B} {C} h (V' t))) →
+      cones→curriedᵣ T K {A} {B} {C} g h (curried→conesᵣ T K {A} {B} {C} g h ((U' , V' , H') , p , p')) ≡ ((U' , V' , H') , p , p') =
+    λ U' V' H' p p' .
+      cong2 {(λ t . postᵣ {K} {path C} {C} (path-src {C}) (H' t)) ≡{T → K →ᵣ C} (λ t . postᵣ {K} {A} {C} g (U' t))}
+            {(λ t . postᵣ {K} {path C} {C} (path-tgt {C}) (H' t)) ≡{T → K →ᵣ C} (λ t . postᵣ {K} {B} {C} h (V' t))}
+            {Σ (y : curried-cone-dataᵣ T K A B C) . curried-cone-pathsᵣ T K {A} {B} {C} g h y}
+        (λ q q' . ((U' , V' , H') , q , q'))
+        (funext-htpy-happly {T} {λ _ . K →ᵣ C} {λ t . postᵣ {K} {path C} {C} (path-src {C}) (H' t)} {λ t . postᵣ {K} {A} {C} g (U' t)} p)
+        (funext-htpy-happly {T} {λ _ . K →ᵣ C} {λ t . postᵣ {K} {path C} {C} (path-tgt {C}) (H' t)} {λ t . postᵣ {K} {B} {C} h (V' t)} p') in
+  let k1 : (y : curried-cone-dataᵣ T K A B C) (ps : curried-cone-pathsᵣ T K {A} {B} {C} g h y) →
+      cones→curriedᵣ T K {A} {B} {C} g h (curried→conesᵣ T K {A} {B} {C} g h (y , ps)) ≡ (y , ps) =
+    fun (U' , r) ps → let k2 : (r : (T → K →ᵣ B) × (T → K →ᵣ path C)) (ps : curried-cone-pathsᵣ T K {A} {B} {C} g h (U' , r)) →
+                              cones→curriedᵣ T K {A} {B} {C} g h (curried→conesᵣ T K {A} {B} {C} g h ((U' , r) , ps)) ≡ ((U' , r) , ps) =
+                        fun (V' , H') (p , p') → k U' V' H' p p' in k2 r ps in
+  k1 y ps
+
+is-equiv-curried→conesᵣ ∷ (T K ∷ U) {A B C ∷ U} (g ∷ A → C) (h ∷ B → C) → is-equiv (curried→conesᵣ T K {A} {B} {C} g h)
+is-equiv-curried→conesᵣ T K {A} {B} {C} g h =
+  ((cones→curriedᵣ T K {A} {B} {C} g h , curried→conesᵣ-sec T K {A} {B} {C} g h) ,
+   (cones→curriedᵣ T K {A} {B} {C} g h , curried→conesᵣ-retr T K {A} {B} {C} g h))
+
+--
+-- The oplax universal property of pullbacks
+--
+
+-- on the global points of T, the comparison map is the composite of the four equivalences above
+flat-pullback→coneᵣ-factored ∷ (T K ∷ U) {A B C ∷ U} (g ∷ A → C) (h ∷ B → C) →
+  ♭(T → K →ᵣ pullback {A} {B} {C} g h) → ♭(T → pullback-coneᵣ K {A} {B} {C} g h)
+flat-pullback→coneᵣ-factored T K {A} {B} {C} g h =
+  flat-map {Σ (y : curried-cone-dataᵣ T K A B C) . curried-cone-pathsᵣ T K {A} {B} {C} g h y} {T → pullback-coneᵣ K {A} {B} {C} g h}
+    (curried→conesᵣ T K {A} {B} {C} g h) ∘
+  (flat-map {pullback-cone {T ⨂ K} {A} {B} {C} g h} {Σ (y : curried-cone-dataᵣ T K A B C) . curried-cone-pathsᵣ T K {A} {B} {C} g h y}
+    (cone→curriedᵣ T K {A} {B} {C} g h) ∘
+  (flat-map {T ⨂ K → pullback {A} {B} {C} g h} {pullback-cone {T ⨂ K} {A} {B} {C} g h} (pullback→cone {T ⨂ K} {A} {B} {C} g h) ∘
+   flat-tens-curryᵣ {T} {K} {pullback {A} {B} {C} g h}))
+
+is-equiv-flat-pullback→coneᵣ-factored ∷ (T K ∷ U) {A B C ∷ U} (g ∷ A → C) (h ∷ B → C) → is-equiv (flat-pullback→coneᵣ-factored T K {A} {B} {C} g h)
+is-equiv-flat-pullback→coneᵣ-factored T K {A} {B} {C} g h =
+  let P ∷ U = pullback {A} {B} {C} g h in
+  let PH ∷ U = pullback-cone {T ⨂ K} {A} {B} {C} g h in
+  let S ∷ U = Σ (y : curried-cone-dataᵣ T K A B C) . curried-cone-pathsᵣ T K {A} {B} {C} g h y in
+  let Pr ∷ U = pullback-coneᵣ K {A} {B} {C} g h in
+  let m1 : ♭(T → K →ᵣ P) → ♭(T ⨂ K → P) = flat-tens-curryᵣ {T} {K} {P} in
+  let m2 : ♭(T ⨂ K → P) → ♭ PH = flat-map {T ⨂ K → P} {PH} (pullback→cone {T ⨂ K} {A} {B} {C} g h) in
+  let m3 : ♭ PH → ♭ S = flat-map {PH} {S} (cone→curriedᵣ T K {A} {B} {C} g h) in
+  let m4 : ♭ S → ♭(T → Pr) = flat-map {S} {T → Pr} (curried→conesᵣ T K {A} {B} {C} g h) in
+  is-equiv-circ {♭(T → K →ᵣ P)} {♭ S} {♭(T → Pr)} m4 (m3 ∘ (m2 ∘ m1))
+    (flat-map-equiv {S} {T → Pr} (curried→conesᵣ T K {A} {B} {C} g h) (is-equiv-curried→conesᵣ T K {A} {B} {C} g h))
+    (is-equiv-circ {♭(T → K →ᵣ P)} {♭ PH} {♭ S} m3 (m2 ∘ m1)
+      (is-equiv-flat-cone→curriedᵣ T K {A} {B} {C} g h)
+      (is-equiv-circ {♭(T → K →ᵣ P)} {♭(T ⨂ K → P)} {♭ PH} m2 m1
+        (flat-map-equiv {T ⨂ K → P} {PH} (pullback→cone {T ⨂ K} {A} {B} {C} g h) (is-equiv-pullback→cone {T ⨂ K} {A} {B} {C} g h))
+        (is-equiv-flat-tens-curryᵣ {T} {K} {P})))
+
+-- the composite agrees with the comparison map on global points, judgmentally
+flat-pullback→coneᵣ-factored-htpy ∷ (T K ∷ U) {A B C ∷ U} (g ∷ A → C) (h ∷ B → C) (ψ : ♭(T → K →ᵣ pullback {A} {B} {C} g h)) →
+  flat-pullback→coneᵣ-factored T K {A} {B} {C} g h ψ ≡
+  flat-map {T → K →ᵣ pullback {A} {B} {C} g h} {T → pullback-coneᵣ K {A} {B} {C} g h}
+    (post {T} {K →ᵣ pullback {A} {B} {C} g h} {pullback-coneᵣ K {A} {B} {C} g h} (pullback→coneᵣ K {A} {B} {C} g h)) ψ
+flat-pullback→coneᵣ-factored-htpy T K {A} {B} {C} g h 𝄫ψ = refl
+
+pullback-oplax-up ∷ (K ∷ U) {A B C ∷ U} (g ∷ A → C) (h ∷ B → C) → is-equiv (pullback→coneᵣ K {A} {B} {C} g h)
+pullback-oplax-up K {A} {B} {C} g h =
+  objectwise-equiv {K →ᵣ pullback {A} {B} {C} g h} {pullback-coneᵣ K {A} {B} {C} g h} (pullback→coneᵣ K {A} {B} {C} g h)
+    (λ a . is-equiv-htpy {♭(grid a → K →ᵣ pullback {A} {B} {C} g h)} {♭(grid a → pullback-coneᵣ K {A} {B} {C} g h)}
+             {flat-pullback→coneᵣ-factored (grid a) K {A} {B} {C} g h}
+             {objectwise-post {K →ᵣ pullback {A} {B} {C} g h} {pullback-coneᵣ K {A} {B} {C} g h} (pullback→coneᵣ K {A} {B} {C} g h) a}
+             (flat-pullback→coneᵣ-factored-htpy (grid a) K {A} {B} {C} g h)
+             (is-equiv-flat-pullback→coneᵣ-factored (grid a) K {A} {B} {C} g h))
+
+--
+-- The lax universal property of pullbacks: the same proof, with lax maps and the tensor on the
+-- other side (♭(T → K →ₗ W) ≃ ♭(K ⨂ T → W))
+--
+
+--
+-- Curried data
+--
+
+-- the data, curried along T
+curried-cone-dataₗ ∷ (T K A B C ∷ U) → U
+curried-cone-dataₗ T K A B C = (T → K →ₗ A) × (T → K →ₗ B) × (T → K →ₗ path C)
+
+curried-cone-pathsₗ ∷ (T K ∷ U) {A B C ∷ U} (g ∷ A → C) (h ∷ B → C) → curried-cone-dataₗ T K A B C → U
+curried-cone-pathsₗ T K {A} {B} {C} g h y =
+  ((λ t . postₗ {K} {path C} {C} (path-src {C}) (Product.snd (Product.snd y) t)) ≡{T → K →ₗ C} (λ t . postₗ {K} {A} {C} g (Product.fst y t))) ×
+  ((λ t . postₗ {K} {path C} {C} (path-tgt {C}) (Product.snd (Product.snd y) t)) ≡{T → K →ₗ C} (λ t . postₗ {K} {B} {C} h (Product.fst (Product.snd y) t)))
+
+-- currying the data and the paths of a cone with vertex T ⨂ K
+cone-data→curriedₗ ∷ (T K A B C ∷ U) → pullback-cone-data (K ⨂ T) A B C → curried-cone-dataₗ T K A B C
+cone-data→curriedₗ T K A B C =
+  flat-Σ-map {K ⨂ T → A} {T → K →ₗ A} {λ _ . (K ⨂ T → B) × (K ⨂ T → path C)} {λ _ . (T → K →ₗ B) × (T → K →ₗ path C)}
+    (tens-curry-left' {K} {T} {A})
+    (λ _ . flat-Σ-map {K ⨂ T → B} {T → K →ₗ B} {λ _ . K ⨂ T → path C} {λ _ . T → K →ₗ path C}
+             (tens-curry-left' {K} {T} {B}) (λ _ . tens-curry-left' {K} {T} {path C}))
+
+cone-paths→curriedₗ ∷ (T K ∷ U) {A B C ∷ U} (g ∷ A → C) (h ∷ B → C) (x : pullback-cone-data (K ⨂ T) A B C) →
+  ((post {K ⨂ T} {path C} {C} (path-src {C}) (Product.snd (Product.snd x)) ≡ post {K ⨂ T} {A} {C} g (Product.fst x)) ×
+   (post {K ⨂ T} {path C} {C} (path-tgt {C}) (Product.snd (Product.snd x)) ≡ post {K ⨂ T} {B} {C} h (Product.fst (Product.snd x)))) →
+  curried-cone-pathsₗ T K {A} {B} {C} g h (cone-data→curriedₗ T K A B C x)
+cone-paths→curriedₗ T K {A} {B} {C} g h (α , r) =
+  let k : (r : (K ⨂ T → B) × (K ⨂ T → path C)) →
+      ((post {K ⨂ T} {path C} {C} (path-src {C}) (Product.snd r) ≡ post {K ⨂ T} {A} {C} g α) ×
+       (post {K ⨂ T} {path C} {C} (path-tgt {C}) (Product.snd r) ≡ post {K ⨂ T} {B} {C} h (Product.fst r))) →
+      curried-cone-pathsₗ T K {A} {B} {C} g h (cone-data→curriedₗ T K A B C (α , r)) = fun (β , H) → fun (p , p') →
+    (cong (tens-curry-left' {K} {T} {C}) p , cong (tens-curry-left' {K} {T} {C}) p') in
+  k r
+
+cone→curriedₗ ∷ (T K ∷ U) {A B C ∷ U} (g ∷ A → C) (h ∷ B → C) →
+  pullback-cone {K ⨂ T} {A} {B} {C} g h → Σ (y : curried-cone-dataₗ T K A B C) . curried-cone-pathsₗ T K {A} {B} {C} g h y
+cone→curriedₗ T K {A} {B} {C} g h =
+  flat-Σ-map {pullback-cone-data (K ⨂ T) A B C} {curried-cone-dataₗ T K A B C}
+    {λ x . (post {K ⨂ T} {path C} {C} (path-src {C}) (Product.snd (Product.snd x)) ≡ post {K ⨂ T} {A} {C} g (Product.fst x)) ×
+           (post {K ⨂ T} {path C} {C} (path-tgt {C}) (Product.snd (Product.snd x)) ≡ post {K ⨂ T} {B} {C} h (Product.fst (Product.snd x)))}
+    {curried-cone-pathsₗ T K {A} {B} {C} g h}
+    (cone-data→curriedₗ T K A B C) (cone-paths→curriedₗ T K {A} {B} {C} g h)
+
+-- currying cones is an equivalence on global points
+is-equiv-flat-cone-data→curriedₗ ∷ (T K A B C ∷ U) → is-equiv (flat-map {pullback-cone-data (K ⨂ T) A B C} {curried-cone-dataₗ T K A B C} (cone-data→curriedₗ T K A B C))
+is-equiv-flat-cone-data→curriedₗ T K A B C =
+  flat-Σ-map-equiv {K ⨂ T → A} {T → K →ₗ A} {λ _ . (K ⨂ T → B) × (K ⨂ T → path C)} {λ _ . (T → K →ₗ B) × (T → K →ₗ path C)}
+    (tens-curry-left' {K} {T} {A})
+    (λ _ . flat-Σ-map {K ⨂ T → B} {T → K →ₗ B} {λ _ . K ⨂ T → path C} {λ _ . T → K →ₗ path C}
+             (tens-curry-left' {K} {T} {B}) (λ _ . tens-curry-left' {K} {T} {path C}))
+    (is-equiv-flat-tens-uncurryₗ {K} {T} {A})
+    (λ _ . flat-Σ-map-equiv {K ⨂ T → B} {T → K →ₗ B} {λ _ . K ⨂ T → path C} {λ _ . T → K →ₗ path C}
+             (tens-curry-left' {K} {T} {B}) (λ _ . tens-curry-left' {K} {T} {path C})
+             (is-equiv-flat-tens-uncurryₗ {K} {T} {B}) (λ _ . is-equiv-flat-tens-uncurryₗ {K} {T} {path C}))
+
+is-equiv-flat-cone-paths→curriedₗ ∷ (T K ∷ U) {A B C ∷ U} (g ∷ A → C) (h ∷ B → C) (x ∷ pullback-cone-data (K ⨂ T) A B C) →
+  is-equiv (flat-map {(post {K ⨂ T} {path C} {C} (path-src {C}) (Product.snd (Product.snd x)) ≡ post {K ⨂ T} {A} {C} g (Product.fst x)) ×
+                      (post {K ⨂ T} {path C} {C} (path-tgt {C}) (Product.snd (Product.snd x)) ≡ post {K ⨂ T} {B} {C} h (Product.fst (Product.snd x)))}
+                     {curried-cone-pathsₗ T K {A} {B} {C} g h (cone-data→curriedₗ T K A B C x)}
+                     (cone-paths→curriedₗ T K {A} {B} {C} g h x))
+is-equiv-flat-cone-paths→curriedₗ T K {A} {B} {C} g h (α , r) =
+  let k : (r ∷ (K ⨂ T → B) × (K ⨂ T → path C)) →
+      is-equiv (flat-map {(post {K ⨂ T} {path C} {C} (path-src {C}) (Product.snd r) ≡ post {K ⨂ T} {A} {C} g α) ×
+                          (post {K ⨂ T} {path C} {C} (path-tgt {C}) (Product.snd r) ≡ post {K ⨂ T} {B} {C} h (Product.fst r))}
+                         {curried-cone-pathsₗ T K {A} {B} {C} g h (cone-data→curriedₗ T K A B C (α , r))}
+                         (cone-paths→curriedₗ T K {A} {B} {C} g h (α , r))) = fun (β , H) →
+    let S ∷ K ⨂ T → C = post {K ⨂ T} {path C} {C} (path-src {C}) H in
+    let S' ∷ K ⨂ T → C = post {K ⨂ T} {path C} {C} (path-tgt {C}) H in
+    let G ∷ K ⨂ T → C = post {K ⨂ T} {A} {C} g α in
+    let G' ∷ K ⨂ T → C = post {K ⨂ T} {B} {C} h β in
+    let c ∷ (K ⨂ T → C) → (T → K →ₗ C) = tens-curry-left' {K} {T} {C} in
+    is-equiv-htpy {♭((S ≡ G) × (S' ≡ G'))} {♭((c S ≡ c G) × (c S' ≡ c G'))}
+      {flat-map {(S ≡ G) × (S' ≡ G')} {(c S ≡ c G) × (c S' ≡ c G')}
+         (flat-Σ-map {S ≡ G} {c S ≡ c G} {λ _ . S' ≡ G'} {λ _ . c S' ≡ c G'} (cong c {S} {G}) (λ _ . cong c {S'} {G'}))}
+      {flat-map {(S ≡ G) × (S' ≡ G')} {(c S ≡ c G) × (c S' ≡ c G')} (cone-paths→curriedₗ T K {A} {B} {C} g h (α , β , H))}
+      (fun 𝄫w → let hw : (w ∷ (S ≡ G) × (S' ≡ G')) →
+                       flat-map {(S ≡ G) × (S' ≡ G')} {(c S ≡ c G) × (c S' ≡ c G')}
+                         (flat-Σ-map {S ≡ G} {c S ≡ c G} {λ _ . S' ≡ G'} {λ _ . c S' ≡ c G'} (cong c {S} {G}) (λ _ . cong c {S'} {G'})) 𝄫w
+                       ≡ flat-map {(S ≡ G) × (S' ≡ G')} {(c S ≡ c G) × (c S' ≡ c G')} (cone-paths→curriedₗ T K {A} {B} {C} g h (α , β , H)) 𝄫w =
+                   fun (p , p') → refl in hw w)
+      (flat-Σ-map-equiv {S ≡ G} {c S ≡ c G} {λ _ . S' ≡ G'} {λ _ . c S' ≡ c G'} (cong c {S} {G}) (λ _ . cong c {S'} {G'})
+         (flat-cong-equiv c (is-equiv-flat-tens-uncurryₗ {K} {T} {C}) S G)
+         (λ _ . flat-cong-equiv c (is-equiv-flat-tens-uncurryₗ {K} {T} {C}) S' G'))
+  in
+  k r
+
+is-equiv-flat-cone→curriedₗ ∷ (T K ∷ U) {A B C ∷ U} (g ∷ A → C) (h ∷ B → C) →
+  is-equiv (flat-map {pullback-cone {K ⨂ T} {A} {B} {C} g h} {Σ (y : curried-cone-dataₗ T K A B C) . curried-cone-pathsₗ T K {A} {B} {C} g h y}
+                     (cone→curriedₗ T K {A} {B} {C} g h))
+is-equiv-flat-cone→curriedₗ T K {A} {B} {C} g h =
+  flat-Σ-map-equiv {pullback-cone-data (K ⨂ T) A B C} {curried-cone-dataₗ T K A B C}
+    {λ x . (post {K ⨂ T} {path C} {C} (path-src {C}) (Product.snd (Product.snd x)) ≡ post {K ⨂ T} {A} {C} g (Product.fst x)) ×
+           (post {K ⨂ T} {path C} {C} (path-tgt {C}) (Product.snd (Product.snd x)) ≡ post {K ⨂ T} {B} {C} h (Product.fst (Product.snd x)))}
+    {curried-cone-pathsₗ T K {A} {B} {C} g h}
+    (cone-data→curriedₗ T K A B C) (cone-paths→curriedₗ T K {A} {B} {C} g h)
+    (is-equiv-flat-cone-data→curriedₗ T K A B C) (is-equiv-flat-cone-paths→curriedₗ T K {A} {B} {C} g h)
+
+--
+-- Distributing T over Σ (a genuine equivalence, by funext)
+--
+
+curried→conesₗ ∷ (T K ∷ U) {A B C ∷ U} (g ∷ A → C) (h ∷ B → C) →
+  (Σ (y : curried-cone-dataₗ T K A B C) . curried-cone-pathsₗ T K {A} {B} {C} g h y) → T → pullback-coneₗ K {A} {B} {C} g h
+curried→conesₗ T K {A} {B} {C} g h (y , ps) t =
+  ((Product.fst y t , Product.fst (Product.snd y) t , Product.snd (Product.snd y) t) ,
+   happly {T} {λ _ . K →ₗ C} {λ t' . postₗ {K} {path C} {C} (path-src {C}) (Product.snd (Product.snd y) t')} {λ t' . postₗ {K} {A} {C} g (Product.fst y t')} (Product.fst ps) t ,
+   happly {T} {λ _ . K →ₗ C} {λ t' . postₗ {K} {path C} {C} (path-tgt {C}) (Product.snd (Product.snd y) t')} {λ t' . postₗ {K} {B} {C} h (Product.fst (Product.snd y) t')} (Product.snd ps) t)
+
+cones→curriedₗ ∷ (T K ∷ U) {A B C ∷ U} (g ∷ A → C) (h ∷ B → C) →
+  (T → pullback-coneₗ K {A} {B} {C} g h) → Σ (y : curried-cone-dataₗ T K A B C) . curried-cone-pathsₗ T K {A} {B} {C} g h y
+cones→curriedₗ T K {A} {B} {C} g h F =
+  let U' : T → K →ₗ A = λ t . pullback-coneₗ-fst K {A} {B} {C} g h (F t) in
+  let V' : T → K →ₗ B = λ t . pullback-coneₗ-snd K {A} {B} {C} g h (F t) in
+  let H' : T → K →ₗ path C = λ t . pullback-coneₗ-htpy K {A} {B} {C} g h (F t) in
+  ((U' , V' , H') ,
+   funext-htpy {T} {λ _ . K →ₗ C} (λ t . postₗ {K} {path C} {C} (path-src {C}) (H' t)) (λ t . postₗ {K} {A} {C} g (U' t))
+     (λ t . Product.fst (snd (pullback-coneₗ-paths K {A} {B} {C} g h) (F t))) ,
+   funext-htpy {T} {λ _ . K →ₗ C} (λ t . postₗ {K} {path C} {C} (path-tgt {C}) (H' t)) (λ t . postₗ {K} {B} {C} h (V' t))
+     (λ t . Product.snd (snd (pullback-coneₗ-paths K {A} {B} {C} g h) (F t))))
+
+curried→conesₗ-sec ∷ (T K ∷ U) {A B C ∷ U} (g ∷ A → C) (h ∷ B → C) (F : T → pullback-coneₗ K {A} {B} {C} g h) →
+  curried→conesₗ T K {A} {B} {C} g h (cones→curriedₗ T K {A} {B} {C} g h F) ≡ F
+curried→conesₗ-sec T K {A} {B} {C} g h F =
+  let U' : T → K →ₗ A = λ t . pullback-coneₗ-fst K {A} {B} {C} g h (F t) in
+  let V' : T → K →ₗ B = λ t . pullback-coneₗ-snd K {A} {B} {C} g h (F t) in
+  let H' : T → K →ₗ path C = λ t . pullback-coneₗ-htpy K {A} {B} {C} g h (F t) in
+  let s : (t : T) → postₗ {K} {path C} {C} (path-src {C}) (H' t) ≡ postₗ {K} {A} {C} g (U' t) = λ t . Product.fst (snd (pullback-coneₗ-paths K {A} {B} {C} g h) (F t)) in
+  let s' : (t : T) → postₗ {K} {path C} {C} (path-tgt {C}) (H' t) ≡ postₗ {K} {B} {C} h (V' t) = λ t . Product.snd (snd (pullback-coneₗ-paths K {A} {B} {C} g h) (F t)) in
+  let hs : happly {T} {λ _ . K →ₗ C} {λ t . postₗ {K} {path C} {C} (path-src {C}) (H' t)} {λ t . postₗ {K} {A} {C} g (U' t)}
+             (funext-htpy {T} {λ _ . K →ₗ C} (λ t . postₗ {K} {path C} {C} (path-src {C}) (H' t)) (λ t . postₗ {K} {A} {C} g (U' t)) s) ≡ s =
+    happly-funext-htpy {T} {λ _ . K →ₗ C} (λ t . postₗ {K} {path C} {C} (path-src {C}) (H' t)) (λ t . postₗ {K} {A} {C} g (U' t)) s in
+  let hs' : happly {T} {λ _ . K →ₗ C} {λ t . postₗ {K} {path C} {C} (path-tgt {C}) (H' t)} {λ t . postₗ {K} {B} {C} h (V' t)}
+              (funext-htpy {T} {λ _ . K →ₗ C} (λ t . postₗ {K} {path C} {C} (path-tgt {C}) (H' t)) (λ t . postₗ {K} {B} {C} h (V' t)) s') ≡ s' =
+    happly-funext-htpy {T} {λ _ . K →ₗ C} (λ t . postₗ {K} {path C} {C} (path-tgt {C}) (H' t)) (λ t . postₗ {K} {B} {C} h (V' t)) s' in
+  funext-htpy {T} {λ _ . pullback-coneₗ K {A} {B} {C} g h} (curried→conesₗ T K {A} {B} {C} g h (cones→curriedₗ T K {A} {B} {C} g h F)) F
+    (λ t . trans (cong2 {postₗ {K} {path C} {C} (path-src {C}) (H' t) ≡ postₗ {K} {A} {C} g (U' t)}
+                        {postₗ {K} {path C} {C} (path-tgt {C}) (H' t) ≡ postₗ {K} {B} {C} h (V' t)} {pullback-coneₗ K {A} {B} {C} g h}
+                   (λ p p' . ((U' t , V' t , H' t) , p , p'))
+                   (happly {T} {λ t' . postₗ {K} {path C} {C} (path-src {C}) (H' t') ≡ postₗ {K} {A} {C} g (U' t')} hs t)
+                   (happly {T} {λ t' . postₗ {K} {path C} {C} (path-tgt {C}) (H' t') ≡ postₗ {K} {B} {C} h (V' t')} hs' t))
+             (pullback-coneₗ-eta K {A} {B} {C} g h (F t)))
+
+curried→conesₗ-retr ∷ (T K ∷ U) {A B C ∷ U} (g ∷ A → C) (h ∷ B → C) (d : Σ (y : curried-cone-dataₗ T K A B C) . curried-cone-pathsₗ T K {A} {B} {C} g h y) →
+  cones→curriedₗ T K {A} {B} {C} g h (curried→conesₗ T K {A} {B} {C} g h d) ≡ d
+curried→conesₗ-retr T K {A} {B} {C} g h (y , ps) =
+  let k : (U' : T → K →ₗ A) (V' : T → K →ₗ B) (H' : T → K →ₗ path C)
+          (p : (λ t . postₗ {K} {path C} {C} (path-src {C}) (H' t)) ≡{T → K →ₗ C} (λ t . postₗ {K} {A} {C} g (U' t)))
+          (p' : (λ t . postₗ {K} {path C} {C} (path-tgt {C}) (H' t)) ≡{T → K →ₗ C} (λ t . postₗ {K} {B} {C} h (V' t))) →
+      cones→curriedₗ T K {A} {B} {C} g h (curried→conesₗ T K {A} {B} {C} g h ((U' , V' , H') , p , p')) ≡ ((U' , V' , H') , p , p') =
+    λ U' V' H' p p' .
+      cong2 {(λ t . postₗ {K} {path C} {C} (path-src {C}) (H' t)) ≡{T → K →ₗ C} (λ t . postₗ {K} {A} {C} g (U' t))}
+            {(λ t . postₗ {K} {path C} {C} (path-tgt {C}) (H' t)) ≡{T → K →ₗ C} (λ t . postₗ {K} {B} {C} h (V' t))}
+            {Σ (y : curried-cone-dataₗ T K A B C) . curried-cone-pathsₗ T K {A} {B} {C} g h y}
+        (λ q q' . ((U' , V' , H') , q , q'))
+        (funext-htpy-happly {T} {λ _ . K →ₗ C} {λ t . postₗ {K} {path C} {C} (path-src {C}) (H' t)} {λ t . postₗ {K} {A} {C} g (U' t)} p)
+        (funext-htpy-happly {T} {λ _ . K →ₗ C} {λ t . postₗ {K} {path C} {C} (path-tgt {C}) (H' t)} {λ t . postₗ {K} {B} {C} h (V' t)} p') in
+  let k1 : (y : curried-cone-dataₗ T K A B C) (ps : curried-cone-pathsₗ T K {A} {B} {C} g h y) →
+      cones→curriedₗ T K {A} {B} {C} g h (curried→conesₗ T K {A} {B} {C} g h (y , ps)) ≡ (y , ps) =
+    fun (U' , r) ps → let k2 : (r : (T → K →ₗ B) × (T → K →ₗ path C)) (ps : curried-cone-pathsₗ T K {A} {B} {C} g h (U' , r)) →
+                              cones→curriedₗ T K {A} {B} {C} g h (curried→conesₗ T K {A} {B} {C} g h ((U' , r) , ps)) ≡ ((U' , r) , ps) =
+                        fun (V' , H') (p , p') → k U' V' H' p p' in k2 r ps in
+  k1 y ps
+
+is-equiv-curried→conesₗ ∷ (T K ∷ U) {A B C ∷ U} (g ∷ A → C) (h ∷ B → C) → is-equiv (curried→conesₗ T K {A} {B} {C} g h)
+is-equiv-curried→conesₗ T K {A} {B} {C} g h =
+  ((cones→curriedₗ T K {A} {B} {C} g h , curried→conesₗ-sec T K {A} {B} {C} g h) ,
+   (cones→curriedₗ T K {A} {B} {C} g h , curried→conesₗ-retr T K {A} {B} {C} g h))
+
+--
+-- The lax universal property of pullbacks
+--
+
+-- on the global points of T, the comparison map is the composite of the four equivalences above
+flat-pullback→coneₗ-factored ∷ (T K ∷ U) {A B C ∷ U} (g ∷ A → C) (h ∷ B → C) →
+  ♭(T → K →ₗ pullback {A} {B} {C} g h) → ♭(T → pullback-coneₗ K {A} {B} {C} g h)
+flat-pullback→coneₗ-factored T K {A} {B} {C} g h =
+  flat-map {Σ (y : curried-cone-dataₗ T K A B C) . curried-cone-pathsₗ T K {A} {B} {C} g h y} {T → pullback-coneₗ K {A} {B} {C} g h}
+    (curried→conesₗ T K {A} {B} {C} g h) ∘
+  (flat-map {pullback-cone {K ⨂ T} {A} {B} {C} g h} {Σ (y : curried-cone-dataₗ T K A B C) . curried-cone-pathsₗ T K {A} {B} {C} g h y}
+    (cone→curriedₗ T K {A} {B} {C} g h) ∘
+  (flat-map {K ⨂ T → pullback {A} {B} {C} g h} {pullback-cone {K ⨂ T} {A} {B} {C} g h} (pullback→cone {K ⨂ T} {A} {B} {C} g h) ∘
+   flat-tens-curryₗ {K} {T} {pullback {A} {B} {C} g h}))
+
+is-equiv-flat-pullback→coneₗ-factored ∷ (T K ∷ U) {A B C ∷ U} (g ∷ A → C) (h ∷ B → C) → is-equiv (flat-pullback→coneₗ-factored T K {A} {B} {C} g h)
+is-equiv-flat-pullback→coneₗ-factored T K {A} {B} {C} g h =
+  let P ∷ U = pullback {A} {B} {C} g h in
+  let PH ∷ U = pullback-cone {K ⨂ T} {A} {B} {C} g h in
+  let S ∷ U = Σ (y : curried-cone-dataₗ T K A B C) . curried-cone-pathsₗ T K {A} {B} {C} g h y in
+  let Pr ∷ U = pullback-coneₗ K {A} {B} {C} g h in
+  let m1 : ♭(T → K →ₗ P) → ♭(K ⨂ T → P) = flat-tens-curryₗ {K} {T} {P} in
+  let m2 : ♭(K ⨂ T → P) → ♭ PH = flat-map {K ⨂ T → P} {PH} (pullback→cone {K ⨂ T} {A} {B} {C} g h) in
+  let m3 : ♭ PH → ♭ S = flat-map {PH} {S} (cone→curriedₗ T K {A} {B} {C} g h) in
+  let m4 : ♭ S → ♭(T → Pr) = flat-map {S} {T → Pr} (curried→conesₗ T K {A} {B} {C} g h) in
+  is-equiv-circ {♭(T → K →ₗ P)} {♭ S} {♭(T → Pr)} m4 (m3 ∘ (m2 ∘ m1))
+    (flat-map-equiv {S} {T → Pr} (curried→conesₗ T K {A} {B} {C} g h) (is-equiv-curried→conesₗ T K {A} {B} {C} g h))
+    (is-equiv-circ {♭(T → K →ₗ P)} {♭ PH} {♭ S} m3 (m2 ∘ m1)
+      (is-equiv-flat-cone→curriedₗ T K {A} {B} {C} g h)
+      (is-equiv-circ {♭(T → K →ₗ P)} {♭(K ⨂ T → P)} {♭ PH} m2 m1
+        (flat-map-equiv {K ⨂ T → P} {PH} (pullback→cone {K ⨂ T} {A} {B} {C} g h) (is-equiv-pullback→cone {K ⨂ T} {A} {B} {C} g h))
+        (is-equiv-flat-tens-curryₗ {K} {T} {P})))
+
+-- the composite agrees with the comparison map on global points, judgmentally
+flat-pullback→coneₗ-factored-htpy ∷ (T K ∷ U) {A B C ∷ U} (g ∷ A → C) (h ∷ B → C) (ψ : ♭(T → K →ₗ pullback {A} {B} {C} g h)) →
+  flat-pullback→coneₗ-factored T K {A} {B} {C} g h ψ ≡
+  flat-map {T → K →ₗ pullback {A} {B} {C} g h} {T → pullback-coneₗ K {A} {B} {C} g h}
+    (post {T} {K →ₗ pullback {A} {B} {C} g h} {pullback-coneₗ K {A} {B} {C} g h} (pullback→coneₗ K {A} {B} {C} g h)) ψ
+flat-pullback→coneₗ-factored-htpy T K {A} {B} {C} g h 𝄫ψ = refl
+
+pullback-lax-up ∷ (K ∷ U) {A B C ∷ U} (g ∷ A → C) (h ∷ B → C) → is-equiv (pullback→coneₗ K {A} {B} {C} g h)
+pullback-lax-up K {A} {B} {C} g h =
+  objectwise-equiv {K →ₗ pullback {A} {B} {C} g h} {pullback-coneₗ K {A} {B} {C} g h} (pullback→coneₗ K {A} {B} {C} g h)
+    (λ a . is-equiv-htpy {♭(grid a → K →ₗ pullback {A} {B} {C} g h)} {♭(grid a → pullback-coneₗ K {A} {B} {C} g h)}
+             {flat-pullback→coneₗ-factored (grid a) K {A} {B} {C} g h}
+             {objectwise-post {K →ₗ pullback {A} {B} {C} g h} {pullback-coneₗ K {A} {B} {C} g h} (pullback→coneₗ K {A} {B} {C} g h) a}
+             (flat-pullback→coneₗ-factored-htpy (grid a) K {A} {B} {C} g h)
+             (is-equiv-flat-pullback→coneₗ-factored (grid a) K {A} {B} {C} g h))
