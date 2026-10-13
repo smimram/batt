@@ -6,7 +6,7 @@
 -- with fst ∘ e = ev₁, judgmentally.
 --
 --   - Covariance (hom-family-covariant): for A oplax-Rezk, fst : E → A is a cocartesian fibration,
---     since ev₁ : a/A → A is (coslice-fibration, transported along e by
+--     since ev₁ : a/A → A is (coslice-fibration, Coslice-fibration.batt, transported along e by
 --     is-cocartesian-fibration-equiv, Fibration.batt).
 --   - Connections and lifts: the connection Γ̄_f of a 1-cell f from a, its ev₁-cocartesian lift at
 --     the identity (hom-family-conn, hom-family-conn-cocart); the cocartesian lift χ̄_σ of the second
@@ -26,6 +26,7 @@ open import Fibration
 open import Covariant
 open import Local
 open import Coslice
+open import Coslice-fibration
 open import Composition
 open import Composable
 open import Simplex-edges
@@ -121,8 +122,8 @@ hom-family-covariant {A} rA a =
 --   τ̄_σ := λ y . (λ k . σ (y₁ ∧ k , y₁ ∧ y₂ ∧ k) , γ)          (hom-family-lift-tri)
 --
 -- of E has edges Γ̄_t, χ̄_σ and Γ̄_{u ∘ t}, judgmentally, where t, u are the first edges of σ, u ∘ t
--- its long edge and χ̄_σ the cocartesian lift of u at t (coslice-lift-sq). Hence Γ̄_t ; χ̄_σ = Γ̄_{u ∘ t}
--- (hom-family-lift-comp). The point (y₁ ∧ k , y₁ ∧ y₂ ∧ k) is sorted by absorption, judgmentally,
+-- its long edge and χ̄_σ the cocartesian lift of u at t (coslice-lift-sq, Coslice-fibration.batt).
+-- Hence Γ̄_t ; χ̄_σ = Γ̄_{u ∘ t} (hom-family-lift-comp). The point (y₁ ∧ k , y₁ ∧ y₂ ∧ k) is sorted by absorption, judgmentally,
 -- and is (0 , 0) for k = 0 whatever y, so that the same path γ fits every vertex. (The triangle
 -- λ y k . σ (y₁ ∧ k , y₂ ∧ k) of lift-tri, Codomain.batt, has the same edges, but its sortedness
 -- proof at k = 0 is not refl for a generic y.)

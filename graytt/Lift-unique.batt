@@ -19,7 +19,7 @@
 -- that p is a cocartesian fibration given a section (is-cocartesian-fibration-from-inj).
 --
 -- Uniqueness holds when X is univalent (is-cocartesian-fibration-univalent); it is applied to the
--- codomain fibration (Codomain.batt) and to the projections of coslices (Coslice.batt).
+-- codomain fibration (Codomain.batt) and to the projections of coslices (Coslice-fibration.batt).
 --
 
 open import Stdlib

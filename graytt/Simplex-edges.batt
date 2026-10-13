@@ -472,3 +472,27 @@ pair-from-edges-2 X s a (y , r) =
       k3 u in
     k2 uv in
   k r
+
+-- every hom g : b → a with a 1-cell f from a is, up to a path, given by the first edges of a
+-- 2-simplex with paths from its first two vertices to b and a: give the pair trivial paths, take
+-- the 2-simplex with these edges, and transport the paths back
+hom-coslice-edges-2 ∷ (X ∷ U) (s : is-segalᵣ X) (a b : X) (z : hom {X} b a × coslice X a) →
+  Σ (σ : simplex 2 →ᵣ X) . Σ (γ₀ : σ (simplex-2-e₀₁ 𝕀0) ≡ b) . Σ (γ₁ : σ (simplex-2-e₀₁ 𝕀1) ≡ a) .
+    pair→hom-coslice {X} a b (edges-2 {X} σ) γ₀ γ₁ ≡ z
+hom-coslice-edges-2 X s a b (g , fp) =
+  let R : hom {X} b a × coslice X a → U = λ z' .
+    Σ (σ : simplex 2 →ᵣ X) . Σ (γ₀ : σ (simplex-2-e₀₁ 𝕀0) ≡ b) . Σ (γ₁ : σ (simplex-2-e₀₁ 𝕀1) ≡ a) .
+      pair→hom-coslice {X} a b (edges-2 {X} σ) γ₀ γ₁ ≡ z' in
+  let k : (g : hom {X} b a) (fp : coslice X a) → R (g , fp) = fun (c , q) → fun (f , p) →
+    let k2 : (q : (srcᵣ c ≡ b) × (tgtᵣ c ≡ a)) → R ((c , q) , (f , p)) = fun (q₀ , q₁) →
+      let P : pairs X = (srcᵣ c , tgtᵣ c , tgtᵣ f , (c , refl , refl) , (f , trans p (sym q₁) , refl)) in
+      let sec : section (edges-2 {X}) = is-equiv-sec (edges-2 {X}) (is-equiv-edges-2 X s) in
+      let σ : simplex 2 →ᵣ X = section-map (edges-2 {X}) sec P in
+      let E : edges-2 {X} σ ≡ P = snd (is-section (edges-2 {X})) sec P in
+      (σ , subst (λ Q . fst (pair-from X) Q ≡ b) (sym E) q₀ , subst (λ Q . pair-mid {X} Q ≡ a) (sym E) q₁ ,
+       trans (pair→hom-coslice-subst {X} a b {edges-2 {X} σ} {P} E q₀ q₁)
+         (cong2 {hom {X} b a} {coslice X a} {hom {X} b a × coslice X a} (λ g' fp' . (g' , fp'))
+           (cong2 {srcᵣ c ≡ b} {tgtᵣ c ≡ a} {hom {X} b a} (λ e₀ e₁ . (c , e₀ , e₁)) (trans-refl-l q₀) (trans-refl-l q₁))
+           (cong {f 𝕀0 ≡ a} {coslice X a} (λ p' . (f , p')) (trans-sym-trans-cancel p q₁)))) in
+    k2 q in
+  k g fp

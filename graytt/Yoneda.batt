@@ -231,7 +231,8 @@ yoneda {A} a F sA sF cF yc =
 -- σ_i := λ y . σ (y₁ , y₁ ∧ y₂ ∧ i) (comp-simplex-2-paths), which is χ_σ i. These pointwise paths form
 -- an oplax homotopy 𝕀 →ᵣ path (Σ (x : A) . hom b x), hence a path of 1-cells (htpyᵣ→path, oplax
 -- funext) from Y ∘ Γ̄_f to the cocartesian lift χ̄_σ (yon-hom-conn-cocart-simplex). Every pair
--- (g , f) is the pair of first edges of a 2-simplex, up to paths (pair→hom-coslice).
+-- (g , f) is the pair of first edges of a 2-simplex, up to paths (hom-coslice-edges-2,
+-- Simplex-edges.batt).
 --
 
 -- the statement, for g : hom b a and a 1-cell f from a
@@ -272,46 +273,20 @@ yon-hom-conn-cocart-simplex {A} rA a b σ γ₀ γ₁ =
   is-cocartesian-cell-path {Eb} {A} sEb sA (fst (hom-family {A} b)) {λ i . Y (Γ i)} {χ}
     (htpyᵣ→path 𝕀 Eb H) (snd _ (hom-family-lift {A} sA b σ γ₀))
 
--- a composable pair with paths from its first object to b and from its middle object to a, as a pair
--- (g , f) with g : hom b a and f a 1-cell from a
-pair→hom-coslice ∷ {A ∷ U} (a b ∷ A) (P : pairs A) → fst (pair-from A) P ≡ b → pair-mid {A} P ≡ a → hom {A} b a × coslice A a
-pair→hom-coslice {A} a b (x , r) =
-  let k : (r : pair-from A x) → x ≡ b → pair-mid {A} (x , r) ≡ a → hom {A} b a × coslice A a = fun (z , r2) → λ γ₀ γ₁ .
-    let k2 : (r2 : Σ (w : A) . hom {A} x z × hom {A} z w) → hom {A} b a × coslice A a = fun (w , tv) →
-      let k3 : (tv : hom {A} x z × hom {A} z w) → hom {A} b a × coslice A a = fun (t , v) →
-        ((hom-cell {A} {x} {z} t , trans (hom-src {A} {x} {z} t) γ₀ , trans (hom-tgt {A} {x} {z} t) γ₁) ,
-         (hom-cell {A} {z} {w} v , trans (hom-src {A} {z} {w} v) γ₁)) in
-      k3 tv in
-    k2 r2 in
-  k r
-
--- transporting the paths along a path of pairs
-pair→hom-coslice-subst ∷ {A ∷ U} (a b ∷ A) {P' P : pairs A} (E : P' ≡ P) (γ₀ : fst (pair-from A) P ≡ b) (γ₁ : pair-mid {A} P ≡ a) →
-  pair→hom-coslice {A} a b P' (subst (λ Q . fst (pair-from A) Q ≡ b) (sym E) γ₀) (subst (λ Q . pair-mid {A} Q ≡ a) (sym E) γ₁)
-    ≡ pair→hom-coslice {A} a b P γ₀ γ₁
-pair→hom-coslice-subst {A} a b {P'} refl γ₀ γ₁ = refl
-
 -- Y sends every connection to a cocartesian 1-cell
 yon-hom-conn-cocart ∷ {A ∷ U} (rA : is-rezkᵣ A) (a b ∷ A) (z : hom {A} b a × coslice A a) → yon-hom-conn-cocart-stmt {A} rA a b z
-yon-hom-conn-cocart {A} rA a b (g , fp) =
-  let k : (g : hom {A} b a) (fp : coslice A a) → yon-hom-conn-cocart-stmt {A} rA a b (g , fp) = fun (c , q) → fun (f , p) →
-    let k2 : (q : (srcᵣ c ≡ b) × (tgtᵣ c ≡ a)) → yon-hom-conn-cocart-stmt {A} rA a b ((c , q) , (f , p)) = fun (q₀ , q₁) →
-      -- the pair (g , f) with trivial paths, and a 2-simplex with these edges
-      let P : pairs A = (srcᵣ c , tgtᵣ c , tgtᵣ f , (c , refl , refl) , (f , trans p (sym q₁) , refl)) in
-      let sec : section (edges-2 {A}) = is-equiv-sec (edges-2 {A}) (is-equiv-edges-2 A (rezk-segalᵣ {A} rA)) in
-      let σ : simplex 2 →ᵣ A = section-map (edges-2 {A}) sec P in
-      let E : edges-2 {A} σ ≡ P = snd (is-section (edges-2 {A})) sec P in
-      let γ₀ : σ (simplex-2-e₀₁ 𝕀0) ≡ b = subst (λ Q . fst (pair-from A) Q ≡ b) (sym E) q₀ in
-      let γ₁ : σ (simplex-2-e₀₁ 𝕀1) ≡ a = subst (λ Q . pair-mid {A} Q ≡ a) (sym E) q₁ in
-      let path : pair→hom-coslice {A} a b (edges-2 {A} σ) γ₀ γ₁ ≡ ((c , q₀ , q₁) , (f , p)) =
-        trans (pair→hom-coslice-subst {A} a b {edges-2 {A} σ} {P} E q₀ q₁)
-          (cong2 {hom {A} b a} {coslice A a} {hom {A} b a × coslice A a} (λ g' fp' . (g' , fp'))
-            (cong2 {srcᵣ c ≡ b} {tgtᵣ c ≡ a} {hom {A} b a} (λ e₀ e₁ . (c , e₀ , e₁)) (trans-refl-l q₀) (trans-refl-l q₁))
-            (cong {f 𝕀0 ≡ a} {coslice A a} (λ p' . (f , p')) (trans-sym-trans-cancel p q₁))) in
-      subst (yon-hom-conn-cocart-stmt {A} rA a b) path
-        (yon-hom-conn-cocart-simplex {A} rA a b σ (trans refl γ₀) (trans refl γ₁)) in
-    k2 q in
-  k g fp
+yon-hom-conn-cocart {A} rA a b z =
+  let R : (σ : simplex 2 →ᵣ A) → U = λ σ .
+    Σ (γ₀ : σ (simplex-2-e₀₁ 𝕀0) ≡ b) . Σ (γ₁ : σ (simplex-2-e₀₁ 𝕀1) ≡ a) . pair→hom-coslice {A} a b (edges-2 {A} σ) γ₀ γ₁ ≡ z in
+  let k : (Σ (σ : simplex 2 →ᵣ A) . R σ) → yon-hom-conn-cocart-stmt {A} rA a b z = fun (σ , r) →
+    let k2 : (r : R σ) → yon-hom-conn-cocart-stmt {A} rA a b z = fun (γ₀ , r2) →
+      let k3 : (r2 : Σ (γ₁ : σ (simplex-2-e₀₁ 𝕀1) ≡ a) . pair→hom-coslice {A} a b (edges-2 {A} σ) γ₀ γ₁ ≡ z) →
+               yon-hom-conn-cocart-stmt {A} rA a b z = fun (γ₁ , E) →
+        subst (yon-hom-conn-cocart-stmt {A} rA a b) E
+          (yon-hom-conn-cocart-simplex {A} rA a b σ (trans refl γ₀) (trans refl γ₁)) in
+      k3 r2 in
+    k2 r in
+  k (hom-coslice-edges-2 A (rezk-segalᵣ {A} rA) a b z)
 
 -- yon g is a cocartesian fibrewise map
 yon-hom-is-cocartesian ∷ {A ∷ U} (rA : is-rezkᵣ A) (a b ∷ A) (g : hom {A} b a) →

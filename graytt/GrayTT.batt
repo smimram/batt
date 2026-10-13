@@ -1,4 +1,4 @@
--- Entry point for cellular type theory
+-- Entry point for Gray type theory
 
 open import Susp-hom-adj
 open import Spine
@@ -17,6 +17,7 @@ open import Point-pullback
 open import Pullback-hom
 open import Base-change
 open import Coslice
+open import Coslice-fibration
 open import Hom-family
 open import Cocartesian-map
 open import Yoneda
