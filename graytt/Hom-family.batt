@@ -1,0 +1,259 @@
+--
+-- Hom families
+--
+-- For a crisp a : A, the hom family x ↦ hom a x (hom-family), whose total space is the coslice a/A.
+--
+--   - It is covariant for A oplax-Rezk (hom-family-covariant).
+--   - Its connections Γ̄_f are cocartesian, the cocartesian lifts χ̄_σ satisfy Γ̄_t ; χ̄_σ = Γ̄_{u ∘ t}
+--     (hom-family-lift-comp), and every cocartesian 1-cell is some χ̄_σ (hom-family-cocart-cell-ind).
+--   - Pushforward is postcomposition: u_! t = t ; u (push-hom-family).
+--
+-- Postulates relied on: fold-lemma, objectwise-equiv, pushout-up, univalence, truncation, is-set-𝕀.
+--
+
+open import Stdlib
+open import Hom
+open import Segal
+open import Rezk
+open import Fibration
+open import Covariant
+open import Local
+open import Coslice
+open import Coslice-fibration
+open import Composition
+open import Composable
+open import Simplex-edges
+open import Codomain
+open import Connection
+
+--
+-- The hom family and its total space
+--
+
+-- the family of homs out of a
+hom-family ∷ {A ∷ U} (a ∷ A) → A → U
+hom-family {A} a x = hom {A} a x
+
+-- its total space is the coslice
+coslice→hom-family ∷ {A ∷ U} (a ∷ A) → coslice A a → Σ (x : A) . hom-family {A} a x
+coslice→hom-family {A} a w = (coslice-tgt {A} {a} w , coslice-cell {A} {a} w , coslice-src {A} {a} w , refl)
+
+hom-family→coslice ∷ {A ∷ U} (a ∷ A) → (Σ (x : A) . hom-family {A} a x) → coslice A a
+hom-family→coslice {A} a (x , h) = (hom-cell {A} {a} {x} h , hom-src {A} {a} {x} h)
+
+is-equiv-coslice→hom-family ∷ {A ∷ U} (a ∷ A) → is-equiv (coslice→hom-family {A} a)
+is-equiv-coslice→hom-family {A} a =
+  let sec : (w : Σ (x : A) . hom-family {A} a x) → coslice→hom-family {A} a (hom-family→coslice {A} a w) ≡ w =
+    fun (x , h) →
+      let k : (h : hom {A} a x) → coslice→hom-family {A} a (hom-family→coslice {A} a (x , h)) ≡ (x , h) =
+        fun (f , r) →
+          let k2 : (r : (srcᵣ f ≡ a) × (tgtᵣ f ≡ x)) → coslice→hom-family {A} a (hom-family→coslice {A} a (x , f , r)) ≡ (x , f , r) =
+            fun (p , q) → homs-from-tgt-path {A} {a} f p {x} q in
+          k2 r in
+      k h in
+  let retr : (w : coslice A a) → hom-family→coslice {A} a (coslice→hom-family {A} a w) ≡ w =
+    fun (f , p) → refl in
+  ((hom-family→coslice {A} a , sec) , (hom-family→coslice {A} a , retr))
+
+-- an object (z , λ j . z , p , refl) of E, with p : z ≡ a, is the identity of a (by path induction
+-- on sym p, whose free endpoint is on the right)
+hom-family-id-path-sym ∷ {A ∷ U} (a ∷ A) {z : A} (q : a ≡ z) →
+  (z , (λ j . z) , sym q , refl) ≡{Σ (x : A) . hom-family {A} a x} (a , Hom.id {A} a)
+hom-family-id-path-sym {A} a refl = refl
+
+hom-family-id-path ∷ {A ∷ U} (a ∷ A) {z : A} (p : z ≡ a) →
+  (z , (λ j . z) , p , refl) ≡{Σ (x : A) . hom-family {A} a x} (a , Hom.id {A} a)
+hom-family-id-path {A} a {z} p =
+  subst {z ≡ a} (λ p' . (z , (λ j . z) , p' , refl) ≡{Σ (x : A) . hom-family {A} a x} (a , Hom.id {A} a))
+    (sym-sym p) (hom-family-id-path-sym {A} a {z} (sym p))
+
+-- its image in A, through the total map of any fibrewise map, is p
+hom-family-id-path-sym-tot ∷ {A ∷ U} (a ∷ A) (G ∷ A → U) (φ : (x : A) → hom-family {A} a x → G x) {z : A} (q : a ≡ z) →
+  cong (fst G) (cong (tot {A} {hom-family {A} a} {G} φ) (hom-family-id-path-sym {A} a {z} q)) ≡ sym q
+hom-family-id-path-sym-tot {A} a G φ refl = refl
+
+hom-family-id-path-subst-tot ∷ {A ∷ U} (a ∷ A) (G ∷ A → U) (φ : (x : A) → hom-family {A} a x → G x) {z : A} {p₁ p₂ : z ≡ a}
+  (e : p₁ ≡ p₂) (X : (z , (λ j . z) , p₁ , refl) ≡{Σ (x : A) . hom-family {A} a x} (a , Hom.id {A} a)) →
+  cong (fst G) (cong (tot {A} {hom-family {A} a} {G} φ) X) ≡ p₁ →
+  cong (fst G) (cong (tot {A} {hom-family {A} a} {G} φ)
+    (subst {z ≡ a} (λ p' . (z , (λ j . z) , p' , refl) ≡{Σ (x : A) . hom-family {A} a x} (a , Hom.id {A} a)) e X)) ≡ p₂
+hom-family-id-path-subst-tot {A} a G φ {z} {p₁} refl X h = h
+
+hom-family-id-path-tot ∷ {A ∷ U} (a ∷ A) (G ∷ A → U) (φ : (x : A) → hom-family {A} a x → G x) {z : A} (p : z ≡ a) →
+  cong (fst G) (cong (tot {A} {hom-family {A} a} {G} φ) (hom-family-id-path {A} a {z} p)) ≡ p
+hom-family-id-path-tot {A} a G φ {z} p =
+  hom-family-id-path-subst-tot {A} a G φ {z} {sym (sym p)} {p} (sym-sym p) (hom-family-id-path-sym {A} a {z} (sym p))
+    (hom-family-id-path-sym-tot {A} a G φ {z} (sym p))
+
+--
+-- Hom families are covariant
+--
+
+-- the total space of the hom family is oplax-Segal
+is-segalᵣ-hom-family ∷ {A ∷ U} (sA : is-segalᵣ A) (a ∷ A) → is-segalᵣ (Σ (x : A) . hom-family {A} a x)
+is-segalᵣ-hom-family {A} sA a =
+  is-segalᵣ-equiv-cod {coslice A a} {Σ (x : A) . hom-family {A} a x}
+    (coslice→hom-family {A} a) (is-equiv-coslice→hom-family {A} a) (is-segalᵣ-coslice {A} sA a)
+
+-- hom families of oplax-Rezk types are covariant
+hom-family-covariant ∷ {A ∷ U} (rA : is-rezkᵣ A) (a ∷ A) →
+  is-covariant {A} (hom-family {A} a) (rezk-segalᵣ {A} rA) (is-segalᵣ-hom-family {A} (rezk-segalᵣ {A} rA) a)
+hom-family-covariant {A} rA a =
+  let sA : is-segalᵣ A = rezk-segalᵣ {A} rA in
+  is-cocartesian-fibration-equiv {coslice A a} {Σ (x : A) . hom-family {A} a x} {A}
+    (is-segalᵣ-coslice {A} sA a) (is-segalᵣ-hom-family {A} sA a) sA
+    (coslice→hom-family {A} a) (is-equiv-coslice→hom-family {A} a) (fst (hom-family {A} a))
+    (coslice-fibration {A} rA a)
+
+--
+-- Connections, and the cocartesian lifts as composites of connections
+--
+-- In E, the connection of a 1-cell f of A with p : f 0 ≡ a is Γ̄_f := λ i . (f i , λ j . f (i ∧ j) , p , refl)
+-- (hom-family-conn), the ev₁-cocartesian lift of f at the identity of a. For a 2-simplex σ with a
+-- path γ from its first vertex to a, the 2-simplex
+--
+--   τ̄_σ := λ y . (λ k . σ (y₁ ∧ k , y₁ ∧ y₂ ∧ k) , γ)          (hom-family-lift-tri)
+--
+-- of E has edges Γ̄_t, χ̄_σ and Γ̄_{u ∘ t}, judgmentally, where t, u are the first edges of σ, u ∘ t
+-- its long edge and χ̄_σ the cocartesian lift of u at t (coslice-lift-sq, Coslice-fibration.batt).
+-- Hence Γ̄_t ; χ̄_σ = Γ̄_{u ∘ t} (hom-family-lift-comp). The point (y₁ ∧ k , y₁ ∧ y₂ ∧ k) is sorted by absorption, judgmentally,
+-- and is (0 , 0) for k = 0 whatever y, so that the same path γ fits every vertex. (The triangle
+-- λ y k . σ (y₁ ∧ k , y₂ ∧ k) of lift-tri, Codomain.batt, has the same edges, but its sortedness
+-- proof at k = 0 is not refl for a generic y.)
+--
+-- Every cocartesian 1-cell of E is such a χ̄_σ, up to a path (hom-family-cocart-cell-ind): it is the
+-- image of a cocartesian 1-cell of the coslice, which is the canonical lift of its datum
+-- (coslice-lift, lifts being unique).
+--
+
+-- the connection Γ̄_f
+hom-family-conn ∷ {A ∷ U} (a ∷ A) (f : arrᵣ A) (p : srcᵣ f ≡ a) → arrᵣ (Σ (x : A) . hom-family {A} a x)
+hom-family-conn {A} a f p = λ i . coslice→hom-family {A} a (conn {A} f i , p)
+
+-- the cocartesian lift χ̄_σ, in E
+hom-family-lift ∷ {A ∷ U} (sA : is-segalᵣ A) (a ∷ A) (σ : simplex 2 →ᵣ A) (γ : srcᵣ (lift-sq {A} σ 𝕀0) ≡ a) →
+  cocart-cell {Σ (x : A) . hom-family {A} a x} {A} (is-segalᵣ-hom-family {A} sA a) sA (fst (hom-family {A} a))
+hom-family-lift {A} sA a σ γ =
+  cocart-cell-equiv {coslice A a} {Σ (x : A) . hom-family {A} a x} {A} (is-segalᵣ-coslice {A} sA a) (is-segalᵣ-hom-family {A} sA a) sA
+    (coslice→hom-family {A} a) (is-equiv-coslice→hom-family {A} a) (fst (hom-family {A} a)) (coslice-lift-sq {A} sA a σ γ)
+
+-- the connections are cocartesian: Γ̄_f is χ̄_σ for the degenerate 2-simplex σ = λ y . f y₂
+hom-family-conn-cocart ∷ {A ∷ U} (sA : is-segalᵣ A) (a ∷ A) (f : arrᵣ A) (p : srcᵣ f ≡ a) →
+  is-cocartesian {Σ (x : A) . hom-family {A} a x} {A} (is-segalᵣ-hom-family {A} sA a) sA (fst (hom-family {A} a))
+    {hom-family-conn {A} a f p 𝕀0} {hom-family-conn {A} a f p 𝕀1}
+    (cell-hom {Σ (x : A) . hom-family {A} a x} (hom-family-conn {A} a f p))
+hom-family-conn-cocart {A} sA a f p = snd _ (hom-family-lift {A} sA a (λ y . f (simplex-2-snd y)) p)
+
+-- the 2-simplex τ̄_σ
+hom-family-lift-tri ∷ {A ∷ U} (a ∷ A) (σ : simplex 2 →ᵣ A) (γ : srcᵣ (lift-sq {A} σ 𝕀0) ≡ a) →
+  (simplex 2 →ᵣ Σ (x : A) . hom-family {A} a x)
+hom-family-lift-tri {A} a σ γ = λ y .
+  coslice→hom-family {A} a
+    ((λ k . σ ((simplex-2-fst y 𝕀∧ k , simplex-2-fst y 𝕀∧ simplex-2-snd y 𝕀∧ k , tt) , (refl , tt))) , γ)
+
+-- its edges are Γ̄_t, χ̄_σ and Γ̄_{u ∘ t}
+hom-family-lift-tri-edges ∷ {A ∷ U} (sA : is-segalᵣ A) (a ∷ A) (σ : simplex 2 →ᵣ A) (γ : srcᵣ (lift-sq {A} σ 𝕀0) ≡ a) →
+  (simplex-2-hom₀₁ {Σ (x : A) . hom-family {A} a x} (hom-family-lift-tri {A} a σ γ)
+     ≡ cell-hom {Σ (x : A) . hom-family {A} a x} (hom-family-conn {A} a (hom-cell (simplex-2-hom₀₁ {A} σ)) γ)) ×
+  (simplex-2-hom₁₂ {Σ (x : A) . hom-family {A} a x} (hom-family-lift-tri {A} a σ γ)
+     ≡ cell-hom {Σ (x : A) . hom-family {A} a x} (fst _ (hom-family-lift {A} sA a σ γ))) ×
+  (simplex-2-hom₀₂ {Σ (x : A) . hom-family {A} a x} (hom-family-lift-tri {A} a σ γ)
+     ≡ cell-hom {Σ (x : A) . hom-family {A} a x} (hom-family-conn {A} a (hom-cell (simplex-2-hom₀₂ {A} σ)) γ))
+hom-family-lift-tri-edges {A} sA a σ γ = (refl , refl , refl)
+
+-- Γ̄_t ; χ̄_σ = Γ̄_{u ∘ t}
+hom-family-lift-comp ∷ {A ∷ U} (sA : is-segalᵣ A) (a ∷ A) (σ : simplex 2 →ᵣ A) (γ : srcᵣ (lift-sq {A} σ 𝕀0) ≡ a) →
+  comp-homᵣ (Σ (x : A) . hom-family {A} a x) (is-segalᵣ-hom-family {A} sA a)
+    (cell-hom {Σ (x : A) . hom-family {A} a x} (hom-family-conn {A} a (hom-cell (simplex-2-hom₀₁ {A} σ)) γ))
+    (cell-hom {Σ (x : A) . hom-family {A} a x} (fst _ (hom-family-lift {A} sA a σ γ)))
+  ≡ cell-hom {Σ (x : A) . hom-family {A} a x} (hom-family-conn {A} a (hom-cell (simplex-2-hom₀₂ {A} σ)) γ)
+hom-family-lift-comp {A} sA a σ γ =
+  comp-simplex-2 (Σ (x : A) . hom-family {A} a x) (is-segalᵣ-hom-family {A} sA a) (hom-family-lift-tri {A} a σ γ)
+
+-- every cocartesian 1-cell of E is some χ̄_σ, up to a path
+hom-family-cocart-cell-ind ∷ {A ∷ U} (rA : is-rezkᵣ A) (a ∷ A)
+  (P : cocart-cell {Σ (x : A) . hom-family {A} a x} {A} (is-segalᵣ-hom-family {A} (rezk-segalᵣ {A} rA) a) (rezk-segalᵣ {A} rA)
+         (fst (hom-family {A} a)) → U) →
+  ((σ : simplex 2 →ᵣ A) (γ : srcᵣ (lift-sq {A} σ 𝕀0) ≡ a) → P (hom-family-lift {A} (rezk-segalᵣ {A} rA) a σ γ)) →
+  (w : cocart-cell {Σ (x : A) . hom-family {A} a x} {A} (is-segalᵣ-hom-family {A} (rezk-segalᵣ {A} rA) a) (rezk-segalᵣ {A} rA)
+         (fst (hom-family {A} a))) → P w
+hom-family-cocart-cell-ind {A} rA a P H w =
+  let sA : is-segalᵣ A = rezk-segalᵣ {A} rA in
+  let S ∷ U = coslice A a in
+  let E ∷ U = Σ (x : A) . hom-family {A} a x in
+  let sS : is-segalᵣ S = is-segalᵣ-coslice {A} sA a in
+  let sE : is-segalᵣ E = is-segalᵣ-hom-family {A} sA a in
+  let CS : U = cocart-cell {S} {A} sS sA (coslice-tgt {A} {a}) in
+  let D ∷ U = pullback {S} {arrᵣ A} {A} (coslice-tgt {A} {a}) (λ u . srcᵣ u) in
+  let Φ : CS → cocart-cell {E} {A} sE sA (fst (hom-family {A} a)) =
+    cocart-cell-equiv {S} {E} {A} sS sE sA (coslice→hom-family {A} a) (is-equiv-coslice→hom-family {A} a) (fst (hom-family {A} a)) in
+  let eΦ : is-equiv Φ =
+    is-equiv-cocart-cell-equiv {S} {E} {A} sS sE sA (coslice→hom-family {A} a) (is-equiv-coslice→hom-family {A} a) (fst (hom-family {A} a)) in
+  let L : CS → D = cocart-cell-lift {S} {A} sS sA (coslice-tgt {A} {a}) in
+  -- the canonical lifts satisfy P
+  let HD : (d : D) → P (Φ (coslice-lift {A} sA a d)) = fun (w0 , r) →
+    let k : (w0 : S) (r : Σ (u : arrᵣ A) . coslice-tgt {A} {a} w0 ≡ srcᵣ u) → P (Φ (coslice-lift {A} sA a (w0 , r))) =
+      fun (y , δ) r →
+        let d : pullback {arrᵣ A} {arrᵣ A} {A} (ev₁ {A}) (λ u . srcᵣ u) = (y , r) in
+        H (lift-simplex {A} sA d)
+          (trans (cong (λ d' . srcᵣ (fst {arrᵣ A} (λ y' . Σ (u : arrᵣ A) . tgtᵣ y' ≡ srcᵣ u) d')) (codomain-lift-over {A} sA d)) δ) in
+    k w0 r in
+  -- w is the image of a cocartesian 1-cell of the coslice, which is the canonical lift of its datum
+  let sΦ : section Φ = is-equiv-sec Φ eΦ in
+  let w' : CS = section-map Φ sΦ w in
+  let e' : coslice-lift {A} sA a (L w') ≡ w' =
+    retraction-inj L (is-equiv-ret L (coslice-fibration {A} rA a)) (coslice-lift-over {A} sA a (L w')) in
+  subst P (snd (is-section Φ) sΦ w) (subst (λ v . P (Φ v)) e' (HD (L w')))
+
+--
+-- Pushforward in the hom family is postcomposition
+--
+-- For t : hom a b and u : hom b c, u_! t = t ; u (push-hom-family). If t and u are
+-- the first edges of a 2-simplex σ (t with a source path γ : σ 0 ≡ a), the cocartesian lift of u at
+-- t is χ̄_σ, which lies over (t , u) judgmentally, so that u_! t is its target χ_σ 1 = λ j . σ (j , j),
+-- the long edge of σ, which is the composite t ; u (comp-simplex-2-src, Composition.batt)
+-- (push-hom-family-simplex). Every pair out of a is of this form up to a path (pair-from-edges-2,
+-- Simplex-edges.batt).
+--
+
+-- the statement, for a composable pair out of a
+push-hom-family-stmt ∷ {A ∷ U} (rA : is-rezkᵣ A) (a ∷ A) → pair-from A a → U
+push-hom-family-stmt {A} rA a (b , r) =
+  let sA : is-segalᵣ A = rezk-segalᵣ {A} rA in
+  let k : (r : Σ (c : A) . hom {A} a b × hom {A} b c) → U = fun (c , tu) →
+    let k2 : (tu : hom {A} a b × hom {A} b c) → U = fun (t , u) →
+      push {A} (hom-family {A} a) sA (is-segalᵣ-hom-family {A} sA a) (hom-family-covariant {A} rA a) {b} {c} u t
+        ≡ comp-homᵣ A sA {a} {b} {c} t u in
+    k2 tu in
+  k r
+
+-- for the first edges of a 2-simplex
+push-hom-family-simplex ∷ {A ∷ U} (rA : is-rezkᵣ A) (a ∷ A) (σ : simplex 2 →ᵣ A)
+  (γ : σ (simplex-2-e₀₁ 𝕀0) ≡ a) → push-hom-family-stmt {A} rA a (pair→pair-from {A} a (edges-2 {A} σ) γ)
+push-hom-family-simplex {A} rA a σ γ =
+  let sA : is-segalᵣ A = rezk-segalᵣ {A} rA in
+  let F ∷ A → U = hom-family {A} a in
+  let γ' : σ (simplex-2-e₀₁ 𝕀0) ≡ a = trans {A} {σ (simplex-2-e₀₁ 𝕀0)} refl γ in
+  let t : hom {A} a (σ (simplex-2-e₀₁ 𝕀1)) =
+    (hom-cell {A} {σ (simplex-2-e₀₁ 𝕀0)} {σ (simplex-2-e₀₁ 𝕀1)} (simplex-2-hom₀₁ {A} σ) , γ' , refl) in
+  -- the lift χ̄_σ lies over (t , u) judgmentally; its target is the long edge of σ
+  let p : push {A} F sA (is-segalᵣ-hom-family {A} sA a) (hom-family-covariant {A} rA a)
+            {σ (simplex-2-e₁₂ 𝕀0)} {σ (simplex-2-e₁₂ 𝕀1)} (simplex-2-hom₁₂ {A} σ) t
+          ≡ (hom-cell {A} {σ (long-edge 𝕀0)} {σ (long-edge 𝕀1)} (simplex-2-hom₀₂ {A} σ) , γ' , refl) =
+    push-cocart {A} F sA (is-segalᵣ-hom-family {A} sA a) (hom-family-covariant {A} rA a)
+      {σ (simplex-2-e₁₂ 𝕀0)} {σ (simplex-2-e₁₂ 𝕀1)} (simplex-2-hom₁₂ {A} σ) t (hom-family-lift {A} sA a σ γ') refl in
+  trans p (sym (comp-simplex-2-src A sA σ {a} γ'))
+
+-- pushforward in the hom family is postcomposition: u_! t = t ; u
+push-hom-family ∷ {A ∷ U} (rA : is-rezkᵣ A) (a ∷ A) {b c : A} (u : hom {A} b c) (t : hom {A} a b) →
+  push {A} (hom-family {A} a) (rezk-segalᵣ {A} rA) (is-segalᵣ-hom-family {A} (rezk-segalᵣ {A} rA) a) (hom-family-covariant {A} rA a)
+    {b} {c} u t
+    ≡ comp-homᵣ A (rezk-segalᵣ {A} rA) {a} {b} {c} t u
+push-hom-family {A} rA a {b} {c} u t =
+  let k : (Σ (σ : simplex 2 →ᵣ A) . Σ (γ : σ (simplex-2-e₀₁ 𝕀0) ≡ a) . pair→pair-from {A} a (edges-2 {A} σ) γ ≡ (b , c , t , u)) →
+          push-hom-family-stmt {A} rA a (b , c , t , u) = fun (σ , r) →
+    let k2 : (r : Σ (γ : σ (simplex-2-e₀₁ 𝕀0) ≡ a) . pair→pair-from {A} a (edges-2 {A} σ) γ ≡ (b , c , t , u)) →
+             push-hom-family-stmt {A} rA a (b , c , t , u) = fun (γ , E) →
+      subst (push-hom-family-stmt {A} rA a) E (push-hom-family-simplex {A} rA a σ γ) in
+    k2 r in
+  k (pair-from-edges-2 A (rezk-segalᵣ {A} rA) a (b , c , t , u))

@@ -1,0 +1,172 @@
+--
+-- Coslices are Rezk, and the hom fibration
+--
+-- For crisp a and A oplax-Rezk:
+--
+--   - a/A is oplax-Segal and oplax-complete (is-segalᵣ-coslice, is-completeᵣ-coslice), as the pullback
+--     of a : 1 → A along ev₀ (Local.batt);
+--   - ev₁ : a/A → A is a cocartesian fibration (coslice-fibration).
+--
+-- Proof of the second point: the cocartesian lift for the codomain fibration has a constant source,
+-- so it lifts to a/A (coslice-lift); it is cocartesian there by base change (a/A is a pullback) and
+-- the composite lemma (is-cocartesian-circ, Fibration.batt), and lifts are unique since a/A is univalent.
+--
+-- Postulates relied on: fold-lemma, objectwise-equiv, pushout-up, univalence, truncation, is-set-𝕀.
+--
+
+open import Stdlib
+open import Segal
+open import Coslice
+
+--
+-- The coslice is a pullback, hence oplax-Segal and oplax-complete
+--
+-- a/A is the pullback of a : 1 → A along ev₀ : 𝕀 →ᵣ A → A, and pullbacks of oplax-Segal (resp.
+-- oplax-complete) types are oplax-Segal (resp. oplax-complete) (Local.batt). The arrow type
+-- 𝕀 →ᵣ A is oplax-Segal (resp. oplax-complete) when A is (is-segal-arrᵣ, is-complete-arrᵣ).
+--
+
+open import Point-pullback
+open import Local
+open import Complete
+
+-- the coslice as the pullback of a : 1 → A along ev₀ (with the path in the other direction)
+point-pullback→coslice ∷ {A ∷ U} (a ∷ A) → point-pullback {arrᵣ A} {A} (λ f . srcᵣ f) a → coslice A a
+point-pullback→coslice {A} a w =
+  (point-pullback-proj {arrᵣ A} {A} (λ f . srcᵣ f) a w , sym (point-pullback-path {arrᵣ A} {A} (λ f . srcᵣ f) a w))
+
+is-equiv-point-pullback→coslice ∷ {A ∷ U} (a ∷ A) → is-equiv (point-pullback→coslice {A} a)
+is-equiv-point-pullback→coslice {A} a =
+  let inv : coslice A a → point-pullback {arrᵣ A} {A} (λ f . srcᵣ f) a = λ w . (coslice-cell {A} {a} w , sym (coslice-src {A} {a} w)) in
+  ((inv , fun (f , d) → cong {f 𝕀0 ≡ a} {coslice A a} (λ d' . (f , d')) (sym-sym d)) ,
+   (inv , fun (f , d) → cong {a ≡ f 𝕀0} {point-pullback {arrᵣ A} {A} (λ f' . srcᵣ f') a} (λ d' . (f , d')) (sym-sym d)))
+
+-- a/A is oplax-Segal when A is
+is-segalᵣ-coslice ∷ {A ∷ U} → is-segalᵣ A → (a ∷ A) → is-segalᵣ (coslice A a)
+is-segalᵣ-coslice {A} sA a =
+  let P ∷ U = point-pullback {arrᵣ A} {A} (λ f . srcᵣ f) a in
+  is-segalᵣ-equiv-cod {P} {coslice A a} (point-pullback→coslice {A} a) (is-equiv-point-pullback→coslice {A} a)
+    (is-segalᵣ-equiv {P} {pullback {⊤} {arrᵣ A} {A} (λ _ . a) (λ f . srcᵣ f)}
+      (point-pullback→pullback {arrᵣ A} {A} (λ f . srcᵣ f) a) (is-equiv-point-pullback→pullback {arrᵣ A} {A} (λ f . srcᵣ f) a)
+      (is-segalᵣ-pullback {⊤} {arrᵣ A} {A} (λ _ . a) (λ f . srcᵣ f) is-segalᵣ-unit (is-segal-arrᵣ {A} sA) sA))
+
+-- a/A is oplax-complete when A is
+is-completeᵣ-coslice ∷ {A ∷ U} → is-completeᵣ A → (a ∷ A) → is-completeᵣ (coslice A a)
+is-completeᵣ-coslice {A} cA a =
+  let P ∷ U = point-pullback {arrᵣ A} {A} (λ f . srcᵣ f) a in
+  is-completeᵣ-equiv-cod {P} {coslice A a} (point-pullback→coslice {A} a) (is-equiv-point-pullback→coslice {A} a)
+    (is-completeᵣ-equiv {P} {pullback {⊤} {arrᵣ A} {A} (λ _ . a) (λ f . srcᵣ f)}
+      (point-pullback→pullback {arrᵣ A} {A} (λ f . srcᵣ f) a) (is-equiv-point-pullback→pullback {arrᵣ A} {A} (λ f . srcᵣ f) a)
+      (is-completeᵣ-pullback {⊤} {arrᵣ A} {A} (λ _ . a) (λ f . srcᵣ f) is-completeᵣ-unit (is-complete-arrᵣ {A} cA) cA))
+
+--
+-- The projection to A is a cocartesian fibration
+--
+
+open import Hom
+open import Fibration
+open import Fold
+open import Transported-id
+open import Pullback-hom
+open import Base-change
+open import Codomain
+open import Univalent
+open import Lift-unique
+open import Complete-univalent
+
+-- lifting data for the codomain fibration, with a path from the source of the first arrow to a,
+-- are lifting data for the coslice
+coslice-lift-data ∷ {A ∷ U} (a ∷ A) (d : pullback {arrᵣ A} {arrᵣ A} {A} (ev₁ {A}) (λ u . srcᵣ u)) →
+  srcᵣ (fst {arrᵣ A} (λ y . Σ (u : arrᵣ A) . tgtᵣ y ≡ srcᵣ u) d) ≡ a →
+  pullback {coslice A a} {arrᵣ A} {A} (coslice-tgt {A} {a}) (λ u . srcᵣ u)
+coslice-lift-data {A} a (y , r) δ = ((y , δ) , r)
+
+-- paths of lifting data lift to the coslice
+coslice-lift-data-path ∷ {A ∷ U} (a ∷ A) {d₀ d : pullback {arrᵣ A} {arrᵣ A} {A} (ev₁ {A}) (λ u . srcᵣ u)} (Q : d₀ ≡ d)
+  (δ : srcᵣ (fst {arrᵣ A} (λ y . Σ (u : arrᵣ A) . tgtᵣ y ≡ srcᵣ u) d) ≡ a) →
+  coslice-lift-data {A} a d₀ (trans (cong (λ d' . srcᵣ (fst {arrᵣ A} (λ y . Σ (u : arrᵣ A) . tgtᵣ y ≡ srcᵣ u) d')) Q) δ)
+    ≡ coslice-lift-data {A} a d δ
+coslice-lift-data-path {A} a {d₀} {d} Q =
+  J d₀ (λ d' Q' . (δ : srcᵣ (fst {arrᵣ A} (λ y . Σ (u : arrᵣ A) . tgtᵣ y ≡ srcᵣ u) d') ≡ a) →
+          coslice-lift-data {A} a d₀ (trans (cong (λ d'' . srcᵣ (fst {arrᵣ A} (λ y . Σ (u : arrᵣ A) . tgtᵣ y ≡ srcᵣ u) d'')) Q') δ)
+            ≡ coslice-lift-data {A} a d' δ)
+    (λ δ . cong (coslice-lift-data {A} a d₀) (trans-refl-l δ)) Q
+
+-- the lift χ̄_σ := λ i . (χ_σ i , γ) of the square χ_σ (lift-sq, Codomain.batt) of a 2-simplex σ of A,
+-- for a path γ from its first vertex to a, is cocartesian
+coslice-lift-sq ∷ {A ∷ U} (sA : is-segalᵣ A) (a ∷ A) (σ : simplex 2 →ᵣ A) (γ : srcᵣ (lift-sq {A} σ 𝕀0) ≡ a) →
+  cocart-cell {coslice A a} {A} (is-segalᵣ-coslice {A} sA a) sA (coslice-tgt {A} {a})
+coslice-lift-sq {A} sA a σ γ =
+  let sY : is-segalᵣ (arrᵣ A) = is-segal-arrᵣ {A} sA in
+  let S ∷ U = coslice A a in
+  let χ : arrᵣ (arrᵣ A) = lift-sq {A} σ in
+  let χ-cell : arrᵣ S = λ i . (χ i , γ) in
+  -- the same cell in the pullback of a along ev₀
+  let S' ∷ U = point-pullback {arrᵣ A} {A} (λ f . srcᵣ f) a in
+  let e ∷ S' → S = point-pullback→coslice {A} a in
+  let ee ∷ is-equiv e = is-equiv-point-pullback→coslice {A} a in
+  let sS' : is-segalᵣ S' = is-segalᵣ-equiv {S'} {S} e ee (is-segalᵣ-coslice {A} sA a) in
+  let ι ∷ S' → arrᵣ A = point-pullback-proj {arrᵣ A} {A} (λ f . srcᵣ f) a in
+  let χ' : arrᵣ S' = λ i . (χ i , sym γ) in
+  -- it is ι-cocartesian (base change lemma), and its image is ev₁-cocartesian (codomain fibration)
+  let cι : is-cocartesian {S'} {arrᵣ A} sS' sY ι {srcᵣ χ'} {tgtᵣ χ'} (cell-hom {S'} χ') =
+    is-cocartesian-point-pullback-proj {arrᵣ A} {A} sY sA (λ g . srcᵣ g) a sS' {srcᵣ χ'} {tgtᵣ χ'} (cell-hom {S'} χ') in
+  let cq : is-cocartesian {arrᵣ A} {A} sY sA (λ g . tgtᵣ g) {ι (srcᵣ χ')} {ι (tgtᵣ χ')} (hom-map {S'} {arrᵣ A} ι {srcᵣ χ'} {tgtᵣ χ'} (cell-hom {S'} χ')) =
+    lift-sq-cocart {A} sA σ in
+  -- hence (ev₁ ∘ ι)-cocartesian (is-cocartesian-circ), and so is its image in the coslice
+  let c' : is-cocartesian {S'} {A} sS' sA (λ w . tgtᵣ (ι w)) {srcᵣ χ'} {tgtᵣ χ'} (cell-hom {S'} χ') =
+    is-cocartesian-circ {S'} {arrᵣ A} {A} sS' sY sA ι (λ g . tgtᵣ g) {srcᵣ χ'} {tgtᵣ χ'} (cell-hom {S'} χ') cι cq in
+  let c0 : is-cocartesian {S} {A} (is-segalᵣ-coslice {A} sA a) sA (coslice-tgt {A} {a}) {e (srcᵣ χ')} {e (tgtᵣ χ')} (hom-map {S'} {S} e {srcᵣ χ'} {tgtᵣ χ'} (cell-hom {S'} χ')) =
+    is-cocartesian-equiv {S'} {S} {A} sS' (is-segalᵣ-coslice {A} sA a) sA e ee (coslice-tgt {A} {a}) {srcᵣ χ'} {tgtᵣ χ'} (cell-hom {S'} χ') c' in
+  (χ-cell ,
+   subst {arrᵣ S} (λ c . is-cocartesian {S} {A} (is-segalᵣ-coslice {A} sA a) sA (coslice-tgt {A} {a}) {srcᵣ c} {tgtᵣ c} (cell-hom {S} c))
+     (cong {srcᵣ (χ 𝕀0) ≡ a} {arrᵣ S} (λ γ' . λ i . (χ i , γ')) (sym-sym γ)) c0)
+
+-- the cocartesian lift of a lifting datum of the coslice: χ̄_σ for the 2-simplex σ of the codomain lift
+coslice-lift ∷ {A ∷ U} (sA : is-segalᵣ A) (a ∷ A) →
+  pullback {coslice A a} {arrᵣ A} {A} (coslice-tgt {A} {a}) (λ u . srcᵣ u) →
+  cocart-cell {coslice A a} {A} (is-segalᵣ-coslice {A} sA a) sA (coslice-tgt {A} {a})
+coslice-lift {A} sA a (w , r) =
+  let k : (w : coslice A a) (r : Σ (u : arrᵣ A) . coslice-tgt {A} {a} w ≡ srcᵣ u) → cocart-cell {coslice A a} {A} (is-segalᵣ-coslice {A} sA a) sA (coslice-tgt {A} {a}) =
+    fun (y , δ) r →
+      let d : pullback {arrᵣ A} {arrᵣ A} {A} (ev₁ {A}) (λ u . srcᵣ u) = (y , r) in
+      let σ : simplex 2 →ᵣ A = lift-simplex {A} sA d in
+      -- the source of χ_σ is constant, and is sent to a by the path of the codomain lift
+      let γ : srcᵣ (lift-sq {A} σ 𝕀0) ≡ a =
+        trans (cong (λ d' . srcᵣ (fst {arrᵣ A} (λ y' . Σ (u : arrᵣ A) . tgtᵣ y' ≡ srcᵣ u) d')) (codomain-lift-over {A} sA d)) δ in
+      coslice-lift-sq {A} sA a σ γ
+  in
+  k w r
+
+-- it lies over the datum
+coslice-lift-over ∷ {A ∷ U} (sA : is-segalᵣ A) (a ∷ A)
+  (w : pullback {coslice A a} {arrᵣ A} {A} (coslice-tgt {A} {a}) (λ u . srcᵣ u)) →
+  cocart-cell-lift {coslice A a} {A} (is-segalᵣ-coslice {A} sA a) sA (coslice-tgt {A} {a}) (coslice-lift {A} sA a w) ≡ w
+coslice-lift-over {A} sA a (w , r) =
+  let k : (w : coslice A a) (r : Σ (u : arrᵣ A) . coslice-tgt {A} {a} w ≡ srcᵣ u) →
+          cocart-cell-lift {coslice A a} {A} (is-segalᵣ-coslice {A} sA a) sA (coslice-tgt {A} {a}) (coslice-lift {A} sA a (w , r)) ≡ (w , r) =
+    fun (y , δ) r →
+      coslice-lift-data-path {A} a {cocart-cell-lift {arrᵣ A} {A} (is-segal-arrᵣ {A} sA) sA (ev₁ {A}) (codomain-lift {A} sA (y , r))} {(y , r)}
+        (codomain-lift-over {A} sA (y , r)) δ in
+  k w r
+
+-- every arrow of A has a cocartesian lift at every object of the coslice
+coslice-lift-section ∷ {A ∷ U} (sA : is-segalᵣ A) (a ∷ A) →
+  section (cocart-cell-lift {coslice A a} {A} (is-segalᵣ-coslice {A} sA a) sA (coslice-tgt {A} {a}))
+coslice-lift-section {A} sA a = (coslice-lift {A} sA a , coslice-lift-over {A} sA a)
+
+-- the projection of a coslice is a cocartesian fibration when the coslice is univalent
+coslice-fibration-univalent ∷ {A ∷ U} (sA : is-segalᵣ A) (a ∷ A) →
+  is-univalentᵣ (coslice A a) (is-segalᵣ-coslice {A} sA a) → is-cocartesian-fibration {coslice A a} {A} (is-segalᵣ-coslice {A} sA a) sA (coslice-tgt {A} {a})
+coslice-fibration-univalent {A} sA a u =
+  is-cocartesian-fibration-univalent {coslice A a} {A} (is-segalᵣ-coslice {A} sA a) sA (coslice-tgt {A} {a}) u (coslice-lift-section {A} sA a)
+
+open import Rezk
+
+-- for A oplax-Rezk, the projection of the coslice is a cocartesian fibration
+coslice-fibration ∷ {A ∷ U} (rA : is-rezkᵣ A) (a ∷ A) →
+  is-cocartesian-fibration {coslice A a} {A} (is-segalᵣ-coslice {A} (rezk-segalᵣ {A} rA) a) (rezk-segalᵣ {A} rA) (coslice-tgt {A} {a})
+coslice-fibration {A} rA a =
+  let sA : is-segalᵣ A = rezk-segalᵣ {A} rA in
+  coslice-fibration-univalent {A} sA a
+    (complete→univalentᵣ (coslice A a) (is-segalᵣ-coslice {A} sA a) (is-completeᵣ-coslice {A} (rezk-completeᵣ {A} rA) a))

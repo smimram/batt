@@ -1,0 +1,130 @@
+--
+-- Univalent (Rezk-complete) oplax-Segal types
+--
+-- An oplax-Segal type X is univalent when paths are isomorphisms: for all x y : X, the map
+--
+--   idtoiso : x ≡ y → iso x y        (refl ↦ the identity)
+--
+-- is an equivalence. This is completeness in the form used for the uniqueness of cocartesian
+-- lifts. Oplax completeness (locality against E, Complete.batt) implies it
+-- (Complete-univalent.batt); the converse is open.
+--
+
+open import Stdlib
+open import Hom
+open import Segal
+open import Iso
+
+--
+-- Bi-invertible homs
+--
+-- The two-sided inverses of Iso.batt (is-iso-hom) are not a proposition in general (the analogue
+-- of quasi-inverses of functions). Bi-invertibility, a section and a retraction separately, is a
+-- proposition (is-prop-is-biinv-hom) and is logically equivalent (biinv→iso, iso→biinv).
+--
+
+is-biinv-hom ∷ {X ∷ U} (s : is-segalᵣ X) {x y : X} (f : hom x y) → U
+is-biinv-hom {X} s {x} {y} f =
+  (Σ (g : hom y x) . comp-homᵣ X s {x} {y} {x} f g ≡ Hom.id {X} x) ×
+  (Σ (h : hom y x) . comp-homᵣ X s {y} {x} {y} h f ≡ Hom.id {X} y)
+
+-- a section and a retraction agree: h = h ; (f ; g) = (h ; f) ; g = g
+biinv-sec-ret ∷ {X ∷ U} (s : is-segalᵣ X) {x y : X} (f : hom x y) (g h : hom y x) →
+  comp-homᵣ X s {x} {y} {x} f g ≡ Hom.id {X} x → comp-homᵣ X s {y} {x} {y} h f ≡ Hom.id {X} y → h ≡ g
+biinv-sec-ret {X} s {x} {y} f g h p q =
+  trans (sym (comp-homᵣ-runit X s {y} {x} h))
+    (trans (cong {hom x x} {hom y x} (λ k . comp-homᵣ X s {y} {x} {x} h k) (sym p))
+      (trans (sym (comp-homᵣ-assoc X s {y} {x} {y} {x} h f g))
+        (trans (cong {hom y y} {hom y x} (λ k . comp-homᵣ X s {y} {y} {x} k g) q)
+          (comp-homᵣ-lunit X s {y} {x} g))))
+
+biinv→iso ∷ {X ∷ U} (s : is-segalᵣ X) {x y : X} (f : hom x y) → is-biinv-hom {X} s {x} {y} f → is-iso-hom {X} s {x} {y} f
+biinv→iso {X} s {x} {y} f (gp , hq) =
+  let k : (gp : Σ (g : hom y x) . comp-homᵣ X s {x} {y} {x} f g ≡ Hom.id {X} x)
+          (hq : Σ (h : hom y x) . comp-homᵣ X s {y} {x} {y} h f ≡ Hom.id {X} y) → is-iso-hom {X} s {x} {y} f =
+    fun (g , p) (h , q) →
+      (g , p , trans (cong {hom y x} {hom y y} (λ k . comp-homᵣ X s {y} {x} {y} k f) (sym (biinv-sec-ret {X} s {x} {y} f g h p q))) q)
+  in
+  k gp hq
+
+iso→biinv ∷ {X ∷ U} (s : is-segalᵣ X) {x y : X} (f : hom x y) → is-iso-hom {X} s {x} {y} f → is-biinv-hom {X} s {x} {y} f
+iso→biinv {X} s {x} {y} f (g , e) = ((g , Product.fst e) , (g , Product.snd e))
+
+-- bi-invertibility is a proposition: once inhabited, composition with f is an equivalence on
+-- both sides, so the two factors are fibres of equivalences, hence contractible
+is-contr-is-biinv-hom ∷ {X ∷ U} (s : is-segalᵣ X) {x y : X} (f : hom x y) →
+  is-biinv-hom {X} s {x} {y} f → is-contr (is-biinv-hom {X} s {x} {y} f)
+is-contr-is-biinv-hom {X} s {x} {y} f b =
+  let i : is-iso-hom {X} s {x} {y} f = biinv→iso {X} s {x} {y} f b in
+  is-contr-prod
+    (is-contr-fib (λ g . comp-homᵣ X s {x} {y} {x} f g) (is-equiv-comp-iso-l {X} s {x} {y} f i x) (Hom.id {X} x))
+    (is-contr-fib (λ h . comp-homᵣ X s {y} {x} {y} h f) (is-equiv-comp-iso-r {X} s {x} {y} f i y) (Hom.id {X} y))
+
+is-prop-is-biinv-hom ∷ {X ∷ U} (s : is-segalᵣ X) {x y : X} (f : hom x y) → is-prop (is-biinv-hom {X} s {x} {y} f)
+is-prop-is-biinv-hom {X} s {x} {y} f b b' =
+  is-contr→is-prop (is-contr-is-biinv-hom {X} s {x} {y} f b) b b'
+
+-- isomorphisms between two points: a subtype of hom x y
+iso ∷ {X ∷ U} (s : is-segalᵣ X) (x y : X) → U
+iso {X} s x y = Σ (f : hom x y) . is-biinv-hom {X} s {x} {y} f
+
+-- the identity isomorphism
+iso-id ∷ {X ∷ U} (s : is-segalᵣ X) (x : X) → iso {X} s x x
+iso-id {X} s x = (Hom.id {X} x , iso→biinv {X} s {x} {x} (Hom.id {X} x) (is-iso-id {X} s x))
+
+-- paths are isomorphisms
+idtoiso ∷ {X ∷ U} (s : is-segalᵣ X) {x y : X} → x ≡ y → iso {X} s x y
+idtoiso {X} s {x} refl = iso-id {X} s x
+
+is-univalentᵣ ∷ (X ∷ U) → is-segalᵣ X → U
+is-univalentᵣ X s = (x y : X) → is-equiv (idtoiso {X} s {x} {y})
+
+--
+-- Consequences of univalence
+--
+
+-- the type of isomorphisms out of x is contractible (it is equivalent to Σ (y : X) . x ≡ y)
+is-contr-total-iso ∷ {X ∷ U} (s : is-segalᵣ X) → is-univalentᵣ X s → (x : X) → is-contr (Σ (y : X) . iso {X} s x y)
+is-contr-total-iso {X} s u x =
+  let T : (Σ (y : X) . x ≡ y) → Σ (y : X) . iso {X} s x y = tot {X} {λ y . x ≡ y} {λ y . iso {X} s x y} (λ y . idtoiso {X} s {x} {y}) in
+  let e : is-equiv T = is-equiv-tot {X} {λ y . x ≡ y} {λ y . iso {X} s x y} (λ y . idtoiso {X} s {x} {y}) (u x) in
+  is-contr-retract (section-map T (is-equiv-sec T e)) (T , snd (is-section T) (is-equiv-sec T e)) (is-contr-sing x)
+
+-- a hom is an isomorphism in at most one way: the fibres of the inclusion iso → hom are propositions
+is-prop-fib-iso-hom ∷ {X ∷ U} (s : is-segalᵣ X) {x y : X} (k : hom x y) →
+  is-prop (Σ (i : iso {X} s x y) . fst (λ f . is-biinv-hom {X} s {x} {y} f) i ≡ k)
+is-prop-fib-iso-hom {X} s {x} {y} k =
+  let B : hom x y → U = λ f . is-biinv-hom {X} s {x} {y} f in
+  let F : U = Σ (i : iso {X} s x y) . fst B i ≡ k in
+  let sF : F → B k = fun (i , q) → subst B q (snd B i) in
+  let rF : B k → F = λ b . ((k , b) , refl) in
+  let rs-aux : (f : hom x y) (b : B f) (q : f ≡ k) → rF (subst B q b) ≡ ((f , b) , q) = λ f b q .
+    J f (λ k' q' . ((k' , subst B q' b) , refl) ≡{Σ (i : iso {X} s x y) . fst B i ≡ k'} ((f , b) , q')) refl q in
+  let rs : (w : F) → rF (sF w) ≡ w = fun (i , q) →
+    let h : (i : iso {X} s x y) (q : fst B i ≡ k) → rF (sF (i , q)) ≡ (i , q) = fun (f , b) q → rs-aux f b q in
+    h i q in
+  is-prop-retract sF rF rs (is-prop-is-biinv-hom {X} s {x} {y} k)
+
+-- paths as homs: the underlying hom of idtoiso
+path→hom ∷ {X ∷ U} (s : is-segalᵣ X) {x y : X} → x ≡ y → hom x y
+path→hom {X} s {x} {y} e = fst (λ f . is-biinv-hom {X} s {x} {y} f) (idtoiso {X} s {x} {y} e)
+
+path→hom-refl ∷ {X ∷ U} (s : is-segalᵣ X) (x : X) → path→hom {X} s {x} {x} refl ≡ Hom.id {X} x
+path→hom-refl {X} s x = refl
+
+-- in a univalent type, a hom comes from a path in at most one way
+is-prop-fib-path→hom ∷ {X ∷ U} (s : is-segalᵣ X) → is-univalentᵣ X s → {x y : X} (k : hom x y) →
+  is-prop (Σ (e : x ≡ y) . path→hom {X} s {x} {y} e ≡ k)
+is-prop-fib-path→hom {X} s u {x} {y} k =
+  let B : hom x y → U = λ f . is-biinv-hom {X} s {x} {y} f in
+  let Q : iso {X} s x y → U = λ i . fst B i ≡ k in
+  let S : (Σ (e : x ≡ y) . Q (idtoiso {X} s {x} {y} e)) → Σ (i : iso {X} s x y) . Q i = Σ-base (idtoiso {X} s {x} {y}) Q in
+  let eS : is-equiv S = is-equiv-Σ-base (idtoiso {X} s {x} {y}) (u x y) Q in
+  is-prop-retract S (retraction-map S (is-equiv-ret S eS)) (snd (is-retraction S) (is-equiv-ret S eS)) (is-prop-fib-iso-hom {X} s {x} {y} k)
+
+-- transport of a hom along a path of its target is postcomposition with the path, as a hom
+transport-hom-tgt ∷ {X ∷ U} (s : is-segalᵣ X) {x y : X} (f : hom x y) {y' : X} (e : y ≡ y') →
+  subst (λ z . hom x z) e f ≡ comp-homᵣ X s {x} {y} {y'} f (path→hom {X} s {y} {y'} e)
+transport-hom-tgt {X} s {x} {y} f {y'} e =
+  J y (λ z e' . subst (λ z' . hom x z') e' f ≡ comp-homᵣ X s {x} {y} {z} f (path→hom {X} s {y} {z} e'))
+    (sym (comp-homᵣ-runit X s {x} {y} f)) e

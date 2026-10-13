@@ -193,6 +193,13 @@ is-equiv-happlyᵣ-fib A B f g = fund-id (Htpyᵣ A B f) f (refl-htpyᵣ A B f) 
 htpyᵣ-equiv ∷ (A B ∷ U) (f g : A →ᵣ B) → (f ≡ g) ≃ Htpyᵣ A B f g
 htpyᵣ-equiv A B f g = (happlyᵣ-fib A B f g , is-equiv-happlyᵣ-fib A B f g)
 
+-- an oplax homotopy gives a path between its source and its target maps
+htpyᵣ→path ∷ (A B ∷ U) (H : A →ᵣ path B) → postᵣ {A} (path-src {B}) H ≡ postᵣ {A} (path-tgt {B}) H
+htpyᵣ→path A B H =
+  let f : A →ᵣ B = postᵣ {A} (path-src {B}) H in
+  let g : A →ᵣ B = postᵣ {A} (path-tgt {B}) H in
+  section-map (happlyᵣ-fib A B f g) (is-equiv-sec (happlyᵣ-fib A B f g) (is-equiv-happlyᵣ-fib A B f g)) (H , refl , refl)
+
 -- the homotopy underlying the fiberwise equivalence is happlyᵣ
 happlyᵣ-fib-happlyᵣ ∷ (A B ∷ U) (f g : A →ᵣ B) (p : f ≡ g) →
   fst (fun H → (postᵣ {A} (path-src {B}) H ≡ f) × (postᵣ {A} (path-tgt {B}) H ≡ g)) (happlyᵣ-fib A B f g p) ≡ happlyᵣ A B (f , g , p)
@@ -354,3 +361,43 @@ is-contr-is-equiv {A} {B} f e =
 
 is-prop-is-equiv ∷ {A B : U} (f : A → B) → is-prop (is-equiv f)
 is-prop-is-equiv f e e' = is-contr→is-prop (is-contr-is-equiv f e) e e'
+
+-- funext-htpy is also a retraction of happly
+funext-htpy-happly ∷ {A : U} {B : A → U} {f g : (x : A) → B x} (p : f ≡ g) → funext-htpy {A} {B} f g (happly {A} {B} {f} {g} p) ≡ p
+funext-htpy-happly {A} {B} {f} {g} p =
+  retraction-inj (happly {A} {B} {f} {g}) (is-equiv-ret (happly {A} {B} {f} {g}) (is-equiv-happly {A} {B} f g))
+    (happly-funext-htpy {A} {B} f g (happly {A} {B} {f} {g} p))
+
+-- evaluating the image of a path of functions under postcomposition
+happly-cong-post ∷ {Z X Y : U} (f : X → Y) {G G' : Z → X} (P : G ≡ G') (z : Z) →
+  happly {Z} {λ _ . Y} {post {Z} {X} {Y} f G} {post {Z} {X} {Y} f G'} (cong (post {Z} {X} {Y} f) P) z ≡ cong f (happly {Z} {λ _ . X} {G} {G'} P z)
+happly-cong-post {Z} {X} {Y} f {G} refl z = refl
+
+-- postcomposition of a funext path is the funext of the pointwise images
+cong-post-funext ∷ {Z X Y : U} (f : X → Y) (G G' : Z → X) (h : (z : Z) → G z ≡ G' z) →
+  cong (post {Z} {X} {Y} f) (funext-htpy {Z} {λ _ . X} G G' h)
+    ≡ funext-htpy {Z} {λ _ . Y} (post {Z} {X} {Y} f G) (post {Z} {X} {Y} f G') (λ z . cong f (h z))
+cong-post-funext {Z} {X} {Y} f G G' h =
+  let fG : Z → Y = post {Z} {X} {Y} f G in
+  let fG' : Z → Y = post {Z} {X} {Y} f G' in
+  let ha : (fG ≡ fG') → (z : Z) → fG z ≡ fG' z = happly {Z} {λ _ . Y} {fG} {fG'} in
+  let P : G ≡ G' = funext-htpy {Z} {λ _ . X} G G' h in
+  retraction-inj ha (is-equiv-ret ha (is-equiv-happly {Z} {λ _ . Y} fG fG'))
+    (trans (funext-htpy {Z} {λ z . fG z ≡ fG' z} (ha (cong (post {Z} {X} {Y} f) P)) (λ z . cong f (h z))
+              (λ z . trans (happly-cong-post {Z} {X} {Y} f {G} {G'} P z)
+                       (cong {G z ≡ G' z} {fG z ≡ fG' z} (cong f) (happly {Z} {λ z' . G z' ≡ G' z'} {happly {Z} {λ _ . X} {G} {G'} P} {h} (happly-funext-htpy {Z} {λ _ . X} G G' h) z))))
+      (sym (happly-funext-htpy {Z} {λ _ . Y} fG fG' (λ z . cong f (h z)))))
+
+-- funext-htpy is an equivalence (its inverse is happly)
+is-equiv-funext-htpy ∷ {A : U} {B : A → U} (f g : (x : A) → B x) → is-equiv (funext-htpy {A} {B} f g)
+is-equiv-funext-htpy {A} {B} f g =
+  ((happly {A} {B} {f} {g} , funext-htpy-happly {A} {B} {f} {g}) ,
+   (happly {A} {B} {f} {g} , happly-funext-htpy {A} {B} f g))
+
+-- the homotopy of the image of a path of functions, by postcomposition along an oplax map
+happlyᵣ-fib-cong-postᵣ ∷ {A S B ∷ U} (c : A →ᵣ S) {φ0 φ1 : S → B} (G' : φ0 ≡ φ1) →
+  happlyᵣ-fib A B (postᵣ {A} {S} {B} φ0 c) (postᵣ {A} {S} {B} φ1 c) (cong (λ φ . postᵣ {A} {S} {B} φ c) G')
+    ≡ ((λ k . (φ0 (c k) , φ1 (c k) , happly {S} {λ _ . B} G' (c k))) , refl , refl)
+happlyᵣ-fib-cong-postᵣ {A} {S} {B} c {φ0} {φ1} G' =
+  J φ0 (λ φ' G'' . happlyᵣ-fib A B (postᵣ {A} {S} {B} φ0 c) (postᵣ {A} {S} {B} φ' c) (cong (λ φ . postᵣ {A} {S} {B} φ c) G'')
+                     ≡ ((λ k . (φ0 (c k) , φ' (c k) , happly {S} {λ _ . B} G'' (c k))) , refl , refl)) refl G'

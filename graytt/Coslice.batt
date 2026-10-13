@@ -1,28 +1,26 @@
 --
--- Coslice categories
+-- Coslices
 --
--- The coslice of a crisp type A under a : A is the type of 1-cells of A starting at a
--- (called the slice at a in BATT.tex):
+-- The coslice of a crisp type A under a : A, i.e. the type of 1-cells of A starting at a:
 --
 --   a/A := Σ (f : 𝕀 →ᵣ A) . f 0 ≡ a
 --
--- It comes with the projection to 𝕀 →ᵣ A and the evaluation at the target ev₁ : a/A → A.
--- It is the pullback of ev₀ : (𝕀 →ᵣ A) → A along a : 1 → A.
+-- with its projections. That a/A is oplax-Rezk and that ev₁ : a/A → A is a cocartesian fibration is
+-- in Coslice-fibration.batt.
 --
 
 open import Stdlib
-open import Segal
 
 coslice ∷ (A ∷ U) (a : A) → U
 coslice A a = Σ (f : 𝕀 →ᵣ A) . f 𝕀0 ≡ a
 
 -- the underlying 1-cell
 coslice-cell ∷ {A ∷ U} {a : A} → coslice A a → (𝕀 →ᵣ A)
-coslice-cell (f , e) = f
+coslice-cell {A} {a} s = fst {𝕀 →ᵣ A} (λ f . f 𝕀0 ≡ a) s
 
 -- its source is a
 coslice-src ∷ {A ∷ U} {a : A} (s : coslice A a) → coslice-cell {A} {a} s 𝕀0 ≡ a
-coslice-src (f , e) = e
+coslice-src {A} {a} s = snd {𝕀 →ᵣ A} (λ f . f 𝕀0 ≡ a) s
 
 -- evaluation at the target
 coslice-tgt ∷ {A ∷ U} {a : A} → coslice A a → A

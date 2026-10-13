@@ -2,6 +2,12 @@
 -- Pushouts (postulated)
 --
 
+open import Equality
+open import Function
+open import Sigma
+open import Equivalence
+open import Funext
+
 postulate pushout-obj ∷ {X A B : Type} → (f : X → A) (g : X → B) → Type
 postulate pushout-inl ∷ {X A B : Type} → (f : X → A) (g : X → B) → A → pushout-obj f g
 postulate pushout-inr ∷ {X A B : Type} → (f : X → A) (g : X → B) → B → pushout-obj f g
@@ -9,3 +15,168 @@ postulate pushout-eq ∷ {X A B : Type} → (f : X → A) (g : X → B) (x : X) 
 postulate pushout-univ ∷ {X A B : Type} → (f : X → A) (g : X → B) (Y : Type) (f' : A → Y) (g' : B → Y) (p : (x : X) → f' (f x) ≡ g' (g x)) → pushout-obj f g → Y
 postulate pushout-univl ∷ {X A B : Type} → (f : X → A) (g : X → B) (Y : Type) (f' : A → Y) (g' : B → Y) (p : (x : X) → f' (f x) ≡ g' (g x)) → (a : A) → pushout-univ f g Y f' g' p (pushout-inl f g a) ≡ f' a
 postulate pushout-univr ∷ {X A B : Type} → (f : X → A) (g : X → B) (Y : Type) (f' : A → Y) (g' : B → Y) (p : (x : X) → f' (f x) ≡ g' (g x)) → (b : B) → pushout-univ f g Y f' g' p (pushout-inr f g b) ≡ g' b
+
+--
+-- Universal property
+--
+
+-- cocones under the span A ← X → B, with a pointwise homotopy
+pushout-cocone ∷ {X A B : Type} → (f : X → A) (g : X → B) (Y : Type) → Type
+pushout-cocone {X} {A} {B} f g Y = Σ (f' : A → Y) . Σ (g' : B → Y) . (x : X) → f' (f x) ≡ g' (g x)
+
+-- restriction of a map out of the pushout to a cocone
+pushout-restr ∷ {X A B : Type} → (f : X → A) (g : X → B) (Y : Type) → (pushout-obj f g → Y) → pushout-cocone f g Y
+pushout-restr {X} {A} {B} f g Y h =
+  (λ a . h (pushout-inl f g a) , λ b . h (pushout-inr f g b) , λ x . cong h (pushout-eq f g x))
+
+-- the universal property: maps out of the pushout are cocones
+postulate pushout-up ∷ {X A B : Type} → (f : X → A) (g : X → B) (Y : Type) → is-equiv (pushout-restr f g Y)
+
+---
+--- Commuting squares and their universal properties
+---
+--- A crisp commuting square
+---
+---        f
+---     X ───▶ A
+---   g │      │ i            q : i ∘ f ≡ j ∘ g   (a crisp path in X → P)
+---     ▼      ▼
+---     B ───▶ P
+---        j
+---
+--- is a pushout (is-pushout) when restricting maps P → Z to cocones under X (with a path of functions
+--- as commutation) is an equivalence for every crisp Z. Its oplax and lax universal properties
+--- (is-pushoutᵣ, is-pushoutₗ) are the analogous statements for oplax and lax maps out of P; they follow
+--- from the cartesian one by the objectwise equivalence axiom (graytt/Pushout-up.batt).
+---
+
+-- cartesian cocones, with a path of functions
+cocone ∷ {X A B ∷ U} (f ∷ X → A) (g ∷ X → B) (Z : U) → U
+cocone {X} {A} {B} f g Z = Σ (α : A → Z) . Σ (β : B → Z) . (λ x . α (f x)) ≡{X → Z} (λ x . β (g x))
+
+-- restriction of a map out of P to a cocone
+cocone-restr ∷ {X A B P ∷ U} (f ∷ X → A) (g ∷ X → B) (i ∷ A → P) (j ∷ B → P) (q ∷ (λ x . i (f x)) ≡{X → P} (λ x . j (g x)))
+  (Z : U) → (P → Z) → cocone {X} {A} {B} f g Z
+cocone-restr {X} {A} {B} {P} f g i j q Z h =
+  (λ a . h (i a) , λ b . h (j b) , cong {X → P} {X → Z} (post {X} {P} {Z} h) q)
+
+-- the cartesian universal property of the square
+is-pushout ∷ {X A B P ∷ U} (f ∷ X → A) (g ∷ X → B) (i ∷ A → P) (j ∷ B → P) (q ∷ (λ x . i (f x)) ≡{X → P} (λ x . j (g x))) → TYPE
+is-pushout {X} {A} {B} {P} f g i j q = (Z ∷ U) → is-equiv (cocone-restr {X} {A} {B} {P} f g i j q Z)
+
+-- oplax cocones: a pair of oplax maps whose restrictions to X are equal in X →ᵣ Y
+coconeᵣ ∷ {X A B ∷ U} (f ∷ X → A) (g ∷ X → B) (Y ∷ U) → U
+coconeᵣ {X} {A} {B} f g Y = Σ (α : A →ᵣ Y) . Σ (β : B →ᵣ Y) . (λ x . α (f x)) ≡{X →ᵣ Y} (λ x . β (g x))
+
+-- restriction of an oplax map out of P to an oplax cocone (the path is the image of q)
+cocone-restrᵣ ∷ {X A B P ∷ U} (f ∷ X → A) (g ∷ X → B) (i ∷ A → P) (j ∷ B → P) (q ∷ (λ x . i (f x)) ≡{X → P} (λ x . j (g x)))
+  (Y ∷ U) → (P →ᵣ Y) → coconeᵣ {X} {A} {B} f g Y
+cocone-restrᵣ {X} {A} {B} {P} f g i j q Y h =
+  (λ a . h (i a) , λ b . h (j b) , congᵣ {X → P} {X →ᵣ Y} (preᵣ {X} {P} {Y} h) q)
+
+-- the oplax universal property of the square: oplax maps out of P are oplax cocones
+is-pushoutᵣ ∷ {X A B P ∷ U} (f ∷ X → A) (g ∷ X → B) (i ∷ A → P) (j ∷ B → P) (q ∷ (λ x . i (f x)) ≡{X → P} (λ x . j (g x))) → TYPE
+is-pushoutᵣ {X} {A} {B} {P} f g i j q = (Y ∷ U) → is-equiv (cocone-restrᵣ {X} {A} {B} {P} f g i j q Y)
+
+-- components of an oplax cocone, and η
+coconeᵣ-fst ∷ {X A B ∷ U} (f ∷ X → A) (g ∷ X → B) (Y ∷ U) → coconeᵣ {X} {A} {B} f g Y → A →ᵣ Y
+coconeᵣ-fst {X} {A} {B} f g Y w = fst {A →ᵣ Y} (λ α . Σ (β : B →ᵣ Y) . (λ x . α (f x)) ≡{X →ᵣ Y} (λ x . β (g x))) w
+
+coconeᵣ-snd ∷ {X A B ∷ U} (f ∷ X → A) (g ∷ X → B) (Y ∷ U) → coconeᵣ {X} {A} {B} f g Y → B →ᵣ Y
+coconeᵣ-snd {X} {A} {B} f g Y w =
+  fst {B →ᵣ Y} (λ β . (λ x . coconeᵣ-fst {X} {A} {B} f g Y w (f x)) ≡{X →ᵣ Y} (λ x . β (g x)))
+    (snd {A →ᵣ Y} (λ α . Σ (β : B →ᵣ Y) . (λ x . α (f x)) ≡{X →ᵣ Y} (λ x . β (g x))) w)
+
+coconeᵣ-glue ∷ {X A B ∷ U} (f ∷ X → A) (g ∷ X → B) (Y ∷ U) (w : coconeᵣ {X} {A} {B} f g Y) →
+  (λ x . coconeᵣ-fst {X} {A} {B} f g Y w (f x)) ≡{X →ᵣ Y} (λ x . coconeᵣ-snd {X} {A} {B} f g Y w (g x))
+coconeᵣ-glue {X} {A} {B} f g Y w =
+  snd {B →ᵣ Y} (λ β . (λ x . coconeᵣ-fst {X} {A} {B} f g Y w (f x)) ≡{X →ᵣ Y} (λ x . β (g x)))
+    (snd {A →ᵣ Y} (λ α . Σ (β : B →ᵣ Y) . (λ x . α (f x)) ≡{X →ᵣ Y} (λ x . β (g x))) w)
+
+coconeᵣ-eta ∷ {X A B ∷ U} (f ∷ X → A) (g ∷ X → B) (Y ∷ U) (w : coconeᵣ {X} {A} {B} f g Y) →
+  (coconeᵣ-fst {X} {A} {B} f g Y w , coconeᵣ-snd {X} {A} {B} f g Y w , coconeᵣ-glue {X} {A} {B} f g Y w) ≡{coconeᵣ {X} {A} {B} f g Y} w
+coconeᵣ-eta {X} {A} {B} f g Y (α , r) =
+  let k : (r : Σ (β : B →ᵣ Y) . (λ x . α (f x)) ≡{X →ᵣ Y} (λ x . β (g x))) →
+      (α , fst {B →ᵣ Y} (λ β . (λ x . α (f x)) ≡{X →ᵣ Y} (λ x . β (g x))) r , snd {B →ᵣ Y} (λ β . (λ x . α (f x)) ≡{X →ᵣ Y} (λ x . β (g x))) r)
+        ≡{coconeᵣ {X} {A} {B} f g Y} (α , r) =
+    fun (β , p) → refl in
+  k r
+
+-- lax cocones: a pair of lax maps whose restrictions to X are equal in X →ₗ Y
+coconeₗ ∷ {X A B ∷ U} (f ∷ X → A) (g ∷ X → B) (Y ∷ U) → U
+coconeₗ {X} {A} {B} f g Y = Σ (α : A →ₗ Y) . Σ (β : B →ₗ Y) . (λ x . α (f x)) ≡{X →ₗ Y} (λ x . β (g x))
+
+-- restriction of a lax map out of P to a lax cocone (the path is the image of q)
+cocone-restrₗ ∷ {X A B P ∷ U} (f ∷ X → A) (g ∷ X → B) (i ∷ A → P) (j ∷ B → P) (q ∷ (λ x . i (f x)) ≡{X → P} (λ x . j (g x)))
+  (Y ∷ U) → (P →ₗ Y) → coconeₗ {X} {A} {B} f g Y
+cocone-restrₗ {X} {A} {B} {P} f g i j q Y h =
+  (λ a . h (i a) , λ b . h (j b) , congₗ {X → P} {X →ₗ Y} (preₗ {X} {P} {Y} h) q)
+
+-- the lax universal property of the square: lax maps out of P are lax cocones
+is-pushoutₗ ∷ {X A B P ∷ U} (f ∷ X → A) (g ∷ X → B) (i ∷ A → P) (j ∷ B → P) (q ∷ (λ x . i (f x)) ≡{X → P} (λ x . j (g x))) → TYPE
+is-pushoutₗ {X} {A} {B} {P} f g i j q = (Y ∷ U) → is-equiv (cocone-restrₗ {X} {A} {B} {P} f g i j q Y)
+
+-- components of a lax cocone, and η
+coconeₗ-fst ∷ {X A B ∷ U} (f ∷ X → A) (g ∷ X → B) (Y ∷ U) → coconeₗ {X} {A} {B} f g Y → A →ₗ Y
+coconeₗ-fst {X} {A} {B} f g Y w = fst {A →ₗ Y} (λ α . Σ (β : B →ₗ Y) . (λ x . α (f x)) ≡{X →ₗ Y} (λ x . β (g x))) w
+
+coconeₗ-snd ∷ {X A B ∷ U} (f ∷ X → A) (g ∷ X → B) (Y ∷ U) → coconeₗ {X} {A} {B} f g Y → B →ₗ Y
+coconeₗ-snd {X} {A} {B} f g Y w =
+  fst {B →ₗ Y} (λ β . (λ x . coconeₗ-fst {X} {A} {B} f g Y w (f x)) ≡{X →ₗ Y} (λ x . β (g x)))
+    (snd {A →ₗ Y} (λ α . Σ (β : B →ₗ Y) . (λ x . α (f x)) ≡{X →ₗ Y} (λ x . β (g x))) w)
+
+coconeₗ-glue ∷ {X A B ∷ U} (f ∷ X → A) (g ∷ X → B) (Y ∷ U) (w : coconeₗ {X} {A} {B} f g Y) →
+  (λ x . coconeₗ-fst {X} {A} {B} f g Y w (f x)) ≡{X →ₗ Y} (λ x . coconeₗ-snd {X} {A} {B} f g Y w (g x))
+coconeₗ-glue {X} {A} {B} f g Y w =
+  snd {B →ₗ Y} (λ β . (λ x . coconeₗ-fst {X} {A} {B} f g Y w (f x)) ≡{X →ₗ Y} (λ x . β (g x)))
+    (snd {A →ₗ Y} (λ α . Σ (β : B →ₗ Y) . (λ x . α (f x)) ≡{X →ₗ Y} (λ x . β (g x))) w)
+
+coconeₗ-eta ∷ {X A B ∷ U} (f ∷ X → A) (g ∷ X → B) (Y ∷ U) (w : coconeₗ {X} {A} {B} f g Y) →
+  (coconeₗ-fst {X} {A} {B} f g Y w , coconeₗ-snd {X} {A} {B} f g Y w , coconeₗ-glue {X} {A} {B} f g Y w) ≡{coconeₗ {X} {A} {B} f g Y} w
+coconeₗ-eta {X} {A} {B} f g Y (α , r) =
+  let k : (r : Σ (β : B →ₗ Y) . (λ x . α (f x)) ≡{X →ₗ Y} (λ x . β (g x))) →
+      (α , fst {B →ₗ Y} (λ β . (λ x . α (f x)) ≡{X →ₗ Y} (λ x . β (g x))) r , snd {B →ₗ Y} (λ β . (λ x . α (f x)) ≡{X →ₗ Y} (λ x . β (g x))) r)
+        ≡{coconeₗ {X} {A} {B} f g Y} (α , r) =
+    fun (β , p) → refl in
+  k r
+
+--
+-- The pushout square is a pushout
+--
+
+-- the gluing square of the pushout, as a path of functions
+pushout-glue ∷ {X A B ∷ U} (f ∷ X → A) (g ∷ X → B) →
+  (λ x . pushout-inl f g (f x)) ≡{X → pushout-obj f g} (λ x . pushout-inr f g (g x))
+pushout-glue {X} {A} {B} f g =
+  funext-htpy {X} {λ _ . pushout-obj f g} (λ x . pushout-inl f g (f x)) (λ x . pushout-inr f g (g x)) (pushout-eq f g)
+
+-- from pointwise homotopies to paths of functions
+pushout-cocone→cocone ∷ {X A B ∷ U} (f ∷ X → A) (g ∷ X → B) (Z : U) → pushout-cocone f g Z → cocone {X} {A} {B} f g Z
+pushout-cocone→cocone {X} {A} {B} f g Z =
+  tot {A → Z} {λ α . Σ (β : B → Z) . (x : X) → α (f x) ≡ β (g x)} {λ α . Σ (β : B → Z) . (λ x . α (f x)) ≡{X → Z} (λ x . β (g x))}
+    (λ α . tot {B → Z} {λ β . (x : X) → α (f x) ≡ β (g x)} {λ β . (λ x . α (f x)) ≡{X → Z} (λ x . β (g x))}
+             (λ β . funext-htpy {X} {λ _ . Z} (λ x . α (f x)) (λ x . β (g x))))
+
+is-equiv-pushout-cocone→cocone ∷ {X A B ∷ U} (f ∷ X → A) (g ∷ X → B) (Z : U) → is-equiv (pushout-cocone→cocone {X} {A} {B} f g Z)
+is-equiv-pushout-cocone→cocone {X} {A} {B} f g Z =
+  is-equiv-tot {A → Z} {λ α . Σ (β : B → Z) . (x : X) → α (f x) ≡ β (g x)} {λ α . Σ (β : B → Z) . (λ x . α (f x)) ≡{X → Z} (λ x . β (g x))}
+    (λ α . tot {B → Z} {λ β . (x : X) → α (f x) ≡ β (g x)} {λ β . (λ x . α (f x)) ≡{X → Z} (λ x . β (g x))}
+             (λ β . funext-htpy {X} {λ _ . Z} (λ x . α (f x)) (λ x . β (g x))))
+    (λ α . is-equiv-tot {B → Z} {λ β . (x : X) → α (f x) ≡ β (g x)} {λ β . (λ x . α (f x)) ≡{X → Z} (λ x . β (g x))}
+             (λ β . funext-htpy {X} {λ _ . Z} (λ x . α (f x)) (λ x . β (g x)))
+             (λ β . is-equiv-funext-htpy {X} {λ _ . Z} (λ x . α (f x)) (λ x . β (g x))))
+
+-- the cartesian universal property of the pushout square (from pushout-up)
+pushout-is-pushout ∷ {X A B ∷ U} (f ∷ X → A) (g ∷ X → B) →
+  is-pushout {X} {A} {B} {pushout-obj f g} f g (pushout-inl f g) (pushout-inr f g) (pushout-glue {X} {A} {B} f g)
+pushout-is-pushout {X} {A} {B} f g Z =
+  let P ∷ U = pushout-obj f g in
+  is-equiv-htpy {P → Z} {cocone {X} {A} {B} f g Z}
+    {λ h . pushout-cocone→cocone {X} {A} {B} f g Z (pushout-restr f g Z h)}
+    {cocone-restr {X} {A} {B} {P} f g (pushout-inl f g) (pushout-inr f g) (pushout-glue {X} {A} {B} f g) Z}
+    (λ h . cong {(λ x . h (pushout-inl f g (f x))) ≡{X → Z} (λ x . h (pushout-inr f g (g x)))} {cocone {X} {A} {B} f g Z}
+             (λ s . ((λ a . h (pushout-inl f g a)) , (λ b . h (pushout-inr f g b)) , s))
+             (sym (cong-post-funext {X} {P} {Z} h (λ x . pushout-inl f g (f x)) (λ x . pushout-inr f g (g x)) (pushout-eq f g))))
+    (is-equiv-circ {P → Z} {pushout-cocone f g Z} {cocone {X} {A} {B} f g Z}
+      (pushout-cocone→cocone {X} {A} {B} f g Z) (pushout-restr f g Z)
+      (is-equiv-pushout-cocone→cocone {X} {A} {B} f g Z) (pushout-up f g Z))

@@ -402,3 +402,146 @@ flat-pi≃arrₗ {A} {B} =
   ( flat-pi-to-arrₗ {A} {B}
   , ( (flat-arrₗ-to-pi {A} {B} , flat-arrₗ-pi-arrₗ {A} {B})
     , (flat-arrₗ-to-pi {A} {B} , flat-pi-arrₗ-pi {A} {B}) ) )
+
+---
+--- Crisp functions and crisp currying
+---
+
+-- a function defined on crisp arguments only sends crisp paths to paths
+crisp-cong ∷ {X Y ∷ U} (Φ ∷ (x ∷ X) → Y) {x y ∷ X} (p ∷ x ≡ y) → Φ x ≡ Φ y
+crisp-cong {X} {Y} Φ {x} refl = refl
+
+-- oplax crisp currying: a crisp T → (K →ᵣ W) is a cartesian map T ⨂ K → W (only for a crisp F: F is used across ⊗)
+tens-uncurry-crispᵣ ∷ {T K W ∷ U} (F ∷ T → K →ᵣ W) → T ⨂ K → W
+tens-uncurry-crispᵣ {T} {K} {W} F (t ⊗ k) = F t k
+
+-- the two round trips
+tens-curry-uncurry-crispᵣ ∷ {T K W ∷ U} (F ∷ T → K →ᵣ W) → tens-curry-right' {T} {K} {W} (tens-uncurry-crispᵣ {T} {K} {W} F) ≡ F
+tens-curry-uncurry-crispᵣ {T} {K} {W} F = refl
+
+tens-uncurry-curry-crispᵣ ∷ {T K W ∷ U} (G ∷ T ⨂ K → W) → tens-uncurry-crispᵣ {T} {K} {W} (tens-curry-right' {T} {K} {W} G) ≡ G
+tens-uncurry-curry-crispᵣ {T} {K} {W} G =
+  funext-htpy {T ⨂ K} {λ _ . W} (tens-uncurry-crispᵣ {T} {K} {W} (tens-curry-right' {T} {K} {W} G)) G
+    (λ z . let h : (z : T ⨂ K) → tens-uncurry-crispᵣ {T} {K} {W} (tens-curry-right' {T} {K} {W} G) z ≡ G z = fun (t ⊗ k) → refl in h z)
+
+-- on global points, currying is an equivalence
+flat-tens-curryᵣ ∷ {T K W ∷ U} → ♭(T → K →ᵣ W) → ♭(T ⨂ K → W)
+flat-tens-curryᵣ {T} {K} {W} 𝄫F = 𝄫(tens-uncurry-crispᵣ {T} {K} {W} F)
+
+flat-tens-uncurryᵣ ∷ {T K W ∷ U} → ♭(T ⨂ K → W) → ♭(T → K →ᵣ W)
+flat-tens-uncurryᵣ {T} {K} {W} = flat-map {T ⨂ K → W} {T → K →ᵣ W} (tens-curry-right' {T} {K} {W})
+
+is-equiv-flat-tens-curryᵣ ∷ {T K W ∷ U} → is-equiv (flat-tens-curryᵣ {T} {K} {W})
+is-equiv-flat-tens-curryᵣ {T} {K} {W} =
+  ((flat-tens-uncurryᵣ {T} {K} {W} , fun 𝄫G → flat-≡ {T ⨂ K → W} (tens-uncurry-curry-crispᵣ {T} {K} {W} G)) ,
+   (flat-tens-uncurryᵣ {T} {K} {W} , fun 𝄫F → refl))
+
+---
+--- ♭ and equivalences
+---
+
+-- ♭ preserves crisp equivalences
+flat-map-equiv ∷ {A B ∷ U} (f ∷ A → B) (e ∷ is-equiv f) → is-equiv (flat-map {A} {B} f)
+flat-map-equiv {A} {B} f e =
+  let s ∷ B → A = section-map f (is-equiv-sec f e) in
+  let ss ∷ (y : B) → f (s y) ≡ y = snd (is-section f) (is-equiv-sec f e) in
+  let r ∷ B → A = retraction-map f (is-equiv-ret f e) in
+  let rr ∷ (x : A) → r (f x) ≡ x = snd (is-retraction f) (is-equiv-ret f e) in
+  ((flat-map {B} {A} s , fun 𝄫y → flat-≡ {B} {f (s y)} {y} (ss y)) ,
+   (flat-map {B} {A} r , fun 𝄫x → flat-≡ {A} {r (f x)} {x} (rr x)))
+
+-- the inverse of flat-sigma-split is an equivalence too
+is-equiv-flat-sigma-unsplit ∷ {A ∷ U} {B ∷ A → U} → is-equiv (flat-sigma-unsplit {A} {B})
+is-equiv-flat-sigma-unsplit {A} {B} =
+  ((flat-sigma-split {A} {B} , flat-sigma-unsplit-split {A} {B}) , (flat-sigma-split {A} {B} , flat-sigma-split-unsplit {A} {B}))
+
+-- ♭ of a map of Σ-types is an equivalence when ♭ of the base map and ♭ of the fibre maps (at crisp
+-- points) are
+flat-Σ-map ∷ {X Y ∷ U} {P ∷ X → U} {Q ∷ Y → U} (F ∷ X → Y) (m ∷ (x : X) → P x → Q (F x)) →
+  (Σ (x : X) . P x) → Σ (y : Y) . Q y
+flat-Σ-map {X} {Y} {P} {Q} F m (x , p) = (F x , m x p)
+
+flat-Σ-map-equiv ∷ {X Y ∷ U} {P ∷ X → U} {Q ∷ Y → U} (F ∷ X → Y) (m ∷ (x : X) → P x → Q (F x)) →
+  is-equiv (flat-map {X} {Y} F) → ((x ∷ X) → is-equiv (flat-map {P x} {Q (F x)} (m x))) →
+  is-equiv (flat-map {Σ (x : X) . P x} {Σ (y : Y) . Q y} (flat-Σ-map {X} {Y} {P} {Q} F m))
+flat-Σ-map-equiv {X} {Y} {P} {Q} F m eF em =
+  let m♭ : (u : ♭X) → flat-fam P u → flat-fam Q (flat-map {X} {Y} F u) = fun 𝄫x → flat-map {P x} {Q (F x)} (m x) in
+  let em♭ : (u : ♭X) → is-equiv (m♭ u) = fun 𝄫x → em x in
+  let T : (Σ (u : ♭X) . flat-fam P u) → Σ (u : ♭X) . flat-fam Q (flat-map {X} {Y} F u) =
+    tot {♭X} {flat-fam P} {λ u . flat-fam Q (flat-map {X} {Y} F u)} m♭ in
+  let eT : is-equiv T = is-equiv-tot {♭X} {flat-fam P} {λ u . flat-fam Q (flat-map {X} {Y} F u)} m♭ em♭ in
+  let B : (Σ (u : ♭X) . flat-fam Q (flat-map {X} {Y} F u)) → Σ (v : ♭Y) . flat-fam Q v =
+    Σ-base (flat-map {X} {Y} F) (flat-fam Q) in
+  let eB : is-equiv B = is-equiv-Σ-base (flat-map {X} {Y} F) eF (flat-fam Q) in
+  let S : (Σ (u : ♭X) . flat-fam P u) → Σ (v : ♭Y) . flat-fam Q v = λ w . B (T w) in
+  let eS : is-equiv S = is-equiv-circ B T eB eT in
+  let C : ♭(Σ (x : X) . P x) → ♭(Σ (y : Y) . Q y) = λ w . flat-sigma-unsplit {Y} {Q} (S (flat-sigma-split {X} {P} w)) in
+  let eC : is-equiv C =
+    is-equiv-circ (flat-sigma-unsplit {Y} {Q}) (λ w . S (flat-sigma-split {X} {P} w)) (is-equiv-flat-sigma-unsplit {Y} {Q})
+      (is-equiv-circ S (flat-sigma-split {X} {P}) eS (snd _ (flat-sigma-equiv {X} {P}))) in
+  is-equiv-htpy {♭(Σ (x : X) . P x)} {♭(Σ (y : Y) . Q y)} {C} {flat-map {Σ (x : X) . P x} {Σ (y : Y) . Q y} (flat-Σ-map {X} {Y} {P} {Q} F m)}
+    (fun 𝄫w →
+      let h : (w ∷ Σ (x : X) . P x) → C 𝄫w ≡ flat-map {Σ (x : X) . P x} {Σ (y : Y) . Q y} (flat-Σ-map {X} {Y} {P} {Q} F m) 𝄫w =
+        fun (x , p) → refl in
+      h w)
+    eC
+
+-- ♭ of cong φ, on paths between crisp points, is an equivalence when ♭ of φ is
+flat-cong-htpy ∷ {Z W ∷ U} (φ ∷ Z → W) {z ∷ Z} {z' ∷ Z} (p ∷ z ≡ z') →
+  flat-encode {W} 𝄫(φ z) 𝄫(φ z') (cong (flat-map {Z} {W} φ) (flat-decode {Z} 𝄫z 𝄫z' 𝄫p)) ≡ 𝄫(cong φ p)
+flat-cong-htpy {Z} {W} φ {z} refl = refl
+
+flat-cong-equiv ∷ {Z W ∷ U} (φ ∷ Z → W) → is-equiv (flat-map {Z} {W} φ) → (z z' ∷ Z) →
+  is-equiv (flat-map {z ≡ z'} {φ z ≡ φ z'} (cong φ {z} {z'}))
+flat-cong-equiv {Z} {W} φ eφ z z' =
+  let D : ♭(z ≡ z') → 𝄫z ≡ 𝄫z' = flat-decode {Z} 𝄫z 𝄫z' in
+  let A : 𝄫z ≡ 𝄫z' → 𝄫(φ z) ≡ 𝄫(φ z') = cong (flat-map {Z} {W} φ) {𝄫z} {𝄫z'} in
+  let E : 𝄫(φ z) ≡ 𝄫(φ z') → ♭(φ z ≡ φ z') = flat-encode {W} 𝄫(φ z) 𝄫(φ z') in
+  let eD : is-equiv D = flat-id-inv {Z} {z} {z'} in
+  let eA : is-equiv A = ap-equiv (flat-map {Z} {W} φ) eφ 𝄫z 𝄫z' in
+  let eE : is-equiv E = snd _ (flat-id {W} {φ z} {φ z'}) in
+  is-equiv-htpy {♭(z ≡ z')} {♭(φ z ≡ φ z')} {λ q . E (A (D q))} {flat-map {z ≡ z'} {φ z ≡ φ z'} (cong φ {z} {z'})}
+    (fun 𝄫p → flat-cong-htpy {Z} {W} φ {z} {z'} p)
+    (is-equiv-circ E (λ q . A (D q)) eE (is-equiv-circ A D eA eD))
+
+is-equiv-flat-tens-uncurryᵣ ∷ {T K W ∷ U} → is-equiv (flat-tens-uncurryᵣ {T} {K} {W})
+is-equiv-flat-tens-uncurryᵣ {T} {K} {W} =
+  ((flat-tens-curryᵣ {T} {K} {W} , fun 𝄫F → refl) ,
+   (flat-tens-curryᵣ {T} {K} {W} , fun 𝄫G → flat-≡ {T ⨂ K → W} (tens-uncurry-curry-crispᵣ {T} {K} {W} G)))
+
+-- lax crisp currying: a crisp B → (A →ₗ W) is a cartesian map A ⨂ B → W
+tens-uncurry-crispₗ ∷ {A B W ∷ U} (F ∷ B → A →ₗ W) → A ⨂ B → W
+tens-uncurry-crispₗ {A} {B} {W} F (a ⊗ b) = F b a
+
+tens-curry-uncurry-crispₗ ∷ {A B W ∷ U} (F ∷ B → A →ₗ W) → tens-curry-left' {A} {B} {W} (tens-uncurry-crispₗ {A} {B} {W} F) ≡ F
+tens-curry-uncurry-crispₗ {A} {B} {W} F = refl
+
+tens-uncurry-curry-crispₗ ∷ {A B W ∷ U} (G ∷ A ⨂ B → W) → tens-uncurry-crispₗ {A} {B} {W} (tens-curry-left' {A} {B} {W} G) ≡ G
+tens-uncurry-curry-crispₗ {A} {B} {W} G =
+  funext-htpy {A ⨂ B} {λ _ . W} (tens-uncurry-crispₗ {A} {B} {W} (tens-curry-left' {A} {B} {W} G)) G
+    (λ z . let h : (z : A ⨂ B) → tens-uncurry-crispₗ {A} {B} {W} (tens-curry-left' {A} {B} {W} G) z ≡ G z = fun (a ⊗ b) → refl in h z)
+
+flat-tens-curryₗ ∷ {A B W ∷ U} → ♭(B → A →ₗ W) → ♭(A ⨂ B → W)
+flat-tens-curryₗ {A} {B} {W} 𝄫F = 𝄫(tens-uncurry-crispₗ {A} {B} {W} F)
+
+flat-tens-uncurryₗ ∷ {A B W ∷ U} → ♭(A ⨂ B → W) → ♭(B → A →ₗ W)
+flat-tens-uncurryₗ {A} {B} {W} = flat-map {A ⨂ B → W} {B → A →ₗ W} (tens-curry-left' {A} {B} {W})
+
+is-equiv-flat-tens-curryₗ ∷ {A B W ∷ U} → is-equiv (flat-tens-curryₗ {A} {B} {W})
+is-equiv-flat-tens-curryₗ {A} {B} {W} =
+  ((flat-tens-uncurryₗ {A} {B} {W} , fun 𝄫G → flat-≡ {A ⨂ B → W} (tens-uncurry-curry-crispₗ {A} {B} {W} G)) ,
+   (flat-tens-uncurryₗ {A} {B} {W} , fun 𝄫F → refl))
+
+is-equiv-flat-tens-uncurryₗ ∷ {A B W ∷ U} → is-equiv (flat-tens-uncurryₗ {A} {B} {W})
+is-equiv-flat-tens-uncurryₗ {A} {B} {W} =
+  ((flat-tens-curryₗ {A} {B} {W} , fun 𝄫F → refl) ,
+   (flat-tens-curryₗ {A} {B} {W} , fun 𝄫G → flat-≡ {A ⨂ B → W} (tens-uncurry-curry-crispₗ {A} {B} {W} G)))
+
+-- on crisp paths, oplax currying is lax currying followed by the crisp swap (and conversely)
+cong-curry-swapₗᵣ ∷ {T X Y ∷ U} {φ₀ φ₁ ∷ T ⨂ X → Y} (p ∷ φ₀ ≡ φ₁) →
+  cong (tens-curry-right' {T} {X} {Y}) p ≡ crisp-cong {X → T →ₗ Y} {T → X →ᵣ Y} (crisp-swapₗᵣ {X} {T} {Y}) (cong (tens-curry-left' {T} {X} {Y}) p)
+cong-curry-swapₗᵣ {T} {X} {Y} {φ₀} refl = refl
+
+cong-curry-swapᵣₗ ∷ {X T Y ∷ U} {φ₀ φ₁ ∷ X ⨂ T → Y} (p ∷ φ₀ ≡ φ₁) →
+  cong (tens-curry-left' {X} {T} {Y}) p ≡ crisp-cong {X → T →ᵣ Y} {T → X →ₗ Y} (crisp-swapᵣₗ {X} {T} {Y}) (cong (tens-curry-right' {X} {T} {Y}) p)
+cong-curry-swapᵣₗ {X} {T} {Y} {φ₀} refl = refl

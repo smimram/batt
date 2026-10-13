@@ -1,0 +1,208 @@
+--
+-- Uniqueness of cocartesian lifts
+--
+-- For p ∷ X → A with X univalent, two cocartesian 1-cells with the same lifting data are equal.
+-- Hence p is a cocartesian fibration as soon as every lifting datum has a cocartesian lift
+-- (is-cocartesian-fibration-univalent). Used for the codomain and coslice fibrations.
+--
+
+open import Stdlib
+open import Hom
+open import Segal
+open import Functoriality
+open import Fibration
+open import Composition
+open import Iso
+open import Univalent
+
+--
+-- Cocartesian cells as cocartesian homs with free endpoints
+--
+
+-- cocartesianness does not depend on the endpoint paths, in the other direction
+is-cocartesian-endpoints-inv ∷ {X A ∷ U} (sX : is-segalᵣ X) (sA : is-segalᵣ A) (p ∷ X → A) (f : arrᵣ X)
+  {x : X} (e0 : srcᵣ f ≡ x) {y : X} (e1 : tgtᵣ f ≡ y) →
+  is-cocartesian {X} {A} sX sA p {x} {y} (f , e0 , e1) → is-cocartesian {X} {A} sX sA p {srcᵣ f} {tgtᵣ f} (cell-hom {X} f)
+is-cocartesian-endpoints-inv {X} {A} sX sA p f refl refl = λ c . c
+
+cocart-homs ∷ {X A ∷ U} (sX : is-segalᵣ X) (sA : is-segalᵣ A) (p ∷ X → A) → U
+cocart-homs {X} {A} sX sA p = Σ (x : X) . Σ (y : X) . Σ (f : hom x y) . is-cocartesian {X} {A} sX sA p {x} {y} f
+
+cell→cocart-hom ∷ {X A ∷ U} (sX : is-segalᵣ X) (sA : is-segalᵣ A) (p ∷ X → A) →
+  cocart-cell {X} {A} sX sA p → cocart-homs {X} {A} sX sA p
+cell→cocart-hom {X} {A} sX sA p (f , c) = (srcᵣ f , tgtᵣ f , cell-hom {X} f , c)
+
+cocart-hom→cell ∷ {X A ∷ U} (sX : is-segalᵣ X) (sA : is-segalᵣ A) (p ∷ X → A) →
+  cocart-homs {X} {A} sX sA p → cocart-cell {X} {A} sX sA p
+cocart-hom→cell {X} {A} sX sA p (x , r) =
+  let h : (r : Σ (y : X) . Σ (f : hom x y) . is-cocartesian {X} {A} sX sA p {x} {y} f) → cocart-cell {X} {A} sX sA p = fun (y , s) →
+    let h' : (s : Σ (f : hom x y) . is-cocartesian {X} {A} sX sA p {x} {y} f) → cocart-cell {X} {A} sX sA p = fun (f , c) →
+      let h'' : (f : hom x y) → is-cocartesian {X} {A} sX sA p {x} {y} f → cocart-cell {X} {A} sX sA p = fun (g , e) c →
+        let k : (e : (srcᵣ g ≡ x) × (tgtᵣ g ≡ y)) → is-cocartesian {X} {A} sX sA p {x} {y} (g , e) → cocart-cell {X} {A} sX sA p =
+          fun (e0 , e1) c → (g , is-cocartesian-endpoints-inv {X} {A} sX sA p g e0 e1 c) in
+        k e c in
+      h'' f c in
+    h' s in
+  h r
+
+-- cocart-hom→cell is a retraction (cocartesianness is a proposition)
+cell→cocart-hom-retr ∷ {X A ∷ U} (sX : is-segalᵣ X) (sA : is-segalᵣ A) (p ∷ X → A) →
+  retraction (cell→cocart-hom {X} {A} sX sA p)
+cell→cocart-hom-retr {X} {A} sX sA p =
+  (cocart-hom→cell {X} {A} sX sA p ,
+   fun (f , c) →
+     cong {is-cocartesian {X} {A} sX sA p {srcᵣ f} {tgtᵣ f} (cell-hom {X} f)} {cocart-cell {X} {A} sX sA p} (λ c' . (f , c'))
+       (prop-path (is-prop-is-cocartesian {X} {A} sX sA p {srcᵣ f} {tgtᵣ f} (cell-hom {X} f)) _ c))
+
+--
+-- Lifting data as homs out of p x
+--
+
+lift-homs-data ∷ {X A ∷ U} (p ∷ X → A) → U
+lift-homs-data {X} {A} p = Σ (x : X) . Σ (b : A) . hom (p x) b
+
+lift-data→homs ∷ {X A ∷ U} (p ∷ X → A) → pullback {X} {arrᵣ A} {A} p (λ u . srcᵣ u) → lift-homs-data {X} {A} p
+lift-data→homs {X} {A} p (x , r) =
+  let h : (r : Σ (α : arrᵣ A) . p x ≡ srcᵣ α) → lift-homs-data {X} {A} p = fun (α , e) → (x , tgtᵣ α , (α , sym e , refl)) in
+  h r
+
+-- the map on cocartesian homs, fibrewise over the source x
+lift-homs-x ∷ {X A ∷ U} (sX : is-segalᵣ X) (sA : is-segalᵣ A) (p ∷ X → A) (x : X) →
+  (Σ (y : X) . Σ (f : hom x y) . is-cocartesian {X} {A} sX sA p {x} {y} f) → Σ (b : A) . hom (p x) b
+lift-homs-x {X} {A} sX sA p x (y , s) = (p y , hom-map {X} {A} p {x} {y} (fst (λ f . is-cocartesian {X} {A} sX sA p {x} {y} f) s))
+
+lift-homs ∷ {X A ∷ U} (sX : is-segalᵣ X) (sA : is-segalᵣ A) (p ∷ X → A) → cocart-homs {X} {A} sX sA p → lift-homs-data {X} {A} p
+lift-homs {X} {A} sX sA p =
+  tot {X} {λ x . Σ (y : X) . Σ (f : hom x y) . is-cocartesian {X} {A} sX sA p {x} {y} f} {λ x . Σ (b : A) . hom (p x) b}
+    (lift-homs-x {X} {A} sX sA p)
+
+-- the square commutes judgmentally
+lift-square ∷ {X A ∷ U} (sX : is-segalᵣ X) (sA : is-segalᵣ A) (p ∷ X → A) (w : cocart-cell {X} {A} sX sA p) →
+  lift-data→homs {X} {A} p (cocart-cell-lift {X} {A} sX sA p w) ≡ lift-homs {X} {A} sX sA p (cell→cocart-hom {X} {A} sX sA p w)
+lift-square {X} {A} sX sA p (f , c) = refl
+
+--
+-- From injectivity on homs to cocartesian fibrations
+--
+
+is-inj ∷ {S T : U} → (S → T) → U
+is-inj {S} {T} g = (s s' : S) → g s ≡ g s' → s ≡ s'
+
+cocart-cell-lift-inj ∷ {X A ∷ U} (sX : is-segalᵣ X) (sA : is-segalᵣ A) (p ∷ X → A) →
+  is-inj (lift-homs {X} {A} sX sA p) → is-inj (cocart-cell-lift {X} {A} sX sA p)
+cocart-cell-lift-inj {X} {A} sX sA p inj w w' q =
+  retraction-inj (cell→cocart-hom {X} {A} sX sA p) (cell→cocart-hom-retr {X} {A} sX sA p) {w} {w'}
+    (inj (cell→cocart-hom {X} {A} sX sA p w) (cell→cocart-hom {X} {A} sX sA p w')
+      (trans (sym (lift-square {X} {A} sX sA p w))
+        (trans (cong (lift-data→homs {X} {A} p) q) (lift-square {X} {A} sX sA p w'))))
+
+-- a section and injectivity make cocart-cell-lift an equivalence
+is-cocartesian-fibration-from-inj ∷ {X A ∷ U} (sX : is-segalᵣ X) (sA : is-segalᵣ A) (p ∷ X → A) →
+  section (cocart-cell-lift {X} {A} sX sA p) → is-inj (lift-homs {X} {A} sX sA p) → is-cocartesian-fibration {X} {A} sX sA p
+is-cocartesian-fibration-from-inj {X} {A} sX sA p sec inj =
+  let L : cocart-cell {X} {A} sX sA p → pullback {X} {arrᵣ A} {A} p (λ u . srcᵣ u) = cocart-cell-lift {X} {A} sX sA p in
+  let σ : pullback {X} {arrᵣ A} {A} p (λ u . srcᵣ u) → cocart-cell {X} {A} sX sA p = section-map L sec in
+  let ret : (w : cocart-cell {X} {A} sX sA p) → σ (L w) ≡ w = λ w .
+    cocart-cell-lift-inj {X} {A} sX sA p inj (σ (L w)) w (snd (is-section L) sec (L w)) in
+  (sec , (σ , ret))
+
+--
+-- Uniqueness of cocartesian lifts (for a univalent total type)
+--
+
+
+-- injectivity is fibrewise
+tot-inj-aux ∷ {B : U} {R Q : B → U} (L : (b : B) → R b → Q b) → ((b : B) → is-inj (L b)) →
+  (b : B) (r : R b) {b' : B} (e : b ≡ b') (r' : R b') → subst Q e (L b r) ≡ L b' r' → (b , r) ≡{Σ (b'' : B) . R b''} (b' , r')
+tot-inj-aux {B} {R} {Q} L inj b r {b'} e =
+  J b (λ b'' e' . (r' : R b'') → subst Q e' (L b r) ≡ L b'' r' → (b , r) ≡{Σ (b3 : B) . R b3} (b'' , r'))
+    (λ r' D . cong {R b} {Σ (b3 : B) . R b3} (λ z . (b , z)) (inj b r r' D)) e
+
+tot-inj ∷ {B : U} {R Q : B → U} (L : (b : B) → R b → Q b) → ((b : B) → is-inj (L b)) → is-inj (tot {B} {R} {Q} L)
+tot-inj {B} {R} {Q} L inj (b , r) (b' , r') q =
+  let sp : Σ (e : b ≡ b') . subst Q e (L b r) ≡ L b' r' = Σ-path-split {B} {Q} {b} {L b r} {(b' , L b' r')} q in
+  tot-inj-aux {B} {R} {Q} L inj b r {b'} (fst {b ≡ b'} (λ e . subst Q e (L b r) ≡ L b' r') sp) r' (snd {b ≡ b'} (λ e . subst Q e (L b r) ≡ L b' r') sp)
+
+-- a path of targets with a transport of homs, and cocartesianness, give a path of cocartesian homs
+cocart-hom-join ∷ {X A ∷ U} (sX : is-segalᵣ X) (sA : is-segalᵣ A) (p ∷ X → A) {x y : X} (f : hom x y)
+  (c : is-cocartesian {X} {A} sX sA p {x} {y} f) {y' : X} (P : y ≡ y') (f' : hom x y') (E : subst (λ z . hom x z) P f ≡ f')
+  (c' : is-cocartesian {X} {A} sX sA p {x} {y'} f') →
+  (y , f , c) ≡{Σ (z : X) . Σ (h : hom x z) . is-cocartesian {X} {A} sX sA p {x} {z} h} (y' , f' , c')
+cocart-hom-join {X} {A} sX sA p {x} {y} f c {y'} P =
+  J y (λ z P' . (f'' : hom x z) (E' : subst (λ z' . hom x z') P' f ≡ f'') (c'' : is-cocartesian {X} {A} sX sA p {x} {z} f'') →
+        (y , f , c) ≡{Σ (z' : X) . Σ (h : hom x z') . is-cocartesian {X} {A} sX sA p {x} {z'} h} (z , f'' , c''))
+    (λ f'' E' . J f (λ h E'' . (c'' : is-cocartesian {X} {A} sX sA p {x} {y} h) →
+                     (y , f , c) ≡{Σ (z' : X) . Σ (h' : hom x z') . is-cocartesian {X} {A} sX sA p {x} {z'} h'} (y , h , c''))
+       (λ c'' . cong {is-cocartesian {X} {A} sX sA p {x} {y} f} {Σ (z' : X) . Σ (h' : hom x z') . is-cocartesian {X} {A} sX sA p {x} {z'} h'}
+                  (λ w . (y , f , w)) (prop-path (is-prop-is-cocartesian {X} {A} sX sA p {x} {y} f) c c''))
+       E')
+    P
+
+-- the core: two cocartesian homs out of x with the same image are equal
+lift-unique-core ∷ {X A ∷ U} (sX : is-segalᵣ X) (sA : is-segalᵣ A) (p ∷ X → A) (uX : is-univalentᵣ X sX)
+  {x y : X} (f : hom x y) (c : is-cocartesian {X} {A} sX sA p {x} {y} f)
+  {y' : X} (f' : hom x y') (c' : is-cocartesian {X} {A} sX sA p {x} {y'} f')
+  (q : (p y , hom-map {X} {A} p {x} {y} f) ≡{Σ (b : A) . hom (p x) b} (p y' , hom-map {X} {A} p {x} {y'} f')) →
+  (y , f , c) ≡{Σ (z : X) . Σ (h : hom x z) . is-cocartesian {X} {A} sX sA p {x} {z} h} (y' , f' , c')
+lift-unique-core {X} {A} sX sA p uX {x} {y} f c {y'} f' c' q =
+  let pf : hom (p x) (p y) = hom-map {X} {A} p {x} {y} f in
+  let pf' : hom (p x) (p y') = hom-map {X} {A} p {x} {y'} f' in
+  -- the image path: a path of targets in A, and the image of f transported along it
+  let sp : Σ (e : p y ≡ p y') . subst (λ b . hom (p x) b) e pf ≡ pf' =
+    Σ-path-split {A} {λ b . hom (p x) b} {p y} {pf} {(p y' , pf')} q in
+  let e : p y ≡ p y' = fst {p y ≡ p y'} (λ e' . subst (λ b . hom (p x) b) e' pf ≡ pf') sp in
+  let D : subst (λ b . hom (p x) b) e pf ≡ pf' = snd {p y ≡ p y'} (λ e' . subst (λ b . hom (p x) b) e' pf ≡ pf') sp in
+  let ke : hom (p y) (p y') = path→hom {A} sA {p y} {p y'} e in
+  let D' : comp-homᵣ A sA {p x} {p y} {p y'} pf ke ≡ pf' = trans (sym (transport-hom-tgt {A} sA {p x} {p y} pf {p y'} e)) D in
+  -- 1. the gap map of f at y' gives g with f ; g = f' and p g = path→hom e
+  let G : hom y y' → cocart-pb {X} {A} sA p {x} {y} f y' = cocart-gap {X} {A} sX sA p {x} {y} f y' in
+  let σ : section G = is-equiv-sec G (c y') in
+  let π : cocart-pb {X} {A} sA p {x} {y} f y' = (f' , ke , sym D') in
+  let g : hom y y' = section-map G σ π in
+  let PG : G g ≡ π = snd _ σ π in
+  let fg : comp-homᵣ X sX {x} {y} {y'} f g ≡ f' = cong {cocart-pb {X} {A} sA p {x} {y} f y'} {hom x y'} (λ z . fst _ z) PG in
+  let pg : hom-map {X} {A} p {y} {y'} g ≡ ke =
+    cong {cocart-pb {X} {A} sA p {x} {y} f y'} {hom (p y) (p y')} (λ z . fst _ (snd _ z)) PG in
+  -- 2. g is cocartesian (cancellation) and lies over an isomorphism, hence is an isomorphism
+  let c-fg : is-cocartesian {X} {A} sX sA p {x} {y'} (comp-homᵣ X sX {x} {y} {y'} f g) =
+    subst {hom x y'} (λ h . is-cocartesian {X} {A} sX sA p {x} {y'} h) (sym fg) c' in
+  let c-g : is-cocartesian {X} {A} sX sA p {y} {y'} g =
+    snd _ (is-cocartesian-cancel {X} {A} sX sA p {x} {y} {y'} f g c) c-fg in
+  let iso-ke : is-iso-hom {A} sA {p y} {p y'} ke =
+    biinv→iso {A} sA {p y} {p y'} ke (snd (λ h . is-biinv-hom {A} sA {p y} {p y'} h) (idtoiso {A} sA {p y} {p y'} e)) in
+  let iso-pg : is-iso-hom {A} sA {p y} {p y'} (hom-map {X} {A} p {y} {y'} g) =
+    subst {hom (p y) (p y')} (λ h . is-iso-hom {A} sA {p y} {p y'} h) (sym pg) iso-ke in
+  let iso-g : is-iso-hom {X} sX {y} {y'} g = is-iso-cocartesian {X} {A} sX sA p {y} {y'} g c-g iso-pg in
+  -- 3. univalence: g is path→hom of a path P, and transporting f along P is f ; g = f'
+  let I : y ≡ y' → iso {X} sX y y' = idtoiso {X} sX {y} {y'} in
+  let τ : section I = is-equiv-sec I (uX y y') in
+  let gi : iso {X} sX y y' = (g , iso→biinv {X} sX {y} {y'} g iso-g) in
+  let P : y ≡ y' = section-map I τ gi in
+  let hP : path→hom {X} sX {y} {y'} P ≡ g =
+    cong {iso {X} sX y y'} {hom y y'} (fst (λ h . is-biinv-hom {X} sX {y} {y'} h)) (snd _ τ gi) in
+  let E : subst (λ z . hom x z) P f ≡ f' =
+    trans (transport-hom-tgt {X} sX {x} {y} f {y'} P)
+      (trans (cong {hom y y'} {hom x y'} (λ k . comp-homᵣ X sX {x} {y} {y'} f k) hP) fg) in
+  cocart-hom-join {X} {A} sX sA p {x} {y} f c {y'} P f' E c'
+
+-- fibrewise injectivity
+lift-homs-x-inj ∷ {X A ∷ U} (sX : is-segalᵣ X) (sA : is-segalᵣ A) (p ∷ X → A) (uX : is-univalentᵣ X sX) (x : X) →
+  is-inj (lift-homs-x {X} {A} sX sA p x)
+lift-homs-x-inj {X} {A} sX sA p uX x (y , s) (y' , s') =
+  let h : (s : Σ (f : hom x y) . is-cocartesian {X} {A} sX sA p {x} {y} f) (s' : Σ (f : hom x y') . is-cocartesian {X} {A} sX sA p {x} {y'} f) →
+      lift-homs-x {X} {A} sX sA p x (y , s) ≡ lift-homs-x {X} {A} sX sA p x (y' , s') → (y , s) ≡{Σ (z : X) . Σ (f : hom x z) . is-cocartesian {X} {A} sX sA p {x} {z} f} (y' , s') =
+    fun (f , c) (f' , c') q → lift-unique-core {X} {A} sX sA p uX {x} {y} f c {y'} f' c' q in
+  h s s'
+
+-- uniqueness of cocartesian lifts: for a univalent total type, lift-homs is injective
+lift-homs-inj ∷ {X A ∷ U} (sX : is-segalᵣ X) (sA : is-segalᵣ A) (p ∷ X → A) (uX : is-univalentᵣ X sX) →
+  is-inj (lift-homs {X} {A} sX sA p)
+lift-homs-inj {X} {A} sX sA p uX =
+  tot-inj {X} {λ x . Σ (y : X) . Σ (f : hom x y) . is-cocartesian {X} {A} sX sA p {x} {y} f} {λ x . Σ (b : A) . hom (p x) b}
+    (lift-homs-x {X} {A} sX sA p) (lift-homs-x-inj {X} {A} sX sA p uX)
+
+-- existence of cocartesian lifts, for a univalent total type, makes p a cocartesian fibration
+is-cocartesian-fibration-univalent ∷ {X A ∷ U} (sX : is-segalᵣ X) (sA : is-segalᵣ A) (p ∷ X → A) (uX : is-univalentᵣ X sX) →
+  section (cocart-cell-lift {X} {A} sX sA p) → is-cocartesian-fibration {X} {A} sX sA p
+is-cocartesian-fibration-univalent {X} {A} sX sA p uX sec =
+  is-cocartesian-fibration-from-inj {X} {A} sX sA p sec (lift-homs-inj {X} {A} sX sA p uX)

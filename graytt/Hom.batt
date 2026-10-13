@@ -10,6 +10,10 @@ hom' X' = oplax⁎⁎ 𝕀⁎⁎ X'
 hom ∷ {X ∷ U} (x0 x1 : X) → U
 hom x0 x1 = Σ (f : arrᵣ X) . (srcᵣ f ≡ x0) × (tgtᵣ f ≡ x1)
 
+-- the boundary conditions of a hom (hom x0 x1 = Σ (f : arrᵣ X) . hom-boundary x0 x1 f)
+hom-boundary ∷ {X ∷ U} (x0 x1 : X) → arrᵣ X → U
+hom-boundary {X} x0 x1 f = (srcᵣ f ≡ x0) × (tgtᵣ f ≡ x1)
+
 -- the underlying 1-cell and its boundary
 hom-cell ∷ {X ∷ U} {x0 x1 : X} → hom x0 x1 → (arrᵣ X)
 hom-cell (f , _) = f
@@ -20,6 +24,20 @@ hom-src (f , p) = Product.fst p
 hom-tgt ∷ {X ∷ U} {x0 x1 : X} (u : hom x0 x1) → tgtᵣ (hom-cell u) ≡ x1
 hom-tgt (f , p) = Product.snd p
 
+-- η for homs
+hom-eta-aux ∷ {X ∷ U} {x0 x1 : X} (t : arrᵣ X) (p : (srcᵣ t ≡ x0) × (tgtᵣ t ≡ x1)) →
+  (t , Product.fst {srcᵣ t ≡ x0} {tgtᵣ t ≡ x1} p , Product.snd {srcᵣ t ≡ x0} {tgtᵣ t ≡ x1} p) ≡{hom x0 x1} (t , p)
+hom-eta-aux {X} {x0} {x1} t (e0 , e1) = refl
+hom-eta ∷ {X ∷ U} {x0 x1 : X} (f : hom x0 x1) → (hom-cell {X} {x0} {x1} f , hom-src {X} {x0} {x1} f , hom-tgt {X} {x0} {x1} f) ≡{hom x0 x1} f
+hom-eta {X} {x0} {x1} (t , p) = hom-eta-aux {X} {x0} {x1} t p
+
+-- η for homs
+hom-eta-aux ∷ {X ∷ U} {x0 x1 : X} (t : arrᵣ X) (p : (srcᵣ t ≡ x0) × (tgtᵣ t ≡ x1)) →
+  (t , Product.fst {srcᵣ t ≡ x0} {tgtᵣ t ≡ x1} p , Product.snd {srcᵣ t ≡ x0} {tgtᵣ t ≡ x1} p) ≡{hom x0 x1} (t , p)
+hom-eta-aux {X} {x0} {x1} t (e0 , e1) = refl
+hom-eta ∷ {X ∷ U} {x0 x1 : X} (f : hom x0 x1) → (hom-cell {X} {x0} {x1} f , hom-src {X} {x0} {x1} f , hom-tgt {X} {x0} {x1} f) ≡{hom x0 x1} f
+hom-eta {X} {x0} {x1} (t , p) = hom-eta-aux {X} {x0} {x1} t p
+
 -- for crisp endpoints, hom is the hom of the bipointed type (X, x0, x1), judgmentally
 hom-crisp ∷ {X ∷ U} (x0 x1 ∷ X) → hom x0 x1 ≡ hom' (X , (x0 , x1))
 hom-crisp x0 x1 = refl
@@ -27,3 +45,63 @@ hom-crisp x0 x1 = refl
 -- the identity 1-cell on a point: the constant oplax map
 id ∷ {X ∷ U} (x : X) → hom x x
 id x = ((λ t . x) , refl , refl)
+
+--
+-- Homs with free endpoints
+--
+
+-- homs with free endpoints
+homs-total ∷ (X ∷ U) → U
+homs-total X = Σ (x : X) . Σ (y : X) . hom x y
+
+homs-src ∷ {X ∷ U} → homs-total X → X
+homs-src {X} w = fst {X} (λ x . Σ (y : X) . hom x y) w
+
+homs-tgt ∷ {X ∷ U} → homs-total X → X
+homs-tgt {X} w = fst {X} (λ y . hom (homs-src {X} w) y) (snd {X} (λ x . Σ (y : X) . hom x y) w)
+
+homs-hom ∷ {X ∷ U} (w : homs-total X) → hom (homs-src {X} w) (homs-tgt {X} w)
+homs-hom {X} w = snd {X} (λ y . hom (homs-src {X} w) y) (snd {X} (λ x . Σ (y : X) . hom x y) w)
+
+homs-eta ∷ {X ∷ U} (w : homs-total X) → (homs-src {X} w , homs-tgt {X} w , homs-hom {X} w) ≡{homs-total X} w
+homs-eta {X} (x , r) =
+  let k : (r : Σ (y : X) . hom x y) → (x , fst {X} (λ y . hom x y) r , snd {X} (λ y . hom x y) r) ≡{homs-total X} (x , r) =
+    fun (y , f) → refl in
+  k r
+
+-- homs with free endpoints are arrows
+homs-total→arr ∷ {X ∷ U} → homs-total X → arrᵣ X
+homs-total→arr {X} w = hom-cell {X} {homs-src {X} w} {homs-tgt {X} w} (homs-hom {X} w)
+
+arr→homs-total ∷ {X ∷ U} → arrᵣ X → homs-total X
+arr→homs-total {X} f = (f 𝕀0 , f 𝕀1 , (f , refl , refl))
+
+arr→homs-total-retr ∷ {X ∷ U} (w : homs-total X) → arr→homs-total {X} (homs-total→arr {X} w) ≡ w
+arr→homs-total-retr {X} (x , r) =
+  let h : (r : Σ (y : X) . hom x y) → arr→homs-total {X} (homs-total→arr {X} (x , r)) ≡{homs-total X} (x , r) = fun (y , g) →
+    let h2 : (g : hom x y) → arr→homs-total {X} (homs-total→arr {X} (x , y , g)) ≡{homs-total X} (x , y , g) = fun (f , es) →
+      let h3 : (es : (srcᵣ f ≡ x) × (tgtᵣ f ≡ y)) → arr→homs-total {X} (homs-total→arr {X} (x , y , f , es)) ≡{homs-total X} (x , y , f , es) =
+        fun (e0 , e1) →
+          J (srcᵣ f) (λ x' e0' . arr→homs-total {X} f ≡{homs-total X} (x' , y , f , e0' , e1))
+            (J (tgtᵣ f) (λ y' e1' . arr→homs-total {X} f ≡{homs-total X} (srcᵣ f , y' , f , refl , e1')) refl e1) e0 in
+      h3 es in
+    h2 g in
+  h r
+
+is-equiv-homs-total→arr ∷ {X ∷ U} → is-equiv (homs-total→arr {X})
+is-equiv-homs-total→arr {X} = ((arr→homs-total {X} , λ f . refl) , (arr→homs-total {X} , arr→homs-total-retr {X}))
+
+
+--
+-- Moving the target of a hom along its target path
+--
+
+-- transport of a hom with refl target path along a path of its target
+subst-hom-tgt ∷ {X ∷ U} {a : X} (f : arrᵣ X) (p : srcᵣ f ≡ a) {x : X} (q : tgtᵣ f ≡ x) →
+  subst (λ y . hom {X} a y) q (f , p , refl) ≡ (f , p , q)
+subst-hom-tgt {X} {a} f p refl = refl
+
+-- the same, as a path of homs out of a with free target
+homs-from-tgt-path ∷ {X ∷ U} {a : X} (f : arrᵣ X) (p : srcᵣ f ≡ a) {x : X} (q : tgtᵣ f ≡ x) →
+  (tgtᵣ f , f , p , refl) ≡{Σ (y : X) . hom {X} a y} (x , f , p , q)
+homs-from-tgt-path {X} {a} f p refl = refl

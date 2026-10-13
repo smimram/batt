@@ -26,8 +26,15 @@ open import Associativity
 -- Action of a map on homs
 --
 
-hom-map ∷ {A B ∷ U} (f ∷ A → B) {x y : A} → hom x y → hom (f x) (f y)
+hom-map ∷ {A B ∷ U} (f : A → B) {x y : A} → hom x y → hom (f x) (f y)
 hom-map f u = (postᵣ f (hom-cell u) , cong f (hom-src u) , cong f (hom-tgt u))
+
+-- the identity acts as the identity
+hom-map-idfun ∷ {X ∷ U} {x y : X} (u : hom x y) → hom-map {X} {X} (λ z . z) {x} {y} u ≡ u
+hom-map-idfun {X} {x} {y} (c , r) =
+  let k : (r : (srcᵣ c ≡ x) × (tgtᵣ c ≡ y)) → hom-map {X} {X} (λ z . z) {x} {y} (c , r) ≡ (c , r) = fun (p , q) →
+    cong2 {srcᵣ c ≡ x} {tgtᵣ c ≡ y} {hom x y} (λ p' q' . (c , p' , q')) (cong-id {X} p) (cong-id {X} q) in
+  k r
 
 --
 -- Commutation with composition
@@ -40,19 +47,19 @@ hom-map f u = (postᵣ f (hom-cell u) , cong f (hom-src u) , cong f (hom-tgt u))
 
 -- the statement, for a composable pair
 hom-map-comp-stmt ∷
-  (X A ∷ U) (p ∷ X → A) (sX : is-segalᵣ X) (sA : is-segalᵣ A)
+  (X A ∷ U) (p : X → A) (sX : is-segalᵣ X) (sA : is-segalᵣ A)
   {x y z : X} (u : hom x y) (v : hom y z)
   → U
 hom-map-comp-stmt X A p sX sA {x} {y} {z} u v =
   hom-map p (comp-homᵣ X sX u v) ≡ comp-homᵣ A sA (hom-map p u) (hom-map p v)
 
 -- the statement, as a family over composable pairs
-pair-stmt ∷ (X A ∷ U) (p ∷ X → A) (sX : is-segalᵣ X) (sA : is-segalᵣ A) → pairs X → U
+pair-stmt ∷ (X A ∷ U) (p : X → A) (sX : is-segalᵣ X) (sA : is-segalᵣ A) → pairs X → U
 pair-stmt X A p sX sA = pair-family X (λ y z t v w . hom-map-comp-stmt X A p sX sA {y} {z} {t} v w)
 
 -- on the edges of a 2-simplex: both composites are the long edge
 hom-map-comp-simplex ∷
-  (X A ∷ U) (p ∷ X → A) (sX : is-segalᵣ X) (sA : is-segalᵣ A)
+  (X A ∷ U) (p : X → A) (sX : is-segalᵣ X) (sA : is-segalᵣ A)
   (Ψ : simplex 2 →ᵣ X)
   → pair-stmt X A p sX sA (edges-2 {X} Ψ)
 hom-map-comp-simplex X A p sX sA Ψ =
@@ -61,7 +68,7 @@ hom-map-comp-simplex X A p sX sA Ψ =
 
 -- for an arbitrary composable pair, by transport along the section of the edges
 hom-map-comp-def ∷
-  (X A ∷ U) (p ∷ X → A) (sX : is-segalᵣ X) (sA : is-segalᵣ A)
+  (X A ∷ U) (p : X → A) (sX : is-segalᵣ X) (sA : is-segalᵣ A)
   {x y z : X} (u : hom x y) (v : hom y z)
   → hom-map p (comp-homᵣ X sX u v) ≡ comp-homᵣ A sA (hom-map p u) (hom-map p v)
 hom-map-comp-def X A p sX sA {x} {y} {z} u v =
@@ -72,7 +79,7 @@ hom-map-comp-def X A p sX sA {x} {y} {z} u v =
 
 -- frozen (as assoc-simplex-3): it does not unfold, but it is equal to its definition
 hom-map-comp-freeze ∷
-  (X A ∷ U) (p ∷ X → A) (sX : is-segalᵣ X) (sA : is-segalᵣ A)
+  (X A ∷ U) (p : X → A) (sX : is-segalᵣ X) (sA : is-segalᵣ A)
   {x y z : X} (u : hom x y) (v : hom y z)
   → Σ (e : hom-map p (comp-homᵣ X sX u v) ≡ comp-homᵣ A sA (hom-map p u) (hom-map p v)) .
       e ≡ hom-map-comp-def X A p sX sA {x} {y} {z} u v
@@ -80,14 +87,14 @@ hom-map-comp-freeze X A p sX sA {x} {y} {z} u v = (hom-map-comp-def X A p sX sA 
 
 -- the action of p on homs commutes with composition
 hom-map-comp ∷
-  (X A ∷ U) (p ∷ X → A) (sX : is-segalᵣ X) (sA : is-segalᵣ A)
+  (X A ∷ U) (p : X → A) (sX : is-segalᵣ X) (sA : is-segalᵣ A)
   {x y z : X} (u : hom x y) (v : hom y z)
   → hom-map p (comp-homᵣ X sX u v) ≡ comp-homᵣ A sA (hom-map p u) (hom-map p v)
 hom-map-comp X A p sX sA {x} {y} {z} u v = fst _ (hom-map-comp-freeze X A p sX sA {x} {y} {z} u v)
 
 -- on the edges of a 2-simplex, it is the commutation given by that 2-simplex
 hom-map-comp-edges ∷
-  (X A ∷ U) (p ∷ X → A) (sX : is-segalᵣ X) (sA : is-segalᵣ A)
+  (X A ∷ U) (p : X → A) (sX : is-segalᵣ X) (sA : is-segalᵣ A)
   (Ψ : simplex 2 →ᵣ X)
   → hom-map-comp X A p sX sA (simplex-2-hom₀₁ {X} Ψ) (simplex-2-hom₁₂ {X} Ψ) ≡ hom-map-comp-simplex X A p sX sA Ψ
 hom-map-comp-edges X A p sX sA Ψ =
@@ -279,3 +286,87 @@ hom-map-comp-assoc ∷
 hom-map-comp-assoc X A p sX sA {x} {y} {z} {t} u v w =
   subst {triples X} (assoc-coh-tri X A p sX sA) (assoc-filler-edges X sX u v w)
     (assoc-coh-simplex X A p sX sA (assoc-filler X sX u v w))
+
+--
+-- Composite maps
+--
+-- For maps ι : X → Y and q : Y → A, the action on homs of q ∘ ι is the composite of the actions
+-- (hom-map-circ), and the commutations with composition are coherent: the commutation for q ∘ ι
+-- is the composite of the commutations for ι and q (hom-map-comp-circ). As for the coherence with
+-- associativity, this is checked on the edges of a 2-simplex, where all the commutations are given
+-- by the 2-simplex (hom-map-comp-edges), and transported to all composable pairs.
+--
+
+-- the action on homs of a composite map is the composite of the actions, up to the images of the
+-- boundary paths
+hom-map-circ-aux ∷ {X Y A ∷ U} (ι ∷ X → Y) (q ∷ Y → A) (c : arrᵣ X) {x : X} (e0 : srcᵣ c ≡ x) {y : X} (e1 : tgtᵣ c ≡ y) →
+  hom-map {X} {A} (λ w . q (ι w)) {x} {y} (c , e0 , e1) ≡ hom-map {Y} {A} q {ι x} {ι y} (hom-map {X} {Y} ι {x} {y} (c , e0 , e1))
+hom-map-circ-aux {X} {Y} {A} ι q c refl refl = refl
+
+hom-map-circ ∷ {X Y A ∷ U} (ι ∷ X → Y) (q ∷ Y → A) {x y : X} (u : hom x y) →
+  hom-map {X} {A} (λ w . q (ι w)) {x} {y} u ≡ hom-map {Y} {A} q {ι x} {ι y} (hom-map {X} {Y} ι {x} {y} u)
+hom-map-circ {X} {Y} {A} ι q {x} {y} u =
+  trans (cong {hom x y} {hom (q (ι x)) (q (ι y))} (hom-map {X} {A} (λ w . q (ι w)) {x} {y}) (sym (hom-eta {X} {x} {y} u)))
+    (trans (hom-map-circ-aux {X} {Y} {A} ι q (hom-cell {X} {x} {y} u) (hom-src {X} {x} {y} u) (hom-tgt {X} {x} {y} u))
+      (cong {hom x y} {hom (q (ι x)) (q (ι y))} (λ v . hom-map {Y} {A} q {ι x} {ι y} (hom-map {X} {Y} ι {x} {y} v)) (hom-eta {X} {x} {y} u)))
+
+-- the coherence of the commutations with composition of ι, q and their composite
+hom-map-comp-circ-stmt ∷
+  (X Y A ∷ U) (ι ∷ X → Y) (q ∷ Y → A) (sX : is-segalᵣ X) (sY : is-segalᵣ Y) (sA : is-segalᵣ A)
+  {x y z : X} (u : hom x y) (v : hom y z) → U
+hom-map-comp-circ-stmt X Y A ι q sX sY sA {x} {y} {z} u v =
+  hom-map-comp X A (λ w . q (ι w)) sX sA {x} {y} {z} u v
+  ≡ trans (hom-map-circ {X} {Y} {A} ι q {x} {z} (comp-homᵣ X sX {x} {y} {z} u v))
+      (trans (cong (hom-map {Y} {A} q {ι x} {ι z}) (hom-map-comp X Y ι sX sY {x} {y} {z} u v))
+        (trans (hom-map-comp Y A q sY sA {ι x} {ι y} {ι z} (hom-map {X} {Y} ι {x} {y} u) (hom-map {X} {Y} ι {y} {z} v))
+          (sym (cong2 (λ m n . comp-homᵣ A sA {q (ι x)} {q (ι y)} {q (ι z)} m n)
+                 (hom-map-circ {X} {Y} {A} ι q {x} {y} u) (hom-map-circ {X} {Y} {A} ι q {y} {z} v)))))
+
+-- the path algebra on the edges of a 2-simplex
+circ-alg ∷ {H M T : U} (P : H → T) (I : H → M) (Q : M → T) (c : (h : H) → P h ≡ Q (I h))
+  {h h' : H} (α : h ≡ h') {m : M} (β : I h' ≡ m) {t : T} (γ : Q (I h') ≡ t) →
+  trans (cong P α) (trans (c h') γ) ≡ trans (c h) (trans (cong Q (trans (cong I α) β)) (trans (cong Q (sym β)) γ))
+circ-alg {H} {M} {T} P I Q c {h} refl refl refl = trans-refl-l (c h)
+
+hom-map-comp-circ-simplex ∷
+  (X Y A ∷ U) (ι ∷ X → Y) (q ∷ Y → A) (sX : is-segalᵣ X) (sY : is-segalᵣ Y) (sA : is-segalᵣ A)
+  (Ψ : simplex 2 →ᵣ X) →
+  hom-map-comp-circ-stmt X Y A ι q sX sY sA (simplex-2-hom₀₁ {X} Ψ) (simplex-2-hom₁₂ {X} Ψ)
+hom-map-comp-circ-simplex X Y A ι q sX sY sA Ψ =
+  let x0 : X = Ψ (simplex-2-e₀₁ 𝕀0) in
+  let x2 : X = Ψ (simplex-2-e₁₂ 𝕀1) in
+  let ιΨ : simplex 2 →ᵣ Y = postᵣ {simplex 2} {X} {Y} ι Ψ in
+  let P : hom x0 x2 → hom (q (ι x0)) (q (ι x2)) = hom-map {X} {A} (λ w . q (ι w)) {x0} {x2} in
+  let I : hom x0 x2 → hom (ι x0) (ι x2) = hom-map {X} {Y} ι {x0} {x2} in
+  let Q : hom (ι x0) (ι x2) → hom (q (ι x0)) (q (ι x2)) = hom-map {Y} {A} q {ι x0} {ι x2} in
+  let qιΨ : simplex 2 →ᵣ A = postᵣ {simplex 2} {Y} {A} q ιΨ in
+  let C : hom x0 x2 = comp-homᵣ X sX (simplex-2-hom₀₁ {X} Ψ) (simplex-2-hom₁₂ {X} Ψ) in
+  let csX : C ≡ simplex-2-hom₀₂ {X} Ψ = comp-simplex-2 X sX Ψ in
+  let csY : comp-homᵣ Y sY (simplex-2-hom₀₁ {Y} ιΨ) (simplex-2-hom₁₂ {Y} ιΨ) ≡ simplex-2-hom₀₂ {Y} ιΨ = comp-simplex-2 Y sY ιΨ in
+  let csA : comp-homᵣ A sA (simplex-2-hom₀₁ {A} qιΨ) (simplex-2-hom₁₂ {A} qιΨ) ≡ simplex-2-hom₀₂ {A} qιΨ = comp-simplex-2 A sA qιΨ in
+  let Eqι : hom-map-comp X A (λ w . q (ι w)) sX sA (simplex-2-hom₀₁ {X} Ψ) (simplex-2-hom₁₂ {X} Ψ) ≡ trans (cong P csX) (sym csA) =
+    hom-map-comp-edges X A (λ w . q (ι w)) sX sA Ψ in
+  let Eι : hom-map-comp X Y ι sX sY (simplex-2-hom₀₁ {X} Ψ) (simplex-2-hom₁₂ {X} Ψ) ≡ trans (cong I csX) (sym csY) =
+    hom-map-comp-edges X Y ι sX sY Ψ in
+  let Eq : hom-map-comp Y A q sY sA (simplex-2-hom₀₁ {Y} ιΨ) (simplex-2-hom₁₂ {Y} ιΨ) ≡ trans (cong Q csY) (sym csA) =
+    hom-map-comp-edges Y A q sY sA ιΨ in
+  let TA : hom (q (ι x0)) (q (ι x2)) = comp-homᵣ A sA (simplex-2-hom₀₁ {A} qιΨ) (simplex-2-hom₁₂ {A} qιΨ) in
+  let CY : hom (ι x0) (ι x2) = comp-homᵣ Y sY (simplex-2-hom₀₁ {Y} ιΨ) (simplex-2-hom₁₂ {Y} ιΨ) in
+  let e02A : hom (q (ι x0)) (q (ι x2)) = simplex-2-hom₀₂ {A} qιΨ in
+  let e02Y : hom (ι x0) (ι x2) = simplex-2-hom₀₂ {Y} ιΨ in
+  trans Eqι
+    (trans (sym (cong {e02A ≡ TA} {P C ≡ TA} (λ z . trans (cong P csX) z) (trans-refl-l (sym csA))))
+      (trans (circ-alg P I Q (hom-map-circ {X} {Y} {A} ι q {x0} {x2}) csX (sym csY) (sym csA))
+        (cong {Q (I C) ≡ TA} {P C ≡ TA} (λ z . trans (hom-map-circ {X} {Y} {A} ι q {x0} {x2} C) z)
+          (cong2 {I C ≡ CY} {Q CY ≡ TA} {Q (I C) ≡ TA} (λ k l . trans (cong Q k) l) (sym Eι)
+            (trans (cong {CY ≡ e02Y} {Q CY ≡ TA} (λ w . trans (cong Q w) (sym csA)) (sym-sym csY)) (sym Eq))))))
+
+hom-map-comp-circ ∷
+  (X Y A ∷ U) (ι ∷ X → Y) (q ∷ Y → A) (sX : is-segalᵣ X) (sY : is-segalᵣ Y) (sA : is-segalᵣ A)
+  {x y z : X} (u : hom x y) (v : hom y z) → hom-map-comp-circ-stmt X Y A ι q sX sY sA {x} {y} {z} u v
+hom-map-comp-circ X Y A ι q sX sY sA {x} {y} {z} u v =
+  let s : section (edges-2 {X}) = is-equiv-sec (edges-2 {X}) (is-equiv-edges-2 X sX) in
+  let r : pairs X = (x , y , z , u , v) in
+  subst (pair-family X (λ x' y' z' u' v' . hom-map-comp-circ-stmt X Y A ι q sX sY sA {x'} {y'} {z'} u' v'))
+    (snd (is-section (edges-2 {X})) s r)
+    (hom-map-comp-circ-simplex X Y A ι q sX sY sA (section-map (edges-2 {X}) s r))

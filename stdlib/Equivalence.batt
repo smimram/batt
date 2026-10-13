@@ -9,6 +9,7 @@ open import Product
 open import Function
 open import Equality
 open import Sigma
+open import Prop
 
 ---
 --- sections and retractions
@@ -343,3 +344,133 @@ transfer-equiv {S} {T} e ee F g s s' E =
   let c : is-contr (fib e (e s)) = is-contr-fib e ee (e s) in
   let G : fib e (e s) → F (e s) = fun (x , q) → subst F q (g x) in
   cong G (is-contr-eq c (s' , E) (s , refl))
+
+---
+--- Contractible maps and fibrewise equivalences
+---
+
+-- a map with contractible fibres is an equivalence
+is-contr-map→is-equiv ∷ {A B : U} (f : A → B) → is-contr-map f → is-equiv f
+is-contr-map→is-equiv {A} {B} f c =
+  let s : B → A = λ y . fst (λ x . f x ≡ y) (fst (λ z . (z' : fib f y) → z ≡ z') (c y)) in
+  let ε : (y : B) → f (s y) ≡ y = λ y . snd (λ x . f x ≡ y) (fst (λ z . (z' : fib f y) → z ≡ z') (c y)) in
+  let η : (x : A) → s (f x) ≡ x = λ x .
+    cong (fst (λ x' . f x' ≡ f x)) (snd (λ z . (z' : fib f (f x)) → z ≡ z') (c (f x)) (x , refl)) in
+  ((s , ε) , (s , η))
+
+-- the fibres of a map are retracts of the fibres of its total map
+tot-fib→fib ∷ {A : U} {P Q : A → U} (f : (a : A) → P a → Q a) (z : Σ (a : A) . Q a) →
+  fib (tot {A} {P} {Q} f) z → fib (f (fst Q z)) (snd Q z)
+tot-fib→fib {A} {P} {Q} f z (x , e) =
+  let h : (x : Σ (a : A) . P a) (e : tot {A} {P} {Q} f x ≡ z) → fib (f (fst Q z)) (snd Q z) = fun (a' , p') e →
+    J {Σ (a : A) . Q a} (a' , f a' p') (λ z' e' . fib (f (fst Q z')) (snd Q z')) (p' , refl) e in
+  h x e
+
+fib→tot-fib ∷ {A : U} {P Q : A → U} (f : (a : A) → P a → Q a) (a : A) (q : Q a) →
+  fib (f a) q → fib (tot {A} {P} {Q} f) (a , q)
+fib→tot-fib {A} {P} {Q} f a q (p , e) = ((a , p) , cong {Q a} {Σ (a' : A) . Q a'} (λ q' . (a , q')) e)
+
+fib→tot-fib-retr ∷ {A : U} {P Q : A → U} (f : (a : A) → P a → Q a) (a : A) (q : Q a) (w : fib (f a) q) →
+  tot-fib→fib {A} {P} {Q} f (a , q) (fib→tot-fib {A} {P} {Q} f a q w) ≡ w
+fib→tot-fib-retr {A} {P} {Q} f a q (p , e) =
+  J {Q a} (f a p)
+    (λ q' e' . tot-fib→fib {A} {P} {Q} f (a , q') (fib→tot-fib {A} {P} {Q} f a q' (p , e')) ≡{fib (f a) q'} (p , e'))
+    refl e
+
+-- a total equivalence is a fibrewise equivalence
+is-equiv-tot-fibrewise ∷ {A : U} {P Q : A → U} (f : (a : A) → P a → Q a) → is-equiv (tot {A} {P} {Q} f) → (a : A) → is-equiv (f a)
+is-equiv-tot-fibrewise {A} {P} {Q} f e a =
+  is-contr-map→is-equiv (f a)
+    (λ q . is-contr-retract (fib→tot-fib {A} {P} {Q} f a q)
+      (tot-fib→fib {A} {P} {Q} f (a , q) , fib→tot-fib-retr {A} {P} {Q} f a q)
+      (is-contr-fib (tot {A} {P} {Q} f) e (a , q)))
+
+-- paths in a Σ-type are pairs of a path and a transport
+is-equiv-Σ-path-split ∷ {B : U} {Q : B → U} {b : B} {v : Q b} (w : Σ (b' : B) . Q b') →
+  is-equiv (Σ-path-split {B} {Q} {b} {v} {w})
+is-equiv-Σ-path-split {B} {Q} {b} {v} w =
+  ((Σ-path-join' {B} {Q} {b} {v} w , Σ-path-split-join' {B} {Q} {b} {v} w) ,
+   (Σ-path-join' {B} {Q} {b} {v} w , Σ-path-join'-split {B} {Q} {b} {v} w))
+
+-- composing with a fixed path on the right is an equivalence
+trans-right-retr ∷ {A : U} {x y z : A} (p : y ≡ z) (q : x ≡ y) → trans (trans q p) (sym p) ≡ q
+trans-right-retr {A} {x} {y} {z} p q = J y (λ z' p' . trans (trans q p') (sym p') ≡ q) refl p
+
+trans-right-sec ∷ {A : U} {x y z : A} (p : y ≡ z) (q : x ≡ z) → trans (trans q (sym p)) p ≡ q
+trans-right-sec {A} {x} {y} {z} p q =
+  J y (λ z' p' . (q' : x ≡ z') → trans (trans q' (sym p')) p' ≡ q') (λ q' . refl) p q
+
+trans-right ∷ {A : U} {x y z : A} (p : y ≡ z) → x ≡ y → x ≡ z
+trans-right {A} {x} {y} {z} p q = trans q p
+
+is-equiv-trans-right ∷ {A : U} {x y z : A} (p : y ≡ z) → is-equiv (trans-right {A} {x} {y} {z} p)
+is-equiv-trans-right {A} {x} {y} {z} p =
+  ((λ q . trans q (sym p) , trans-right-sec {A} {x} {y} {z} p) , (λ q . trans q (sym p) , trans-right-retr {A} {x} {y} {z} p))
+
+-- inverting paths is an equivalence
+is-equiv-sym ∷ {A : U} {x y : A} → is-equiv (sym {A} {x} {y})
+is-equiv-sym {A} {x} {y} = ((sym {A} {y} {x} , sym-sym {A} {y} {x}) , (sym {A} {y} {x} , sym-sym {A} {x} {y}))
+
+-- the inverse of an equivalence is an equivalence
+is-equiv-section-map ∷ {A B : U} (f : A → B) (e : is-equiv f) → is-equiv (section-map f (is-equiv-sec f e))
+is-equiv-section-map {A} {B} f e =
+  let s : B → A = section-map f (is-equiv-sec f e) in
+  let ε : (y : B) → f (s y) ≡ y = snd (is-section f) (is-equiv-sec f e) in
+  ((f , λ x . retraction-inj f (is-equiv-ret f e) {s (f x)} {x} (ε (f x))) , (f , ε))
+
+---
+--- Pulling back a family along a map
+---
+--- Σ over the pullback of fst : Σ C → M along φ : K → M is Σ (k : K) . C (φ k).
+---
+
+-- contracting the path in Σ (mc : Σ m . C m) . Σ k . fst mc ≡ φ k
+family-pullback→Σ ∷ {M K : U} (C : M → U) (φ : K → M) → (Σ (mc : Σ (m : M) . C m) . Σ (k : K) . fst C mc ≡ φ k) → Σ (k : K) . C (φ k)
+family-pullback→Σ {M} {K} C φ (mc , r) =
+  let h : (mc : Σ (m : M) . C m) (r : Σ (k : K) . fst C mc ≡ φ k) → Σ (k : K) . C (φ k) =
+    fun (m , c) (k , e) → (k , subst C e c) in
+  h mc r
+
+Σ→family-pullback ∷ {M K : U} (C : M → U) (φ : K → M) → (Σ (k : K) . C (φ k)) → Σ (mc : Σ (m : M) . C m) . Σ (k : K) . fst C mc ≡ φ k
+Σ→family-pullback {M} {K} C φ (k , c) = ((φ k , c) , (k , refl))
+
+family-pullback→Σ-retr-aux ∷ {M K : U} (C : M → U) (φ : K → M) (k : K) {m : M} (e' : φ k ≡ m) (c : C m) →
+  Σ→family-pullback C φ (family-pullback→Σ C φ ((m , c) , (k , sym e')))
+    ≡{Σ (mc : Σ (m : M) . C m) . Σ (k : K) . fst C mc ≡ φ k} ((m , c) , (k , sym e'))
+family-pullback→Σ-retr-aux {M} {K} C φ k refl c = refl
+
+family-pullback→Σ-retr ∷ {M K : U} (C : M → U) (φ : K → M) (w : Σ (mc : Σ (m : M) . C m) . Σ (k : K) . fst C mc ≡ φ k) →
+  Σ→family-pullback C φ (family-pullback→Σ C φ w) ≡ w
+family-pullback→Σ-retr {M} {K} C φ (mc , r) =
+  let T : U = Σ (mc : Σ (m : M) . C m) . Σ (k : K) . fst C mc ≡ φ k in
+  let h : (mc : Σ (m : M) . C m) (r : Σ (k : K) . fst C mc ≡ φ k) → Σ→family-pullback C φ (family-pullback→Σ C φ (mc , r)) ≡{T} (mc , r) =
+    fun (m , c) (k , e) →
+      let P : (m ≡ φ k) → U = λ e'' . Σ→family-pullback C φ (family-pullback→Σ C φ ((m , c) , (k , e''))) ≡{T} ((m , c) , (k , e'')) in
+      subst P (sym-sym e) (family-pullback→Σ-retr-aux C φ k {m} (sym e) c) in
+  h mc r
+
+is-equiv-family-pullback→Σ ∷ {M K : U} (C : M → U) (φ : K → M) → is-equiv (family-pullback→Σ C φ)
+is-equiv-family-pullback→Σ {M} {K} C φ = ((Σ→family-pullback C φ , fun (k , c) → refl) , (Σ→family-pullback C φ , family-pullback→Σ-retr C φ))
+
+-- products of equivalences
+prod-map ∷ {A A' B B' : U} (f : A → A') (g : B → B') → A × B → A' × B'
+prod-map {A} {A'} {B} {B'} f g (x , y) = (f x , g y)
+
+is-equiv-prod-map ∷ {A A' B B' : U} (f : A → A') (g : B → B') → is-equiv f → is-equiv g → is-equiv (prod-map f g)
+is-equiv-prod-map {A} {A'} {B} {B'} f g ef eg =
+  let sf : section f = is-equiv-sec f ef in
+  let sg : section g = is-equiv-sec g eg in
+  let rf : retraction f = is-equiv-ret f ef in
+  let rg : retraction g = is-equiv-ret g eg in
+  ((prod-map (fst _ sf) (fst _ sg) , fun (x , y) → cong2 {A'} {B'} {A' × B'} (λ a b . (a , b)) (snd _ sf x) (snd _ sg y)) ,
+   (prod-map (fst _ rf) (fst _ rg) , fun (x , y) → cong2 {A} {B} {A × B} (λ a b . (a , b)) (snd _ rf x) (snd _ rg y)))
+
+-- a map between propositions with a map back is an equivalence
+is-equiv-prop ∷ {P Q : U} → is-prop P → is-prop Q → (f : P → Q) → (Q → P) → is-equiv f
+is-equiv-prop {P} {Q} pP pQ f g = ((g , λ q . prop-path pQ (f (g q)) q) , (g , λ x . prop-path pP (g (f x)) x))
+
+-- pre- and post-composition with fixed paths is an equivalence
+is-equiv-trans-trans ∷ {T : U} {x y : T} (p : x ≡ y) {z w : T} (r : z ≡ w) →
+  is-equiv {y ≡ z} {x ≡ w} (λ f . trans p (trans f r))
+is-equiv-trans-trans {T} {x} refl {z} refl =
+  is-equiv-htpy {x ≡ z} {x ≡ z} {id} {λ f . trans refl (trans f refl)} (λ f . sym (trans-refl-l f)) (is-equiv-id (x ≡ z))

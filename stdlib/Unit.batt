@@ -47,3 +47,9 @@ open import Set
 
 is-set-unit ∷ is-set ⊤
 is-set-unit = is-prop→is-set is-prop-unit
+
+-- oplax maps into ⊤ are constant
+terminalᵣ-path ∷ (K ∷ U) (v : K →ᵣ ⊤) → (λ _ . tt) ≡{K →ᵣ ⊤} v
+terminalᵣ-path K v =
+  let t : (K →ᵣ ⊤) → ⊤ = λ _ . tt in
+  retraction-inj t (is-equiv-ret t (snd _ (terminal-equivᵣ {K}))) {λ _ . tt} {v} refl

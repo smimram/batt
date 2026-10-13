@@ -1,4 +1,4 @@
--- Entry point for cellular type theory
+-- Entry point for Gray type theory
 
 open import Susp-hom-adj
 open import Spine
@@ -12,12 +12,28 @@ open import Wedge
 open import Unitality
 open import Functoriality
 open import Fibration
+open import Transported-id
+open import Point-pullback
+open import Pullback-hom
+open import Base-change
 open import Coslice
+open import Coslice-fibration
+open import Hom-family
+open import Cocartesian-map
+open import Yoneda
 open import Composable
 open import Associativity
 open import Simplex-edges
 open import Iso
 open import Connection
 open import Covariant
-open import Yoneda
 open import Fold
+open import Codomain
+open import Univalent
+open import Lift-unique
+open import Axiom
+open import Pullback-up
+open import Local
+open import Pushout-up
+open import FreeEquiv-up
+open import Complete-univalent
