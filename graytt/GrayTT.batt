@@ -29,6 +29,7 @@ open import Univalent
 open import Lift-unique
 open import Axiom
 open import Pullback-up
+open import Local
 open import Pushout-up
 open import FreeEquiv-up
 open import Complete-univalent

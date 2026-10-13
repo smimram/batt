@@ -1,0 +1,186 @@
+--
+-- Oplax locality, and its closure under pullbacks
+--
+-- A crisp type X is oplax-local with respect to a crisp map ι : S → T when restriction along ι
+--
+--   restrᵣ ι X : (T →ᵣ X) → (S →ᵣ X)
+--
+-- is an equivalence. Oplax Segalness is locality with respect to every thickened spine inclusion,
+-- oplax completeness with respect to every thickened collapse τ of the free-standing equivalence.
+--
+-- Local types are closed under crisp equivalences (in both directions), contain ⊤, and are closed
+-- under crisp pullbacks: by the oplax universal property of pullbacks (pullback-oplax-up,
+-- Pullback-up.batt), restriction of oplax maps into A ×_C B is conjugate to restriction of oplax
+-- cones, which is, on the data, a product of three restrictions (into A, B and path C ≃ C), and
+-- on the two endpoint paths, the action on paths of the restriction into C (ap-equiv).
+--
+-- Instances: oplax-Segal and oplax-complete types are closed under crisp equivalences and crisp
+-- pullbacks, and ⊤ is oplax-Segal and oplax-complete (closure of Segal and complete types under
+-- limits, BATT.tex).
+--
+-- Postulates relied on: objectwise-equiv (Axiom.batt), univalence.
+--
+
+open import Stdlib
+open import Segal
+open import Complete
+open import Pullback-up
+
+-- restriction of oplax maps along a crisp map
+restrᵣ ∷ {S T ∷ U} (ι ∷ S → T) (X ∷ U) → (T →ᵣ X) → (S →ᵣ X)
+restrᵣ {S} {T} ι X g = preᵣ {S} {T} {X} g ι
+
+is-localᵣ ∷ {S T ∷ U} (ι ∷ S → T) (X ∷ U) → U
+is-localᵣ {S} {T} ι X = is-equiv (restrᵣ {S} {T} ι X)
+
+--
+-- Crisp equivalences and the terminal type
+--
+
+-- restriction commutes with postcomposition: the domain of a crisp equivalence into a local type is local
+is-localᵣ-equiv-dom ∷ {S T ∷ U} (ι ∷ S → T) {X Y ∷ U} (e ∷ X → Y) (ee ∷ is-equiv e) → is-localᵣ {S} {T} ι Y → is-localᵣ {S} {T} ι X
+is-localᵣ-equiv-dom {S} {T} ι {X} {Y} e ee l =
+  is-equiv-conj' (restrᵣ {S} {T} ι X) (restrᵣ {S} {T} ι Y) (postᵣ {T} {X} {Y} e) (postᵣ {S} {X} {Y} e) (λ g . refl)
+    (postᵣ-equiv T {X} {Y} e ee) (postᵣ-equiv S {X} {Y} e ee) l
+
+-- and the codomain of a crisp equivalence out of a local type is local
+is-localᵣ-equiv-cod ∷ {S T ∷ U} (ι ∷ S → T) {X Y ∷ U} (e ∷ X → Y) (ee ∷ is-equiv e) → is-localᵣ {S} {T} ι X → is-localᵣ {S} {T} ι Y
+is-localᵣ-equiv-cod {S} {T} ι {X} {Y} e ee l =
+  is-equiv-conj (restrᵣ {S} {T} ι X) (restrᵣ {S} {T} ι Y) (postᵣ {T} {X} {Y} e) (postᵣ {S} {X} {Y} e) (λ g . refl)
+    (postᵣ-equiv T {X} {Y} e ee) (postᵣ-equiv S {X} {Y} e ee) l
+
+-- the free path type of a local type is local
+is-localᵣ-path ∷ {S T ∷ U} (ι ∷ S → T) {C ∷ U} → is-localᵣ {S} {T} ι C → is-localᵣ {S} {T} ι (path C)
+is-localᵣ-path {S} {T} ι {C} l = is-localᵣ-equiv-dom {S} {T} ι {path C} {C} (path-src {C}) (is-equiv-path-src C) l
+
+-- the terminal type is local: oplax maps into ⊤ are constant
+is-localᵣ-unit ∷ {S T ∷ U} (ι ∷ S → T) → is-localᵣ {S} {T} ι ⊤
+is-localᵣ-unit {S} {T} ι =
+  let c : (S →ᵣ ⊤) → (T →ᵣ ⊤) = λ v . λ t . tt in
+  ((c , λ v . terminalᵣ-path S v) , (c , λ v . terminalᵣ-path T v))
+
+--
+-- Pullbacks
+--
+
+-- restriction of the data of an oplax cone
+pullback-coneᵣ-data-restr ∷ {S T ∷ U} (ι ∷ S → T) (A B C ∷ U) → pullback-coneᵣ-data T A B C → pullback-coneᵣ-data S A B C
+pullback-coneᵣ-data-restr {S} {T} ι A B C x =
+  (restrᵣ {S} {T} ι A (Product.fst x) , restrᵣ {S} {T} ι B (Product.fst (Product.snd x)) ,
+   restrᵣ {S} {T} ι (path C) (Product.snd (Product.snd x)))
+
+-- it is the product of the three restrictions
+pullback-coneᵣ-data-restr-prod ∷ {S T ∷ U} (ι ∷ S → T) (A B C ∷ U) (x : pullback-coneᵣ-data T A B C) →
+  prod-map (restrᵣ {S} {T} ι A) (prod-map (restrᵣ {S} {T} ι B) (restrᵣ {S} {T} ι (path C))) x
+    ≡ pullback-coneᵣ-data-restr {S} {T} ι A B C x
+pullback-coneᵣ-data-restr-prod {S} {T} ι A B C (u , r) =
+  let k : (r : (T →ᵣ B) × (T →ᵣ path C)) →
+          prod-map (restrᵣ {S} {T} ι A) (prod-map (restrᵣ {S} {T} ι B) (restrᵣ {S} {T} ι (path C))) (u , r)
+            ≡ pullback-coneᵣ-data-restr {S} {T} ι A B C (u , r) =
+    fun (v , H) → refl in
+  k r
+
+is-equiv-pullback-coneᵣ-data-restr ∷ {S T ∷ U} (ι ∷ S → T) {A B C ∷ U} →
+  is-localᵣ {S} {T} ι A → is-localᵣ {S} {T} ι B → is-localᵣ {S} {T} ι C → is-equiv (pullback-coneᵣ-data-restr {S} {T} ι A B C)
+is-equiv-pullback-coneᵣ-data-restr {S} {T} ι {A} {B} {C} lA lB lC =
+  is-equiv-htpy {pullback-coneᵣ-data T A B C} {pullback-coneᵣ-data S A B C}
+    {prod-map (restrᵣ {S} {T} ι A) (prod-map (restrᵣ {S} {T} ι B) (restrᵣ {S} {T} ι (path C)))}
+    {pullback-coneᵣ-data-restr {S} {T} ι A B C}
+    (pullback-coneᵣ-data-restr-prod {S} {T} ι A B C)
+    (is-equiv-prod-map (restrᵣ {S} {T} ι A) (prod-map (restrᵣ {S} {T} ι B) (restrᵣ {S} {T} ι (path C))) lA
+      (is-equiv-prod-map (restrᵣ {S} {T} ι B) (restrᵣ {S} {T} ι (path C)) lB (is-localᵣ-path {S} {T} ι {C} lC)))
+
+-- restriction of the endpoint paths of an oplax cone: the action of the restriction into C on paths
+pullback-coneᵣ-paths-restr ∷ {S T ∷ U} (ι ∷ S → T) {A B C ∷ U} (g ∷ A → C) (h ∷ B → C) (x : pullback-coneᵣ-data T A B C) →
+  pullback-coneᵣ-paths T {A} {B} {C} g h x → pullback-coneᵣ-paths S {A} {B} {C} g h (pullback-coneᵣ-data-restr {S} {T} ι A B C x)
+pullback-coneᵣ-paths-restr {S} {T} ι {A} {B} {C} g h x =
+  prod-map (cong (restrᵣ {S} {T} ι C) {postᵣ {T} {path C} {C} (path-src {C}) (Product.snd (Product.snd x))} {postᵣ {T} {A} {C} g (Product.fst x)})
+    (cong (restrᵣ {S} {T} ι C) {postᵣ {T} {path C} {C} (path-tgt {C}) (Product.snd (Product.snd x))} {postᵣ {T} {B} {C} h (Product.fst (Product.snd x))})
+
+is-equiv-pullback-coneᵣ-paths-restr ∷ {S T ∷ U} (ι ∷ S → T) {A B C ∷ U} (g ∷ A → C) (h ∷ B → C) →
+  is-localᵣ {S} {T} ι C → (x : pullback-coneᵣ-data T A B C) → is-equiv (pullback-coneᵣ-paths-restr {S} {T} ι {A} {B} {C} g h x)
+is-equiv-pullback-coneᵣ-paths-restr {S} {T} ι {A} {B} {C} g h lC x =
+  is-equiv-prod-map
+    (cong (restrᵣ {S} {T} ι C) {postᵣ {T} {path C} {C} (path-src {C}) (Product.snd (Product.snd x))} {postᵣ {T} {A} {C} g (Product.fst x)})
+    (cong (restrᵣ {S} {T} ι C) {postᵣ {T} {path C} {C} (path-tgt {C}) (Product.snd (Product.snd x))} {postᵣ {T} {B} {C} h (Product.fst (Product.snd x))})
+    (ap-equiv (restrᵣ {S} {T} ι C) lC (postᵣ {T} {path C} {C} (path-src {C}) (Product.snd (Product.snd x))) (postᵣ {T} {A} {C} g (Product.fst x)))
+    (ap-equiv (restrᵣ {S} {T} ι C) lC (postᵣ {T} {path C} {C} (path-tgt {C}) (Product.snd (Product.snd x))) (postᵣ {T} {B} {C} h (Product.fst (Product.snd x))))
+
+-- restriction of oplax cones
+pullback-coneᵣ-restr ∷ {S T ∷ U} (ι ∷ S → T) {A B C ∷ U} (g ∷ A → C) (h ∷ B → C) →
+  pullback-coneᵣ T {A} {B} {C} g h → pullback-coneᵣ S {A} {B} {C} g h
+pullback-coneᵣ-restr {S} {T} ι {A} {B} {C} g h w =
+  Σ-base (pullback-coneᵣ-data-restr {S} {T} ι A B C) (pullback-coneᵣ-paths S {A} {B} {C} g h)
+    (tot {pullback-coneᵣ-data T A B C} {pullback-coneᵣ-paths T {A} {B} {C} g h}
+         {λ x . pullback-coneᵣ-paths S {A} {B} {C} g h (pullback-coneᵣ-data-restr {S} {T} ι A B C x)}
+      (pullback-coneᵣ-paths-restr {S} {T} ι {A} {B} {C} g h) w)
+
+is-equiv-pullback-coneᵣ-restr ∷ {S T ∷ U} (ι ∷ S → T) {A B C ∷ U} (g ∷ A → C) (h ∷ B → C) →
+  is-localᵣ {S} {T} ι A → is-localᵣ {S} {T} ι B → is-localᵣ {S} {T} ι C → is-equiv (pullback-coneᵣ-restr {S} {T} ι {A} {B} {C} g h)
+is-equiv-pullback-coneᵣ-restr {S} {T} ι {A} {B} {C} g h lA lB lC =
+  is-equiv-circ
+    (Σ-base (pullback-coneᵣ-data-restr {S} {T} ι A B C) (pullback-coneᵣ-paths S {A} {B} {C} g h))
+    (tot {pullback-coneᵣ-data T A B C} {pullback-coneᵣ-paths T {A} {B} {C} g h}
+         {λ x . pullback-coneᵣ-paths S {A} {B} {C} g h (pullback-coneᵣ-data-restr {S} {T} ι A B C x)}
+      (pullback-coneᵣ-paths-restr {S} {T} ι {A} {B} {C} g h))
+    (is-equiv-Σ-base (pullback-coneᵣ-data-restr {S} {T} ι A B C) (is-equiv-pullback-coneᵣ-data-restr {S} {T} ι {A} {B} {C} lA lB lC)
+      (pullback-coneᵣ-paths S {A} {B} {C} g h))
+    (is-equiv-tot {pullback-coneᵣ-data T A B C} {pullback-coneᵣ-paths T {A} {B} {C} g h}
+         {λ x . pullback-coneᵣ-paths S {A} {B} {C} g h (pullback-coneᵣ-data-restr {S} {T} ι A B C x)}
+      (pullback-coneᵣ-paths-restr {S} {T} ι {A} {B} {C} g h) (is-equiv-pullback-coneᵣ-paths-restr {S} {T} ι {A} {B} {C} g h lC))
+
+-- the comparison with oplax cones commutes with restriction, judgmentally
+pullback→coneᵣ-restr ∷ {S T ∷ U} (ι ∷ S → T) {A B C ∷ U} (g ∷ A → C) (h ∷ B → C) (φ : T →ᵣ pullback {A} {B} {C} g h) →
+  pullback-coneᵣ-restr {S} {T} ι {A} {B} {C} g h (pullback→coneᵣ T {A} {B} {C} g h φ)
+    ≡ pullback→coneᵣ S {A} {B} {C} g h (restrᵣ {S} {T} ι (pullback {A} {B} {C} g h) φ)
+pullback→coneᵣ-restr {S} {T} ι {A} {B} {C} g h φ = refl
+
+-- local types are closed under crisp pullbacks
+is-localᵣ-pullback ∷ {S T ∷ U} (ι ∷ S → T) {A B C ∷ U} (g ∷ A → C) (h ∷ B → C) →
+  is-localᵣ {S} {T} ι A → is-localᵣ {S} {T} ι B → is-localᵣ {S} {T} ι C → is-localᵣ {S} {T} ι (pullback {A} {B} {C} g h)
+is-localᵣ-pullback {S} {T} ι {A} {B} {C} g h lA lB lC =
+  is-equiv-conj' (restrᵣ {S} {T} ι (pullback {A} {B} {C} g h)) (pullback-coneᵣ-restr {S} {T} ι {A} {B} {C} g h)
+    (pullback→coneᵣ T {A} {B} {C} g h) (pullback→coneᵣ S {A} {B} {C} g h)
+    (pullback→coneᵣ-restr {S} {T} ι {A} {B} {C} g h)
+    (pullback-oplax-up T {A} {B} {C} g h) (pullback-oplax-up S {A} {B} {C} g h)
+    (is-equiv-pullback-coneᵣ-restr {S} {T} ι {A} {B} {C} g h lA lB lC)
+
+--
+-- Segal types
+--
+
+is-segalᵣ-equiv ∷ {S X ∷ U} (e ∷ S → X) (ee ∷ is-equiv e) → is-segalᵣ X → is-segalᵣ S
+is-segalᵣ-equiv {S} {X} e ee sX a n b =
+  is-localᵣ-equiv-dom {thick-spine a n b} {thick-simplex a n b} (thick-incl a n b) {S} {X} e ee (sX a n b)
+
+is-segalᵣ-equiv-cod ∷ {X Y ∷ U} (e ∷ X → Y) (ee ∷ is-equiv e) → is-segalᵣ X → is-segalᵣ Y
+is-segalᵣ-equiv-cod {X} {Y} e ee sX a n b =
+  is-localᵣ-equiv-cod {thick-spine a n b} {thick-simplex a n b} (thick-incl a n b) {X} {Y} e ee (sX a n b)
+
+is-segalᵣ-unit ∷ is-segalᵣ ⊤
+is-segalᵣ-unit a n b = is-localᵣ-unit {thick-spine a n b} {thick-simplex a n b} (thick-incl a n b)
+
+is-segalᵣ-pullback ∷ {A B C ∷ U} (g ∷ A → C) (h ∷ B → C) →
+  is-segalᵣ A → is-segalᵣ B → is-segalᵣ C → is-segalᵣ (pullback {A} {B} {C} g h)
+is-segalᵣ-pullback {A} {B} {C} g h sA sB sC a n b =
+  is-localᵣ-pullback {thick-spine a n b} {thick-simplex a n b} (thick-incl a n b) {A} {B} {C} g h (sA a n b) (sB a n b) (sC a n b)
+
+--
+-- Complete types
+--
+
+is-completeᵣ-equiv ∷ {S X ∷ U} (e ∷ S → X) (ee ∷ is-equiv e) → is-completeᵣ X → is-completeᵣ S
+is-completeᵣ-equiv {S} {X} e ee cX a b =
+  is-localᵣ-equiv-dom {thick-free-equiv a b} {grid a ⨂ grid b} (thick-τ a b) {S} {X} e ee (cX a b)
+
+is-completeᵣ-equiv-cod ∷ {X Y ∷ U} (e ∷ X → Y) (ee ∷ is-equiv e) → is-completeᵣ X → is-completeᵣ Y
+is-completeᵣ-equiv-cod {X} {Y} e ee cX a b =
+  is-localᵣ-equiv-cod {thick-free-equiv a b} {grid a ⨂ grid b} (thick-τ a b) {X} {Y} e ee (cX a b)
+
+is-completeᵣ-unit ∷ is-completeᵣ ⊤
+is-completeᵣ-unit a b = is-localᵣ-unit {thick-free-equiv a b} {grid a ⨂ grid b} (thick-τ a b)
+
+is-completeᵣ-pullback ∷ {A B C ∷ U} (g ∷ A → C) (h ∷ B → C) →
+  is-completeᵣ A → is-completeᵣ B → is-completeᵣ C → is-completeᵣ (pullback {A} {B} {C} g h)
+is-completeᵣ-pullback {A} {B} {C} g h cA cB cC a b =
+  is-localᵣ-pullback {thick-free-equiv a b} {grid a ⨂ grid b} (thick-τ a b) {A} {B} {C} g h (cA a b) (cB a b) (cC a b)
