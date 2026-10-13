@@ -1,24 +1,15 @@
 --
--- Oplax locality, and its closure under pullbacks
+-- Oplax locality, and closure under pullbacks
 --
--- A crisp type X is oplax-local with respect to a crisp map ι : S → T when restriction along ι
+-- A crisp type X is oplax-local for a crisp map ι : S → T when restriction (T →ᵣ X) → (S →ᵣ X) is
+-- an equivalence (is-localᵣ). Oplax-Segal and oplax-complete types are the local types for the
+-- thickened spine inclusions and for the collapses of E.
 --
---   restrᵣ ι X : (T →ᵣ X) → (S →ᵣ X)
+-- Local types are closed under crisp equivalences and crisp pullbacks, and ⊤ is local
+-- (is-localᵣ-pullback, via the oplax universal property of pullbacks). Hence the same for Segal
+-- and complete types (is-segalᵣ-pullback, is-completeᵣ-pullback, …).
 --
--- is an equivalence. Oplax Segalness is locality with respect to every thickened spine inclusion,
--- oplax completeness with respect to every thickened collapse τ of the free-standing equivalence.
---
--- Local types are closed under crisp equivalences (in both directions), contain ⊤, and are closed
--- under crisp pullbacks: by the oplax universal property of pullbacks (pullback-oplax-up,
--- Pullback-up.batt), restriction of oplax maps into A ×_C B is conjugate to restriction of oplax
--- cones, which is, on the data, a product of three restrictions (into A, B and path C ≃ C), and
--- on the two endpoint paths, the action on paths of the restriction into C (ap-equiv).
---
--- Instances: oplax-Segal and oplax-complete types are closed under crisp equivalences and crisp
--- pullbacks, and ⊤ is oplax-Segal and oplax-complete (closure of Segal and complete types under
--- limits, BATT.tex).
---
--- Postulates relied on: objectwise-equiv (Axiom.batt), univalence.
+-- Postulates relied on: objectwise-equiv, univalence.
 --
 
 open import Stdlib

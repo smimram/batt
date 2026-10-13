@@ -1,18 +1,13 @@
 --
--- Axioms of BATT
+-- Axioms
 --
--- This file collects the axioms of the theory (the postulates of BATT.pdf), each with a comment
--- naming it. Postulates of the standard library (univalence, propositional truncation, pushouts,
--- the interval being a set with 0 ≠ 1) and the fold lemmas (Fold.batt) are not repeated here.
+-- The axioms of the theory, each with a comment. Postulates of the standard library (univalence,
+-- truncation, pushouts, properties of the interval) and the fold lemmas (Fold.batt) are not
+-- repeated here.
 --
--- Equivalences are objectwise: a crisp map f : X → Y is an equivalence as soon as, for every
--- grid □[𝐚] (𝐚 a list of dimensions, grid in Cube.batt), postcomposition with f is an
--- equivalence on global points
---
---   ♭(□[𝐚] → X) → ♭(□[𝐚] → Y),   𝄫g ↦ 𝄫(f ∘ g).
---
--- The converse holds in the theory (objectwise-equiv-converse): ♭ preserves crisp equivalences
--- (flat-map-equiv, Flat.batt), and so does postcomposition.
+-- Equivalences are objectwise: a crisp map f : X → Y is an equivalence as soon as postcomposition
+-- with f is an equivalence on the global points ♭(□[𝐚] → −) of every grid. The converse is proved
+-- (objectwise-equiv-converse).
 --
 -- Postulates introduced: objectwise-equiv.
 --
@@ -27,7 +22,7 @@ objectwise-post {X} {Y} f a = flat-map {grid a → X} {grid a → Y} (post {grid
 is-objectwise-equiv ∷ {X Y ∷ U} (f ∷ X → Y) → U
 is-objectwise-equiv {X} {Y} f = (a ∷ List ℕ) → is-equiv (objectwise-post {X} {Y} f a)
 
--- BATT.pdf postulate: equivalences are objectwise
+-- postulate: equivalences are objectwise
 postulate objectwise-equiv ∷ {X Y ∷ U} (f ∷ X → Y) → is-objectwise-equiv {X} {Y} f → is-equiv f
 
 --

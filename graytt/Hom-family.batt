@@ -1,21 +1,14 @@
 --
 -- Hom families
 --
--- For a crisp a : A, the hom family x ↦ hom a x (hom-family). Its total space E is the coslice
--- a/A: e : a/A → E, (f , p) ↦ (f 1 , f , p , refl) is a crisp equivalence (coslice→hom-family)
--- with fst ∘ e = ev₁, judgmentally.
+-- For a crisp a : A, the hom family x ↦ hom a x (hom-family), whose total space is the coslice a/A.
 --
---   - Covariance (hom-family-covariant): for A oplax-Rezk, fst : E → A is a cocartesian fibration,
---     since ev₁ : a/A → A is (coslice-fibration, Coslice-fibration.batt, transported along e by
---     is-cocartesian-fibration-equiv, Fibration.batt).
---   - Connections and lifts: the connection Γ̄_f of a 1-cell f from a, its ev₁-cocartesian lift at
---     the identity (hom-family-conn, hom-family-conn-cocart); the cocartesian lift χ̄_σ of the second
---     edge of a 2-simplex σ at the first (hom-family-lift); Γ̄_t ; χ̄_σ = Γ̄_{u ∘ t}
---     (hom-family-lift-comp); every cocartesian 1-cell of E is some χ̄_σ (hom-family-cocart-cell-ind).
---   - Pushforward is postcomposition (push-hom-family): u_! t = t ; u.
+--   - It is covariant for A oplax-Rezk (hom-family-covariant).
+--   - Its connections Γ̄_f are cocartesian, the cocartesian lifts χ̄_σ satisfy Γ̄_t ; χ̄_σ = Γ̄_{u ∘ t}
+--     (hom-family-lift-comp), and every cocartesian 1-cell is some χ̄_σ (hom-family-cocart-cell-ind).
+--   - Pushforward is postcomposition: u_! t = t ; u (push-hom-family).
 --
--- Postulates relied on: as coslice-fibration: fold-lemma (Fold.batt), objectwise-equiv
--- (Axiom.batt), pushout-up, univalence, truncation, is-set-𝕀.
+-- Postulates relied on: fold-lemma, objectwise-equiv, pushout-up, univalence, truncation, is-set-𝕀.
 --
 
 open import Stdlib
@@ -215,7 +208,7 @@ hom-family-cocart-cell-ind {A} rA a P H w =
 --
 -- Pushforward in the hom family is postcomposition
 --
--- For t : hom a b and u : hom b c, u_! t = t ; u (push-hom-family). As in BATT.tex: if t and u are
+-- For t : hom a b and u : hom b c, u_! t = t ; u (push-hom-family). If t and u are
 -- the first edges of a 2-simplex σ (t with a source path γ : σ 0 ≡ a), the cocartesian lift of u at
 -- t is χ̄_σ, which lies over (t , u) judgmentally, so that u_! t is its target χ_σ 1 = λ j . σ (j , j),
 -- the long edge of σ, which is the composite t ; u (comp-simplex-2-src, Composition.batt)

@@ -1,25 +1,9 @@
 --
 -- Uniqueness of cocartesian lifts
 --
--- p ∷ X → A is a cocartesian fibration when cocart-cell-lift : cocart-cell → pullback p ev₀ is an
--- equivalence (Fibration.batt). Since is-equiv is bi-invertibility, it suffices to give a section
--- (existence of cocartesian lifts, e.g. codomain-lift-section, Codomain.batt) and a retraction,
--- which follows from injectivity: two cocartesian 1-cells with the same lifting data are equal
--- (uniqueness of cocartesian lifts).
---
--- Injectivity is reduced to a statement on homs with free endpoints (cocart-homs, lift-homs):
---
---   cocart-cell  ──cell→cocart-hom──▶  Σ x y (f : hom x y) . is-cocartesian f
---       │cocart-cell-lift                    │lift-homs = (x , y , f , c) ↦ (x , p y , p f)
---       ▼                                    ▼
---   pullback p ev₀ ──lift-data→homs──▶ Σ x b . hom (p x) b
---
--- The square commutes judgmentally (lift-square), and the top map has a retraction, so that
--- injectivity of lift-homs implies injectivity of cocart-cell-lift (cocart-cell-lift-inj), hence
--- that p is a cocartesian fibration given a section (is-cocartesian-fibration-from-inj).
---
--- Uniqueness holds when X is univalent (is-cocartesian-fibration-univalent); it is applied to the
--- codomain fibration (Codomain.batt) and to the projections of coslices (Coslice-fibration.batt).
+-- For p ∷ X → A with X univalent, two cocartesian 1-cells with the same lifting data are equal.
+-- Hence p is a cocartesian fibration as soon as every lifting datum has a cocartesian lift
+-- (is-cocartesian-fibration-univalent). Used for the codomain and coslice fibrations.
 --
 
 open import Stdlib

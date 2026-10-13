@@ -1,33 +1,14 @@
 --
 -- Lax and oplax universal properties of pullbacks
 --
--- Oplax universal property of pullbacks: for crisp g : A → C, h : B → C and a crisp K, oplax maps
--- into the pullback A ×_C B are pairs of oplax maps whose images are homotopic:
+-- For crisp g : A → C, h : B → C and K, oplax maps K →ᵣ A ×_C B are oplax cones: pairs of oplax maps
+-- into A and B with a homotopy between their images in C (pullback-oplax-up). Likewise for lax maps
+-- (pullback-lax-up).
 --
---   pullback→coneᵣ : (K →ᵣ A ×_C B) → pullback-coneᵣ K g h            (pullback-oplax-up)
+-- Proof: by the objectwise equivalence axiom, it suffices to compare global points of grids, where
+-- both sides reduce, by currying, to the cartesian universal property of pullbacks.
 --
--- is an equivalence. The homotopy is an oplax map H : K →ᵣ path C with two paths fixing its
--- endpoints, so that the comparison map involves no transport and its endpoint conditions hold
--- judgmentally.
---
--- Proof. The inverse cannot be written directly: it would evaluate a path of oplax maps at a
--- ⊗-generic point. By the objectwise equivalence axiom it suffices to check global points of
--- grids T, where objectwise-post pullback→coneᵣ is, judgmentally (flat-pullback→coneᵣ-factored-htpy),
--- the composite of four equivalences
---
---   ♭(T → (K →ᵣ P)) ─flat-tens-curryᵣ─▶ ♭(T ⨂ K → P) ─♭ pullback→cone─▶ ♭(pullback-cone {T ⨂ K} g h)
---     ─♭ cone→curriedᵣ─▶ ♭(curried cones) ─♭ curried→conesᵣ─▶ ♭(T → pullback-coneᵣ K g h)
---
--- namely oplax currying on global points (Flat.batt), the cartesian universal property of pullbacks
--- in homotopy form (Pullback.batt), the currying of the data and of the paths (an equivalence on
--- global points only, by flat-Σ-map-equiv and flat-cong-equiv), and the distribution of T over
--- the Σ (a genuine equivalence, by funext).
---
--- The lax universal property (pullback-lax-up, pullback→coneₗ : (K →ₗ A ×_C B) → pullback-coneₗ K g h) is proved
--- the same way, with lax currying on global points, ♭(T → K →ₗ W) ≃ ♭(K ⨂ T → W) (Flat.batt): the
--- tensor factor K moves to the left.
---
--- Postulates relied on: objectwise-equiv (Axiom.batt), univalence (funext).
+-- Postulates relied on: objectwise-equiv, univalence.
 --
 
 open import Stdlib
@@ -240,6 +221,24 @@ flat-pullback→coneᵣ-factored-htpy ∷ (T K ∷ U) {A B C ∷ U} (g ∷ A →
     (post {T} {K →ᵣ pullback {A} {B} {C} g h} {pullback-coneᵣ K {A} {B} {C} g h} (pullback→coneᵣ K {A} {B} {C} g h)) ψ
 flat-pullback→coneᵣ-factored-htpy T K {A} {B} {C} g h 𝄫ψ = refl
 
+--
+-- Proof. The inverse cannot be written directly: it would evaluate a path of oplax maps at a
+-- ⊗-generic point. By the objectwise equivalence axiom it suffices to check global points of
+-- grids T, where objectwise-post pullback→coneᵣ is, judgmentally (flat-pullback→coneᵣ-factored-htpy),
+-- the composite of four equivalences
+--
+--   ♭(T → (K →ᵣ P)) ─flat-tens-curryᵣ─▶ ♭(T ⨂ K → P) ─♭ pullback→cone─▶ ♭(pullback-cone {T ⨂ K} g h)
+--     ─♭ cone→curriedᵣ─▶ ♭(curried cones) ─♭ curried→conesᵣ─▶ ♭(T → pullback-coneᵣ K g h)
+--
+-- namely oplax currying on global points (Flat.batt), the cartesian universal property of pullbacks
+-- in homotopy form (Pullback.batt), the currying of the data and of the paths (an equivalence on
+-- global points only, by flat-Σ-map-equiv and flat-cong-equiv), and the distribution of T over
+-- the Σ (a genuine equivalence, by funext).
+--
+-- The lax universal property (pullback-lax-up, pullback→coneₗ : (K →ₗ A ×_C B) → pullback-coneₗ K g h) is proved
+-- the same way, with lax currying on global points, ♭(T → K →ₗ W) ≃ ♭(K ⨂ T → W) (Flat.batt): the
+-- tensor factor K moves to the left.
+--
 pullback-oplax-up ∷ (K ∷ U) {A B C ∷ U} (g ∷ A → C) (h ∷ B → C) → is-equiv (pullback→coneᵣ K {A} {B} {C} g h)
 pullback-oplax-up K {A} {B} {C} g h =
   objectwise-equiv {K →ᵣ pullback {A} {B} {C} g h} {pullback-coneᵣ K {A} {B} {C} g h} (pullback→coneᵣ K {A} {B} {C} g h)

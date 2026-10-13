@@ -1,29 +1,11 @@
 --
--- Hom types of pullbacks (lem:hom_pb), for the pullback of a point
+-- Hom types of the pullback of a point
 --
--- A hom of the point pullback S = Σ (y : Y) . b ≡ r y (Point-pullback.batt) is a hom of Y whose image
--- in B is the transported identity between the images of its endpoints: the map
+-- A hom of the point pullback S = Σ (y : Y) . b ≡ r y is a hom k of Y whose image r k is the
+-- transported identity between the images of its endpoints (is-equiv-point-pullback-hom→data).
 --
---   point-pullback-hom→data : hom w₀ w₁ → Σ (k : hom (ι w₀) (ι w₁)) . r k ≡ point-pullback-id w₀ w₁
---
--- (the image of the hom in Y, with the path point-pullback-hom-image) is an equivalence
--- (is-equiv-point-pullback-hom→data). This is the hom types of pullbacks lemma of BATT.tex, for X = 1.
---
--- Proof, as in BATT.tex, from the oplax universal property of pullbacks. Totalised over the
--- endpoints:
---
---   - homs of S with free endpoints are arrows of S (homs-total→arr, Hom.batt), which are
---     path-cones (arr→path-cone, Point-pullback.batt);
---   - the target, split into the path of cells and a transport of the boundary
---     (point-pullback-hom-data→split), is also path-cones (homs-split→path-cone, by path induction);
---   - both maps agree on the cell of Y and on the path to the constant arrow
---     (point-pullback-homs→split-cone): the path of the image of a hom is that of its cone
---     (point-pullback-hom-image-cell, from hom-map-null-cell and point-pullback-arr-null-eq);
---
--- and an equivalence of total spaces is fibrewise (is-equiv-tot-fibrewise, Equivalence.batt).
---
--- The image path is built by crisp path induction (hom-map-null, Transported-id.batt), so that it is
--- compatible with composition, as needed by the base change lemma (Base-change.batt).
+-- Proof: by the oplax universal property of pullbacks, after totalising over the endpoints, where
+-- both sides are path-cones.
 --
 -- Postulates relied on: objectwise-equiv, univalence, truncation, is-set-𝕀.
 --
@@ -351,7 +333,24 @@ is-equiv-point-pullback-homs→split {Y} {B} r b =
       (point-pullback-homs→split-cone {Y} {B} r b)
       (is-equiv-circ (arr→path-cone {Y} {B} r b) (homs-total→arr {S}) (is-equiv-arr→path-cone {Y} {B} r b) (is-equiv-homs-total→arr {S})))
 
--- [lem:hom_pb, for the pullback of a point] homs of S are homs of Y whose image is the transported identity
+-- homs of S are homs of Y whose image is the transported identity
+--
+-- Proof, from the oplax universal property of pullbacks. Totalised over the
+-- endpoints:
+--
+--   - homs of S with free endpoints are arrows of S (homs-total→arr, Hom.batt), which are
+--     path-cones (arr→path-cone, Point-pullback.batt);
+--   - the target, split into the path of cells and a transport of the boundary
+--     (point-pullback-hom-data→split), is also path-cones (homs-split→path-cone, by path induction);
+--   - both maps agree on the cell of Y and on the path to the constant arrow
+--     (point-pullback-homs→split-cone): the path of the image of a hom is that of its cone
+--     (point-pullback-hom-image-cell, from hom-map-null-cell and point-pullback-arr-null-eq);
+--
+-- and an equivalence of total spaces is fibrewise (is-equiv-tot-fibrewise, Equivalence.batt).
+--
+-- The image path is built by crisp path induction (hom-map-null, Transported-id.batt), so that it is
+-- compatible with composition, as needed by the base change lemma (Base-change.batt).
+--
 is-equiv-point-pullback-hom→data ∷ {Y B ∷ U} (r ∷ Y → B) (b ∷ B) (w0 w1 : point-pullback {Y} {B} r b) → is-equiv (point-pullback-hom→data {Y} {B} r b w0 w1)
 is-equiv-point-pullback-hom→data {Y} {B} r b w0 w1 =
   let S ∷ U = point-pullback {Y} {B} r b in

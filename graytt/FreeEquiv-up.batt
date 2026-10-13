@@ -1,21 +1,12 @@
 --
 -- Oplax and lax universal properties of the free-standing equivalence
 --
--- E = 1 +_{Δ¹} (1 +_{Δ¹} Δ³) is obtained from Δ³ by collapsing the edges [0,2] and [1,3]
--- (FreeEquiv.batt). An oplax map E →ᵣ Y is an oplax 3-simplex with these two edges collapsed:
+-- E is Δ³ with the edges [0,2] and [1,3] collapsed (FreeEquiv.batt). An oplax map E →ᵣ Y is an
+-- oplax 3-simplex of Y whose two edges [0,2] and [1,3] are constant (free-equiv-oplax-up); likewise
+-- for lax maps (free-equiv-lax-up). Proof: the oplax universal property of the two pushouts that
+-- define E.
 --
---   free-equiv-restrᵣ : (E →ᵣ Y) → Σ (σ : Δ³ →ᵣ Y) . is-collapsedᵣ (σ ∘ e₀₂) × is-collapsedᵣ (σ ∘ e₁₃)
---
--- is an equivalence for every crisp Y (free-equiv-oplax-up), where an oplax map Δ¹ →ᵣ Y is collapsed
--- when it is (equal to) a constant one, coming from ⊤ →ᵣ Y. The 3-simplex of free-equiv-restrᵣ h is
--- h ∘ (Δ³ → E), judgmentally. Likewise for lax maps (free-equiv-lax-up).
---
--- Proof. The oplax universal property of the outer pushout identifies E →ᵣ Y with cocones
--- (α : ⊤ →ᵣ Y, β : E₀₂ →ᵣ Y, p); that of the inner pushout, applied to β by base change, replaces β by
--- an inner cocone (α', σ, p'), on which p only depends through σ ∘ e₁₃ (judgmentally); reordering
--- the components gives the diagram.
---
--- Postulates relied on: objectwise-equiv (Axiom.batt), pushout-up (Pushout.batt), univalence.
+-- Postulates relied on: objectwise-equiv, pushout-up, univalence.
 --
 
 open import Stdlib

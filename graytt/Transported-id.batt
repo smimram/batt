@@ -1,21 +1,11 @@
 --
 -- Transported identities and maps with a path to a constant map
 --
--- For b : B and paths p : b ≡ x, q : b ≡ y, the transported identity
+-- The identity of b moved along paths b ≡ x and b ≡ y is a hom x → y (transported-id), an
+-- isomorphism. A map with a crisp path from a constant map (a "null" map) sends every hom to a
+-- transported identity (hom-map-null), compatibly with composition (hom-map-null-comp).
 --
---   transported-id p q := (λ _ . b , p , q) : hom x y
---
--- is the identity of b moved along p and q; it composes as identities do (transported-id-comp)
--- and is an isomorphism (is-iso-transported-id).
---
--- A constant map sends every hom to an identity (hom-map-const), compatibly with composition
--- (hom-map-const-comp, from the degenerate 2-simplex). Consequently, a crisp map f with a crisp path
--- G from the constant map at b ("null", as for null-homotopic maps) sends every hom to a transported
--- identity (hom-map-null, by crisp path induction on G), compatibly with composition
--- (hom-map-null-comp), and the cell of this path is the image of G (hom-map-null-cell).
---
--- Adapted from a first version by Samuel Mimram. No postulate besides those of the Segal machinery
--- (univalence, truncation, is-set-𝕀).
+-- No postulate besides those of the Segal machinery (univalence, truncation, is-set-𝕀).
 --
 
 open import Stdlib

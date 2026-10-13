@@ -1,18 +1,10 @@
 --
 -- The pullback of a point
 --
--- For crisp r : Y → B and b : B, the pullback of b : 1 → B along r is
---
---   point-pullback r b := Σ (y : Y) . b ≡ r y
---
--- (the orientation of the pullbacks of stdlib/Pullback.batt), with its projection to Y and the
--- paths of its points. The map r ∘ proj has a crisp path from the constant map at b
--- (point-pullback-null), whose values are the paths of the points (point-pullback-null-at), and the
--- images of two points are related by a transported identity (point-pullback-id).
---
--- Oplax maps into the point pullback are oplax cones over 1 → B ← Y (point-pullback→coneᵣ, an
--- equivalence by the oplax universal property of pullbacks, Pullback-up.batt), equivalently, for
--- K = 𝕀, arrows u of Y with a path from r ∘ u to the constant arrow at b (arr→path-cone).
+-- For crisp r : Y → B and b : B, the pullback point-pullback r b := Σ (y : Y) . b ≡ r y of b along
+-- r, its projection to Y, and the transported identities between the images of its points
+-- (point-pullback-id). Oplax maps into it are oplax cones (point-pullback→coneᵣ); for K = 𝕀,
+-- arrows of Y whose image is related to the constant arrow at b (arr→path-cone).
 --
 -- Postulates relied on: objectwise-equiv, univalence, truncation, is-set-𝕀.
 --

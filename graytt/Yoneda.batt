@@ -1,30 +1,18 @@
 --
 -- The Yoneda lemma for covariant families
 --
--- For an oplax-Segal type A, a crisp a : A and a covariant family F over A, the Yoneda maps are
+-- For A oplax-Rezk, a crisp a : A and a covariant family F, the maps
 --
 --   evid φ := φ a id_a                  : (Π (x : A) . hom a x → F x) → F a
 --   yon u  := λ x . λ f . f_! u          : F a → Π (x : A) . hom a x → F x
 --
--- where f_! u is the pushforward of u along f (push, Covariant.batt). The Yoneda lemma says that
--- they are inverse equivalences between F a and the cocartesian fibrewise maps
--- Π^cocart_{x : A} hom a x → F x (cocart-fibrewise-map, Cocartesian-map.batt).
+-- are inverse equivalences between F a and the cocartesian fibrewise maps
+-- Π^cocart_{x : A} hom a x → F x, as soon as every yon u is cocartesian (yoneda). It suffices that
+-- yon u sends connections to cocartesian 1-cells (yon-is-cocartesian-from-conn). This holds for
+-- representable families F = hom b, whence hom b a ≃ Π^cocart_{x : A} hom a x → hom b x
+-- (yoneda-hom).
 --
---   - evid ∘ yon = id (evid-yon): pushing forward along an identity is the identity (push-id).
---   - yon ∘ evid = id on cocartesian maps (yon-evid): a cocartesian map out of the hom family is the
---     pushforward of its value at the identity (cocart-map-push-id).
---   - Hence, as soon as every yon u is cocartesian, F a ≃ Π^cocart_{x : A} hom a x → F x (yoneda).
---   - yon u is cocartesian as soon as it sends the connections to cocartesian 1-cells
---     (yon-is-cocartesian-from-conn), for any covariant F.
---   - For F = hom b, it does (yon-hom-conn-cocart), whence the Yoneda lemma for representable
---     families, hom b a ≃ Π^cocart_{x : A} hom a x → hom b x (yoneda-hom).
---
--- The paper's computation yon (evid φ) x f = φ x (f_! id_a) = φ x (id_a ; f) = φ x f is replaced by
--- cocart-map-push-id, which does not need the unit law.
---
--- Postulates relied on: those of coslice-fibration (fold-lemma, objectwise-equiv, pushout-up,
--- univalence, truncation, is-set-𝕀); evid-yon and yon-evid only those of push-id and of the Segal
--- machinery (univalence, truncation, is-set-𝕀).
+-- Postulates relied on: fold-lemma, objectwise-equiv, pushout-up, univalence, truncation, is-set-𝕀.
 --
 
 open import Stdlib
@@ -124,7 +112,7 @@ yon-evid {A} sA a G sG cG φ cφ =
 --
 -- yon u is a cocartesian fibrewise map (yon-is-cocartesian) when its total map
 -- Y := tot (yon u) : Σ (x : A) . hom a x → Σ (x : A) . F x (yon-total) sends cocartesian arrows to
--- cocartesian arrows. As in BATT.tex, it suffices that Y sends the connections Γ̄_f to cocartesian
+-- cocartesian arrows. It suffices that Y sends the connections Γ̄_f to cocartesian
 -- 1-cells (yon-conn-cocart, yon-is-cocartesian-from-conn):
 --
 --   - it suffices to consider the homs of cocartesian 1-cells (preserves-cocartesian-cells), and

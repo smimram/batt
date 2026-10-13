@@ -1,32 +1,14 @@
 --
 -- The codomain fibration
 --
--- For a crisp oplax-Segal type A, the codomain projection ev₁ : (𝕀 →ᵣ A) → A has cocartesian
--- lifts. A composable pair (t , u) of arrows of A is the pair of first edges of a 2-simplex σ
--- (Simplex-edges.batt), and the lift of u at t is the square
+-- For an oplax-Rezk type A, the codomain projection ev₁ : (𝕀 →ᵣ A) → A is a cocartesian fibration
+-- (codomain-fibration).
 --
---   χ_σ := λ i . λ j . σ (j , j ∧ i) : t → u ∘ t        (lift-sq)
+-- The cocartesian lift of u at t is the square χ_σ := λ i j . σ (j , j ∧ i) (lift-sq), for a
+-- 2-simplex σ with first edges t and u. It is cocartesian by the fold lemma and cancellation, since
+-- Γ_t ; χ_σ = Γ_{u ∘ t} (lift-sq-cocart). Lifts are unique since 𝕀 →ᵣ A is univalent.
 --
--- in 𝕀 →ᵣ A, read horizontally: at i = 0 it is the first edge t of σ, at i = 1 its long edge,
--- the composite u ∘ t, and its image along ev₁ is λ i . σ (1 , i), the second edge u. All three
--- hold judgmentally (lift-sq-src, lift-sq-tgt, lift-sq-over).
---
--- χ_σ is ev₁-cocartesian (lift-sq-cocart). The 2-simplex of 𝕀 →ᵣ A
---
---   τ_σ := λ y . λ k . σ (y₁ ∧ k , y₂ ∧ k)               (lift-tri)
---
--- has edges Γ_t, χ_σ and Γ_{u ∘ t} (judgmentally), so that Γ_t ; χ_σ = Γ_{u ∘ t}
--- (comp-simplex-2, Composition.batt). Both connections are ev₁-cocartesian by the fold lemma,
--- hence so is χ_σ, by cancellation (is-cocartesian-cancel, Fibration.batt).
---
--- Every lifting datum is reached (codomain-lift-section), so ev₁ is a cocartesian fibration as soon
--- as lifts are unique, which holds when 𝕀 →ᵣ A is univalent (codomain-fibration-univalent, by
--- Lift-unique.batt), in particular when A is oplax-Rezk (codomain-fibration): arrow types of
--- oplax-complete types are oplax-complete, hence univalent (Complete-univalent.batt).
---
--- Postulates relied on: fold-lemma (Fold.batt); univalence, truncation and is-set-𝕀 through
--- the Segal machinery; for codomain-fibration, also objectwise-equiv and pushout-up (through the
--- oplax universal property of E).
+-- Postulates relied on: fold-lemma, objectwise-equiv, pushout-up, univalence, truncation, is-set-𝕀.
 --
 
 open import Stdlib

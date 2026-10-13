@@ -1,34 +1,17 @@
 --
 -- Coslices are Rezk, and the hom fibration
 --
--- The coslice a/A := Σ (f : 𝕀 →ᵣ A) . f 0 ≡ a (Coslice.batt) is the pullback of ev₀ : (𝕀 →ᵣ A) → A
--- along a : 1 → A.
+-- For crisp a and A oplax-Rezk:
 --
--- For crisp a, being a pullback, a/A is oplax-Segal (resp. oplax-complete) when A is
--- (is-segalᵣ-coslice, is-completeᵣ-coslice), by closure of these types under pullbacks
--- (Local.batt), applied to the pullback ⊤ ×_A (𝕀 →ᵣ A) of a and ev₀.
+--   - a/A is oplax-Segal and oplax-complete (is-segalᵣ-coslice, is-completeᵣ-coslice), as the pullback
+--     of a : 1 → A along ev₀ (Local.batt);
+--   - ev₁ : a/A → A is a cocartesian fibration (coslice-fibration).
 --
--- For crisp a and A oplax-Rezk (Segal and complete), the projection ev₁ : a/A → A is a cocartesian
--- fibration (coslice-fibration, the hom fibration proposition of BATT.tex). As in BATT.tex, it
--- factors through the codomain fibration, a/A → 𝕀 →ᵣ A → A:
+-- Proof of the second point: the cocartesian lift for the codomain fibration has a constant source,
+-- so it lifts to a/A (coslice-lift); it is cocartesian there by base change (a/A is a pullback) and
+-- the composite lemma, and lifts are unique since a/A is univalent.
 --
---   - lifts: the cocartesian lift χ of (t , u) for the codomain fibration (codomain-lift,
---     Codomain.batt) has a constant source, judgmentally, so it factors through a 1-cell χ̄ of a/A,
---     with the path to a obtained from the one of t (coslice-lift);
---   - a/A is the pullback of a : 1 → A along ev₀, and the image of χ̄ in 1 is an identity, so χ̄ is
---     cocartesian for the projection to 𝕀 →ᵣ A, by the base change lemma (is-cocartesian-point-pullback-proj,
---     Base-change.batt, from the hom types of pullbacks, Pullback-hom.batt); its image χ is
---     ev₁-cocartesian (lift-sq-cocart), so χ̄ is cocartesian for ev₁ ∘ fst by the composite lemma
---     (is-cocartesian-comp-fib, Fibration.batt). The pullback has the path a ≡ f 0, the coslice
---     f 0 ≡ a: the two are related by a crisp equivalence (point-pullback→coslice), along which
---     cocartesian arrows are transported (is-cocartesian-equiv, Fibration.batt);
---   - χ̄ lies over the given data, by the corresponding path for the codomain fibration
---     (codomain-lift-over), lifted to a/A by path induction (coslice-lift-data-path);
---   - lifts are unique since a/A is univalent (is-cocartesian-fibration-univalent, Lift-unique.batt),
---     being oplax-complete (complete→univalentᵣ, Complete-univalent.batt).
---
--- Postulates relied on: fold-lemma (Fold.batt), objectwise-equiv (Axiom.batt), univalence,
--- truncation, is-set-𝕀; for coslice-fibration, also pushout-up (through complete→univalentᵣ).
+-- Postulates relied on: fold-lemma, objectwise-equiv, pushout-up, univalence, truncation, is-set-𝕀.
 --
 
 open import Stdlib

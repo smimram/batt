@@ -1,47 +1,14 @@
 --
 -- Lax and oplax universal properties of pushouts
 --
--- For a crisp commuting square
---
---        f
---     X ───▶ A
---   g │      │ i            q : i ∘ f ≡ j ∘ g   (a crisp path in X → P)
---     ▼      ▼
---     B ───▶ P
---        j
---
--- which is a pushout (is-pushout, Pushout.batt: for every crisp Z, restricting maps P → Z to
--- cocones under X is an equivalence) is also a pushout for oplax and lax maps (is-pushoutᵣ,
--- is-pushoutₗ): for every crisp Y,
---
---   cocone-restrᵣ : (P →ᵣ Y) → coconeᵣ f g Y                                  (is-pushout→is-pushoutᵣ)
---
--- is an equivalence, where an oplax cocone is a pair of oplax maps α : A →ᵣ Y, β : B →ᵣ Y with a
--- path α ∘ f ≡ β ∘ g in X →ᵣ Y. The pushout square is a pushout (pushout-is-pushout, from the
--- postulate pushout-up), hence the oplax and lax universal properties of pushouts
+-- A crisp commuting square that is a pushout for ordinary maps is also a pushout for oplax and lax
+-- maps (is-pushout→is-pushoutᵣ, is-pushout→is-pushoutₗ); in particular so is the pushout itself
 -- (pushout-oplax-up, pushout-lax-up).
 --
--- Proof. By the objectwise equivalence axiom it suffices to check global points of grids T. There,
--- lax currying turns oplax maps out of P into cartesian maps into T →ₗ Y:
+-- Proof: by the objectwise equivalence axiom, it suffices to compare global points of grids, where
+-- lax currying reduces oplax cocones to ordinary cocones in a type of lax maps.
 --
---   ♭(T → P →ᵣ Y) ≃ ♭(T ⨂ P → Y) ≃ ♭(P → T →ₗ Y) ─♭ cocone-restr─▶ ♭(cocone f g (T →ₗ Y))
---
--- and the last map is an equivalence by the cartesian universal property at Z = T →ₗ Y. It remains
--- to identify cocones in T →ₗ Y with T-indexed oplax cocones on global points. Neither direction is
--- an internal map, but both receive maps from cocones in maps out of T ⨂ − (cocone-tensᵣ), by lax and
--- oplax currying, which are equivalences on global points:
---
---   ♭(cocone f g (T →ₗ Y)) ◀─♭ cocone-tensᵣ→cocone─ ♭(cocone-tensᵣ T f g Y) ─♭ cocone-tensᵣ→curried─▶ ♭(T → coconeᵣ f g Y)
---
--- On global points, swapping the arguments (cocone-swapᵣ, crisp only) closes the triangle up to a
--- homotopy, and it also identifies the comparison map with the composite; both homotopies reduce to
--- a comparison of images of a crisp path, settled by crisp path induction.
---
--- The lax universal property is proved the same way, with the roles of lax and oplax currying
--- exchanged.
---
--- Postulates relied on: objectwise-equiv (Axiom.batt), univalence (funext), and for pushouts
--- pushout-up (Pushout.batt).
+-- Postulates relied on: objectwise-equiv, pushout-up, univalence.
 --
 
 open import Stdlib
@@ -338,6 +305,26 @@ is-equiv-flat-post-cocone-restrᵣ T {X} {A} {B} {P} f g i j q up Y =
       (is-equiv-flat-cocone-swapᵣ T {X} {A} {B} f g Y) eE)
 
 -- the oplax universal property of a square with the cartesian universal property
+--
+-- Proof. By the objectwise equivalence axiom it suffices to check global points of grids T. There,
+-- lax currying turns oplax maps out of P into cartesian maps into T →ₗ Y:
+--
+--   ♭(T → P →ᵣ Y) ≃ ♭(T ⨂ P → Y) ≃ ♭(P → T →ₗ Y) ─♭ cocone-restr─▶ ♭(cocone f g (T →ₗ Y))
+--
+-- and the last map is an equivalence by the cartesian universal property at Z = T →ₗ Y. It remains
+-- to identify cocones in T →ₗ Y with T-indexed oplax cocones on global points. Neither direction is
+-- an internal map, but both receive maps from cocones in maps out of T ⨂ − (cocone-tensᵣ), by lax and
+-- oplax currying, which are equivalences on global points:
+--
+--   ♭(cocone f g (T →ₗ Y)) ◀─♭ cocone-tensᵣ→cocone─ ♭(cocone-tensᵣ T f g Y) ─♭ cocone-tensᵣ→curried─▶ ♭(T → coconeᵣ f g Y)
+--
+-- On global points, swapping the arguments (cocone-swapᵣ, crisp only) closes the triangle up to a
+-- homotopy, and it also identifies the comparison map with the composite; both homotopies reduce to
+-- a comparison of images of a crisp path, settled by crisp path induction.
+--
+-- The lax universal property is proved the same way, with the roles of lax and oplax currying
+-- exchanged.
+--
 is-pushout→is-pushoutᵣ ∷ {X A B P ∷ U} (f ∷ X → A) (g ∷ X → B) (i ∷ A → P) (j ∷ B → P) (q ∷ (λ x . i (f x)) ≡{X → P} (λ x . j (g x)))
   (up ∷ is-pushout {X} {A} {B} {P} f g i j q) → is-pushoutᵣ {X} {A} {B} {P} f g i j q
 is-pushout→is-pushoutᵣ {X} {A} {B} {P} f g i j q up = λ Y .

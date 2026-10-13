@@ -1,29 +1,14 @@
 --
 -- Oplax completeness implies univalence
 --
--- For an oplax-Segal type X, oplax completeness (Complete.batt: oplax maps out of E are constant,
--- here only at the unthickened E) implies univalence in Rezk form (Univalent.batt: idtoiso is an
--- equivalence):
+-- An oplax-Segal, oplax-complete type is univalent: idtoiso is an equivalence
+-- (complete→univalentᵣ). Hence arrow types of oplax-Rezk types are univalent (is-univalent-arrᵣ).
 --
---   is-completeᵣ X → is-univalentᵣ X s                                      (complete→univalentᵣ)
+-- Proof: an isomorphism is the middle edge of an oplax map out of E (a Segal filler of
+-- (inverse , f , inverse), with collapsed faces); by completeness this map is constant, so the
+-- isomorphism is an identity, which is univalence by the fundamental theorem of identity types.
 --
--- Proof. Let T be the total space of isomorphisms, with iso-refl : X → T, x ↦ (x , x , id) and its
--- retraction src : T → X. It suffices that every isomorphism t is iso-refl of some point (src is
--- then an equivalence, so its fibres Σ y . iso x y are contractible, and the fundamental theorem of
--- identity types applies). Two maps relate T to oplax maps out of E (thickened trivially):
---
---   Φ : (E →ᵣ X) → T    the middle edge f = σ₁₂ of the underlying 3-simplex σ, which is an
---                       isomorphism: the faces 012 and 123 have collapsed long edges, so
---                       σ₀₁ ; f and f ; σ₂₃ are identities up to the paths that collapse them;
---   Ψ : T → (E →ᵣ X)    a Segal filler of (g , f , g), for an inverse g of f, whose two faces are
---                       collapsed using g ; f = id and f ; g = id, then the oplax universal
---                       property of E (FreeEquiv-up.batt);
---
--- with Φ (Ψ t) = t and Φ (constant at x) = iso-refl x, both up to the biinvertibility data, which
--- is a proposition. By completeness Ψ t is constant, at some point x', hence t = iso-refl x'.
---
--- Postulates relied on: objectwise-equiv, pushout-up (through the oplax universal property of E),
--- univalence, truncation, is-set-𝕀.
+-- Postulates relied on: objectwise-equiv, pushout-up, univalence, truncation, is-set-𝕀.
 --
 
 open import Stdlib
@@ -303,6 +288,22 @@ thick-free-equiv→iso→thick {X} s (w , b) =
 -- Oplax completeness implies univalence
 --
 
+--
+-- Proof. Let T be the total space of isomorphisms, with iso-refl : X → T, x ↦ (x , x , id) and its
+-- retraction src : T → X. It suffices that every isomorphism t is iso-refl of some point (src is
+-- then an equivalence, so its fibres Σ y . iso x y are contractible, and the fundamental theorem of
+-- identity types applies). Two maps relate T to oplax maps out of E (thickened trivially):
+--
+--   Φ : (E →ᵣ X) → T    the middle edge f = σ₁₂ of the underlying 3-simplex σ, which is an
+--                       isomorphism: the faces 012 and 123 have collapsed long edges, so
+--                       σ₀₁ ; f and f ; σ₂₃ are identities up to the paths that collapse them;
+--   Ψ : T → (E →ᵣ X)    a Segal filler of (g , f , g), for an inverse g of f, whose two faces are
+--                       collapsed using g ; f = id and f ; g = id, then the oplax universal
+--                       property of E (FreeEquiv-up.batt);
+--
+-- with Φ (Ψ t) = t and Φ (constant at x) = iso-refl x, both up to the biinvertibility data, which
+-- is a proposition. By completeness Ψ t is constant, at some point x', hence t = iso-refl x'.
+--
 complete→univalentᵣ ∷ (X ∷ U) (s : is-segalᵣ X) → is-completeᵣ X → is-univalentᵣ X s
 complete→univalentᵣ X s c =
   let r : (grid nil ⨂ grid nil →ᵣ X) → (thick-free-equiv nil nil →ᵣ X) = complete-restrᵣ nil nil X in

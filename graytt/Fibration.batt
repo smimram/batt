@@ -344,7 +344,7 @@ is-iso-cocartesian {X} {A} sX sA p {y1} {y2} m cm (k , ek) =
 --
 -- Composite maps
 --
--- [lem:cocart_arrow_comp_fib] For ι : X → Y and q : Y → A, if ι γ is q-cocartesian and γ is
+-- Composite lemma: for ι : X → Y and q : Y → A, if ι γ is q-cocartesian and γ is
 -- ι-cocartesian, then γ is (q ∘ ι)-cocartesian. The fibre product of γ for q ∘ ι is obtained from
 -- the one for ι by replacing the arrow of Y by its image under the gap map of ι γ (an
 -- equivalence), contracting a singleton, and adjusting the paths by hom-map-circ. Under this
@@ -433,7 +433,7 @@ comp-fib-alg ∷ {T S1 S2 : U} (f : S1 → S2 → T) {t0 t1 t2 : T} (a : t0 ≡ 
     ≡ trans a (trans (trans b c) (cong (λ m . f m y') (sym d)))
 comp-fib-alg {T} {S1} {S2} f a b {x} refl {y} refl c = refl
 
--- [lem:cocart_arrow_comp_fib] if ι γ is q-cocartesian and γ is ι-cocartesian, then γ is (q ∘ ι)-cocartesian
+-- composite lemma: if ι γ is q-cocartesian and γ is ι-cocartesian, then γ is (q ∘ ι)-cocartesian
 is-cocartesian-comp-fib ∷ {X Y A ∷ U} (sX : is-segalᵣ X) (sY : is-segalᵣ Y) (sA : is-segalᵣ A) (ι ∷ X → Y) (q ∷ Y → A)
   {u v : X} (γ : hom u v) →
   is-cocartesian {X} {Y} sX sY ι {u} {v} γ →

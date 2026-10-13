@@ -1,26 +1,14 @@
 --
 -- Cocartesian maps
 --
--- For maps p ∷ X → A and q ∷ Y → A between oplax-Segal types (typically cocartesian fibrations),
--- a cocartesian map from p to q is a map f : X → Y over A, i.e. with a homotopy q ∘ f = p, that
--- sends p-cocartesian arrows to q-cocartesian arrows (preserves-cocartesian). They form the type
--- cocart-map-over p q, the type Fun^cocart_{/A}(X , Y) of cocartesian functors over A.
+-- For p ∷ X → A and q ∷ Y → A, a cocartesian map over A is a map f : X → Y with q ∘ f = p that
+-- sends p-cocartesian arrows to q-cocartesian arrows (cocart-map-over), i.e. a cocartesian functor
+-- over A.
 --
--- Its indexed counterpart: for families F, G over A, a fibrewise map φ : (x : A) → F x → G x is
--- cocartesian when its total map tot φ : Σ A F → Σ A G, which lies over A judgmentally, preserves
--- cocartesian arrows (is-cocartesian-map). They form the subtype
+-- Its indexed counterpart, for families F and G over A: the fibrewise maps whose total map
+-- preserves cocartesian arrows, Π^cocart_{x : A} F x → G x (cocart-fibrewise-map).
 --
---   Π^cocart_{x : A} F x → G x                    (cocart-fibrewise-map)
---
--- of the fibrewise maps, and each of them is a cocartesian map over A between the first
--- projections (cocart-fibrewise-map→map-over).
---
--- Preserving cocartesian arrows is a proposition, since being cocartesian is
--- (is-prop-preserves-cocartesian, is-prop-is-cocartesian-map), and it suffices to check it on the
--- homs of 1-cells (preserves-cocartesian-cells). The maps need not be crisp: any map acts on homs
--- (hom-map, Functoriality.batt).
---
--- Postulates relied on: univalence (funext, through is-prop-is-cocartesian).
+-- Postulates relied on: univalence.
 --
 
 open import Stdlib

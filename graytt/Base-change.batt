@@ -1,17 +1,11 @@
 --
--- The base change lemma (lem:cocart_arrow_base_change), for the pullback of a point
+-- Base change of cocartesian arrows, for the pullback of a point
 --
--- For crisp r : Y → B and b : B, every arrow γ of the pullback S = Σ (y : Y) . b ≡ r y of b : 1 → B
--- along r is cocartesian for the projection ι : S → Y (is-cocartesian-point-pullback-proj). This is the base change
--- lemma of BATT.tex for the pullback of b : 1 → B along r: the image of γ in 1 is an identity,
--- hence cocartesian.
+-- Every arrow of the pullback of b : 1 → B along r : Y → B is cocartesian for the projection to Y
+-- (is-cocartesian-point-pullback-proj): its image in 1 is an identity.
 --
--- Proof, as in BATT.tex: by the hom types of pullbacks (is-equiv-point-pullback-hom→data, Pullback-hom.batt), the
--- fibre product of the gap map of γ reduces to the homs k of Y out of ι v whose image is a
--- transported identity, and the gap map to composition with the image of γ, itself a transported
--- identity, hence an isomorphism. The coherence of the identification with composition comes from
--- the construction of the image path by crisp path induction (hom-map-null-comp, Pullback-hom.batt). The proof is
--- adapted from a first version by Samuel Mimram.
+-- Proof: by the hom types of the pullback (Pullback-hom.batt), the gap map becomes composition with a
+-- transported identity, an isomorphism.
 --
 -- Postulates relied on: objectwise-equiv, univalence, truncation, is-set-𝕀.
 --
