@@ -508,3 +508,31 @@ is-equiv-flat-tens-uncurry ∷ {T K W ∷ U} → is-equiv (flat-tens-uncurry {T}
 is-equiv-flat-tens-uncurry {T} {K} {W} =
   ((flat-tens-curry {T} {K} {W} , fun 𝄫F → refl) ,
    (flat-tens-curry {T} {K} {W} , fun 𝄫G → flat-≡ {T ⨂ K → W} (tens-uncurry-curry-crisp {T} {K} {W} G)))
+
+-- lax crisp currying: a crisp B → (A →ₗ W) is a cartesian map A ⨂ B → W
+tens-uncurry-crispₗ ∷ {A B W ∷ U} (F ∷ B → A →ₗ W) → A ⨂ B → W
+tens-uncurry-crispₗ {A} {B} {W} F (a ⊗ b) = F b a
+
+tens-curry-uncurry-crispₗ ∷ {A B W ∷ U} (F ∷ B → A →ₗ W) → tens-curry-left' {A} {B} {W} (tens-uncurry-crispₗ {A} {B} {W} F) ≡ F
+tens-curry-uncurry-crispₗ {A} {B} {W} F = refl
+
+tens-uncurry-curry-crispₗ ∷ {A B W ∷ U} (G ∷ A ⨂ B → W) → tens-uncurry-crispₗ {A} {B} {W} (tens-curry-left' {A} {B} {W} G) ≡ G
+tens-uncurry-curry-crispₗ {A} {B} {W} G =
+  funext-htpy {A ⨂ B} {λ _ . W} (tens-uncurry-crispₗ {A} {B} {W} (tens-curry-left' {A} {B} {W} G)) G
+    (λ z . let h : (z : A ⨂ B) → tens-uncurry-crispₗ {A} {B} {W} (tens-curry-left' {A} {B} {W} G) z ≡ G z = fun (a ⊗ b) → refl in h z)
+
+flat-tens-curryₗ ∷ {A B W ∷ U} → ♭(B → A →ₗ W) → ♭(A ⨂ B → W)
+flat-tens-curryₗ {A} {B} {W} 𝄫F = 𝄫(tens-uncurry-crispₗ {A} {B} {W} F)
+
+flat-tens-uncurryₗ ∷ {A B W ∷ U} → ♭(A ⨂ B → W) → ♭(B → A →ₗ W)
+flat-tens-uncurryₗ {A} {B} {W} = flat-map {A ⨂ B → W} {B → A →ₗ W} (tens-curry-left' {A} {B} {W})
+
+is-equiv-flat-tens-curryₗ ∷ {A B W ∷ U} → is-equiv (flat-tens-curryₗ {A} {B} {W})
+is-equiv-flat-tens-curryₗ {A} {B} {W} =
+  ((flat-tens-uncurryₗ {A} {B} {W} , fun 𝄫G → flat-≡ {A ⨂ B → W} (tens-uncurry-curry-crispₗ {A} {B} {W} G)) ,
+   (flat-tens-uncurryₗ {A} {B} {W} , fun 𝄫F → refl))
+
+is-equiv-flat-tens-uncurryₗ ∷ {A B W ∷ U} → is-equiv (flat-tens-uncurryₗ {A} {B} {W})
+is-equiv-flat-tens-uncurryₗ {A} {B} {W} =
+  ((flat-tens-curryₗ {A} {B} {W} , fun 𝄫F → refl) ,
+   (flat-tens-curryₗ {A} {B} {W} , fun 𝄫G → flat-≡ {A ⨂ B → W} (tens-uncurry-curry-crispₗ {A} {B} {W} G)))
