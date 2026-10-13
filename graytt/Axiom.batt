@@ -1,0 +1,49 @@
+--
+-- Axioms of BATT
+--
+-- This file collects the axioms of the theory (the postulates of BATT.pdf), each with a comment
+-- naming it. Postulates of the standard library (univalence, propositional truncation, pushouts,
+-- the interval being a set with 0 ≠ 1) and the fold lemmas (Fold.batt) are not repeated here.
+--
+-- Equivalences are objectwise: a crisp map f : X → Y is an equivalence as soon as, for every
+-- grid □[𝐚] (𝐚 a list of dimensions, grid in Cube.batt), postcomposition with f is an
+-- equivalence on global points
+--
+--   ♭(□[𝐚] → X) → ♭(□[𝐚] → Y),   𝄫g ↦ 𝄫(f ∘ g).
+--
+-- The converse holds in the theory (objectwise-equiv-converse): ♭ preserves crisp equivalences,
+-- and so does postcomposition.
+--
+-- Postulates introduced: objectwise-equiv.
+--
+
+open import Stdlib
+
+-- postcomposition with f on the global points of a grid
+objectwise-post ∷ {X Y ∷ U} (f ∷ X → Y) (a ∷ List ℕ) → ♭(grid a → X) → ♭(grid a → Y)
+objectwise-post {X} {Y} f a = flat-map {grid a → X} {grid a → Y} (post {grid a} {X} {Y} f)
+
+-- f is an objectwise equivalence
+is-objectwise-equiv ∷ {X Y ∷ U} (f ∷ X → Y) → U
+is-objectwise-equiv {X} {Y} f = (a ∷ List ℕ) → is-equiv (objectwise-post {X} {Y} f a)
+
+-- BATT.pdf postulate: equivalences are objectwise
+postulate objectwise-equiv ∷ {X Y ∷ U} (f ∷ X → Y) → is-objectwise-equiv {X} {Y} f → is-equiv f
+
+--
+-- The converse
+--
+
+-- ♭ preserves crisp equivalences
+flat-map-equiv ∷ {A B ∷ U} (f ∷ A → B) (e ∷ is-equiv f) → is-equiv (flat-map {A} {B} f)
+flat-map-equiv {A} {B} f e =
+  let s ∷ B → A = section-map f (is-equiv-sec f e) in
+  let ss ∷ (y : B) → f (s y) ≡ y = snd (is-section f) (is-equiv-sec f e) in
+  let r ∷ B → A = retraction-map f (is-equiv-ret f e) in
+  let rr ∷ (x : A) → r (f x) ≡ x = snd (is-retraction f) (is-equiv-ret f e) in
+  ((flat-map {B} {A} s , fun 𝄫y → flat-≡ {B} {f (s y)} {y} (ss y)) ,
+   (flat-map {B} {A} r , fun 𝄫x → flat-≡ {A} {r (f x)} {x} (rr x)))
+
+objectwise-equiv-converse ∷ {X Y ∷ U} (f ∷ X → Y) (e ∷ is-equiv f) → is-objectwise-equiv {X} {Y} f
+objectwise-equiv-converse {X} {Y} f e a =
+  flat-map-equiv {grid a → X} {grid a → Y} (post {grid a} {X} {Y} f) (post-equiv {X} {Y} f e (grid a))
