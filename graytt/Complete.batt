@@ -18,6 +18,7 @@
 
 open import Stdlib
 open import FreeEquiv
+open import Segal
 
 --
 -- Restriction along τ, for each kind of arrow
@@ -64,3 +65,54 @@ is-completeᵣ X = (a ∷ List ℕ) (b ∷ List ℕ) →
 is-completeₗ ∷ (X ∷ U) → U
 is-completeₗ X = (a ∷ List ℕ) (b ∷ List ℕ) →
   is-equiv {grid a ⨂ grid b →ₗ X} {thick-free-equiv a b →ₗ X} (complete-restrₗ a b X)
+
+--
+-- Arrow types of oplax-complete types are oplax-complete
+--
+-- As for Segalness (is-segal-arrᵣ, Segal.batt): curried, restriction along τ is the weakening
+-- k ↦ λ q e . k q (cur-const), and for the arrow type it is conjugate, by crisp equivalences, to the
+-- same weakening for A thickened by one more interval on the right: □[𝐛] →ᵣ 𝕀 →ᵣ A ≃ □[𝐛 , 1] →ᵣ A.
+--
+
+-- weakening by an unused middle argument
+cur-const ∷ {Q S T ∷ U} → (Q →ᵣ T) → (Q →ᵣ S →ᵣ T)
+cur-const {Q} {S} {T} k q s = k q
+
+-- restriction along τ, curried, is the weakening by E
+cur-complete-restr ∷ (a ∷ List ℕ) (b ∷ List ℕ) (X ∷ U) (g : grid a ⨂ grid b →ᵣ X) →
+  cur-const {grid a} {free-equiv} {grid b →ᵣ X} (tens-curry-right {grid a} {grid b} {X} g)
+    ≡ cur2 {grid a} {free-equiv} {grid b} {X} (complete-restrᵣ a b X g)
+cur-complete-restr a b X g = refl
+
+-- postcomposition with a crisp equivalence of the target
+cur-const-equiv ∷ {Q S ∷ U} {T T' ∷ U} (h ∷ T → T') (eh ∷ is-equiv h) →
+  is-equiv (cur-const {Q} {S} {T}) → is-equiv (cur-const {Q} {S} {T'})
+cur-const-equiv {Q} {S} {T} {T'} h eh e =
+  is-equiv-conj (cur-const {Q} {S} {T}) (cur-const {Q} {S} {T'})
+    (postᵣ {Q} {T} {T'} h) (postᵣ {Q} {S →ᵣ T} {S →ᵣ T'} (postᵣ {S} {T} {T'} h))
+    (λ k . refl)
+    (postᵣ-equiv Q {T} {T'} h eh)
+    (postᵣ-equiv Q {S →ᵣ T} {S →ᵣ T'} (postᵣ {S} {T} {T'} h) (postᵣ-equiv S {T} {T'} h eh))
+    e
+
+is-complete-arrᵣ ∷ {A ∷ U} → is-completeᵣ A → is-completeᵣ (arrᵣ A)
+is-complete-arrᵣ {A} cA a b =
+  let c ∷ List ℕ = cons 1 b in
+  -- grid c is grid b ⨂ simplex 1, judgmentally
+  let e2 : is-equiv (cur-const {grid a} {free-equiv} {grid b ⨂ simplex 1 →ᵣ A}) =
+    is-equiv-conj (complete-restrᵣ a c A) (cur-const {grid a} {free-equiv} {grid c →ᵣ A})
+      (tens-curry-right {grid a} {grid c} {A}) (cur2 {grid a} {free-equiv} {grid c} {A})
+      (cur-complete-restr a c A) (snd _ (tens-curry-equiv-right {grid a} {grid c} {A})) (is-equiv-cur2 {grid a} {free-equiv} {grid c} {A})
+      (cA a c) in
+  let e3 : is-equiv (cur-const {grid a} {free-equiv} {grid b →ᵣ simplex 1 →ᵣ A}) =
+    cur-const-equiv {grid a} {free-equiv} {grid b ⨂ simplex 1 →ᵣ A} {grid b →ᵣ simplex 1 →ᵣ A}
+      (tens-curry-right {grid b} {simplex 1} {A}) (snd _ (tens-curry-equiv-right {grid b} {simplex 1} {A})) e2 in
+  let e4 : is-equiv (cur-const {grid a} {free-equiv} {grid b →ᵣ arrᵣ A}) =
+    cur-const-equiv {grid a} {free-equiv} {grid b →ᵣ simplex 1 →ᵣ A} {grid b →ᵣ arrᵣ A}
+      (postᵣ {grid b} {simplex 1 →ᵣ A} {𝕀 →ᵣ A} (λ φ . preᵣ {𝕀} {simplex 1} {A} φ 𝕀→simplex-1))
+      (postᵣ-equiv (grid b) {simplex 1 →ᵣ A} {𝕀 →ᵣ A} (λ φ . preᵣ {𝕀} {simplex 1} {A} φ 𝕀→simplex-1)
+        (preᵣ-equiv 𝕀 (simplex 1) 𝕀→simplex-1 is-equiv-𝕀→simplex-1 A)) e3 in
+  is-equiv-conj' (complete-restrᵣ a b (arrᵣ A)) (cur-const {grid a} {free-equiv} {grid b →ᵣ arrᵣ A})
+    (tens-curry-right {grid a} {grid b} {arrᵣ A}) (cur2 {grid a} {free-equiv} {grid b} {arrᵣ A})
+    (cur-complete-restr a b (arrᵣ A)) (snd _ (tens-curry-equiv-right {grid a} {grid b} {arrᵣ A}))
+    (is-equiv-cur2 {grid a} {free-equiv} {grid b} {arrᵣ A}) e4
