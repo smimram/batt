@@ -402,3 +402,36 @@ flat-pi≃arrₗ {A} {B} =
   ( flat-pi-to-arrₗ {A} {B}
   , ( (flat-arrₗ-to-pi {A} {B} , flat-arrₗ-pi-arrₗ {A} {B})
     , (flat-arrₗ-to-pi {A} {B} , flat-pi-arrₗ-pi {A} {B}) ) )
+
+---
+--- Crisp functions and crisp currying
+---
+
+-- a function defined on crisp arguments only sends crisp paths to paths
+crisp-cong ∷ {X Y ∷ U} (Φ ∷ (x ∷ X) → Y) {x y ∷ X} (p ∷ x ≡ y) → Φ x ≡ Φ y
+crisp-cong {X} {Y} Φ {x} refl = refl
+
+-- a crisp T → (K →ᵣ W) is a cartesian map T ⨂ K → W (only for a crisp F: F is used across ⊗)
+tens-uncurry-crisp ∷ {T K W ∷ U} (F ∷ T → K →ᵣ W) → T ⨂ K → W
+tens-uncurry-crisp {T} {K} {W} F (t ⊗ k) = F t k
+
+-- the two round trips
+tens-curry-uncurry-crisp ∷ {T K W ∷ U} (F ∷ T → K →ᵣ W) → tens-curry-right' {T} {K} {W} (tens-uncurry-crisp {T} {K} {W} F) ≡ F
+tens-curry-uncurry-crisp {T} {K} {W} F = refl
+
+tens-uncurry-curry-crisp ∷ {T K W ∷ U} (G ∷ T ⨂ K → W) → tens-uncurry-crisp {T} {K} {W} (tens-curry-right' {T} {K} {W} G) ≡ G
+tens-uncurry-curry-crisp {T} {K} {W} G =
+  funext-htpy {T ⨂ K} {λ _ . W} (tens-uncurry-crisp {T} {K} {W} (tens-curry-right' {T} {K} {W} G)) G
+    (λ z . let h : (z : T ⨂ K) → tens-uncurry-crisp {T} {K} {W} (tens-curry-right' {T} {K} {W} G) z ≡ G z = fun (t ⊗ k) → refl in h z)
+
+-- on global points, currying is an equivalence
+flat-tens-curry ∷ {T K W ∷ U} → ♭(T → K →ᵣ W) → ♭(T ⨂ K → W)
+flat-tens-curry {T} {K} {W} 𝄫F = 𝄫(tens-uncurry-crisp {T} {K} {W} F)
+
+flat-tens-uncurry ∷ {T K W ∷ U} → ♭(T ⨂ K → W) → ♭(T → K →ᵣ W)
+flat-tens-uncurry {T} {K} {W} = flat-map {T ⨂ K → W} {T → K →ᵣ W} (tens-curry-right' {T} {K} {W})
+
+is-equiv-flat-tens-curry ∷ {T K W ∷ U} → is-equiv (flat-tens-curry {T} {K} {W})
+is-equiv-flat-tens-curry {T} {K} {W} =
+  ((flat-tens-uncurry {T} {K} {W} , fun 𝄫G → flat-≡ {T ⨂ K → W} (tens-uncurry-curry-crisp {T} {K} {W} G)) ,
+   (flat-tens-uncurry {T} {K} {W} , fun 𝄫F → refl))

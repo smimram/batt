@@ -119,3 +119,65 @@ abstract is-equiv-pb-paste ∷ {H L K C : U} (a : H → C) (b : L → C) (c : K 
 is-equiv-pb-paste {H} {L} {K} {C} a b c d R =
   ((pb-unpaste a b c d R , pb-paste-sec a b c d R) ,
    (pb-unpaste a b c d R , fun (t , q) → pb-paste-ret-t a b c d R t q))
+
+---
+--- The universal property of pullbacks
+---
+--- Maps into the pullback of g and h are pullbacks of maps: for every Z,
+---   pb-map : (Z → A ×_C B) → (Z → A) ×_{Z → C} (Z → B)
+--- is an equivalence, with inverse (α , β , S) ↦ λ z . (α z , β z , happly S z).
+---
+
+open import Funext
+
+pb-map ∷ {Z A B C : U} (g : A → C) (h : B → C) → (Z → pullback {A} {B} {C} g h) →
+  pullback {Z → A} {Z → B} {Z → C} (post {Z} {A} {C} g) (post {Z} {B} {C} h)
+pb-map {Z} {A} {B} {C} g h φ =
+  let a : Z → A = λ z . fst (λ a' . Σ (b : B) . g a' ≡ h b) (φ z) in
+  let b : Z → B = λ z . fst (λ b' . g (a z) ≡ h b') (snd (λ a' . Σ (b' : B) . g a' ≡ h b') (φ z)) in
+  (a , b , funext-htpy {Z} {λ _ . C} (λ z . g (a z)) (λ z . h (b z))
+             (λ z . snd (λ b' . g (a z) ≡ h b') (snd (λ a' . Σ (b' : B) . g a' ≡ h b') (φ z))))
+
+pb-unmap ∷ {Z A B C : U} (g : A → C) (h : B → C) →
+  pullback {Z → A} {Z → B} {Z → C} (post {Z} {A} {C} g) (post {Z} {B} {C} h) → (Z → pullback {A} {B} {C} g h)
+pb-unmap {Z} {A} {B} {C} g h (α , r) z =
+  let k : (r : Σ (β : Z → B) . post {Z} {A} {C} g α ≡ post {Z} {B} {C} h β) → pullback {A} {B} {C} g h = fun (β , S) →
+    (α z , β z , happly {Z} {λ _ . C} {λ z' . g (α z')} {λ z' . h (β z')} S z) in
+  k r
+
+-- Σ-η for the pullback, pointwise
+pb-eta ∷ {A B C : U} (g : A → C) (h : B → C) (w : pullback {A} {B} {C} g h) →
+  (fst (λ a . Σ (b : B) . g a ≡ h b) w ,
+   fst (λ b . g (fst (λ a . Σ (b' : B) . g a ≡ h b') w) ≡ h b) (snd (λ a . Σ (b : B) . g a ≡ h b) w) ,
+   snd (λ b . g (fst (λ a . Σ (b' : B) . g a ≡ h b') w) ≡ h b) (snd (λ a . Σ (b : B) . g a ≡ h b) w))
+    ≡{pullback {A} {B} {C} g h} w
+pb-eta {A} {B} {C} g h (a , r) =
+  let k : (r : Σ (b : B) . g a ≡ h b) → (a , fst (λ b . g a ≡ h b) r , snd (λ b . g a ≡ h b) r) ≡{pullback {A} {B} {C} g h} (a , r) =
+    fun (b , e) → refl in
+  k r
+
+pb-unmap-map ∷ {Z A B C : U} (g : A → C) (h : B → C) (φ : Z → pullback {A} {B} {C} g h) →
+  pb-unmap {Z} {A} {B} {C} g h (pb-map {Z} {A} {B} {C} g h φ) ≡ φ
+pb-unmap-map {Z} {A} {B} {C} g h φ =
+  let a : Z → A = λ z . fst (λ a' . Σ (b : B) . g a' ≡ h b) (φ z) in
+  let b : Z → B = λ z . fst (λ b' . g (a z) ≡ h b') (snd (λ a' . Σ (b' : B) . g a' ≡ h b') (φ z)) in
+  let e : (z : Z) → g (a z) ≡ h (b z) = λ z . snd (λ b' . g (a z) ≡ h b') (snd (λ a' . Σ (b' : B) . g a' ≡ h b') (φ z)) in
+  let he : happly {Z} {λ _ . C} {λ z . g (a z)} {λ z . h (b z)} (funext-htpy {Z} {λ _ . C} (λ z . g (a z)) (λ z . h (b z)) e) ≡ e =
+    happly-funext-htpy {Z} {λ _ . C} (λ z . g (a z)) (λ z . h (b z)) e in
+  funext-htpy {Z} {λ _ . pullback {A} {B} {C} g h} (pb-unmap {Z} {A} {B} {C} g h (pb-map {Z} {A} {B} {C} g h φ)) φ
+    (λ z . trans (cong {g (a z) ≡ h (b z)} {pullback {A} {B} {C} g h} (λ q . (a z , b z , q))
+                   (happly {Z} {λ z' . g (a z') ≡ h (b z')} {happly {Z} {λ _ . C} {λ z' . g (a z')} {λ z' . h (b z')} (funext-htpy {Z} {λ _ . C} (λ z' . g (a z')) (λ z' . h (b z')) e)} {e} he z))
+             (pb-eta {A} {B} {C} g h (φ z)))
+
+pb-map-unmap ∷ {Z A B C : U} (g : A → C) (h : B → C) (d : pullback {Z → A} {Z → B} {Z → C} (post {Z} {A} {C} g) (post {Z} {B} {C} h)) →
+  pb-map {Z} {A} {B} {C} g h (pb-unmap {Z} {A} {B} {C} g h d) ≡ d
+pb-map-unmap {Z} {A} {B} {C} g h (α , r) =
+  let k : (r : Σ (β : Z → B) . post {Z} {A} {C} g α ≡ post {Z} {B} {C} h β) →
+      pb-map {Z} {A} {B} {C} g h (pb-unmap {Z} {A} {B} {C} g h (α , r)) ≡ (α , r) = fun (β , S) →
+    cong {post {Z} {A} {C} g α ≡ post {Z} {B} {C} h β} {pullback {Z → A} {Z → B} {Z → C} (post {Z} {A} {C} g) (post {Z} {B} {C} h)}
+      (λ q . (α , β , q)) (funext-htpy-happly {Z} {λ _ . C} {λ z . g (α z)} {λ z . h (β z)} S) in
+  k r
+
+is-equiv-pb-map ∷ {Z A B C : U} (g : A → C) (h : B → C) → is-equiv (pb-map {Z} {A} {B} {C} g h)
+is-equiv-pb-map {Z} {A} {B} {C} g h =
+  ((pb-unmap {Z} {A} {B} {C} g h , pb-map-unmap {Z} {A} {B} {C} g h) , (pb-unmap {Z} {A} {B} {C} g h , pb-unmap-map {Z} {A} {B} {C} g h))

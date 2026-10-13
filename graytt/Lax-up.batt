@@ -1,0 +1,38 @@
+--
+-- Lax and oplax universal properties
+--
+-- Oplax universal property of pullbacks: for crisp g : A → C, h : B → C and a crisp K, oplax maps
+-- into the pullback A ×_C B are pairs of oplax maps whose images are homotopic:
+--
+--   pb-cmpᵣ : (K →ᵣ A ×_C B) → (K →ᵣ A) ×_{K →ᵣ C} (K →ᵣ B)
+--
+-- is an equivalence. The homotopy is an oplax homotopy (Htpyᵣ, Funext.batt), equivalent to a path
+-- of oplax maps (htpyᵣ-equiv); with this choice the comparison map involves no transport, and its
+-- endpoint conditions hold judgmentally.
+--
+-- The inverse cannot be written directly: it would evaluate a path of oplax maps at a ⊗-generic
+-- point, which needs dependent (non-crisp) targets. It is obtained on global points instead,
+-- through the objectwise equivalence axiom (Axiom.batt).
+--
+
+open import Stdlib
+open import Axiom
+
+-- the oplax pullback of g and h over K
+pullbackᵣ ∷ (K ∷ U) {A B C ∷ U} (g ∷ A → C) (h ∷ B → C) → U
+pullbackᵣ K {A} {B} {C} g h =
+  Σ (u : K →ᵣ A) . Σ (v : K →ᵣ B) . Htpyᵣ K C (postᵣ {K} {A} {C} g u) (postᵣ {K} {B} {C} h v)
+
+-- the comparison map
+pb-cmpᵣ ∷ (K ∷ U) {A B C ∷ U} (g ∷ A → C) (h ∷ B → C) → (K →ᵣ pullback {A} {B} {C} g h) → pullbackᵣ K {A} {B} {C} g h
+pb-cmpᵣ K {A} {B} {C} g h φ =
+  ((λ k . fst (λ a . Σ (b : B) . g a ≡ h b) (φ k)) ,
+   (λ k . fst (λ b . g (fst (λ a . Σ (b' : B) . g a ≡ h b') (φ k)) ≡ h b) (snd (λ a . Σ (b : B) . g a ≡ h b) (φ k))) ,
+   ((λ k . (g (fst (λ a . Σ (b : B) . g a ≡ h b) (φ k)) ,
+            h (fst (λ b . g (fst (λ a . Σ (b' : B) . g a ≡ h b') (φ k)) ≡ h b) (snd (λ a . Σ (b : B) . g a ≡ h b) (φ k))) ,
+            snd (λ b . g (fst (λ a . Σ (b' : B) . g a ≡ h b') (φ k)) ≡ h b) (snd (λ a . Σ (b : B) . g a ≡ h b) (φ k)))) ,
+    refl , refl))
+
+-- the oplax universal property of pullbacks
+pullback-oplax-up-stmt ∷ (K ∷ U) {A B C ∷ U} (g ∷ A → C) (h ∷ B → C) → U
+pullback-oplax-up-stmt K {A} {B} {C} g h = is-equiv (pb-cmpᵣ K {A} {B} {C} g h)

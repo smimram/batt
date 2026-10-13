@@ -354,3 +354,9 @@ is-contr-is-equiv {A} {B} f e =
 
 is-prop-is-equiv ∷ {A B : U} (f : A → B) → is-prop (is-equiv f)
 is-prop-is-equiv f e e' = is-contr→is-prop (is-contr-is-equiv f e) e e'
+
+-- funext-htpy is also a retraction of happly
+funext-htpy-happly ∷ {A : U} {B : A → U} {f g : (x : A) → B x} (p : f ≡ g) → funext-htpy {A} {B} f g (happly {A} {B} {f} {g} p) ≡ p
+funext-htpy-happly {A} {B} {f} {g} p =
+  retraction-inj (happly {A} {B} {f} {g}) (is-equiv-ret (happly {A} {B} {f} {g}) (is-equiv-happly {A} {B} f g))
+    (happly-funext-htpy {A} {B} f g (happly {A} {B} {f} {g} p))
