@@ -1,0 +1,127 @@
+--
+-- Cocartesian maps
+--
+-- For maps p ∷ X → A and q ∷ Y → A between oplax-Segal types (typically cocartesian fibrations),
+-- a cocartesian map from p to q is a map f : X → Y over A, i.e. with a homotopy q ∘ f = p, that
+-- sends p-cocartesian arrows to q-cocartesian arrows (preserves-cocartesian). They form the type
+-- cocart-map-over p q, the type Fun^cocart_{/A}(X , Y) of cocartesian functors over A.
+--
+-- Its indexed counterpart: for families F, G over A, a fibrewise map φ : (x : A) → F x → G x is
+-- cocartesian when its total map tot φ : Σ A F → Σ A G, which lies over A judgmentally, preserves
+-- cocartesian arrows (is-cocartesian-map). They form the subtype
+--
+--   Π^cocart_{x : A} F x → G x                    (cocart-fibrewise-map)
+--
+-- of the fibrewise maps, and each of them is a cocartesian map over A between the first
+-- projections (cocart-fibrewise-map→map-over).
+--
+-- Preserving cocartesian arrows is a proposition, since being cocartesian is
+-- (is-prop-preserves-cocartesian, is-prop-is-cocartesian-map). The maps need not be crisp: any map
+-- acts on homs (hom-map, Functoriality.batt).
+--
+-- Postulates relied on: univalence (funext, through is-prop-is-cocartesian).
+--
+
+open import Stdlib
+open import Hom
+open import Segal
+open import Functoriality
+open import Fibration
+
+--
+-- Cocartesian maps between fibrations
+--
+
+-- f sends p-cocartesian arrows to q-cocartesian arrows
+preserves-cocartesian ∷ {X Y A ∷ U} (sX : is-segalᵣ X) (sY : is-segalᵣ Y) (sA : is-segalᵣ A) (p ∷ X → A) (q ∷ Y → A) (f : X → Y) → U
+preserves-cocartesian {X} {Y} {A} sX sY sA p q f =
+  {u v : X} (γ : hom u v) →
+  is-cocartesian {X} {A} sX sA p {u} {v} γ → is-cocartesian {Y} {A} sY sA q {f u} {f v} (hom-map {X} {Y} f {u} {v} γ)
+
+-- it is a proposition
+is-prop-preserves-cocartesian ∷ {X Y A ∷ U} (sX : is-segalᵣ X) (sY : is-segalᵣ Y) (sA : is-segalᵣ A) (p ∷ X → A) (q ∷ Y → A)
+  (f : X → Y) → is-prop (preserves-cocartesian {X} {Y} {A} sX sY sA p q f)
+is-prop-preserves-cocartesian {X} {Y} {A} sX sY sA p q f =
+  let C : {u v : X} → hom u v → U = λ {u} {v} γ . is-cocartesian {X} {A} sX sA p {u} {v} γ in
+  let D : {u v : X} → hom u v → U = λ {u} {v} γ .
+    is-cocartesian {Y} {A} sY sA q {f u} {f v} (hom-map {X} {Y} f {u} {v} γ) in
+  is-prop-Π-impl (λ u . {v : X} (γ : hom u v) → C {u} {v} γ → D {u} {v} γ) (λ u .
+    is-prop-Π-impl (λ v . (γ : hom u v) → C {u} {v} γ → D {u} {v} γ) (λ v .
+      is-prop-Π (λ γ . C {u} {v} γ → D {u} {v} γ) (λ γ .
+        is-prop-Π (λ _ . D {u} {v} γ) (λ _ .
+          is-prop-is-cocartesian {Y} {A} sY sA q {f u} {f v} (hom-map {X} {Y} f {u} {v} γ)))))
+
+-- maps over A
+map-over ∷ {X Y A ∷ U} (p ∷ X → A) (q ∷ Y → A) → U
+map-over {X} {Y} {A} p q = Σ (f : X → Y) . (x : X) → q (f x) ≡ p x
+
+-- cocartesian maps over A, from p to q
+cocart-map-over ∷ {X Y A ∷ U} (sX : is-segalᵣ X) (sY : is-segalᵣ Y) (sA : is-segalᵣ A) (p ∷ X → A) (q ∷ Y → A) → U
+cocart-map-over {X} {Y} {A} sX sY sA p q =
+  Σ (f : X → Y) . ((x : X) → q (f x) ≡ p x) × preserves-cocartesian {X} {Y} {A} sX sY sA p q f
+
+-- the underlying map, its homotopy over A, and the preservation of cocartesian arrows
+cocart-map-fun ∷ {X Y A ∷ U} (sX : is-segalᵣ X) (sY : is-segalᵣ Y) (sA : is-segalᵣ A) (p ∷ X → A) (q ∷ Y → A) →
+  cocart-map-over {X} {Y} {A} sX sY sA p q → X → Y
+cocart-map-fun {X} {Y} {A} sX sY sA p q m =
+  fst {X → Y} (λ f . ((x : X) → q (f x) ≡ p x) × preserves-cocartesian {X} {Y} {A} sX sY sA p q f) m
+
+cocart-map-htpy ∷ {X Y A ∷ U} (sX : is-segalᵣ X) (sY : is-segalᵣ Y) (sA : is-segalᵣ A) (p ∷ X → A) (q ∷ Y → A)
+  (m : cocart-map-over {X} {Y} {A} sX sY sA p q) (x : X) → q (cocart-map-fun {X} {Y} {A} sX sY sA p q m x) ≡ p x
+cocart-map-htpy {X} {Y} {A} sX sY sA p q m =
+  Product.fst (snd {X → Y} (λ f . ((x : X) → q (f x) ≡ p x) × preserves-cocartesian {X} {Y} {A} sX sY sA p q f) m)
+
+cocart-map-preserves ∷ {X Y A ∷ U} (sX : is-segalᵣ X) (sY : is-segalᵣ Y) (sA : is-segalᵣ A) (p ∷ X → A) (q ∷ Y → A)
+  (m : cocart-map-over {X} {Y} {A} sX sY sA p q) →
+  preserves-cocartesian {X} {Y} {A} sX sY sA p q (cocart-map-fun {X} {Y} {A} sX sY sA p q m)
+cocart-map-preserves {X} {Y} {A} sX sY sA p q m =
+  Product.snd (snd {X → Y} (λ f . ((x : X) → q (f x) ≡ p x) × preserves-cocartesian {X} {Y} {A} sX sY sA p q f) m)
+
+-- the identity of p
+cocart-map-id ∷ {X A ∷ U} (sX : is-segalᵣ X) (sA : is-segalᵣ A) (p ∷ X → A) → cocart-map-over {X} {X} {A} sX sX sA p p
+cocart-map-id {X} {A} sX sA p =
+  ((λ x . x) , (λ x . refl) ,
+   (λ {u} {v} γ c . subst {hom u v} (λ γ' . is-cocartesian {X} {A} sX sA p {u} {v} γ') (sym (hom-map-idfun {X} {u} {v} γ)) c))
+
+--
+-- Cocartesian fibrewise maps between families
+--
+
+-- a fibrewise map is cocartesian when its total map preserves cocartesian arrows
+is-cocartesian-map ∷ {A ∷ U} (F G ∷ A → U) (sA : is-segalᵣ A)
+  (sF : is-segalᵣ (Σ (x : A) . F x)) (sG : is-segalᵣ (Σ (x : A) . G x)) (φ : (x : A) → F x → G x) → U
+is-cocartesian-map {A} F G sA sF sG φ =
+  preserves-cocartesian {Σ (x : A) . F x} {Σ (x : A) . G x} {A} sF sG sA (fst F) (fst G) (tot {A} {F} {G} φ)
+
+-- it is a proposition
+is-prop-is-cocartesian-map ∷ {A ∷ U} (F G ∷ A → U) (sA : is-segalᵣ A)
+  (sF : is-segalᵣ (Σ (x : A) . F x)) (sG : is-segalᵣ (Σ (x : A) . G x)) (φ : (x : A) → F x → G x) →
+  is-prop (is-cocartesian-map {A} F G sA sF sG φ)
+is-prop-is-cocartesian-map {A} F G sA sF sG φ =
+  is-prop-preserves-cocartesian {Σ (x : A) . F x} {Σ (x : A) . G x} {A} sF sG sA (fst F) (fst G) (tot {A} {F} {G} φ)
+
+-- the type Π^cocart_{x : A} F x → G x of cocartesian fibrewise maps
+cocart-fibrewise-map ∷ {A ∷ U} (F G ∷ A → U) (sA : is-segalᵣ A)
+  (sF : is-segalᵣ (Σ (x : A) . F x)) (sG : is-segalᵣ (Σ (x : A) . G x)) → U
+cocart-fibrewise-map {A} F G sA sF sG = Σ (φ : (x : A) → F x → G x) . is-cocartesian-map {A} F G sA sF sG φ
+
+-- the underlying fibrewise map
+cocart-fibrewise-map-fun ∷ {A ∷ U} (F G ∷ A → U) (sA : is-segalᵣ A)
+  (sF : is-segalᵣ (Σ (x : A) . F x)) (sG : is-segalᵣ (Σ (x : A) . G x)) →
+  cocart-fibrewise-map {A} F G sA sF sG → (x : A) → F x → G x
+cocart-fibrewise-map-fun {A} F G sA sF sG m = fst {(x : A) → F x → G x} (λ φ . is-cocartesian-map {A} F G sA sF sG φ) m
+
+-- two cocartesian fibrewise maps are equal as soon as their underlying fibrewise maps are
+cocart-fibrewise-map-path ∷ {A ∷ U} (F G ∷ A → U) (sA : is-segalᵣ A)
+  (sF : is-segalᵣ (Σ (x : A) . F x)) (sG : is-segalᵣ (Σ (x : A) . G x)) (m m' : cocart-fibrewise-map {A} F G sA sF sG) →
+  cocart-fibrewise-map-fun {A} F G sA sF sG m ≡ cocart-fibrewise-map-fun {A} F G sA sF sG m' → m ≡ m'
+cocart-fibrewise-map-path {A} F G sA sF sG m m' =
+  subtype-path' {(x : A) → F x → G x} (λ φ . is-cocartesian-map {A} F G sA sF sG φ)
+    (is-prop-is-cocartesian-map {A} F G sA sF sG) m m'
+
+-- the total map of a cocartesian fibrewise map is a cocartesian map over A
+cocart-fibrewise-map→map-over ∷ {A ∷ U} (F G ∷ A → U) (sA : is-segalᵣ A)
+  (sF : is-segalᵣ (Σ (x : A) . F x)) (sG : is-segalᵣ (Σ (x : A) . G x)) →
+  cocart-fibrewise-map {A} F G sA sF sG → cocart-map-over {Σ (x : A) . F x} {Σ (x : A) . G x} {A} sF sG sA (fst F) (fst G)
+cocart-fibrewise-map→map-over {A} F G sA sF sG (φ , c) =
+  (tot {A} {F} {G} φ , (fun (x , y) → refl) , c)

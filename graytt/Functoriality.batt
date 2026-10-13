@@ -26,8 +26,15 @@ open import Associativity
 -- Action of a map on homs
 --
 
-hom-map ∷ {A B ∷ U} (f ∷ A → B) {x y : A} → hom x y → hom (f x) (f y)
+hom-map ∷ {A B ∷ U} (f : A → B) {x y : A} → hom x y → hom (f x) (f y)
 hom-map f u = (postᵣ f (hom-cell u) , cong f (hom-src u) , cong f (hom-tgt u))
+
+-- the identity acts as the identity
+hom-map-idfun ∷ {X ∷ U} {x y : X} (u : hom x y) → hom-map {X} {X} (λ z . z) {x} {y} u ≡ u
+hom-map-idfun {X} {x} {y} (c , r) =
+  let k : (r : (srcᵣ c ≡ x) × (tgtᵣ c ≡ y)) → hom-map {X} {X} (λ z . z) {x} {y} (c , r) ≡ (c , r) = fun (p , q) →
+    cong2 {srcᵣ c ≡ x} {tgtᵣ c ≡ y} {hom x y} (λ p' q' . (c , p' , q')) (cong-id {X} p) (cong-id {X} q) in
+  k r
 
 --
 -- Commutation with composition
