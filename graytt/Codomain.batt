@@ -21,7 +21,7 @@
 --
 -- Every lifting datum is reached (codomain-lift-section), so ev₁ is a cocartesian fibration as soon
 -- as lifts are unique, which holds when 𝕀 →ᵣ A is univalent (codomain-fibration-univalent, by
--- Lift-unique.batt), in particular when A is oplax-complete (codomain-fibration): arrow types of
+-- Lift-unique.batt), in particular when A is oplax-Rezk (codomain-fibration): arrow types of
 -- oplax-complete types are oplax-complete, hence univalent (Complete-univalent.batt).
 --
 -- Postulates relied on: fold-lemma (Fold.batt); univalence, truncation and is-set-𝕀 through
@@ -171,7 +171,9 @@ codomain-fibration-univalent ∷ {A ∷ U} (sA : is-segalᵣ A) → is-univalent
 codomain-fibration-univalent {A} sA u =
   is-cocartesian-fibration-univalent {arrᵣ A} {A} (is-segal-arrᵣ {A} sA) sA (ev₁ {A}) u (codomain-lift-section {A} sA)
 
--- the codomain fibration of an oplax-complete A (𝕀 →ᵣ A is then univalent)
-codomain-fibration ∷ {A ∷ U} (sA : is-segalᵣ A) → is-completeᵣ A →
-  is-cocartesian-fibration {arrᵣ A} {A} (is-segal-arrᵣ {A} sA) sA (ev₁ {A})
-codomain-fibration {A} sA cA = codomain-fibration-univalent {A} sA (is-univalent-arrᵣ {A} sA cA)
+open import Rezk
+
+-- the codomain fibration of an oplax-Rezk A (𝕀 →ᵣ A is then univalent)
+codomain-fibration ∷ {A ∷ U} (rA : is-rezkᵣ A) →
+  is-cocartesian-fibration {arrᵣ A} {A} (is-segal-arrᵣ {A} (rezk-segalᵣ {A} rA)) (rezk-segalᵣ {A} rA) (ev₁ {A})
+codomain-fibration {A} rA = codomain-fibration-univalent {A} (rezk-segalᵣ {A} rA) (is-univalent-arrᵣ {A} rA)

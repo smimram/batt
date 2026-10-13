@@ -193,3 +193,24 @@ tri-section-path X {x} {y} {z} {t} (f , e) v w =
           (tri-src-J {X} f e0 e1 (z , t , v , w)))
   in
   k e
+
+-- the middle object of a composable pair
+pair-mid ∷ {X ∷ U} → pairs X → X
+pair-mid {X} (x , r) = fst (λ z . Σ (w : X) . hom {X} x z × hom {X} z w) r
+
+-- a composable pair whose first object is identified with a, as a pair out of a (the path is
+-- appended to the source path of the first hom)
+pair→pair-from ∷ {X ∷ U} (a : X) (P : pairs X) → fst (pair-from X) P ≡ a → pair-from X a
+pair→pair-from {X} a (x , r) =
+  let k : (r : pair-from X x) → x ≡ a → pair-from X a = fun (y , r2) → λ p .
+    let k2 : (r2 : Σ (z : X) . hom {X} x y × hom {X} y z) → pair-from X a = fun (z , uv) →
+      let k3 : (uv : hom {X} x y × hom {X} y z) → pair-from X a = fun (u , v) →
+        (y , z , (hom-cell {X} {x} {y} u , trans (hom-src {X} {x} {y} u) p , hom-tgt {X} {x} {y} u) , v) in
+      k3 uv in
+    k2 r2 in
+  k r
+
+-- transporting the path along a path of pairs
+pair→pair-from-subst ∷ {X ∷ U} (a : X) {P' P : pairs X} (E : P' ≡ P) (p : fst (pair-from X) P ≡ a) →
+  pair→pair-from {X} a P' (subst (λ Q . fst (pair-from X) Q ≡ a) (sym E) p) ≡ pair→pair-from {X} a P p
+pair→pair-from-subst {X} a {P'} refl p = refl

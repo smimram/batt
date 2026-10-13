@@ -94,6 +94,12 @@ is-prop-is-cocartesian {X} {A} sX sA p {x} {y} f =
 cell-hom ∷ {X ∷ U} (f : 𝕀 →ᵣ X) → hom (f 𝕀0) (f 𝕀1)
 cell-hom {X} f = (f , refl , refl)
 
+-- being cocartesian, for the homs of 1-cells, is invariant under paths of 1-cells
+is-cocartesian-cell-path ∷ {X A ∷ U} (sX : is-segalᵣ X) (sA : is-segalᵣ A) (p ∷ X → A) {f g : 𝕀 →ᵣ X} (e : f ≡ g) →
+  is-cocartesian {X} {A} sX sA p {srcᵣ g} {tgtᵣ g} (cell-hom {X} g) → is-cocartesian {X} {A} sX sA p {srcᵣ f} {tgtᵣ f} (cell-hom {X} f)
+is-cocartesian-cell-path {X} {A} sX sA p {f} {g} e =
+  subst {𝕀 →ᵣ X} (λ c . is-cocartesian {X} {A} sX sA p {srcᵣ c} {tgtᵣ c} (cell-hom {X} c)) (sym e)
+
 -- cartesian 1-cells
 cart-cell ∷ {X A ∷ U} (sX : is-segalᵣ X) (sA : is-segalᵣ A) (p ∷ X → A) → U
 cart-cell {X} {A} sX sA p = Σ (f : arrᵣ X) . is-cartesian {X} {A} sX sA p {f 𝕀0} {f 𝕀1} (cell-hom {X} f)
@@ -527,19 +533,15 @@ is-equiv-hom-map {S} {X} e ee {x} {y} =
         (λ c . prod-map (cong e {c 𝕀0} {x}) (cong e {c 𝕀1} {y}))
         (λ c . is-equiv-prod-map (cong e {c 𝕀0} {x}) (cong e {c 𝕀1} {y}) (ap-equiv e ee (c 𝕀0) x) (ap-equiv e ee (c 𝕀1) y))))
 
-pb-path3 ∷ {H L T : U} (a : H → T) (b : L → T) {h1 h2 : H} (α : h1 ≡ h2) {l1 l2 : L} (β : l1 ≡ l2) (e1 : a h1 ≡ b l1) (e2 : a h2 ≡ b l2) →
-  trans (sym (cong a α)) (trans e1 (cong b β)) ≡ e2 → (h1 , l1 , e1) ≡{Σ (h : H) . Σ (l : L) . a h ≡ b l} (h2 , l2 , e2)
-pb-path3 {H} {L} {T} a b {h1} refl {l1} refl e1 e2 E =
-  cong {a h1 ≡ b l1} {Σ (h : H) . Σ (l : L) . a h ≡ b l} (λ e . (h1 , l1 , e)) (trans (sym (trans-refl-l e1)) E)
+-- path algebra for the conjugation of the gap maps of γ and e γ (cocart-gap-equiv-square)
+cocart-gap-equiv-alg-core ∷ {T : U} {X0 Y0 : T} (c0 : X0 ≡ Y0) {Z0 : T} (h : Y0 ≡ Z0) → trans refl h ≡ trans (sym c0) (trans c0 (trans refl h))
+cocart-gap-equiv-alg-core {T} {X0} {Y0} c0 refl = sym (trans-sym-l c0)
 
-equiv-alg-core ∷ {T : U} {X0 Y0 : T} (c0 : X0 ≡ Y0) {Z0 : T} (h : Y0 ≡ Z0) → trans refl h ≡ trans (sym c0) (trans c0 (trans refl h))
-equiv-alg-core {T} {X0} {Y0} c0 refl = sym (trans-sym-l c0)
-
-equiv-alg ∷ {M T P1 P2 : U} (P : M → T) (F : P1 → P2 → T) {X0 : T} {m : M} (c0 : X0 ≡ P m) {m' : M} (e' : m ≡ m')
+cocart-gap-equiv-alg ∷ {M T P1 P2 : U} (P : M → T) (F : P1 → P2 → T) {X0 : T} {m : M} (c0 : X0 ≡ P m) {m' : M} (e' : m ≡ m')
   {a0 a : P1} (d1 : a0 ≡ a) {b0 b : P2} (d2 : b0 ≡ b) (h : P m' ≡ F a b) →
   trans (sym (cong P (sym e'))) (trans h (cong (F a) (sym d2)))
   ≡ trans (sym c0) (trans (trans c0 (trans (cong P e') (trans h (sym (cong2 F d1 d2))))) (cong (λ x . F x b0) d1))
-equiv-alg {M} {T} {P1} {P2} P F {X0} {m} c0 refl {a0} refl {b0} refl h = equiv-alg-core c0 h
+cocart-gap-equiv-alg {M} {T} {P1} {P2} P F {X0} {m} c0 refl {a0} refl {b0} refl h = cocart-gap-equiv-alg-core c0 h
 
 -- the gap maps of γ (for pX ∘ e) and of its image e γ (for pX) are conjugate, at every target in S
 cocart-gap-equiv-square ∷ {S X A ∷ U} (sS : is-segalᵣ S) (sX : is-segalᵣ X) (sA : is-segalᵣ A) (e ∷ S → X) (ee ∷ is-equiv e) (pX ∷ X → A)
@@ -579,9 +581,9 @@ cocart-gap-equiv-square {S} {X} {A} sS sX sA e ee pX {u} {v} γ s' =
     let hX : hom-map {X} {A} pX {e u} {e s'} (comp-homᵣ X sX {e u} {e v} {e s'} eγ (hme g))
                ≡ F (hom-map {X} {A} pX {e u} {e v} eγ) (hom-map {X} {A} pX {e v} {e s'} (hme g)) =
       hom-map-comp X A pX sX sA {e u} {e v} {e s'} eγ (hme g) in
-    pb-path3 (hom-map {X} {A} pX {e u} {e s'}) (λ l . F (hom-map {X} {A} pX {e u} {e v} eγ) l) (sym he) (sym cg)
+    pb-path-both (hom-map {X} {A} pX {e u} {e s'}) (λ l . F (hom-map {X} {A} pX {e u} {e v} eγ) l) (sym he) (sym cg)
       hX (adj C (hom-map {S} {A} pS {v} {s'} g) (hom-map-comp S A pS sS sA {u} {v} {s'} γ g))
-      (trans (equiv-alg {hom (e u) (e s')} {hom (pS u) (pS s')} {hom (pS u) (pS v)} {hom (pS v) (pS s')}
+      (trans (cocart-gap-equiv-alg {hom (e u) (e s')} {hom (pS u) (pS s')} {hom (pS u) (pS v)} {hom (pS v) (pS s')}
                 (hom-map {X} {A} pX {e u} {e s'}) F {hom-map {S} {A} pS {u} {s'} C} {hmeU C} circC
                 {comp-homᵣ X sX {e u} {e v} {e s'} eγ (hme g)} he
                 {hom-map {S} {A} pS {u} {v} γ} {hom-map {X} {A} pX {e u} {e v} eγ} cγ

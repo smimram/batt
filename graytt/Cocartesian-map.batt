@@ -16,8 +16,9 @@
 -- projections (cocart-fibrewise-map→map-over).
 --
 -- Preserving cocartesian arrows is a proposition, since being cocartesian is
--- (is-prop-preserves-cocartesian, is-prop-is-cocartesian-map). The maps need not be crisp: any map
--- acts on homs (hom-map, Functoriality.batt).
+-- (is-prop-preserves-cocartesian, is-prop-is-cocartesian-map), and it suffices to check it on the
+-- homs of 1-cells (preserves-cocartesian-cells). The maps need not be crisp: any map acts on homs
+-- (hom-map, Functoriality.batt).
 --
 -- Postulates relied on: univalence (funext, through is-prop-is-cocartesian).
 --

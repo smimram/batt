@@ -27,6 +27,23 @@ pb-path ∷ {H B C : U} (F : H → C) (G : B → C) {h1 h2 : H} (α : h1 ≡ h2)
   e1 ≡ trans (cong F α) e2 → (h1 , k , e1) ≡{pullback {H} {B} {C} F G} (h2 , k , e2)
 pb-path {H} {B} {C} F G {h1} refl k e1 e2 E = cong {F h1 ≡ G k} {pullback {H} {B} {C} F G} (λ e . (h1 , k , e)) (trans E (trans-refl-l e2))
 
+-- two points are equal when both their components are, along paths α and β whose images relate
+-- their identifications
+pb-path-both ∷ {H L T : U} (a : H → T) (b : L → T) {h1 h2 : H} (α : h1 ≡ h2) {l1 l2 : L} (β : l1 ≡ l2) (e1 : a h1 ≡ b l1) (e2 : a h2 ≡ b l2) →
+  trans (sym (cong a α)) (trans e1 (cong b β)) ≡ e2 → (h1 , l1 , e1) ≡{Σ (h : H) . Σ (l : L) . a h ≡ b l} (h2 , l2 , e2)
+pb-path-both {H} {L} {T} a b {h1} refl {l1} refl e1 e2 E =
+  cong {a h1 ≡ b l1} {Σ (h : H) . Σ (l : L) . a h ≡ b l} (λ e . (h1 , l1 , e)) (trans (sym (trans-refl-l e1)) E)
+
+-- along such a path, a function of the second component is constant
+pb-path-snd ∷ {H B C D : U} (F : H → C) (G : B → C) (t : B → D) {h1 h2 : H} (α : h1 ≡ h2) (k : B) (e1 : F h1 ≡ G k)
+  (e2 : F h2 ≡ G k) (E : e1 ≡ trans (cong F α) e2) →
+  cong (λ w . t (fst {B} (λ b . F (fst {H} (λ h . Σ (b' : B) . F h ≡ G b') w) ≡ G b) (snd {H} (λ h . Σ (b' : B) . F h ≡ G b') w)))
+    (pb-path F G α k e1 e2 E) ≡ refl
+pb-path-snd {H} {B} {C} {D} F G t {h1} refl k e1 e2 E =
+  trans (sym (cong-comp (λ w . t (fst {B} (λ b . F (fst {H} (λ h . Σ (b' : B) . F h ≡ G b') w) ≡ G b) (snd {H} (λ h . Σ (b' : B) . F h ≡ G b') w)))
+                        (λ e . (h1 , k , e)) (trans E (trans-refl-l e2))))
+    (cong-cst (t k) (trans E (trans-refl-l e2)))
+
 --
 -- Pasting fibre products
 --

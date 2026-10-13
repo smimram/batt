@@ -193,6 +193,13 @@ is-equiv-happlyᵣ-fib A B f g = fund-id (Htpyᵣ A B f) f (refl-htpyᵣ A B f) 
 htpyᵣ-equiv ∷ (A B ∷ U) (f g : A →ᵣ B) → (f ≡ g) ≃ Htpyᵣ A B f g
 htpyᵣ-equiv A B f g = (happlyᵣ-fib A B f g , is-equiv-happlyᵣ-fib A B f g)
 
+-- an oplax homotopy gives a path between its source and its target maps
+htpyᵣ→path ∷ (A B ∷ U) (H : A →ᵣ path B) → postᵣ {A} (path-src {B}) H ≡ postᵣ {A} (path-tgt {B}) H
+htpyᵣ→path A B H =
+  let f : A →ᵣ B = postᵣ {A} (path-src {B}) H in
+  let g : A →ᵣ B = postᵣ {A} (path-tgt {B}) H in
+  section-map (happlyᵣ-fib A B f g) (is-equiv-sec (happlyᵣ-fib A B f g) (is-equiv-happlyᵣ-fib A B f g)) (H , refl , refl)
+
 -- the homotopy underlying the fiberwise equivalence is happlyᵣ
 happlyᵣ-fib-happlyᵣ ∷ (A B ∷ U) (f g : A →ᵣ B) (p : f ≡ g) →
   fst (fun H → (postᵣ {A} (path-src {B}) H ≡ f) × (postᵣ {A} (path-tgt {B}) H ≡ g)) (happlyᵣ-fib A B f g p) ≡ happlyᵣ A B (f , g , p)

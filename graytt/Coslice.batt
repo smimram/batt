@@ -13,7 +13,7 @@
 -- (is-segalᵣ-coslice, is-completeᵣ-coslice), by closure of these types under pullbacks
 -- (Local.batt), applied to the pullback ⊤ ×_A (𝕀 →ᵣ A) of a and ev₀.
 --
--- For crisp a and A oplax-Segal and oplax-complete, the projection ev₁ : a/A → A is a cocartesian
+-- For crisp a and A oplax-Rezk (Segal and complete), the projection ev₁ : a/A → A is a cocartesian
 -- fibration (coslice-fibration, the hom fibration proposition of BATT.tex). As in BATT.tex, it
 -- factors through the codomain fibration, a/A → 𝕀 →ᵣ A → A:
 --
@@ -201,9 +201,12 @@ coslice-fibration-univalent ∷ {A ∷ U} (sA : is-segalᵣ A) (a ∷ A) →
 coslice-fibration-univalent {A} sA a u =
   is-cocartesian-fibration-univalent {coslice A a} {A} (is-segalᵣ-coslice {A} sA a) sA (coslice-tgt {A} {a}) u (coslice-lift-section {A} sA a)
 
--- for A oplax-Segal and oplax-complete, the projection of the coslice is a cocartesian fibration
-coslice-fibration ∷ {A ∷ U} (sA : is-segalᵣ A) (cA : is-completeᵣ A) (a ∷ A) →
-  is-cocartesian-fibration {coslice A a} {A} (is-segalᵣ-coslice {A} sA a) sA (coslice-tgt {A} {a})
-coslice-fibration {A} sA cA a =
+open import Rezk
+
+-- for A oplax-Rezk, the projection of the coslice is a cocartesian fibration
+coslice-fibration ∷ {A ∷ U} (rA : is-rezkᵣ A) (a ∷ A) →
+  is-cocartesian-fibration {coslice A a} {A} (is-segalᵣ-coslice {A} (rezk-segalᵣ {A} rA) a) (rezk-segalᵣ {A} rA) (coslice-tgt {A} {a})
+coslice-fibration {A} rA a =
+  let sA : is-segalᵣ A = rezk-segalᵣ {A} rA in
   coslice-fibration-univalent {A} sA a
-    (complete→univalentᵣ (coslice A a) (is-segalᵣ-coslice {A} sA a) (is-completeᵣ-coslice {A} cA a))
+    (complete→univalentᵣ (coslice A a) (is-segalᵣ-coslice {A} sA a) (is-completeᵣ-coslice {A} (rezk-completeᵣ {A} rA) a))

@@ -91,3 +91,17 @@ arr→homs-total-retr {X} (x , r) =
 is-equiv-homs-total→arr ∷ {X ∷ U} → is-equiv (homs-total→arr {X})
 is-equiv-homs-total→arr {X} = ((arr→homs-total {X} , λ f . refl) , (arr→homs-total {X} , arr→homs-total-retr {X}))
 
+
+--
+-- Moving the target of a hom along its target path
+--
+
+-- transport of a hom with refl target path along a path of its target
+subst-hom-tgt ∷ {X ∷ U} {a : X} (f : arrᵣ X) (p : srcᵣ f ≡ a) {x : X} (q : tgtᵣ f ≡ x) →
+  subst (λ y . hom {X} a y) q (f , p , refl) ≡ (f , p , q)
+subst-hom-tgt {X} {a} f p refl = refl
+
+-- the same, as a path of homs out of a with free target
+homs-from-tgt-path ∷ {X ∷ U} {a : X} (f : arrᵣ X) (p : srcᵣ f ≡ a) {x : X} (q : tgtᵣ f ≡ x) →
+  (tgtᵣ f , f , p , refl) ≡{Σ (y : X) . hom {X} a y} (x , f , p , q)
+homs-from-tgt-path {X} {a} f p refl = refl

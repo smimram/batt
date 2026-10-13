@@ -315,9 +315,12 @@ complete→univalentᵣ X s c =
                (thick-free-equiv→iso→thick {X} s t)))
 
 --
--- Arrow types of oplax-complete types are univalent
+-- Arrow types of oplax-Rezk types are univalent
 --
 
+open import Rezk
+
 -- arrᵣ A is oplax-complete (is-complete-arrᵣ, Complete.batt), hence univalent
-is-univalent-arrᵣ ∷ {A ∷ U} (sA : is-segalᵣ A) → is-completeᵣ A → is-univalentᵣ (arrᵣ A) (is-segal-arrᵣ {A} sA)
-is-univalent-arrᵣ {A} sA cA = complete→univalentᵣ (arrᵣ A) (is-segal-arrᵣ {A} sA) (is-complete-arrᵣ {A} cA)
+is-univalent-arrᵣ ∷ {A ∷ U} (rA : is-rezkᵣ A) → is-univalentᵣ (arrᵣ A) (is-segal-arrᵣ {A} (rezk-segalᵣ {A} rA))
+is-univalent-arrᵣ {A} rA =
+  complete→univalentᵣ (arrᵣ A) (is-segal-arrᵣ {A} (rezk-segalᵣ {A} rA)) (is-complete-arrᵣ {A} (rezk-completeᵣ {A} rA))

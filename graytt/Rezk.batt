@@ -31,6 +31,12 @@ is-rezk-flat X = is-segal-flat X × is-complete♭ X
 is-rezkᵣ ∷ (X ∷ U) → U
 is-rezkᵣ X = is-segalᵣ X × is-completeᵣ X
 
+rezk-segalᵣ ∷ {X ∷ U} → is-rezkᵣ X → is-segalᵣ X
+rezk-segalᵣ {X} r = Product.fst {is-segalᵣ X} {is-completeᵣ X} r
+
+rezk-completeᵣ ∷ {X ∷ U} → is-rezkᵣ X → is-completeᵣ X
+rezk-completeᵣ {X} r = Product.snd {is-segalᵣ X} {is-completeᵣ X} r
+
 -- lax Rezk types
 is-rezkₗ ∷ (X ∷ U) → U
 is-rezkₗ X = is-segalₗ X × is-completeₗ X

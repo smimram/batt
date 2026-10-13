@@ -259,3 +259,13 @@ subst-path-l {M} {T} P {t} {m} refl c = sym (trans-refl-l c)
 cong2-split ∷ {P1 P2 T : Type} (F : P1 → P2 → T) {a a' : P1} (p : a ≡ a') {c c' : P2} (q : c ≡ c') →
   cong2 F p q ≡ trans (cong (λ x . F x c) p) (cong (F a') q)
 cong2-split {P1} {P2} {T} F {a} refl {c} refl = refl
+
+-- going back and forth along a path
+trans-sym-trans-cancel ∷ {A : Type} {x y z : A} (p : x ≡ y) (q : z ≡ y) → trans (trans p (sym q)) q ≡ p
+trans-sym-trans-cancel {A} {x} {y} {z} p q =
+  J' (λ z' y' q' . (p' : x ≡ y') → trans (trans p' (sym q')) q' ≡ p') (λ y' p' . refl) q p
+
+-- a fibrewise map commutes with transport
+subst-fibrewise ∷ {A : Type} (F G : A → Type) (φ : (x : A) → F x → G x) {x y : A} (q : x ≡ y) (v : F x) →
+  φ y (subst F q v) ≡ subst G q (φ x v)
+subst-fibrewise {A} F G φ {x} refl v = refl
