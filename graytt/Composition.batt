@@ -381,3 +381,10 @@ comp-simplex-2 X s Ψ =
       (simplex-2-hom₀₁ {X} Ψ) (simplex-2-hom₁₂ {X} Ψ)
            (Ψ , simplex-2→cocone-edges {X} Ψ))
     (fill-hom-simplex-2 {X} Ψ)
+
+-- the same with a path from the first vertex to any point, as source path of the first edge
+comp-simplex-2-src ∷ (X ∷ U) (s : is-segalᵣ X) (Ψ : simplex 2 →ᵣ X) {x : X} (γ : Ψ (simplex-2-e₀₁ 𝕀0) ≡ x) →
+  comp-homᵣ X s {x} {Ψ (simplex-2-e₀₁ 𝕀1)} {Ψ (simplex-2-e₁₂ 𝕀1)}
+    (hom-cell {X} {Ψ (simplex-2-e₀₁ 𝕀0)} {Ψ (simplex-2-e₀₁ 𝕀1)} (simplex-2-hom₀₁ {X} Ψ) , γ , refl) (simplex-2-hom₁₂ {X} Ψ)
+    ≡ (hom-cell {X} {Ψ (long-edge 𝕀0)} {Ψ (long-edge 𝕀1)} (simplex-2-hom₀₂ {X} Ψ) , γ , refl)
+comp-simplex-2-src X s Ψ refl = comp-simplex-2 X s Ψ

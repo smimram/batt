@@ -67,3 +67,107 @@ hom-family-covariant {A} sA cA a =
     (is-segalᵣ-coslice {A} sA a) (is-segalᵣ-hom-family {A} sA a) sA
     (coslice→hom-family {A} a) (is-equiv-coslice→hom-family {A} a) (fst (hom-family {A} a))
     (coslice-fibration {A} sA cA a)
+
+--
+-- Pushforward in the hom family is postcomposition
+--
+-- For t : hom a b and u : hom b c, u_! t = t ; u (push-hom-family). As in BATT.tex: if σ is a
+-- 2-simplex with edges t and u, the cocartesian lift of u at t is χ̄_σ = λ i . (χ_σ i , γ)
+-- (coslice-lift-sq, Coslice.batt), which lies over (t , u) judgmentally, so that u_! t is its
+-- target χ_σ 1 = λ j . σ (j , j), the long edge of σ, which is the composite t ; u
+-- (comp-simplex-2-src, Composition.batt).
+--
+-- Here σ comes with a path γ from its first vertex to a, and t has source path γ
+-- (push-hom-family-simplex). Every composable pair out of a is of this form, up to a path
+-- (pair-at-src-section): a pair out of a, with its source path made trivial, is the pair of edges
+-- of a 2-simplex (is-equiv-edges-2, Simplex-edges.batt), and the source path is transported back.
+--
+
+open import Composition
+open import Composable
+open import Simplex-edges
+open import Codomain
+
+-- a composable pair whose source is identified with a, as a pair out of a
+pair-at-src ∷ {A ∷ U} (a ∷ A) (P : pairs A) → fst (pair-from A) P ≡ a → pair-from A a
+pair-at-src {A} a (x , r) =
+  let k : (r : pair-from A x) → x ≡ a → pair-from A a = fun (b , r2) → λ p .
+    let k2 : (r2 : Σ (c : A) . hom {A} x b × hom {A} b c) → pair-from A a = fun (c , tu) →
+      let k3 : (tu : hom {A} x b × hom {A} b c) → pair-from A a = fun (t , u) →
+        (b , c , (hom-cell {A} {x} {b} t , trans (hom-src {A} {x} {b} t) p , hom-tgt {A} {x} {b} t) , u) in
+      k3 tu in
+    k2 r2 in
+  k r
+
+-- transporting the source path along a path of pairs
+pair-at-src-subst ∷ {A ∷ U} (a ∷ A) {P' P : pairs A} (E : P' ≡ P) (p : fst (pair-from A) P ≡ a) →
+  pair-at-src {A} a P' (subst (λ Q . fst (pair-from A) Q ≡ a) (sym E) p) ≡ pair-at-src {A} a P p
+pair-at-src-subst {A} a {P'} refl p = refl
+
+-- the statement, for a pair out of a
+push-hom-family-stmt ∷ {A ∷ U} (sA : is-segalᵣ A) (cA : is-completeᵣ A) (a ∷ A) → pair-from A a → U
+push-hom-family-stmt {A} sA cA a (b , r) =
+  let k : (r : Σ (c : A) . hom {A} a b × hom {A} b c) → U = fun (c , tu) →
+    let k2 : (tu : hom {A} a b × hom {A} b c) → U = fun (t , u) →
+      push {A} (hom-family {A} a) sA (is-segalᵣ-hom-family {A} sA a) (hom-family-covariant {A} sA cA a) {b} {c} u t
+        ≡ comp-homᵣ A sA {a} {b} {c} t u in
+    k2 tu in
+  k r
+
+-- for the edges of a 2-simplex σ with a path γ from its first vertex to a
+push-hom-family-simplex ∷ {A ∷ U} (sA : is-segalᵣ A) (cA : is-completeᵣ A) (a ∷ A) (σ : simplex 2 →ᵣ A)
+  (γ : σ (simplex-2-e₀₁ 𝕀0) ≡ a) → push-hom-family-stmt {A} sA cA a (pair-at-src {A} a (edges-2 {A} σ) γ)
+push-hom-family-simplex {A} sA cA a σ γ =
+  let F ∷ A → U = hom-family {A} a in
+  let γ' : σ (simplex-2-e₀₁ 𝕀0) ≡ a = trans {A} {σ (simplex-2-e₀₁ 𝕀0)} refl γ in
+  -- the lift χ̄_σ, in the total space of the hom family
+  let w : cocart-cell {Σ (x : A) . F x} {A} (is-segalᵣ-hom-family {A} sA a) sA (fst F) =
+    cocart-cell-equiv {coslice A a} {Σ (x : A) . F x} {A} (is-segalᵣ-coslice {A} sA a) (is-segalᵣ-hom-family {A} sA a) sA
+      (coslice→hom-family {A} a) (is-equiv-coslice→hom-family {A} a) (fst F) (coslice-lift-sq {A} sA a σ γ') in
+  -- its target is the long edge of σ
+  let p : push {A} F sA (is-segalᵣ-hom-family {A} sA a) (hom-family-covariant {A} sA cA a)
+            {σ (simplex-2-e₁₂ 𝕀0)} {σ (simplex-2-e₁₂ 𝕀1)} (simplex-2-hom₁₂ {A} σ)
+            (hom-cell {A} {σ (simplex-2-e₀₁ 𝕀0)} {σ (simplex-2-e₀₁ 𝕀1)} (simplex-2-hom₀₁ {A} σ) , γ' , refl)
+          ≡ (hom-cell {A} {σ (long-edge 𝕀0)} {σ (long-edge 𝕀1)} (simplex-2-hom₀₂ {A} σ) , γ' , refl) =
+    push-cocart {A} F sA (is-segalᵣ-hom-family {A} sA a) (hom-family-covariant {A} sA cA a)
+      {σ (simplex-2-e₁₂ 𝕀0)} {σ (simplex-2-e₁₂ 𝕀1)} (simplex-2-hom₁₂ {A} σ)
+      (hom-cell {A} {σ (simplex-2-e₀₁ 𝕀0)} {σ (simplex-2-e₀₁ 𝕀1)} (simplex-2-hom₀₁ {A} σ) , γ' , refl) w refl in
+  trans p (sym (comp-simplex-2-src A sA σ {a} γ'))
+
+-- every pair out of a is, up to a path, given by a 2-simplex
+pair-at-src-section ∷ {A ∷ U} (sA : is-segalᵣ A) (a ∷ A) (z : pair-from A a) →
+  Σ (σ : simplex 2 →ᵣ A) . Σ (γ : σ (simplex-2-e₀₁ 𝕀0) ≡ a) . pair-at-src {A} a (edges-2 {A} σ) γ ≡ z
+pair-at-src-section {A} sA a (b , r) =
+  let k : (r : Σ (c : A) . hom {A} a b × hom {A} b c) →
+          Σ (σ : simplex 2 →ᵣ A) . Σ (γ : σ (simplex-2-e₀₁ 𝕀0) ≡ a) . pair-at-src {A} a (edges-2 {A} σ) γ ≡ (b , r) = fun (c , tu) →
+    let k2 : (tu : hom {A} a b × hom {A} b c) →
+             Σ (σ : simplex 2 →ᵣ A) . Σ (γ : σ (simplex-2-e₀₁ 𝕀0) ≡ a) . pair-at-src {A} a (edges-2 {A} σ) γ ≡ (b , c , tu) = fun (t , u) →
+      let k3 : (t : hom {A} a b) →
+               Σ (σ : simplex 2 →ᵣ A) . Σ (γ : σ (simplex-2-e₀₁ 𝕀0) ≡ a) . pair-at-src {A} a (edges-2 {A} σ) γ ≡ (b , c , t , u) = fun (f , pq) →
+        let k4 : (pq : (srcᵣ f ≡ a) × (tgtᵣ f ≡ b)) →
+                 Σ (σ : simplex 2 →ᵣ A) . Σ (γ : σ (simplex-2-e₀₁ 𝕀0) ≡ a) . pair-at-src {A} a (edges-2 {A} σ) γ ≡ (b , c , (f , pq) , u) = fun (p , q) →
+          -- the pair with trivial source path, and a 2-simplex with these edges
+          let P : pairs A = (srcᵣ f , b , c , (f , refl , q) , u) in
+          let sec : section (edges-2 {A}) = is-equiv-sec (edges-2 {A}) (is-equiv-edges-2 A sA) in
+          let σ : simplex 2 →ᵣ A = section-map (edges-2 {A}) sec P in
+          let E : edges-2 {A} σ ≡ P = snd (is-section (edges-2 {A})) sec P in
+          (σ , subst (λ Q . fst (pair-from A) Q ≡ a) (sym E) p ,
+           trans (pair-at-src-subst {A} a {edges-2 {A} σ} {P} E p)
+             (cong {srcᵣ f ≡ a} {pair-from A a} (λ p' . (b , c , (f , p' , q) , u)) (trans-refl-l p))) in
+        k4 pq in
+      k3 t in
+    k2 tu in
+  k r
+
+-- pushforward in the hom family is postcomposition: u_! t = t ; u
+push-hom-family ∷ {A ∷ U} (sA : is-segalᵣ A) (cA : is-completeᵣ A) (a ∷ A) {b c : A} (u : hom {A} b c) (t : hom {A} a b) →
+  push {A} (hom-family {A} a) sA (is-segalᵣ-hom-family {A} sA a) (hom-family-covariant {A} sA cA a) {b} {c} u t
+    ≡ comp-homᵣ A sA {a} {b} {c} t u
+push-hom-family {A} sA cA a {b} {c} u t =
+  let k : (Σ (σ : simplex 2 →ᵣ A) . Σ (γ : σ (simplex-2-e₀₁ 𝕀0) ≡ a) . pair-at-src {A} a (edges-2 {A} σ) γ ≡ (b , c , t , u)) →
+          push-hom-family-stmt {A} sA cA a (b , c , t , u) = fun (σ , r) →
+    let k2 : (r : Σ (γ : σ (simplex-2-e₀₁ 𝕀0) ≡ a) . pair-at-src {A} a (edges-2 {A} σ) γ ≡ (b , c , t , u)) →
+             push-hom-family-stmt {A} sA cA a (b , c , t , u) = fun (γ , E) →
+      subst (push-hom-family-stmt {A} sA cA a) E (push-hom-family-simplex {A} sA cA a σ γ) in
+    k2 r in
+  k (pair-at-src-section {A} sA a (b , c , t , u))

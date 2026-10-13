@@ -132,42 +132,49 @@ coslice-lift-data-path {A} a {d₀} {d} Q =
             ≡ coslice-lift-data {A} a d' δ)
     (λ δ . cong (coslice-lift-data {A} a d₀) (trans-refl-l δ)) Q
 
--- the cocartesian lift of a lifting datum of the coslice
+-- the lift χ̄_σ := λ i . (χ_σ i , γ) of the square χ_σ (lift-sq, Codomain.batt) of a 2-simplex σ of A,
+-- for a path γ from its first vertex to a, is cocartesian
+coslice-lift-sq ∷ {A ∷ U} (sA : is-segalᵣ A) (a ∷ A) (σ : simplex 2 →ᵣ A) (γ : srcᵣ (lift-sq {A} σ 𝕀0) ≡ a) →
+  cocart-cell {coslice A a} {A} (is-segalᵣ-coslice {A} sA a) sA (coslice-tgt {A} {a})
+coslice-lift-sq {A} sA a σ γ =
+  let sY : is-segalᵣ (arrᵣ A) = is-segal-arrᵣ {A} sA in
+  let S ∷ U = coslice A a in
+  let χ : arrᵣ (arrᵣ A) = lift-sq {A} σ in
+  let χ-cell : arrᵣ S = λ i . (χ i , γ) in
+  -- the same cell in the pullback of a along ev₀
+  let S' ∷ U = point-pullback {arrᵣ A} {A} (λ f . srcᵣ f) a in
+  let e ∷ S' → S = point-pullback→coslice {A} a in
+  let ee ∷ is-equiv e = is-equiv-point-pullback→coslice {A} a in
+  let sS' : is-segalᵣ S' = is-segalᵣ-equiv {S'} {S} e ee (is-segalᵣ-coslice {A} sA a) in
+  let ι ∷ S' → arrᵣ A = point-pullback-proj {arrᵣ A} {A} (λ f . srcᵣ f) a in
+  let χ' : arrᵣ S' = λ i . (χ i , sym γ) in
+  -- it is ι-cocartesian (base change lemma), and its image is ev₁-cocartesian (codomain fibration)
+  let cι : is-cocartesian {S'} {arrᵣ A} sS' sY ι {srcᵣ χ'} {tgtᵣ χ'} (cell-hom {S'} χ') =
+    is-cocartesian-point-pullback-proj {arrᵣ A} {A} sY sA (λ g . srcᵣ g) a sS' {srcᵣ χ'} {tgtᵣ χ'} (cell-hom {S'} χ') in
+  let cq : is-cocartesian {arrᵣ A} {A} sY sA (λ g . tgtᵣ g) {ι (srcᵣ χ')} {ι (tgtᵣ χ')} (hom-map {S'} {arrᵣ A} ι {srcᵣ χ'} {tgtᵣ χ'} (cell-hom {S'} χ')) =
+    lift-sq-cocart {A} sA σ in
+  -- hence (ev₁ ∘ ι)-cocartesian (composite lemma), and so is its image in the coslice
+  let c' : is-cocartesian {S'} {A} sS' sA (λ w . tgtᵣ (ι w)) {srcᵣ χ'} {tgtᵣ χ'} (cell-hom {S'} χ') =
+    is-cocartesian-comp-fib {S'} {arrᵣ A} {A} sS' sY sA ι (λ g . tgtᵣ g) {srcᵣ χ'} {tgtᵣ χ'} (cell-hom {S'} χ') cι cq in
+  let c0 : is-cocartesian {S} {A} (is-segalᵣ-coslice {A} sA a) sA (coslice-tgt {A} {a}) {e (srcᵣ χ')} {e (tgtᵣ χ')} (hom-map {S'} {S} e {srcᵣ χ'} {tgtᵣ χ'} (cell-hom {S'} χ')) =
+    is-cocartesian-equiv {S'} {S} {A} sS' (is-segalᵣ-coslice {A} sA a) sA e ee (coslice-tgt {A} {a}) {srcᵣ χ'} {tgtᵣ χ'} (cell-hom {S'} χ') c' in
+  (χ-cell ,
+   subst {arrᵣ S} (λ c . is-cocartesian {S} {A} (is-segalᵣ-coslice {A} sA a) sA (coslice-tgt {A} {a}) {srcᵣ c} {tgtᵣ c} (cell-hom {S} c))
+     (cong {srcᵣ (χ 𝕀0) ≡ a} {arrᵣ S} (λ γ' . λ i . (χ i , γ')) (sym-sym γ)) c0)
+
+-- the cocartesian lift of a lifting datum of the coslice: χ̄_σ for the 2-simplex σ of the codomain lift
 coslice-lift ∷ {A ∷ U} (sA : is-segalᵣ A) (a ∷ A) →
   pullback {coslice A a} {arrᵣ A} {A} (coslice-tgt {A} {a}) (λ u . srcᵣ u) →
   cocart-cell {coslice A a} {A} (is-segalᵣ-coslice {A} sA a) sA (coslice-tgt {A} {a})
 coslice-lift {A} sA a (w , r) =
   let k : (w : coslice A a) (r : Σ (u : arrᵣ A) . coslice-tgt {A} {a} w ≡ srcᵣ u) → cocart-cell {coslice A a} {A} (is-segalᵣ-coslice {A} sA a) sA (coslice-tgt {A} {a}) =
     fun (y , δ) r →
-      let sY : is-segalᵣ (arrᵣ A) = is-segal-arrᵣ {A} sA in
-      let S ∷ U = coslice A a in
       let d : pullback {arrᵣ A} {arrᵣ A} {A} (ev₁ {A}) (λ u . srcᵣ u) = (y , r) in
       let σ : simplex 2 →ᵣ A = lift-simplex {A} sA d in
-      let χ : arrᵣ (arrᵣ A) = lift-sq {A} σ in
-      -- the source of χ is constant, and is sent to a by the path of the codomain lift
-      let γ : srcᵣ (χ 𝕀0) ≡ a =
+      -- the source of χ_σ is constant, and is sent to a by the path of the codomain lift
+      let γ : srcᵣ (lift-sq {A} σ 𝕀0) ≡ a =
         trans (cong (λ d' . srcᵣ (fst {arrᵣ A} (λ y' . Σ (u : arrᵣ A) . tgtᵣ y' ≡ srcᵣ u) d')) (codomain-lift-over {A} sA d)) δ in
-      let χ-cell : arrᵣ S = λ i . (χ i , γ) in
-      -- the same cell in the pullback of a along ev₀
-      let S' ∷ U = point-pullback {arrᵣ A} {A} (λ f . srcᵣ f) a in
-      let e ∷ S' → S = point-pullback→coslice {A} a in
-      let ee ∷ is-equiv e = is-equiv-point-pullback→coslice {A} a in
-      let sS' : is-segalᵣ S' = is-segalᵣ-equiv {S'} {S} e ee (is-segalᵣ-coslice {A} sA a) in
-      let ι ∷ S' → arrᵣ A = point-pullback-proj {arrᵣ A} {A} (λ f . srcᵣ f) a in
-      let χ' : arrᵣ S' = λ i . (χ i , sym γ) in
-      -- it is ι-cocartesian (base change lemma), and its image is ev₁-cocartesian (codomain fibration)
-      let cι : is-cocartesian {S'} {arrᵣ A} sS' sY ι {srcᵣ χ'} {tgtᵣ χ'} (cell-hom {S'} χ') =
-        is-cocartesian-point-pullback-proj {arrᵣ A} {A} sY sA (λ g . srcᵣ g) a sS' {srcᵣ χ'} {tgtᵣ χ'} (cell-hom {S'} χ') in
-      let cq : is-cocartesian {arrᵣ A} {A} sY sA (λ g . tgtᵣ g) {ι (srcᵣ χ')} {ι (tgtᵣ χ')} (hom-map {S'} {arrᵣ A} ι {srcᵣ χ'} {tgtᵣ χ'} (cell-hom {S'} χ')) =
-        lift-sq-cocart {A} sA σ in
-      -- hence (ev₁ ∘ ι)-cocartesian (composite lemma), and so is its image in the coslice
-      let c' : is-cocartesian {S'} {A} sS' sA (λ w . tgtᵣ (ι w)) {srcᵣ χ'} {tgtᵣ χ'} (cell-hom {S'} χ') =
-        is-cocartesian-comp-fib {S'} {arrᵣ A} {A} sS' sY sA ι (λ g . tgtᵣ g) {srcᵣ χ'} {tgtᵣ χ'} (cell-hom {S'} χ') cι cq in
-      let c0 : is-cocartesian {S} {A} (is-segalᵣ-coslice {A} sA a) sA (coslice-tgt {A} {a}) {e (srcᵣ χ')} {e (tgtᵣ χ')} (hom-map {S'} {S} e {srcᵣ χ'} {tgtᵣ χ'} (cell-hom {S'} χ')) =
-        is-cocartesian-equiv {S'} {S} {A} sS' (is-segalᵣ-coslice {A} sA a) sA e ee (coslice-tgt {A} {a}) {srcᵣ χ'} {tgtᵣ χ'} (cell-hom {S'} χ') c' in
-      (χ-cell ,
-       subst {arrᵣ S} (λ c . is-cocartesian {S} {A} (is-segalᵣ-coslice {A} sA a) sA (coslice-tgt {A} {a}) {srcᵣ c} {tgtᵣ c} (cell-hom {S} c))
-         (cong {srcᵣ (χ 𝕀0) ≡ a} {arrᵣ S} (λ γ' . λ i . (χ i , γ')) (sym-sym γ)) c0)
+      coslice-lift-sq {A} sA a σ γ
   in
   k w r
 
