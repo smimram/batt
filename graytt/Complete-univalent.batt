@@ -1,0 +1,334 @@
+--
+-- Oplax completeness implies univalence
+--
+-- For an oplax-Segal type X, oplax completeness (Complete.batt: oplax maps out of E are constant,
+-- here only at the unthickened E) implies univalence in Rezk form (Univalent.batt: idtoiso is an
+-- equivalence):
+--
+--   is-completeᵣ X → is-univalentᵣ X s                                      (complete→univalentᵣ)
+--
+-- Proof. Let T be the total space of isomorphisms, with iso-refl : X → T, x ↦ (x , x , id) and its
+-- retraction src : T → X. It suffices that every isomorphism t is iso-refl of some point (src is
+-- then an equivalence, so its fibres Σ y . iso x y are contractible, and the fundamental theorem of
+-- identity types applies). Two maps relate T to oplax maps out of E (thickened trivially):
+--
+--   Φ : (E →ᵣ X) → T    the middle edge f = σ₁₂ of the underlying 3-simplex σ, which is an
+--                       isomorphism: the faces 012 and 123 have collapsed long edges, so
+--                       σ₀₁ ; f and f ; σ₂₃ are identities up to the paths that collapse them;
+--   Ψ : T → (E →ᵣ X)    a Segal filler of (g , f , g), for an inverse g of f, whose two faces are
+--                       collapsed using g ; f = id and f ; g = id, then the oplax universal
+--                       property of E (FreeEquiv-up.batt);
+--
+-- with Φ (Ψ t) = t and Φ (constant at x) = iso-refl x, both up to the biinvertibility data, which
+-- is a proposition. By completeness Ψ t is constant, at some point x', hence t = iso-refl x'.
+--
+-- Postulates relied on: objectwise-equiv, pushout-up (through the oplax universal property of E),
+-- univalence, truncation, is-set-𝕀.
+--
+
+open import Stdlib
+open import Hom
+open import Segal
+open import Composition
+open import Composable
+open import Associativity
+open import Simplex-edges
+open import Iso
+open import Univalent
+open import Spine
+open import FreeEquiv
+open import Complete
+open import FreeEquiv-up
+
+--
+-- The total space of isomorphisms
+--
+
+-- homs with free endpoints
+homs-total ∷ (X ∷ U) → U
+homs-total X = Σ (x : X) . Σ (y : X) . hom x y
+
+homs-src ∷ {X ∷ U} → homs-total X → X
+homs-src {X} w = fst {X} (λ x . Σ (y : X) . hom x y) w
+
+homs-tgt ∷ {X ∷ U} → homs-total X → X
+homs-tgt {X} w = fst {X} (λ y . hom (homs-src {X} w) y) (snd {X} (λ x . Σ (y : X) . hom x y) w)
+
+homs-hom ∷ {X ∷ U} (w : homs-total X) → hom (homs-src {X} w) (homs-tgt {X} w)
+homs-hom {X} w = snd {X} (λ y . hom (homs-src {X} w) y) (snd {X} (λ x . Σ (y : X) . hom x y) w)
+
+homs-eta ∷ {X ∷ U} (w : homs-total X) → (homs-src {X} w , homs-tgt {X} w , homs-hom {X} w) ≡{homs-total X} w
+homs-eta {X} (x , r) =
+  let k : (r : Σ (y : X) . hom x y) → (x , fst {X} (λ y . hom x y) r , snd {X} (λ y . hom x y) r) ≡{homs-total X} (x , r) =
+    fun (y , f) → refl in
+  k r
+
+-- isomorphisms with free endpoints
+iso-total-biinv ∷ {X ∷ U} (s : is-segalᵣ X) → homs-total X → U
+iso-total-biinv {X} s w = is-biinv-hom {X} s {homs-src {X} w} {homs-tgt {X} w} (homs-hom {X} w)
+
+iso-total ∷ (X ∷ U) (s : is-segalᵣ X) → U
+iso-total X s = Σ (w : homs-total X) . iso-total-biinv {X} s w
+
+iso-total-src ∷ {X ∷ U} (s : is-segalᵣ X) → iso-total X s → X
+iso-total-src {X} s t = homs-src {X} (fst {homs-total X} (iso-total-biinv {X} s) t)
+
+-- the identities
+iso-refl ∷ {X ∷ U} (s : is-segalᵣ X) → X → iso-total X s
+iso-refl {X} s x = ((x , x , Hom.id {X} x) , iso→biinv {X} s {x} {x} (Hom.id {X} x) (is-iso-id {X} s x))
+
+-- two isomorphisms are equal when their homs (with endpoints) are
+iso-total-path ∷ {X ∷ U} (s : is-segalᵣ X) {w w' : homs-total X} (P : w ≡ w') (b : iso-total-biinv {X} s w) (b' : iso-total-biinv {X} s w') →
+  (w , b) ≡{iso-total X s} (w' , b')
+iso-total-path {X} s P b b' =
+  subtype-path {homs-total X} (iso-total-biinv {X} s)
+    (λ w . is-prop-is-biinv-hom {X} s {homs-src {X} w} {homs-tgt {X} w} (homs-hom {X} w)) P b b'
+
+-- η for isomorphisms
+iso-total-eta ∷ {X ∷ U} (s : is-segalᵣ X) (t : iso-total X s) →
+  (fst {homs-total X} (iso-total-biinv {X} s) t , snd {homs-total X} (iso-total-biinv {X} s) t) ≡{iso-total X s} t
+iso-total-eta {X} s (w , b) = refl
+
+--
+-- Univalence from a section of iso-refl
+--
+
+-- if every isomorphism is iso-refl of a point, the source map is an equivalence
+is-equiv-iso-total-src ∷ {X ∷ U} (s : is-segalᵣ X) (r : iso-total X s → X) (H : (t : iso-total X s) → iso-refl {X} s (r t) ≡ t) →
+  is-equiv (iso-total-src {X} s)
+is-equiv-iso-total-src {X} s r H =
+  ((iso-refl {X} s , λ x . refl) ,
+   (iso-refl {X} s , λ t . trans (cong (iso-refl {X} s) (cong (iso-total-src {X} s) (sym (H t)))) (H t)))
+
+-- its fibres are the isomorphisms out of a point
+iso-out→fib ∷ {X ∷ U} (s : is-segalᵣ X) (x : X) → (Σ (y : X) . iso {X} s x y) → fib (iso-total-src {X} s) x
+iso-out→fib {X} s x (y , i) =
+  let k : (i : iso {X} s x y) → fib (iso-total-src {X} s) x = fun (f , b) → (((x , y , f) , b) , refl) in
+  k i
+
+fib→iso-out ∷ {X ∷ U} (s : is-segalᵣ X) (x : X) → fib (iso-total-src {X} s) x → Σ (y : X) . iso {X} s x y
+fib→iso-out {X} s x (t , e) =
+  subst (λ x' . Σ (y : X) . iso {X} s x' y) e
+    (homs-tgt {X} (fst {homs-total X} (iso-total-biinv {X} s) t) ,
+     homs-hom {X} (fst {homs-total X} (iso-total-biinv {X} s) t) , snd {homs-total X} (iso-total-biinv {X} s) t)
+
+iso-out→fib-retr ∷ {X ∷ U} (s : is-segalᵣ X) (x : X) (z : Σ (y : X) . iso {X} s x y) →
+  fib→iso-out {X} s x (iso-out→fib {X} s x z) ≡ z
+iso-out→fib-retr {X} s x (y , i) =
+  let k : (i : iso {X} s x y) → fib→iso-out {X} s x (iso-out→fib {X} s x (y , i)) ≡ (y , i) = fun (f , b) → refl in
+  k i
+
+univalent-from-section ∷ {X ∷ U} (s : is-segalᵣ X) (r : iso-total X s → X) (H : (t : iso-total X s) → iso-refl {X} s (r t) ≡ t) →
+  is-univalentᵣ X s
+univalent-from-section {X} s r H x y =
+  let c : is-contr (Σ (y' : X) . iso {X} s x y') =
+    is-contr-retract (iso-out→fib {X} s x) (fib→iso-out {X} s x , iso-out→fib-retr {X} s x)
+      (is-contr-fib (iso-total-src {X} s) (is-equiv-iso-total-src {X} s r H) x) in
+  is-equiv-htpy {x ≡ y} {iso {X} s x y}
+    {fund-id-map (λ y' . iso {X} s x y') x (iso-id {X} s x) y} {idtoiso {X} s {x} {y}}
+    (λ p . J x (λ y' p' . fund-id-map (λ y'' . iso {X} s x y'') x (iso-id {X} s x) y' p' ≡ idtoiso {X} s {x} {y'} p') refl p)
+    (fund-id (λ y' . iso {X} s x y') x (iso-id {X} s x) c y)
+
+--
+-- Collapsed edges
+--
+
+-- a collapsed edge (equal to a constant oplax map) is the hom of a path
+collapsed→path ∷ {X ∷ U} (s : is-segalᵣ X) (y : ⊤ →ᵣ X) {φ : simplex 1 →ᵣ X} (p : (λ x . y tt) ≡{simplex 1 →ᵣ X} φ) →
+  Σ (e : φ (𝕀→simplex-1 𝕀0) ≡ φ (𝕀→simplex-1 𝕀1)) .
+    (preᵣ {𝕀} {simplex 1} {X} φ 𝕀→simplex-1 , refl , refl) ≡{hom (φ (𝕀→simplex-1 𝕀0)) (φ (𝕀→simplex-1 𝕀1))} path→hom {X} s e
+collapsed→path {X} s y {φ} p =
+  J {simplex 1 →ᵣ X} (λ x . y tt)
+    (λ φ' p' . Σ (e : φ' (𝕀→simplex-1 𝕀0) ≡ φ' (𝕀→simplex-1 𝕀1)) .
+       (preᵣ {𝕀} {simplex 1} {X} φ' 𝕀→simplex-1 , refl , refl) ≡{hom (φ' (𝕀→simplex-1 𝕀0)) (φ' (𝕀→simplex-1 𝕀1))} path→hom {X} s e)
+    (refl , refl) p
+
+-- the cell of the hom of a path is constant
+path→hom-cell ∷ {X ∷ U} (s : is-segalᵣ X) {x z : X} (e : x ≡ z) → hom-cell {X} {x} {z} (path→hom {X} s e) ≡{arrᵣ X} (λ i . x)
+path→hom-cell {X} s {x} {z} e = J x (λ z' e' . hom-cell {X} {x} {z'} (path→hom {X} s e') ≡{arrᵣ X} (λ i . x)) refl e
+
+-- conversely, an edge of a 3-simplex whose hom is the hom of a path is collapsed
+path→collapsed ∷ {X ∷ U} (s : is-segalᵣ X) (σ : simplex 3 →ᵣ X) (E ∷ 𝕀 → simplex 3) (e : σ (E 𝕀0) ≡ σ (E 𝕀1)) →
+  simplex-3-hom {X} E σ ≡ path→hom {X} s e → is-collapsedᵣ {X} (λ x . σ (E (simplex-1→𝕀 x)))
+path→collapsed {X} s σ E e Q =
+  let R : (λ i . σ (E 𝕀0)) ≡{arrᵣ X} preᵣ {𝕀} {simplex 3} {X} σ E =
+    sym (trans (cong (hom-cell {X} {σ (E 𝕀0)} {σ (E 𝕀1)}) Q) (path→hom-cell {X} s e)) in
+  ((λ u . σ (E 𝕀0)) , cong {arrᵣ X} {simplex 1 →ᵣ X} (λ c . λ x . c (simplex-1→𝕀 x)) R)
+
+-- a section, resp. a retraction, up to the path collapsing the composite
+sec-from-collapse ∷ {X ∷ U} (s : is-segalᵣ X) {x y : X} (f : hom x y) {z : X} (g : hom y z) (e : x ≡ z) →
+  comp-homᵣ X s {x} {y} {z} f g ≡ path→hom {X} s e → Σ (g' : hom y x) . comp-homᵣ X s {x} {y} {x} f g' ≡ Hom.id {X} x
+sec-from-collapse {X} s {x} {y} f {z} g e =
+  J x (λ z' e' . (g' : hom y z') → comp-homᵣ X s {x} {y} {z'} f g' ≡ path→hom {X} s e' →
+         Σ (g'' : hom y x) . comp-homᵣ X s {x} {y} {x} f g'' ≡ Hom.id {X} x)
+    (λ g' q . (g' , q)) e g
+
+retr-from-collapse ∷ {X ∷ U} (s : is-segalᵣ X) {w x : X} (h : hom w x) {y : X} (e : w ≡ y) (f : hom x y) →
+  comp-homᵣ X s {w} {x} {y} h f ≡ path→hom {X} s e → Σ (h' : hom y x) . comp-homᵣ X s {y} {x} {y} h' f ≡ Hom.id {X} y
+retr-from-collapse {X} s {w} {x} h {y} e =
+  J w (λ y' e' . (f' : hom x y') → comp-homᵣ X s {w} {x} {y'} h f' ≡ path→hom {X} s e' →
+         Σ (h' : hom y' x) . comp-homᵣ X s {y'} {x} {y'} h' f' ≡ Hom.id {X} y')
+    (λ f' q . (h , q)) e
+
+--
+-- Φ: the isomorphism of an oplax diagram of shape E
+--
+
+-- the vertices 1 and 2 of Δ³, and the middle edge
+diagram-hom ∷ {X ∷ U} → free-equiv-diagramᵣ X → homs-total X
+diagram-hom {X} (σ , cs) = (σ (simplex-3-e₁₂ 𝕀0) , σ (simplex-3-e₁₂ 𝕀1) , simplex-3-hom {X} simplex-3-e₁₂ σ)
+
+diagram→iso ∷ {X ∷ U} (s : is-segalᵣ X) → free-equiv-diagramᵣ X → iso-total X s
+diagram→iso {X} s (σ , cs) =
+  let k : (cs : is-collapsedᵣ {X} (λ x . σ (edge-02 x)) × is-collapsedᵣ {X} (λ x . σ (edge-13 x))) → iso-total X s =
+    fun (c₀₂ , c₁₃) →
+      let f : hom (σ (simplex-3-e₁₂ 𝕀0)) (σ (simplex-3-e₁₂ 𝕀1)) = simplex-3-hom {X} simplex-3-e₁₂ σ in
+      -- face 123: f ; σ₂₃ is the hom of a path, since σ₁₃ is collapsed
+      let k13 : is-collapsedᵣ {X} (λ x . σ (edge-13 x)) →
+                Σ (g : hom (σ (simplex-3-e₁₂ 𝕀1)) (σ (simplex-3-e₁₂ 𝕀0))) .
+                  comp-homᵣ X s {σ (simplex-3-e₁₂ 𝕀0)} {σ (simplex-3-e₁₂ 𝕀1)} {σ (simplex-3-e₁₂ 𝕀0)} f g ≡ Hom.id {X} (σ (simplex-3-e₁₂ 𝕀0)) =
+        fun (y , p) →
+          let ep : Σ (e' : σ (simplex-3-e₁₃ 𝕀0) ≡ σ (simplex-3-e₁₃ 𝕀1)) . simplex-3-hom {X} simplex-3-e₁₃ σ ≡ path→hom {X} s e' =
+            collapsed→path {X} s y {λ x . σ (edge-13 x)} p in
+          let e : σ (simplex-3-e₁₃ 𝕀0) ≡ σ (simplex-3-e₁₃ 𝕀1) =
+            fst {σ (simplex-3-e₁₃ 𝕀0) ≡ σ (simplex-3-e₁₃ 𝕀1)}
+              (λ e' . simplex-3-hom {X} simplex-3-e₁₃ σ ≡ path→hom {X} s e') ep in
+          sec-from-collapse {X} s {σ (simplex-3-e₁₂ 𝕀0)} {σ (simplex-3-e₁₂ 𝕀1)} f {σ (simplex-3-e₂₃ 𝕀1)}
+            (simplex-3-hom {X} simplex-3-e₂₃ σ) e
+            (trans (simplex-3-face-path X s simplex-3-d₀ σ)
+              (snd {σ (simplex-3-e₁₃ 𝕀0) ≡ σ (simplex-3-e₁₃ 𝕀1)} (λ e' . simplex-3-hom {X} simplex-3-e₁₃ σ ≡ path→hom {X} s e') ep)) in
+      -- face 012: σ₀₁ ; f is the hom of a path, since σ₀₂ is collapsed
+      let k02 : is-collapsedᵣ {X} (λ x . σ (edge-02 x)) →
+                Σ (h : hom (σ (simplex-3-e₁₂ 𝕀1)) (σ (simplex-3-e₁₂ 𝕀0))) .
+                  comp-homᵣ X s {σ (simplex-3-e₁₂ 𝕀1)} {σ (simplex-3-e₁₂ 𝕀0)} {σ (simplex-3-e₁₂ 𝕀1)} h f ≡ Hom.id {X} (σ (simplex-3-e₁₂ 𝕀1)) =
+        fun (y , p) →
+          let ep : Σ (e' : σ (simplex-3-e₀₂ 𝕀0) ≡ σ (simplex-3-e₀₂ 𝕀1)) . simplex-3-hom {X} simplex-3-e₀₂ σ ≡ path→hom {X} s e' =
+            collapsed→path {X} s y {λ x . σ (edge-02 x)} p in
+          let e : σ (simplex-3-e₀₂ 𝕀0) ≡ σ (simplex-3-e₀₂ 𝕀1) =
+            fst {σ (simplex-3-e₀₂ 𝕀0) ≡ σ (simplex-3-e₀₂ 𝕀1)}
+              (λ e' . simplex-3-hom {X} simplex-3-e₀₂ σ ≡ path→hom {X} s e') ep in
+          retr-from-collapse {X} s {σ (simplex-3-e₀₁ 𝕀0)} {σ (simplex-3-e₁₂ 𝕀0)} (simplex-3-hom {X} simplex-3-e₀₁ σ) e f
+            (trans (simplex-3-face-path X s simplex-3-d₃ σ)
+              (snd {σ (simplex-3-e₀₂ 𝕀0) ≡ σ (simplex-3-e₀₂ 𝕀1)} (λ e' . simplex-3-hom {X} simplex-3-e₀₂ σ ≡ path→hom {X} s e') ep)) in
+      ((σ (simplex-3-e₁₂ 𝕀0) , σ (simplex-3-e₁₂ 𝕀1) , f) , (k13 c₁₃ , k02 c₀₂)) in
+  k cs
+
+-- its underlying hom is the middle edge
+diagram→iso-hom ∷ {X ∷ U} (s : is-segalᵣ X) (δ : free-equiv-diagramᵣ X) →
+  fst {homs-total X} (iso-total-biinv {X} s) (diagram→iso {X} s δ) ≡ diagram-hom {X} δ
+diagram→iso-hom {X} s (σ , cs) =
+  let k : (cs : is-collapsedᵣ {X} (λ x . σ (edge-02 x)) × is-collapsedᵣ {X} (λ x . σ (edge-13 x))) →
+          fst {homs-total X} (iso-total-biinv {X} s) (diagram→iso {X} s (σ , cs)) ≡ diagram-hom {X} (σ , cs) =
+    fun (c₀₂ , c₁₃) → refl in
+  k cs
+
+-- Φ, on oplax maps out of the (trivially thickened) free-standing equivalence
+thick-free-equiv→iso ∷ {X ∷ U} (s : is-segalᵣ X) → (thick-free-equiv nil nil →ᵣ X) → iso-total X s
+thick-free-equiv→iso {X} s H = diagram→iso {X} s (free-equiv-restrᵣ X (λ e . H (tt ⊗ (e ⊗ tt))))
+
+-- on a constant map, Φ is the identity of its value
+thick-free-equiv→iso-const ∷ {X ∷ U} (s : is-segalᵣ X) (g : grid nil ⨂ grid nil →ᵣ X) →
+  thick-free-equiv→iso {X} s (complete-restrᵣ nil nil X g) ≡ iso-refl {X} s (g (tt ⊗ tt))
+thick-free-equiv→iso-const {X} s g =
+  let x : X = g (tt ⊗ tt) in
+  iso-total-path {X} s {(x , x , Hom.id {X} x)} {(x , x , Hom.id {X} x)} refl
+    (snd {homs-total X} (iso-total-biinv {X} s) (thick-free-equiv→iso {X} s (complete-restrᵣ nil nil X g)))
+    (snd {homs-total X} (iso-total-biinv {X} s) (iso-refl {X} s x))
+
+--
+-- Ψ: an oplax diagram of shape E from an isomorphism
+--
+
+-- the middle hom of a triple
+tri-mid ∷ {X ∷ U} → triples X → homs-total X
+tri-mid {X} (a0 , r) =
+  let k : (a1 : X) (r1 : hom a0 a1 × pair-from X a1) → homs-total X = fun a1 (u , c) →
+    let k2 : (a2 : X) (c2 : Σ (a3 : X) . hom a1 a2 × hom a2 a3) → homs-total X = fun a2 (a3 , vw) →
+      (a1 , a2 , Product.fst {hom a1 a2} {hom a2 a3} vw) in
+    k2 (fst {X} (λ a2 . Σ (a3 : X) . hom a1 a2 × hom a2 a3) c) (snd {X} (λ a2 . Σ (a3 : X) . hom a1 a2 × hom a2 a3) c) in
+  k (fst {X} (λ a1 . hom a0 a1 × pair-from X a1) r) (snd {X} (λ a1 . hom a0 a1 × pair-from X a1) r)
+
+-- the composites of the first two and of the last two edges are homs of paths
+tri-collapsed₀₂ ∷ {X ∷ U} (s : is-segalᵣ X) → triples X → U
+tri-collapsed₀₂ {X} s = tri-family X (λ a0 a1 a2 a3 u v w . Σ (e : a0 ≡ a2) . comp-homᵣ X s {a0} {a1} {a2} u v ≡ path→hom {X} s e)
+
+tri-collapsed₁₃ ∷ {X ∷ U} (s : is-segalᵣ X) → triples X → U
+tri-collapsed₁₃ {X} s = tri-family X (λ a0 a1 a2 a3 u v w . Σ (e : a1 ≡ a3) . comp-homᵣ X s {a1} {a2} {a3} v w ≡ path→hom {X} s e)
+
+-- the Segal filler of the triple (g , f , g), for an inverse g of f
+iso-filler ∷ {X ∷ U} (s : is-segalᵣ X) {x y : X} (f : hom x y) (g : hom y x) → simplex 3 →ᵣ X
+iso-filler {X} s {x} {y} f g =
+  section-map (edges-tri {X}) (is-equiv-sec (edges-tri {X}) (is-equiv-edges-tri X s)) (y , x , g , y , x , f , g)
+
+iso-filler-edges ∷ {X ∷ U} (s : is-segalᵣ X) {x y : X} (f : hom x y) (g : hom y x) →
+  edges-tri {X} (iso-filler {X} s {x} {y} f g) ≡{triples X} (y , x , g , y , x , f , g)
+iso-filler-edges {X} s {x} {y} f g =
+  snd (is-section (edges-tri {X})) (is-equiv-sec (edges-tri {X}) (is-equiv-edges-tri X s)) (y , x , g , y , x , f , g)
+
+-- its two faces are collapsed
+iso→diagram ∷ {X ∷ U} (s : is-segalᵣ X) {x y : X} (f : hom x y) → is-iso-hom {X} s {x} {y} f → free-equiv-diagramᵣ X
+iso→diagram {X} s {x} {y} f (g , pq) =
+  let σ : simplex 3 →ᵣ X = iso-filler {X} s {x} {y} f g in
+  let P : edges-tri {X} σ ≡{triples X} (y , x , g , y , x , f , g) = iso-filler-edges {X} s {x} {y} f g in
+  let d₀₂ : tri-collapsed₀₂ {X} s (edges-tri {X} σ) =
+    subst (tri-collapsed₀₂ {X} s) (sym P) (refl , Product.snd {comp-homᵣ X s {x} {y} {x} f g ≡ Hom.id {X} x} {comp-homᵣ X s {y} {x} {y} g f ≡ Hom.id {X} y} pq) in
+  let d₁₃ : tri-collapsed₁₃ {X} s (edges-tri {X} σ) =
+    subst (tri-collapsed₁₃ {X} s) (sym P) (refl , Product.fst {comp-homᵣ X s {x} {y} {x} f g ≡ Hom.id {X} x} {comp-homᵣ X s {y} {x} {y} g f ≡ Hom.id {X} y} pq) in
+  let e₀₂ : σ (simplex-3-e₀₂ 𝕀0) ≡ σ (simplex-3-e₀₂ 𝕀1) =
+    fst {σ (simplex-3-e₀₂ 𝕀0) ≡ σ (simplex-3-e₀₂ 𝕀1)}
+      (λ e . comp-homᵣ X s (simplex-3-hom {X} simplex-3-e₀₁ σ) (simplex-3-hom {X} simplex-3-e₁₂ σ) ≡ path→hom {X} s e) d₀₂ in
+  let e₁₃ : σ (simplex-3-e₁₃ 𝕀0) ≡ σ (simplex-3-e₁₃ 𝕀1) =
+    fst {σ (simplex-3-e₁₃ 𝕀0) ≡ σ (simplex-3-e₁₃ 𝕀1)}
+      (λ e . comp-homᵣ X s (simplex-3-hom {X} simplex-3-e₁₂ σ) (simplex-3-hom {X} simplex-3-e₂₃ σ) ≡ path→hom {X} s e) d₁₃ in
+  (σ ,
+   path→collapsed {X} s σ simplex-3-e₀₂ e₀₂
+     (trans (sym (simplex-3-face-path X s simplex-3-d₃ σ))
+       (snd {σ (simplex-3-e₀₂ 𝕀0) ≡ σ (simplex-3-e₀₂ 𝕀1)}
+         (λ e . comp-homᵣ X s (simplex-3-hom {X} simplex-3-e₀₁ σ) (simplex-3-hom {X} simplex-3-e₁₂ σ) ≡ path→hom {X} s e) d₀₂)) ,
+   path→collapsed {X} s σ simplex-3-e₁₃ e₁₃
+     (trans (sym (simplex-3-face-path X s simplex-3-d₀ σ))
+       (snd {σ (simplex-3-e₁₃ 𝕀0) ≡ σ (simplex-3-e₁₃ 𝕀1)}
+         (λ e . comp-homᵣ X s (simplex-3-hom {X} simplex-3-e₁₂ σ) (simplex-3-hom {X} simplex-3-e₂₃ σ) ≡ path→hom {X} s e) d₁₃)))
+
+-- its middle edge is f
+iso→diagram-hom ∷ {X ∷ U} (s : is-segalᵣ X) {x y : X} (f : hom x y) (i : is-iso-hom {X} s {x} {y} f) →
+  diagram-hom {X} (iso→diagram {X} s {x} {y} f i) ≡{homs-total X} (x , y , f)
+iso→diagram-hom {X} s {x} {y} f (g , pq) = cong (tri-mid {X}) (iso-filler-edges {X} s {x} {y} f g)
+
+-- Ψ: the oplax map out of E, by the oplax universal property of E
+iso→thick-free-equiv ∷ {X ∷ U} (s : is-segalᵣ X) → iso-total X s → (thick-free-equiv nil nil →ᵣ X)
+iso→thick-free-equiv {X} s (w , b) =
+  let δ : free-equiv-diagramᵣ X =
+    iso→diagram {X} s {homs-src {X} w} {homs-tgt {X} w} (homs-hom {X} w) (biinv→iso {X} s {homs-src {X} w} {homs-tgt {X} w} (homs-hom {X} w) b) in
+  let h : free-equiv →ᵣ X = section-map (free-equiv-restrᵣ X) (is-equiv-sec (free-equiv-restrᵣ X) (free-equiv-oplax-up X)) δ in
+  preᵣ {thick-free-equiv nil nil} {free-equiv} {X} h (thicken-unit {free-equiv})
+
+-- Φ ∘ Ψ is the identity
+thick-free-equiv→iso→thick ∷ {X ∷ U} (s : is-segalᵣ X) (t : iso-total X s) →
+  thick-free-equiv→iso {X} s (iso→thick-free-equiv {X} s t) ≡ t
+thick-free-equiv→iso→thick {X} s (w , b) =
+  let i : is-iso-hom {X} s {homs-src {X} w} {homs-tgt {X} w} (homs-hom {X} w) = biinv→iso {X} s {homs-src {X} w} {homs-tgt {X} w} (homs-hom {X} w) b in
+  let δ : free-equiv-diagramᵣ X = iso→diagram {X} s {homs-src {X} w} {homs-tgt {X} w} (homs-hom {X} w) i in
+  let sec : section (free-equiv-restrᵣ X) = is-equiv-sec (free-equiv-restrᵣ X) (free-equiv-oplax-up X) in
+  let h : free-equiv →ᵣ X = section-map (free-equiv-restrᵣ X) sec δ in
+  let pδ : free-equiv-restrᵣ X h ≡ δ = snd (is-section (free-equiv-restrᵣ X)) sec δ in
+  trans (cong (diagram→iso {X} s) pδ)
+    (trans (sym (iso-total-eta {X} s (diagram→iso {X} s δ))) (iso-total-path {X} s
+      (trans (diagram→iso-hom {X} s δ)
+        (trans (iso→diagram-hom {X} s {homs-src {X} w} {homs-tgt {X} w} (homs-hom {X} w) i) (homs-eta {X} w)))
+      (snd {homs-total X} (iso-total-biinv {X} s) (diagram→iso {X} s δ)) b))
+
+--
+-- Oplax completeness implies univalence
+--
+
+complete→univalentᵣ ∷ (X ∷ U) (s : is-segalᵣ X) → is-completeᵣ X → is-univalentᵣ X s
+complete→univalentᵣ X s c =
+  let r : (grid nil ⨂ grid nil →ᵣ X) → (thick-free-equiv nil nil →ᵣ X) = complete-restrᵣ nil nil X in
+  let sec : section r = is-equiv-sec r (c nil nil) in
+  let r-inv : (thick-free-equiv nil nil →ᵣ X) → (grid nil ⨂ grid nil →ᵣ X) = section-map r sec in
+  let rr : (H : thick-free-equiv nil nil →ᵣ X) → r (r-inv H) ≡ H = snd (is-section r) sec in
+  univalent-from-section {X} s (λ t . r-inv (iso→thick-free-equiv {X} s t) (tt ⊗ tt))
+    (λ t . trans (sym (thick-free-equiv→iso-const {X} s (r-inv (iso→thick-free-equiv {X} s t))))
+             (trans (cong (thick-free-equiv→iso {X} s) (rr (iso→thick-free-equiv {X} s t)))
+               (thick-free-equiv→iso→thick {X} s t)))

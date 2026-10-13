@@ -6,7 +6,8 @@
 --   idtoiso : x ≡ y → iso x y        (refl ↦ the identity)
 --
 -- is an equivalence. This is completeness in the form used for the uniqueness of cocartesian
--- lifts; its relation with completeness as locality against E (Complete.batt) is open.
+-- lifts. Oplax completeness (locality against E, Complete.batt) implies it
+-- (Complete-univalent.batt); the converse is open.
 --
 
 open import Stdlib
