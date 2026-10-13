@@ -492,10 +492,14 @@ is-cocartesian-comp-fib {X} {Y} {A} sX sY sA ι q {u} {v} γ cι cq s =
 --
 -- Equivalences
 --
--- Cocartesian arrows are invariant under crisp equivalences (for the Segal condition, see
--- is-segalᵣ-equiv, Local.batt): the action on homs of a crisp equivalence is an equivalence
--- (is-equiv-hom-map), and for e : S → X over A, the gap map of e γ is, up to it, the gap map of γ (is-cocartesian-equiv), by the coherence of
--- the commutations with composition for p ∘ e (hom-map-comp-circ).
+-- Cocartesian arrows and cocartesian fibrations are invariant under crisp equivalences (for the
+-- Segal condition, see is-segalᵣ-equiv, Local.batt). The action on homs of a crisp equivalence is an
+-- equivalence (is-equiv-hom-map), and for e : S → X over A, the gap maps of γ and of e γ are
+-- conjugate (cocart-gap-equiv-square), by the coherence of the commutations with composition for
+-- p ∘ e (hom-map-comp-circ). So γ is cocartesian iff e γ is (is-cocartesian-equiv, and
+-- is-cocartesian-equiv-inv), e induces an equivalence of cocartesian 1-cells (cocart-cell-equiv)
+-- compatible with the lifting maps, and p is a cocartesian fibration when p ∘ e is
+-- (is-cocartesian-fibration-equiv).
 --
 
 -- the action on homs of a crisp equivalence is an equivalence
@@ -537,6 +541,57 @@ equiv-alg ∷ {M T P1 P2 : U} (P : M → T) (F : P1 → P2 → T) {X0 : T} {m : 
   ≡ trans (sym c0) (trans (trans c0 (trans (cong P e') (trans h (sym (cong2 F d1 d2))))) (cong (λ x . F x b0) d1))
 equiv-alg {M} {T} {P1} {P2} P F {X0} {m} c0 refl {a0} refl {b0} refl h = equiv-alg-core c0 h
 
+-- the gap maps of γ (for pX ∘ e) and of its image e γ (for pX) are conjugate, at every target in S
+cocart-gap-equiv-square ∷ {S X A ∷ U} (sS : is-segalᵣ S) (sX : is-segalᵣ X) (sA : is-segalᵣ A) (e ∷ S → X) (ee ∷ is-equiv e) (pX ∷ X → A)
+  {u v : S} (γ : hom u v) (s' : S) →
+  Σ (M : cocart-pb {S} {A} sA (λ w . pX (e w)) {u} {v} γ s' → cocart-pb {X} {A} sA pX {e u} {e v} (hom-map {S} {X} e {u} {v} γ) (e s')) .
+    is-equiv M ×
+    ((g : hom v s') → cocart-gap {X} {A} sX sA pX {e u} {e v} (hom-map {S} {X} e {u} {v} γ) (e s') (hom-map {S} {X} e {v} {s'} g)
+                        ≡ M (cocart-gap {S} {A} sS sA (λ w . pX (e w)) {u} {v} γ s' g))
+cocart-gap-equiv-square {S} {X} {A} sS sX sA e ee pX {u} {v} γ s' =
+  let pS ∷ S → A = λ w . pX (e w) in
+  let eγ : hom (e u) (e v) = hom-map {S} {X} e {u} {v} γ in
+  let GS : hom v s' → cocart-pb {S} {A} sA pS {u} {v} γ s' = cocart-gap {S} {A} sS sA pS {u} {v} γ s' in
+  let GX : hom (e v) (e s') → cocart-pb {X} {A} sA pX {e u} {e v} eγ (e s') = cocart-gap {X} {A} sX sA pX {e u} {e v} eγ (e s') in
+  let hme : hom v s' → hom (e v) (e s') = hom-map {S} {X} e {v} {s'} in
+  let hmeU : hom u s' → hom (e u) (e s') = hom-map {S} {X} e {u} {s'} in
+  let F : hom (pS u) (pS v) → hom (pS v) (pS s') → hom (pS u) (pS s') = λ m n . comp-homᵣ A sA {pS u} {pS v} {pS s'} m n in
+  let Q' : hom (e u) (e s') → U = λ h' . Σ (l : hom (pS v) (pS s')) . hom-map {X} {A} pX {e u} {e s'} h' ≡ F (hom-map {X} {A} pX {e u} {e v} eγ) l in
+  let cγ : hom-map {S} {A} pS {u} {v} γ ≡ hom-map {X} {A} pX {e u} {e v} eγ = hom-map-circ {S} {X} {A} e pX {u} {v} γ in
+  let AT : (h : hom u s') (l : hom (pS v) (pS s')) → U = λ h l . hom-map {X} {A} pX {e u} {e s'} (hmeU h) ≡ F (hom-map {X} {A} pX {e u} {e v} eγ) l in
+  let adj : (h : hom u s') (l : hom (pS v) (pS s')) → hom-map {S} {A} pS {u} {s'} h ≡ F (hom-map {S} {A} pS {u} {v} γ) l → AT h l = λ h l c .
+    trans (sym (hom-map-circ {S} {X} {A} e pX {u} {s'} h)) (trans c (cong (λ m . F m l) cγ)) in
+  let T1 : cocart-pb {S} {A} sA pS {u} {v} γ s' → Σ (h : hom u s') . Q' (hmeU h) =
+    tot {hom u s'} {λ h . Σ (l : hom (pS v) (pS s')) . hom-map {S} {A} pS {u} {s'} h ≡ F (hom-map {S} {A} pS {u} {v} γ) l} {λ h . Q' (hmeU h)}
+      (λ h . tot {hom (pS v) (pS s')} {λ l . hom-map {S} {A} pS {u} {s'} h ≡ F (hom-map {S} {A} pS {u} {v} γ) l} {λ l . AT h l} (adj h)) in
+  let eT1 : is-equiv T1 =
+    is-equiv-tot {hom u s'} {λ h . Σ (l : hom (pS v) (pS s')) . hom-map {S} {A} pS {u} {s'} h ≡ F (hom-map {S} {A} pS {u} {v} γ) l} {λ h . Q' (hmeU h)}
+      (λ h . tot {hom (pS v) (pS s')} {λ l . hom-map {S} {A} pS {u} {s'} h ≡ F (hom-map {S} {A} pS {u} {v} γ) l} {λ l . AT h l} (adj h))
+      (λ h . is-equiv-tot {hom (pS v) (pS s')} {λ l . hom-map {S} {A} pS {u} {s'} h ≡ F (hom-map {S} {A} pS {u} {v} γ) l} {λ l . AT h l} (adj h)
+        (λ l . is-equiv-trans-trans (sym (hom-map-circ {S} {X} {A} e pX {u} {s'} h)) (cong (λ m . F m l) cγ))) in
+  let M : cocart-pb {S} {A} sA pS {u} {v} γ s' → cocart-pb {X} {A} sA pX {e u} {e v} eγ (e s') = λ w . Σ-base hmeU Q' (T1 w) in
+  let eM : is-equiv M = is-equiv-circ (Σ-base hmeU Q') T1 (is-equiv-Σ-base hmeU (is-equiv-hom-map {S} {X} e ee {u} {s'}) Q') eT1 in
+  let H : (g : hom v s') → GX (hme g) ≡ M (GS g) = λ g .
+    let C : hom u s' = comp-homᵣ S sS {u} {v} {s'} γ g in
+    let circC : hom-map {S} {A} pS {u} {s'} C ≡ hom-map {X} {A} pX {e u} {e s'} (hmeU C) = hom-map-circ {S} {X} {A} e pX {u} {s'} C in
+    let cg : hom-map {S} {A} pS {v} {s'} g ≡ hom-map {X} {A} pX {e v} {e s'} (hme g) = hom-map-circ {S} {X} {A} e pX {v} {s'} g in
+    let he : hmeU C ≡ comp-homᵣ X sX {e u} {e v} {e s'} eγ (hme g) = hom-map-comp S X e sS sX {u} {v} {s'} γ g in
+    let hX : hom-map {X} {A} pX {e u} {e s'} (comp-homᵣ X sX {e u} {e v} {e s'} eγ (hme g))
+               ≡ F (hom-map {X} {A} pX {e u} {e v} eγ) (hom-map {X} {A} pX {e v} {e s'} (hme g)) =
+      hom-map-comp X A pX sX sA {e u} {e v} {e s'} eγ (hme g) in
+    pb-path3 (hom-map {X} {A} pX {e u} {e s'}) (λ l . F (hom-map {X} {A} pX {e u} {e v} eγ) l) (sym he) (sym cg)
+      hX (adj C (hom-map {S} {A} pS {v} {s'} g) (hom-map-comp S A pS sS sA {u} {v} {s'} γ g))
+      (trans (equiv-alg {hom (e u) (e s')} {hom (pS u) (pS s')} {hom (pS u) (pS v)} {hom (pS v) (pS s')}
+                (hom-map {X} {A} pX {e u} {e s'}) F {hom-map {S} {A} pS {u} {s'} C} {hmeU C} circC
+                {comp-homᵣ X sX {e u} {e v} {e s'} eγ (hme g)} he
+                {hom-map {S} {A} pS {u} {v} γ} {hom-map {X} {A} pX {e u} {e v} eγ} cγ
+                {hom-map {S} {A} pS {v} {s'} g} {hom-map {X} {A} pX {e v} {e s'} (hme g)} cg hX)
+        (cong {hom-map {S} {A} pS {u} {s'} C ≡ F (hom-map {S} {A} pS {u} {v} γ) (hom-map {S} {A} pS {v} {s'} g)}
+              {hom-map {X} {A} pX {e u} {e s'} (hmeU C) ≡ F (hom-map {X} {A} pX {e u} {e v} eγ) (hom-map {S} {A} pS {v} {s'} g)}
+          (λ z . trans (sym circC) (trans z (cong (λ m . F m (hom-map {S} {A} pS {v} {s'} g)) cγ)))
+          (sym (hom-map-comp-circ S X A e pX sS sX sA {u} {v} {s'} γ g)))) in
+  (M , eM , H)
+
 -- cocartesian arrows are preserved by crisp equivalences over the base
 is-cocartesian-equiv ∷ {S X A ∷ U} (sS : is-segalᵣ S) (sX : is-segalᵣ X) (sA : is-segalᵣ A) (e ∷ S → X) (ee ∷ is-equiv e) (pX ∷ X → A)
   {u v : S} (γ : hom u v) →
@@ -548,47 +603,81 @@ is-cocartesian-equiv {S} {X} {A} sS sX sA e ee pX {u} {v} γ cS t =
     let GS : hom v s' → cocart-pb {S} {A} sA pS {u} {v} γ s' = cocart-gap {S} {A} sS sA pS {u} {v} γ s' in
     let GX : hom (e v) (e s') → cocart-pb {X} {A} sA pX {e u} {e v} eγ (e s') = cocart-gap {X} {A} sX sA pX {e u} {e v} eγ (e s') in
     let hme : hom v s' → hom (e v) (e s') = hom-map {S} {X} e {v} {s'} in
-    let hmeU : hom u s' → hom (e u) (e s') = hom-map {S} {X} e {u} {s'} in
-    let F : hom (pS u) (pS v) → hom (pS v) (pS s') → hom (pS u) (pS s') = λ m n . comp-homᵣ A sA {pS u} {pS v} {pS s'} m n in
-    let Q' : hom (e u) (e s') → U = λ h' . Σ (l : hom (pS v) (pS s')) . hom-map {X} {A} pX {e u} {e s'} h' ≡ F (hom-map {X} {A} pX {e u} {e v} eγ) l in
-    let cγ : hom-map {S} {A} pS {u} {v} γ ≡ hom-map {X} {A} pX {e u} {e v} eγ = hom-map-circ {S} {X} {A} e pX {u} {v} γ in
-    let AT : (h : hom u s') (l : hom (pS v) (pS s')) → U = λ h l . hom-map {X} {A} pX {e u} {e s'} (hmeU h) ≡ F (hom-map {X} {A} pX {e u} {e v} eγ) l in
-    let adj : (h : hom u s') (l : hom (pS v) (pS s')) → hom-map {S} {A} pS {u} {s'} h ≡ F (hom-map {S} {A} pS {u} {v} γ) l → AT h l = λ h l c .
-      trans (sym (hom-map-circ {S} {X} {A} e pX {u} {s'} h)) (trans c (cong (λ m . F m l) cγ)) in
-    let T1 : cocart-pb {S} {A} sA pS {u} {v} γ s' → Σ (h : hom u s') . Q' (hmeU h) =
-      tot {hom u s'} {λ h . Σ (l : hom (pS v) (pS s')) . hom-map {S} {A} pS {u} {s'} h ≡ F (hom-map {S} {A} pS {u} {v} γ) l} {λ h . Q' (hmeU h)}
-        (λ h . tot {hom (pS v) (pS s')} {λ l . hom-map {S} {A} pS {u} {s'} h ≡ F (hom-map {S} {A} pS {u} {v} γ) l} {λ l . AT h l} (adj h)) in
-    let eT1 : is-equiv T1 =
-      is-equiv-tot {hom u s'} {λ h . Σ (l : hom (pS v) (pS s')) . hom-map {S} {A} pS {u} {s'} h ≡ F (hom-map {S} {A} pS {u} {v} γ) l} {λ h . Q' (hmeU h)}
-        (λ h . tot {hom (pS v) (pS s')} {λ l . hom-map {S} {A} pS {u} {s'} h ≡ F (hom-map {S} {A} pS {u} {v} γ) l} {λ l . AT h l} (adj h))
-        (λ h . is-equiv-tot {hom (pS v) (pS s')} {λ l . hom-map {S} {A} pS {u} {s'} h ≡ F (hom-map {S} {A} pS {u} {v} γ) l} {λ l . AT h l} (adj h)
-          (λ l . is-equiv-trans-trans (sym (hom-map-circ {S} {X} {A} e pX {u} {s'} h)) (cong (λ m . F m l) cγ))) in
-    let M : cocart-pb {S} {A} sA pS {u} {v} γ s' → cocart-pb {X} {A} sA pX {e u} {e v} eγ (e s') = λ w . Σ-base hmeU Q' (T1 w) in
-    let eM : is-equiv M = is-equiv-circ (Σ-base hmeU Q') T1 (is-equiv-Σ-base hmeU (is-equiv-hom-map {S} {X} e ee {u} {s'}) Q') eT1 in
-    let H : (g : hom v s') → GX (hme g) ≡ M (GS g) = λ g .
-      let C : hom u s' = comp-homᵣ S sS {u} {v} {s'} γ g in
-      let circC : hom-map {S} {A} pS {u} {s'} C ≡ hom-map {X} {A} pX {e u} {e s'} (hmeU C) = hom-map-circ {S} {X} {A} e pX {u} {s'} C in
-      let cg : hom-map {S} {A} pS {v} {s'} g ≡ hom-map {X} {A} pX {e v} {e s'} (hme g) = hom-map-circ {S} {X} {A} e pX {v} {s'} g in
-      let he : hmeU C ≡ comp-homᵣ X sX {e u} {e v} {e s'} eγ (hme g) = hom-map-comp S X e sS sX {u} {v} {s'} γ g in
-      let hX : hom-map {X} {A} pX {e u} {e s'} (comp-homᵣ X sX {e u} {e v} {e s'} eγ (hme g))
-                 ≡ F (hom-map {X} {A} pX {e u} {e v} eγ) (hom-map {X} {A} pX {e v} {e s'} (hme g)) =
-        hom-map-comp X A pX sX sA {e u} {e v} {e s'} eγ (hme g) in
-      pb-path3 (hom-map {X} {A} pX {e u} {e s'}) (λ l . F (hom-map {X} {A} pX {e u} {e v} eγ) l) (sym he) (sym cg)
-        hX (adj C (hom-map {S} {A} pS {v} {s'} g) (hom-map-comp S A pS sS sA {u} {v} {s'} γ g))
-        (trans (equiv-alg {hom (e u) (e s')} {hom (pS u) (pS s')} {hom (pS u) (pS v)} {hom (pS v) (pS s')}
-                  (hom-map {X} {A} pX {e u} {e s'}) F {hom-map {S} {A} pS {u} {s'} C} {hmeU C} circC
-                  {comp-homᵣ X sX {e u} {e v} {e s'} eγ (hme g)} he
-                  {hom-map {S} {A} pS {u} {v} γ} {hom-map {X} {A} pX {e u} {e v} eγ} cγ
-                  {hom-map {S} {A} pS {v} {s'} g} {hom-map {X} {A} pX {e v} {e s'} (hme g)} cg hX)
-          (cong {hom-map {S} {A} pS {u} {s'} C ≡ F (hom-map {S} {A} pS {u} {v} γ) (hom-map {S} {A} pS {v} {s'} g)}
-                {hom-map {X} {A} pX {e u} {e s'} (hmeU C) ≡ F (hom-map {X} {A} pX {e u} {e v} eγ) (hom-map {S} {A} pS {v} {s'} g)}
-            (λ z . trans (sym circC) (trans z (cong (λ m . F m (hom-map {S} {A} pS {v} {s'} g)) cγ)))
-            (sym (hom-map-comp-circ S X A e pX sS sX sA {u} {v} {s'} γ g)))) in
-    is-equiv-cancel-r GX hme (is-equiv-hom-map {S} {X} e ee {v} {s'})
-      (is-equiv-htpy {hom v s'} {cocart-pb {X} {A} sA pX {e u} {e v} eγ (e s')} {λ g . M (GS g)} {λ g . GX (hme g)}
-        (λ g . sym (H g)) (is-equiv-circ M GS eM (cS s'))) in
+    let k : (Σ (M : cocart-pb {S} {A} sA pS {u} {v} γ s' → cocart-pb {X} {A} sA pX {e u} {e v} eγ (e s')) .
+               is-equiv M × ((g : hom v s') → GX (hme g) ≡ M (GS g))) → is-equiv GX =
+      fun (M , r) →
+        let eM : is-equiv M = Product.fst r in
+        let H : (g : hom v s') → GX (hme g) ≡ M (GS g) = Product.snd r in
+        is-equiv-cancel-r GX hme (is-equiv-hom-map {S} {X} e ee {v} {s'})
+          (is-equiv-htpy {hom v s'} {cocart-pb {X} {A} sA pX {e u} {e v} eγ (e s')} {λ g . M (GS g)} {λ g . GX (hme g)}
+            (λ g . sym (H g)) (is-equiv-circ M GS eM (cS s'))) in
+    k (cocart-gap-equiv-square {S} {X} {A} sS sX sA e ee pX {u} {v} γ s') in
   let σ : section e = is-equiv-sec e ee in
   subst (λ y . is-equiv (cocart-gap {X} {A} sX sA pX {e u} {e v} eγ y)) (snd _ σ t) (at (section-map e σ t))
+
+-- and reflected by them
+is-cocartesian-equiv-inv ∷ {S X A ∷ U} (sS : is-segalᵣ S) (sX : is-segalᵣ X) (sA : is-segalᵣ A) (e ∷ S → X) (ee ∷ is-equiv e) (pX ∷ X → A)
+  {u v : S} (γ : hom u v) →
+  is-cocartesian {X} {A} sX sA pX {e u} {e v} (hom-map {S} {X} e {u} {v} γ) → is-cocartesian {S} {A} sS sA (λ w . pX (e w)) {u} {v} γ
+is-cocartesian-equiv-inv {S} {X} {A} sS sX sA e ee pX {u} {v} γ cX s' =
+  let pS ∷ S → A = λ w . pX (e w) in
+  let eγ : hom (e u) (e v) = hom-map {S} {X} e {u} {v} γ in
+  let GS : hom v s' → cocart-pb {S} {A} sA pS {u} {v} γ s' = cocart-gap {S} {A} sS sA pS {u} {v} γ s' in
+  let GX : hom (e v) (e s') → cocart-pb {X} {A} sA pX {e u} {e v} eγ (e s') = cocart-gap {X} {A} sX sA pX {e u} {e v} eγ (e s') in
+  let hme : hom v s' → hom (e v) (e s') = hom-map {S} {X} e {v} {s'} in
+  let k : (Σ (M : cocart-pb {S} {A} sA pS {u} {v} γ s' → cocart-pb {X} {A} sA pX {e u} {e v} eγ (e s')) .
+             is-equiv M × ((g : hom v s') → GX (hme g) ≡ M (GS g))) → is-equiv GS =
+    fun (M , r) →
+      let eM : is-equiv M = Product.fst r in
+      let H : (g : hom v s') → GX (hme g) ≡ M (GS g) = Product.snd r in
+      is-equiv-cancel-l M GS eM
+        (is-equiv-htpy {hom v s'} {cocart-pb {X} {A} sA pX {e u} {e v} eγ (e s')} {λ g . GX (hme g)} {λ g . M (GS g)}
+          H (is-equiv-circ GX hme (cX (e s')) (is-equiv-hom-map {S} {X} e ee {v} {s'}))) in
+  k (cocart-gap-equiv-square {S} {X} {A} sS sX sA e ee pX {u} {v} γ s')
+
+-- cocartesian 1-cells for pX ∘ e and for pX correspond, along e
+cocart-cell-equiv ∷ {S X A ∷ U} (sS : is-segalᵣ S) (sX : is-segalᵣ X) (sA : is-segalᵣ A) (e ∷ S → X) (ee ∷ is-equiv e) (pX ∷ X → A) →
+  cocart-cell {S} {A} sS sA (λ w . pX (e w)) → cocart-cell {X} {A} sX sA pX
+cocart-cell-equiv {S} {X} {A} sS sX sA e ee pX w =
+  Σ-base {arrᵣ S} {arrᵣ X} (postᵣ {𝕀} {S} {X} e) (λ f' . is-cocartesian {X} {A} sX sA pX {srcᵣ f'} {tgtᵣ f'} (cell-hom {X} f'))
+    (tot {arrᵣ S} {λ f . is-cocartesian {S} {A} sS sA (λ w . pX (e w)) {srcᵣ f} {tgtᵣ f} (cell-hom {S} f)}
+         {λ f . is-cocartesian {X} {A} sX sA pX {e (srcᵣ f)} {e (tgtᵣ f)} (cell-hom {X} (postᵣ {𝕀} {S} {X} e f))}
+      (λ f . is-cocartesian-equiv {S} {X} {A} sS sX sA e ee pX {srcᵣ f} {tgtᵣ f} (cell-hom {S} f)) w)
+
+is-equiv-cocart-cell-equiv ∷ {S X A ∷ U} (sS : is-segalᵣ S) (sX : is-segalᵣ X) (sA : is-segalᵣ A) (e ∷ S → X) (ee ∷ is-equiv e) (pX ∷ X → A) →
+  is-equiv (cocart-cell-equiv {S} {X} {A} sS sX sA e ee pX)
+is-equiv-cocart-cell-equiv {S} {X} {A} sS sX sA e ee pX =
+  let C : arrᵣ X → U = λ f' . is-cocartesian {X} {A} sX sA pX {srcᵣ f'} {tgtᵣ f'} (cell-hom {X} f') in
+  let CS : arrᵣ S → U = λ f . is-cocartesian {S} {A} sS sA (λ w . pX (e w)) {srcᵣ f} {tgtᵣ f} (cell-hom {S} f) in
+  let c : (f : arrᵣ S) → CS f → C (postᵣ {𝕀} {S} {X} e f) =
+    λ f . is-cocartesian-equiv {S} {X} {A} sS sX sA e ee pX {srcᵣ f} {tgtᵣ f} (cell-hom {S} f) in
+  is-equiv-circ (Σ-base {arrᵣ S} {arrᵣ X} (postᵣ {𝕀} {S} {X} e) C) (tot {arrᵣ S} {CS} {λ f . C (postᵣ {𝕀} {S} {X} e f)} c)
+    (is-equiv-Σ-base (postᵣ {𝕀} {S} {X} e) (postᵣ-equiv 𝕀 e ee) C)
+    (is-equiv-tot {arrᵣ S} {CS} {λ f . C (postᵣ {𝕀} {S} {X} e f)} c
+      (λ f . is-equiv-prop
+        (is-prop-is-cocartesian {S} {A} sS sA (λ w . pX (e w)) {srcᵣ f} {tgtᵣ f} (cell-hom {S} f))
+        (is-prop-is-cocartesian {X} {A} sX sA pX {e (srcᵣ f)} {e (tgtᵣ f)} (cell-hom {X} (postᵣ {𝕀} {S} {X} e f)))
+        (c f)
+        (is-cocartesian-equiv-inv {S} {X} {A} sS sX sA e ee pX {srcᵣ f} {tgtᵣ f} (cell-hom {S} f))))
+
+-- the lifting maps commute with these equivalences
+cocart-cell-lift-equiv ∷ {S X A ∷ U} (sS : is-segalᵣ S) (sX : is-segalᵣ X) (sA : is-segalᵣ A) (e ∷ S → X) (ee ∷ is-equiv e) (pX ∷ X → A)
+  (w : cocart-cell {S} {A} sS sA (λ s . pX (e s))) →
+  cocart-cell-lift {X} {A} sX sA pX (cocart-cell-equiv {S} {X} {A} sS sX sA e ee pX w)
+    ≡ Σ-base {S} {X} e (λ x . Σ (u : arrᵣ A) . pX x ≡ srcᵣ u) (cocart-cell-lift {S} {A} sS sA (λ s . pX (e s)) w)
+cocart-cell-lift-equiv {S} {X} {A} sS sX sA e ee pX (f , c) = refl
+
+-- cocartesian fibrations are invariant under crisp equivalences over the base
+is-cocartesian-fibration-equiv ∷ {S X A ∷ U} (sS : is-segalᵣ S) (sX : is-segalᵣ X) (sA : is-segalᵣ A) (e ∷ S → X) (ee ∷ is-equiv e) (pX ∷ X → A) →
+  is-cocartesian-fibration {S} {A} sS sA (λ s . pX (e s)) → is-cocartesian-fibration {X} {A} sX sA pX
+is-cocartesian-fibration-equiv {S} {X} {A} sS sX sA e ee pX cS =
+  is-equiv-conj (cocart-cell-lift {S} {A} sS sA (λ s . pX (e s))) (cocart-cell-lift {X} {A} sX sA pX)
+    (cocart-cell-equiv {S} {X} {A} sS sX sA e ee pX)
+    (Σ-base {S} {X} e (λ x . Σ (u : arrᵣ A) . pX x ≡ srcᵣ u))
+    (cocart-cell-lift-equiv {S} {X} {A} sS sX sA e ee pX)
+    (is-equiv-cocart-cell-equiv {S} {X} {A} sS sX sA e ee pX)
+    (is-equiv-Σ-base e ee (λ x . Σ (u : arrᵣ A) . pX x ≡ srcᵣ u))
+    cS
 
 --
 -- Cocartesian maps

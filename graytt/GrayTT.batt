@@ -17,6 +17,7 @@ open import Point-pullback
 open import Pullback-hom
 open import Base-change
 open import Coslice
+open import Hom-family
 open import Composable
 open import Associativity
 open import Simplex-edges

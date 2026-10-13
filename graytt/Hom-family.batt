@@ -1,0 +1,69 @@
+--
+-- Hom families are covariant
+--
+-- For A oplax-Segal and oplax-complete and a crisp a : A, the family x ↦ hom a x is covariant:
+-- the first projection Σ (x : A) . hom a x → A is a cocartesian fibration (hom-family-covariant).
+--
+-- The total space is the coslice: e : a/A → Σ (x : A) . hom a x, (f , p) ↦ (f 1 , f , p , refl) is a
+-- crisp equivalence (coslice→hom-family) over A, i.e. fst ∘ e is the projection ev₁ : a/A → A,
+-- judgmentally. Hence Σ (x : A) . hom a x is oplax-Segal (from is-segalᵣ-coslice), and fst is a
+-- cocartesian fibration since ev₁ is (coslice-fibration, transported along e by
+-- is-cocartesian-fibration-equiv, Fibration.batt).
+--
+-- Postulates relied on: as coslice-fibration: fold-lemma (Fold.batt), objectwise-equiv
+-- (Axiom.batt), pushout-up, univalence, truncation, is-set-𝕀.
+--
+
+open import Stdlib
+open import Hom
+open import Segal
+open import Complete
+open import Fibration
+open import Covariant
+open import Local
+open import Coslice
+
+-- the family of homs out of a
+hom-family ∷ {A ∷ U} (a ∷ A) → A → U
+hom-family {A} a x = hom {A} a x
+
+-- its total space is the coslice
+coslice→hom-family ∷ {A ∷ U} (a ∷ A) → coslice A a → Σ (x : A) . hom-family {A} a x
+coslice→hom-family {A} a w = (coslice-tgt {A} {a} w , coslice-cell {A} {a} w , coslice-src {A} {a} w , refl)
+
+hom-family→coslice ∷ {A ∷ U} (a ∷ A) → (Σ (x : A) . hom-family {A} a x) → coslice A a
+hom-family→coslice {A} a (x , h) = (hom-cell {A} {a} {x} h , hom-src {A} {a} {x} h)
+
+-- a hom with its target path made trivial, by path induction on that path
+hom-family-tgt-path ∷ {A ∷ U} {a : A} (f : arrᵣ A) (p : srcᵣ f ≡ a) {x : A} (q : tgtᵣ f ≡ x) →
+  (tgtᵣ f , f , p , refl) ≡{Σ (y : A) . hom {A} a y} (x , f , p , q)
+hom-family-tgt-path {A} {a} f p refl = refl
+
+is-equiv-coslice→hom-family ∷ {A ∷ U} (a ∷ A) → is-equiv (coslice→hom-family {A} a)
+is-equiv-coslice→hom-family {A} a =
+  let sec : (w : Σ (x : A) . hom-family {A} a x) → coslice→hom-family {A} a (hom-family→coslice {A} a w) ≡ w =
+    fun (x , h) →
+      let k : (h : hom {A} a x) → coslice→hom-family {A} a (hom-family→coslice {A} a (x , h)) ≡ (x , h) =
+        fun (f , r) →
+          let k2 : (r : (srcᵣ f ≡ a) × (tgtᵣ f ≡ x)) → coslice→hom-family {A} a (hom-family→coslice {A} a (x , f , r)) ≡ (x , f , r) =
+            fun (p , q) → hom-family-tgt-path {A} {a} f p {x} q in
+          k2 r in
+      k h in
+  let retr : (w : coslice A a) → hom-family→coslice {A} a (coslice→hom-family {A} a w) ≡ w =
+    fun (f , p) → refl in
+  ((hom-family→coslice {A} a , sec) , (hom-family→coslice {A} a , retr))
+
+-- the total space of the hom family is oplax-Segal
+is-segalᵣ-hom-family ∷ {A ∷ U} (sA : is-segalᵣ A) (a ∷ A) → is-segalᵣ (Σ (x : A) . hom-family {A} a x)
+is-segalᵣ-hom-family {A} sA a =
+  is-segalᵣ-equiv-cod {coslice A a} {Σ (x : A) . hom-family {A} a x}
+    (coslice→hom-family {A} a) (is-equiv-coslice→hom-family {A} a) (is-segalᵣ-coslice {A} sA a)
+
+-- hom families are covariant
+hom-family-covariant ∷ {A ∷ U} (sA : is-segalᵣ A) (cA : is-completeᵣ A) (a ∷ A) →
+  is-covariant {A} (hom-family {A} a) sA (is-segalᵣ-hom-family {A} sA a)
+hom-family-covariant {A} sA cA a =
+  is-cocartesian-fibration-equiv {coslice A a} {Σ (x : A) . hom-family {A} a x} {A}
+    (is-segalᵣ-coslice {A} sA a) (is-segalᵣ-hom-family {A} sA a) sA
+    (coslice→hom-family {A} a) (is-equiv-coslice→hom-family {A} a) (fst (hom-family {A} a))
+    (coslice-fibration {A} sA cA a)
