@@ -236,3 +236,26 @@ happly-cong-pre ∷ {A B C : U} (h : A → B) {f g : B → C} (p : f ≡ g) →
   happly {A} {λ _ . C} {λ a . f (h a)} {λ a . g (h a)} (cong {B → C} {A → C} (λ k . λ a . k (h a)) p)
     ≡ (λ a . happly {B} {λ _ . C} {f} {g} p (h a))
 happly-cong-pre {A} {B} {C} h {f} refl = refl
+
+---
+--- More path algebra
+---
+
+-- naturality of a family of paths to a fixed point
+nat-to-point ∷ {H T : Type} (P : H → T) {t : T} (k : (h : H) → P h ≡ t) {h h' : H} (α : h ≡ h') → k h ≡ trans (cong P α) (k h')
+nat-to-point {H} {T} P {t} k {h} refl = sym (trans-refl-l (k h))
+
+trans-sym-refl-cancel ∷ {T : Type} {x y z : T} (a : x ≡ y) (c : z ≡ y) → a ≡ trans (trans a (sym c)) (trans refl c)
+trans-sym-refl-cancel {T} {x} {y} {z} a c =
+  J' (λ z' y' c' . (a' : x ≡ y') → a' ≡ trans (trans a' (sym c')) (trans refl c')) (λ y' a' . refl) c a
+
+trans-trans-sym-cancel ∷ {A : Type} {x y z : A} (p : x ≡ y) (q : x ≡ z) → trans p (trans (sym p) q) ≡ q
+trans-trans-sym-cancel {A} {x} {y} {z} p q = J x (λ y' p' . trans p' (trans (sym p') q) ≡ q) (trans (trans-refl-l (trans refl q)) (trans-refl-l q)) p
+
+subst-path-l ∷ {M T : Type} (P : M → T) {t : T} {m m' : M} (e : m ≡ m') (c : P m ≡ t) →
+  subst (λ n . P n ≡ t) e c ≡ trans (cong P (sym e)) c
+subst-path-l {M} {T} P {t} {m} refl c = sym (trans-refl-l c)
+
+cong2-split ∷ {P1 P2 T : Type} (F : P1 → P2 → T) {a a' : P1} (p : a ≡ a') {c c' : P2} (q : c ≡ c') →
+  cong2 F p q ≡ trans (cong (λ x . F x c) p) (cong (F a') q)
+cong2-split {P1} {P2} {T} F {a} refl {c} refl = refl

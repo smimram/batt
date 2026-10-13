@@ -1,0 +1,133 @@
+--
+-- The base change lemma (lem:cocart_arrow_base_change), for the pullback of a point
+--
+-- For crisp r : Y → B and b : B, every arrow γ of the pullback S = Σ (y : Y) . b ≡ r y of b : 1 → B
+-- along r is cocartesian for the projection ι : S → Y (is-cocartesian-point-pullback-proj). This is the base change
+-- lemma of BATT.tex for the pullback of b : 1 → B along r: the image of γ in 1 is an identity,
+-- hence cocartesian.
+--
+-- Proof, as in BATT.tex: by the hom types of pullbacks (is-equiv-point-pullback-hom→data, Pullback-hom.batt), the
+-- fibre product of the gap map of γ reduces to the homs k of Y out of ι v whose image is a
+-- transported identity, and the gap map to composition with the image of γ, itself a transported
+-- identity, hence an isomorphism. The coherence of the identification with composition comes from
+-- the construction of the image path by crisp path induction (hom-map-null-comp, Pullback-hom.batt). The proof is
+-- adapted from a first version by Samuel Mimram.
+--
+-- Postulates relied on: objectwise-equiv, univalence, truncation, is-set-𝕀.
+--
+
+open import Stdlib
+open import Hom
+open import Segal
+open import Composition
+open import Functoriality
+open import Iso
+open import Fibration
+open import Transported-id
+open import Point-pullback
+open import Pullback-hom
+
+-- the path algebra of the identification of the gap map with composition
+base-change-path-alg-core ∷ {T : U} {X0 Y0 : T} (c0 : X0 ≡ Y0) {Z0 : T} (h : Y0 ≡ Z0) → trans refl (trans (sym c0) (trans c0 (trans refl h))) ≡ h
+base-change-path-alg-core {T} {X0} {Y0} c0 refl = trans (trans-refl-l (trans (sym c0) c0)) (trans-sym-l c0)
+
+base-change-path-alg ∷ {M T P1 P2 : U} (P : M → T) (F : P1 → P2 → T) {X0 : T} {m : M} (c0 : X0 ≡ P m) {m' : M} (e : m ≡ m')
+  {a0 a : P1} (d1 : a0 ≡ a) {b0 b : P2} (d2 : b0 ≡ b) (h : P m' ≡ F a b)
+  {i1 : P1} (k1 : a0 ≡ i1) {i2 : P2} (k2 : b0 ≡ i2) {t : T} (z : F i1 i2 ≡ t) →
+  trans (cong P (sym e)) (trans (sym c0) (trans (trans c0 (trans (cong P e) (trans h (sym (cong2 F d1 d2))))) (trans (cong2 F k1 k2) z)))
+  ≡ trans h (trans (cong2 F (trans (sym d1) k1) (trans (sym d2) k2)) z)
+base-change-path-alg {M} {T} {P1} {P2} P F {X0} {m} c0 refl {a0} refl {b0} refl h refl refl refl = base-change-path-alg-core c0 h
+
+is-cocartesian-point-pullback-proj ∷ {Y B ∷ U} (sY : is-segalᵣ Y) (sB : is-segalᵣ B) (r ∷ Y → B) (b ∷ B) (sS : is-segalᵣ (point-pullback {Y} {B} r b))
+  {u v : point-pullback {Y} {B} r b} (γ : hom u v) → is-cocartesian {point-pullback {Y} {B} r b} {Y} sS sY (point-pullback-proj {Y} {B} r b) {u} {v} γ
+is-cocartesian-point-pullback-proj {Y} {B} sY sB r b sS {u} {v} γ s =
+  let S ∷ U = point-pullback {Y} {B} r b in
+  let ι ∷ S → Y = point-pullback-proj {Y} {B} r b in
+  let f ∷ S → B = λ w . r (ι w) in
+  let G ∷ (λ _ . b) ≡{S → B} f = point-pullback-null {Y} {B} r b in
+  let hG : (w : S) → b ≡ f w = happly {S} {λ _ . B} G in
+  let ιγ : hom (ι u) (ι v) = hom-map {S} {Y} ι {u} {v} γ in
+  let C : (w0 w1 : S) → hom (ι w0) (ι w1) → U = λ w0 w1 k . hom-map {Y} {B} r {ι w0} {ι w1} k ≡ point-pullback-id {Y} {B} r b w0 w1 in
+  let cY : hom (ι v) (ι s) → hom (ι u) (ι s) = λ k . comp-homᵣ Y sY {ι u} {ι v} {ι s} ιγ k in
+  let FB : hom (f u) (f v) → hom (f v) (f s) → hom (f u) (f s) = λ m n . comp-homᵣ B sB {f u} {f v} {f s} m n in
+  let Ωus : hom u s → Σ (m : hom (ι u) (ι s)) . C u s m = point-pullback-hom→data {Y} {B} r b u s in
+  let Ωvs : hom v s → Σ (k : hom (ι v) (ι s)) . C v s k = point-pullback-hom→data {Y} {B} r b v s in
+  let Q : (Σ (m : hom (ι u) (ι s)) . C u s m) → U = λ mc . Σ (k : hom (ι v) (ι s)) . fst (C u s) mc ≡ cY k in
+  let Gap : hom v s → cocart-pb {S} {Y} sY ι {u} {v} γ s = cocart-gap {S} {Y} sS sY ι {u} {v} γ s in
+  let Θ1 : cocart-pb {S} {Y} sY ι {u} {v} γ s → Σ (mc : Σ (m : hom (ι u) (ι s)) . C u s m) . Q mc = Σ-base Ωus Q in
+  let Θ2 : (Σ (mc : Σ (m : hom (ι u) (ι s)) . C u s m) . Q mc) → Σ (k : hom (ι v) (ι s)) . C u s (cY k) = family-pullback→Σ (C u s) cY in
+  let IC : FB (point-pullback-id {Y} {B} r b u v) (point-pullback-id {Y} {B} r b v s) ≡ point-pullback-id {Y} {B} r b u s =
+    transported-id-comp {B} sB {b} {f u} (hG u) {f v} (hG v) {f s} (hG s) in
+  let ργ : hom-map {Y} {B} r {ι u} {ι v} ιγ ≡ point-pullback-id {Y} {B} r b u v = point-pullback-hom-image {Y} {B} r b {u} {v} γ in
+  -- the map on fibres: compose with the image of γ
+  let φ : (k : hom (ι v) (ι s)) → C v s k → C u s (cY k) = λ k c .
+    trans (hom-map-comp Y B r sY sB {ι u} {ι v} {ι s} ιγ k) (trans (cong2 FB ργ c) IC) in
+  let φ' : (k : hom (ι v) (ι s)) → C v s k → C u s (cY k) = λ k c .
+    trans (trans (hom-map-comp Y B r sY sB {ι u} {ι v} {ι s} ιγ k) (cong (λ x . FB x (hom-map {Y} {B} r {ι v} {ι s} k)) ργ))
+      (trans (cong (FB (point-pullback-id {Y} {B} r b u v)) c) IC) in
+  let A0 : (k : hom (ι v) (ι s)) → hom-map {Y} {B} r {ι u} {ι s} (cY k) ≡ FB (point-pullback-id {Y} {B} r b u v) (hom-map {Y} {B} r {ι v} {ι s} k) = λ k .
+    trans (hom-map-comp Y B r sY sB {ι u} {ι v} {ι s} ιγ k) (cong (λ x . FB x (hom-map {Y} {B} r {ι v} {ι s} k)) ργ) in
+  let eφ' : (k : hom (ι v) (ι s)) → is-equiv (φ' k) = λ k .
+    is-equiv-circ {hom-map {Y} {B} r {ι v} {ι s} k ≡ point-pullback-id {Y} {B} r b v s}
+      {FB (point-pullback-id {Y} {B} r b u v) (hom-map {Y} {B} r {ι v} {ι s} k) ≡ FB (point-pullback-id {Y} {B} r b u v) (point-pullback-id {Y} {B} r b v s)}
+      {hom-map {Y} {B} r {ι u} {ι s} (cY k) ≡ point-pullback-id {Y} {B} r b u s}
+      (λ p . trans (A0 k) (trans p IC)) (cong (FB (point-pullback-id {Y} {B} r b u v)) {hom-map {Y} {B} r {ι v} {ι s} k} {point-pullback-id {Y} {B} r b v s})
+      (is-equiv-trans-trans (A0 k) IC)
+      (ap-equiv (FB (point-pullback-id {Y} {B} r b u v))
+        (is-equiv-comp-iso-l {B} sB {f u} {f v} (point-pullback-id {Y} {B} r b u v) (is-iso-transported-id {B} sB {b} {f u} (hG u) {f v} (hG v)) (f s))
+        (hom-map {Y} {B} r {ι v} {ι s} k) (point-pullback-id {Y} {B} r b v s)) in
+  let φφ' : (k : hom (ι v) (ι s)) (c : C v s k) → φ' k c ≡ φ k c = λ k c .
+    let H : hom-map {Y} {B} r {ι u} {ι s} (cY k) ≡ FB (hom-map {Y} {B} r {ι u} {ι v} ιγ) (hom-map {Y} {B} r {ι v} {ι s} k) =
+      hom-map-comp Y B r sY sB {ι u} {ι v} {ι s} ιγ k in
+    let Ap : FB (hom-map {Y} {B} r {ι u} {ι v} ιγ) (hom-map {Y} {B} r {ι v} {ι s} k) ≡ FB (point-pullback-id {Y} {B} r b u v) (hom-map {Y} {B} r {ι v} {ι s} k) =
+      cong (λ x . FB x (hom-map {Y} {B} r {ι v} {ι s} k)) ργ in
+    let Bp : FB (point-pullback-id {Y} {B} r b u v) (hom-map {Y} {B} r {ι v} {ι s} k) ≡ FB (point-pullback-id {Y} {B} r b u v) (point-pullback-id {Y} {B} r b v s) =
+      cong (FB (point-pullback-id {Y} {B} r b u v)) c in
+    trans (assoc H Ap (trans Bp IC))
+      (cong {FB (hom-map {Y} {B} r {ι u} {ι v} ιγ) (hom-map {Y} {B} r {ι v} {ι s} k) ≡ point-pullback-id {Y} {B} r b u s}
+            {hom-map {Y} {B} r {ι u} {ι s} (cY k) ≡ point-pullback-id {Y} {B} r b u s}
+        (λ z . trans H z)
+        (trans (sym (assoc Ap Bp IC))
+          (cong {FB (hom-map {Y} {B} r {ι u} {ι v} ιγ) (hom-map {Y} {B} r {ι v} {ι s} k) ≡ FB (point-pullback-id {Y} {B} r b u v) (point-pullback-id {Y} {B} r b v s)}
+                {FB (hom-map {Y} {B} r {ι u} {ι v} ιγ) (hom-map {Y} {B} r {ι v} {ι s} k) ≡ point-pullback-id {Y} {B} r b u s}
+            (λ z . trans z IC) (sym (cong2-split FB ργ c))))) in
+  let eφ : (k : hom (ι v) (ι s)) → is-equiv (φ k) = λ k .
+    is-equiv-htpy {C v s k} {C u s (cY k)} {φ' k} {φ k} (φφ' k) (eφ' k) in
+  -- the gap map, up to these equivalences, is the map on fibres
+  let ρcomp : (g : hom v s) →
+      subst (C u s) (hom-map-comp S Y ι sS sY {u} {v} {s} γ g) (point-pullback-hom-image {Y} {B} r b {u} {s} (comp-homᵣ S sS {u} {v} {s} γ g))
+      ≡ φ (hom-map {S} {Y} ι {v} {s} g) (point-pullback-hom-image {Y} {B} r b {v} {s} g) = λ g .
+    let Cg : hom u s = comp-homᵣ S sS {u} {v} {s} γ g in
+    let ιg : hom (ι v) (ι s) = hom-map {S} {Y} ι {v} {s} g in
+    let hr : hom (ι u) (ι s) → hom (f u) (f s) = hom-map {Y} {B} r {ι u} {ι s} in
+    let e : hom-map {S} {Y} ι {u} {s} Cg ≡ cY ιg = hom-map-comp S Y ι sS sY {u} {v} {s} γ g in
+    let circC : hom-map {S} {B} f {u} {s} Cg ≡ hr (hom-map {S} {Y} ι {u} {s} Cg) = hom-map-circ {S} {Y} {B} ι r {u} {s} Cg in
+    let nullγ : hom-map {S} {B} f {u} {v} γ ≡ point-pullback-id {Y} {B} r b u v = hom-map-null {S} {B} {b} f G {u} {v} γ in
+    let nullg : hom-map {S} {B} f {v} {s} g ≡ point-pullback-id {Y} {B} r b v s = hom-map-null {S} {B} {b} f G {v} {s} g in
+    let K2 : FB (hom-map {S} {B} f {u} {v} γ) (hom-map {S} {B} f {v} {s} g) ≡ point-pullback-id {Y} {B} r b u s = trans (cong2 FB nullγ nullg) IC in
+    trans (subst-path-l hr e (point-pullback-hom-image {Y} {B} r b {u} {s} Cg))
+      (trans (cong {hom-map {S} {B} f {u} {s} Cg ≡ point-pullback-id {Y} {B} r b u s} {hr (cY ιg) ≡ point-pullback-id {Y} {B} r b u s}
+                  (λ z . trans (cong hr (sym e)) (trans (sym circC) z))
+                  (trans (hom-map-null-comp {S} {B} sS sB {b} f G {u} {v} {s} γ g)
+                    (cong {hom-map {S} {B} f {u} {s} Cg ≡ FB (hom-map {S} {B} f {u} {v} γ) (hom-map {S} {B} f {v} {s} g)}
+                          {hom-map {S} {B} f {u} {s} Cg ≡ point-pullback-id {Y} {B} r b u s}
+                      (λ z . trans z K2) (hom-map-comp-circ S Y B ι r sS sY sB {u} {v} {s} γ g))))
+          (base-change-path-alg {hom (ι u) (ι s)} {hom (f u) (f s)} {hom (f u) (f v)} {hom (f v) (f s)} hr FB
+            {hom-map {S} {B} f {u} {s} Cg} {hom-map {S} {Y} ι {u} {s} Cg} circC {cY ιg} e
+            {hom-map {S} {B} f {u} {v} γ} {hom-map {Y} {B} r {ι u} {ι v} ιγ} (hom-map-circ {S} {Y} {B} ι r {u} {v} γ)
+            {hom-map {S} {B} f {v} {s} g} {hom-map {Y} {B} r {ι v} {ι s} ιg} (hom-map-circ {S} {Y} {B} ι r {v} {s} g)
+            (hom-map-comp Y B r sY sB {ι u} {ι v} {ι s} ιγ ιg)
+            {point-pullback-id {Y} {B} r b u v} nullγ {point-pullback-id {Y} {B} r b v s} nullg {point-pullback-id {Y} {B} r b u s} IC)) in
+  let Θ : cocart-pb {S} {Y} sY ι {u} {v} γ s → Σ (k : hom (ι v) (ι s)) . C u s (cY k) = λ w . Θ2 (Θ1 w) in
+  let eΘ : is-equiv Θ = is-equiv-circ Θ2 Θ1 (is-equiv-family-pullback→Σ (C u s) cY) (is-equiv-Σ-base Ωus (is-equiv-point-pullback-hom→data {Y} {B} r b u s) Q) in
+  let T : hom v s → Σ (k : hom (ι v) (ι s)) . C u s (cY k) =
+    λ g . tot {hom (ι v) (ι s)} {C v s} {λ k . C u s (cY k)} φ (Ωvs g) in
+  let eT : is-equiv T =
+    is-equiv-circ (tot {hom (ι v) (ι s)} {C v s} {λ k . C u s (cY k)} φ) Ωvs
+      (is-equiv-tot {hom (ι v) (ι s)} {C v s} {λ k . C u s (cY k)} φ eφ) (is-equiv-point-pullback-hom→data {Y} {B} r b v s) in
+  is-equiv-cancel-l Θ Gap eΘ
+    (is-equiv-htpy {hom v s} {Σ (k : hom (ι v) (ι s)) . C u s (cY k)} {T} {λ g . Θ (Gap g)}
+      (λ g . cong {C u s (cY (hom-map {S} {Y} ι {v} {s} g))} {Σ (k : hom (ι v) (ι s)) . C u s (cY k)}
+               (λ c . (hom-map {S} {Y} ι {v} {s} g , c)) (sym (ρcomp g)))
+      eT)
+

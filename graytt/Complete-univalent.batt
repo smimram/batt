@@ -44,25 +44,6 @@ open import FreeEquiv-up
 -- The total space of isomorphisms
 --
 
--- homs with free endpoints
-homs-total ∷ (X ∷ U) → U
-homs-total X = Σ (x : X) . Σ (y : X) . hom x y
-
-homs-src ∷ {X ∷ U} → homs-total X → X
-homs-src {X} w = fst {X} (λ x . Σ (y : X) . hom x y) w
-
-homs-tgt ∷ {X ∷ U} → homs-total X → X
-homs-tgt {X} w = fst {X} (λ y . hom (homs-src {X} w) y) (snd {X} (λ x . Σ (y : X) . hom x y) w)
-
-homs-hom ∷ {X ∷ U} (w : homs-total X) → hom (homs-src {X} w) (homs-tgt {X} w)
-homs-hom {X} w = snd {X} (λ y . hom (homs-src {X} w) y) (snd {X} (λ x . Σ (y : X) . hom x y) w)
-
-homs-eta ∷ {X ∷ U} (w : homs-total X) → (homs-src {X} w , homs-tgt {X} w , homs-hom {X} w) ≡{homs-total X} w
-homs-eta {X} (x , r) =
-  let k : (r : Σ (y : X) . hom x y) → (x , fst {X} (λ y . hom x y) r , snd {X} (λ y . hom x y) r) ≡{homs-total X} (x , r) =
-    fun (y , f) → refl in
-  k r
-
 -- isomorphisms with free endpoints
 iso-total-biinv ∷ {X ∷ U} (s : is-segalᵣ X) → homs-total X → U
 iso-total-biinv {X} s w = is-biinv-hom {X} s {homs-src {X} w} {homs-tgt {X} w} (homs-hom {X} w)

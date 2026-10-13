@@ -1,0 +1,200 @@
+--
+-- The pullback of a point
+--
+-- For crisp r : Y → B and b : B, the pullback of b : 1 → B along r is
+--
+--   point-pullback r b := Σ (y : Y) . b ≡ r y
+--
+-- (the orientation of the pullbacks of stdlib/Pullback.batt), with its projection to Y and the
+-- paths of its points. The map r ∘ proj has a crisp path from the constant map at b
+-- (point-pullback-null), whose values are the paths of the points (point-pullback-null-at), and the
+-- images of two points are related by a transported identity (point-pullback-id).
+--
+-- Oplax maps into the point pullback are oplax cones over 1 → B ← Y (point-pullback→coneᵣ, an
+-- equivalence by the oplax universal property of pullbacks, Pullback-up.batt), equivalently, for
+-- K = 𝕀, arrows u of Y with a path from r ∘ u to the constant arrow at b (arr→path-cone).
+--
+-- Postulates relied on: objectwise-equiv, univalence, truncation, is-set-𝕀.
+--
+
+open import Stdlib
+open import Hom
+open import Segal
+open import Composition
+open import Composable
+open import Simplex-edges
+open import Unitality
+open import Functoriality
+open import Iso
+open import Transported-id
+open import Pullback-up
+
+point-pullback ∷ {Y B ∷ U} (r ∷ Y → B) (b ∷ B) → U
+point-pullback {Y} {B} r b = Σ (y : Y) . b ≡ r y
+
+point-pullback-proj ∷ {Y B ∷ U} (r ∷ Y → B) (b ∷ B) → point-pullback {Y} {B} r b → Y
+point-pullback-proj {Y} {B} r b w = fst (λ y . b ≡ r y) w
+
+point-pullback-path ∷ {Y B ∷ U} (r ∷ Y → B) (b ∷ B) (w : point-pullback {Y} {B} r b) → b ≡ r (point-pullback-proj {Y} {B} r b w)
+point-pullback-path {Y} {B} r b w = snd (λ y . b ≡ r y) w
+
+-- the path from the constant map at b to r ∘ ι
+point-pullback-null ∷ {Y B ∷ U} (r ∷ Y → B) (b ∷ B) →
+  (λ _ . b) ≡{point-pullback {Y} {B} r b → B} (λ w . r (point-pullback-proj {Y} {B} r b w))
+point-pullback-null {Y} {B} r b =
+  funext-htpy {point-pullback {Y} {B} r b} {λ _ . B} (λ _ . b) (λ w . r (point-pullback-proj {Y} {B} r b w))
+    (point-pullback-path {Y} {B} r b)
+
+point-pullback-null-at ∷ {Y B ∷ U} (r ∷ Y → B) (b ∷ B) (w : point-pullback {Y} {B} r b) →
+  happly {point-pullback {Y} {B} r b} {λ _ . B} (point-pullback-null {Y} {B} r b) w ≡ point-pullback-path {Y} {B} r b w
+point-pullback-null-at {Y} {B} r b w =
+  happly {point-pullback {Y} {B} r b} {λ w' . b ≡ r (point-pullback-proj {Y} {B} r b w')}
+    (happly-funext-htpy {point-pullback {Y} {B} r b} {λ _ . B} (λ _ . b) (λ w' . r (point-pullback-proj {Y} {B} r b w'))
+      (point-pullback-path {Y} {B} r b)) w
+
+-- the transported identity between the images of two points
+point-pullback-id ∷ {Y B ∷ U} (r ∷ Y → B) (b ∷ B) (w0 w1 : point-pullback {Y} {B} r b) →
+  hom {B} (r (point-pullback-proj {Y} {B} r b w0)) (r (point-pullback-proj {Y} {B} r b w1))
+point-pullback-id {Y} {B} r b w0 w1 =
+  transported-id {B} {b} (happly {point-pullback {Y} {B} r b} {λ _ . B} (point-pullback-null {Y} {B} r b) w0)
+    (happly {point-pullback {Y} {B} r b} {λ _ . B} (point-pullback-null {Y} {B} r b) w1)
+
+-- the transported identity with the paths of the points themselves
+point-pullback-id-pts ∷ {Y B ∷ U} (r ∷ Y → B) (b ∷ B) (w0 w1 : point-pullback {Y} {B} r b) →
+  hom {B} (r (point-pullback-proj {Y} {B} r b w0)) (r (point-pullback-proj {Y} {B} r b w1))
+point-pullback-id-pts {Y} {B} r b w0 w1 = transported-id {B} {b} (point-pullback-path {Y} {B} r b w0) (point-pullback-path {Y} {B} r b w1)
+
+point-pullback-id-pts-eq ∷ {Y B ∷ U} (r ∷ Y → B) (b ∷ B) (w0 w1 : point-pullback {Y} {B} r b) →
+  point-pullback-id {Y} {B} r b w0 w1 ≡ point-pullback-id-pts {Y} {B} r b w0 w1
+point-pullback-id-pts-eq {Y} {B} r b w0 w1 =
+  cong2 {b ≡ r (point-pullback-proj {Y} {B} r b w0)} {b ≡ r (point-pullback-proj {Y} {B} r b w1)}
+        {hom {B} (r (point-pullback-proj {Y} {B} r b w0)) (r (point-pullback-proj {Y} {B} r b w1))}
+    (λ p q . transported-id {B} {b} {r (point-pullback-proj {Y} {B} r b w0)} {r (point-pullback-proj {Y} {B} r b w1)} p q)
+    (point-pullback-null-at {Y} {B} r b w0) (point-pullback-null-at {Y} {B} r b w1)
+
+--
+-- Oplax maps into the point pullback (from the oplax universal property of pullbacks)
+--
+
+-- the pullback of b : 1 → B along r, as a pullback
+point-pullback→pullback ∷ {Y B ∷ U} (r ∷ Y → B) (b ∷ B) → point-pullback {Y} {B} r b → pullback {⊤} {Y} {B} (λ _ . b) r
+point-pullback→pullback {Y} {B} r b w = (tt , point-pullback-proj {Y} {B} r b w , point-pullback-path {Y} {B} r b w)
+
+pullback→point-pullback ∷ {Y B ∷ U} (r ∷ Y → B) (b ∷ B) → pullback {⊤} {Y} {B} (λ _ . b) r → point-pullback {Y} {B} r b
+pullback→point-pullback {Y} {B} r b z = snd (λ t . Σ (y : Y) . b ≡ r y) z
+
+is-equiv-point-pullback→pullback ∷ {Y B ∷ U} (r ∷ Y → B) (b ∷ B) → is-equiv (point-pullback→pullback {Y} {B} r b)
+is-equiv-point-pullback→pullback {Y} {B} r b =
+  let P ∷ U = pullback {⊤} {Y} {B} (λ _ . b) r in
+  let sec : (z : P) → point-pullback→pullback {Y} {B} r b (pullback→point-pullback {Y} {B} r b z) ≡ z = fun (t , w) →
+    let h : (t : ⊤) (w : Σ (y : Y) . b ≡ r y) → point-pullback→pullback {Y} {B} r b (pullback→point-pullback {Y} {B} r b (t , w)) ≡{P} (t , w) =
+      λ t . unit-ind (λ t' . (w : Σ (y : Y) . b ≡ r y) → point-pullback→pullback {Y} {B} r b (pullback→point-pullback {Y} {B} r b (t' , w)) ≡{P} (t' , w))
+        (fun (y , d) → refl) t in
+    h t w in
+  let ret : (w : point-pullback {Y} {B} r b) → pullback→point-pullback {Y} {B} r b (point-pullback→pullback {Y} {B} r b w) ≡ w =
+    fun (y , d) → refl in
+  ((pullback→point-pullback {Y} {B} r b , sec) , (pullback→point-pullback {Y} {B} r b , ret))
+
+-- oplax cones over the cospan 1 → B ← Y, without the (trivial) component in 1
+point-pullback-coneᵣ ∷ (K ∷ U) {Y B ∷ U} (r ∷ Y → B) (b ∷ B) → U
+point-pullback-coneᵣ K {Y} {B} r b = Σ (u : K →ᵣ Y) . Htpyᵣ K B (λ k . b) (postᵣ {K} {Y} {B} r u)
+
+pullback-coneᵣ→point-pullback-coneᵣ ∷ (K ∷ U) {Y B ∷ U} (r ∷ Y → B) (b ∷ B) →
+  pullback-coneᵣ K {⊤} {Y} {B} (λ _ . b) r → point-pullback-coneᵣ K {Y} {B} r b
+pullback-coneᵣ→point-pullback-coneᵣ K {Y} {B} r b (x , pq) =
+  let h : (x : pullback-coneᵣ-data K ⊤ Y B) → pullback-coneᵣ-paths K {⊤} {Y} {B} (λ _ . b) r x → point-pullback-coneᵣ K {Y} {B} r b =
+    fun (v , uH) pq → (Product.fst uH , Product.snd uH , pq) in
+  h x pq
+
+point-pullback-coneᵣ→pullback-coneᵣ ∷ (K ∷ U) {Y B ∷ U} (r ∷ Y → B) (b ∷ B) →
+  point-pullback-coneᵣ K {Y} {B} r b → pullback-coneᵣ K {⊤} {Y} {B} (λ _ . b) r
+point-pullback-coneᵣ→pullback-coneᵣ K {Y} {B} r b (u , hH) =
+  let h : (hH : Htpyᵣ K B (λ k . b) (postᵣ {K} {Y} {B} r u)) → pullback-coneᵣ K {⊤} {Y} {B} (λ _ . b) r =
+    fun (H , pq) → (((λ _ . tt) , u , H) , pq) in
+  h hH
+
+is-equiv-pullback-coneᵣ→point-pullback-coneᵣ ∷ (K ∷ U) {Y B ∷ U} (r ∷ Y → B) (b ∷ B) → is-equiv (pullback-coneᵣ→point-pullback-coneᵣ K {Y} {B} r b)
+is-equiv-pullback-coneᵣ→point-pullback-coneᵣ K {Y} {B} r b =
+  let C ∷ U = pullback-coneᵣ K {⊤} {Y} {B} (λ _ . b) r in
+  let sec : (z : point-pullback-coneᵣ K {Y} {B} r b) →
+            pullback-coneᵣ→point-pullback-coneᵣ K {Y} {B} r b (point-pullback-coneᵣ→pullback-coneᵣ K {Y} {B} r b z) ≡ z = fun (u , hH) →
+    let h : (hH : Htpyᵣ K B (λ k . b) (postᵣ {K} {Y} {B} r u)) →
+            pullback-coneᵣ→point-pullback-coneᵣ K {Y} {B} r b (point-pullback-coneᵣ→pullback-coneᵣ K {Y} {B} r b (u , hH)) ≡ (u , hH) =
+      fun (H , pq) → refl in
+    h hH in
+  let ret : (z : C) → point-pullback-coneᵣ→pullback-coneᵣ K {Y} {B} r b (pullback-coneᵣ→point-pullback-coneᵣ K {Y} {B} r b z) ≡ z = fun (x , pq) →
+    let h : (x : pullback-coneᵣ-data K ⊤ Y B) (pq : pullback-coneᵣ-paths K {⊤} {Y} {B} (λ _ . b) r x) →
+            point-pullback-coneᵣ→pullback-coneᵣ K {Y} {B} r b (pullback-coneᵣ→point-pullback-coneᵣ K {Y} {B} r b (x , pq)) ≡{C} (x , pq) =
+      fun (v , uH) pq →
+        let h2 : (uH : (K →ᵣ Y) × (K →ᵣ path B)) (pq : pullback-coneᵣ-paths K {⊤} {Y} {B} (λ _ . b) r (v , uH)) →
+                 point-pullback-coneᵣ→pullback-coneᵣ K {Y} {B} r b (pullback-coneᵣ→point-pullback-coneᵣ K {Y} {B} r b ((v , uH) , pq)) ≡{C} ((v , uH) , pq) =
+          fun (u , H) pq →
+            cong {K →ᵣ ⊤} {C} (λ v' . ((v' , u , H) , pq)) (terminalᵣ-path K v) in
+        h2 uH pq in
+    h x pq in
+  ((point-pullback-coneᵣ→pullback-coneᵣ K {Y} {B} r b , sec) , (point-pullback-coneᵣ→pullback-coneᵣ K {Y} {B} r b , ret))
+
+-- oplax maps into the pullback of a point are oplax cones, judgmentally given by the projection and
+-- the paths of the points
+point-pullback→coneᵣ ∷ (K ∷ U) {Y B ∷ U} (r ∷ Y → B) (b ∷ B) → (K →ᵣ point-pullback {Y} {B} r b) → point-pullback-coneᵣ K {Y} {B} r b
+point-pullback→coneᵣ K {Y} {B} r b c =
+  (λ k . point-pullback-proj {Y} {B} r b (c k) ,
+   (λ k . (b , r (point-pullback-proj {Y} {B} r b (c k)) , point-pullback-path {Y} {B} r b (c k))) , refl , refl)
+
+is-equiv-point-pullback→coneᵣ ∷ (K ∷ U) {Y B ∷ U} (r ∷ Y → B) (b ∷ B) → is-equiv (point-pullback→coneᵣ K {Y} {B} r b)
+is-equiv-point-pullback→coneᵣ K {Y} {B} r b =
+  let S ∷ U = point-pullback {Y} {B} r b in
+  let P ∷ U = pullback {⊤} {Y} {B} (λ _ . b) r in
+  let e ∷ S → P = point-pullback→pullback {Y} {B} r b in
+  let m1 : (K →ᵣ S) → (K →ᵣ P) = postᵣ {K} {S} {P} e in
+  let m2 : (K →ᵣ P) → pullback-coneᵣ K {⊤} {Y} {B} (λ _ . b) r = pullback→coneᵣ K {⊤} {Y} {B} (λ _ . b) r in
+  let m3 : pullback-coneᵣ K {⊤} {Y} {B} (λ _ . b) r → point-pullback-coneᵣ K {Y} {B} r b = pullback-coneᵣ→point-pullback-coneᵣ K {Y} {B} r b in
+  is-equiv-htpy {K →ᵣ S} {point-pullback-coneᵣ K {Y} {B} r b} {λ c . m3 (m2 (m1 c))} {point-pullback→coneᵣ K {Y} {B} r b}
+    (λ c . refl)
+    (is-equiv-circ {K →ᵣ S} {pullback-coneᵣ K {⊤} {Y} {B} (λ _ . b) r} {point-pullback-coneᵣ K {Y} {B} r b} m3 (λ c . m2 (m1 c))
+      (is-equiv-pullback-coneᵣ→point-pullback-coneᵣ K {Y} {B} r b)
+      (is-equiv-circ {K →ᵣ S} {K →ᵣ P} {pullback-coneᵣ K {⊤} {Y} {B} (λ _ . b) r} m2 m1
+        (pullback-oplax-up K {⊤} {Y} {B} (λ _ . b) r)
+        (postᵣ-equiv K {S} {P} e (is-equiv-point-pullback→pullback {Y} {B} r b))))
+
+-- arrows of Y with a path from their image to the constant arrow at b
+point-pullback-path-cone ∷ {Y B ∷ U} (r ∷ Y → B) (b ∷ B) → U
+point-pullback-path-cone {Y} {B} r b = Σ (u : arrᵣ Y) . postᵣ {𝕀} {Y} {B} r u ≡{arrᵣ B} (λ _ . b)
+
+-- from homotopies to paths (the inverse of happlyᵣ-fib)
+coneᵣ→path-cone ∷ {Y B ∷ U} (r ∷ Y → B) (b ∷ B) → point-pullback-coneᵣ 𝕀 {Y} {B} r b → point-pullback-path-cone {Y} {B} r b
+coneᵣ→path-cone {Y} {B} r b (u , h) =
+  (u , sym (section-map (happlyᵣ-fib 𝕀 B (λ k . b) (postᵣ {𝕀} {Y} {B} r u))
+              (is-equiv-sec (happlyᵣ-fib 𝕀 B (λ k . b) (postᵣ {𝕀} {Y} {B} r u)) (is-equiv-happlyᵣ-fib 𝕀 B (λ k . b) (postᵣ {𝕀} {Y} {B} r u))) h))
+
+is-equiv-coneᵣ→path-cone ∷ {Y B ∷ U} (r ∷ Y → B) (b ∷ B) → is-equiv (coneᵣ→path-cone {Y} {B} r b)
+is-equiv-coneᵣ→path-cone {Y} {B} r b =
+  let F : (u : arrᵣ Y) → Htpyᵣ 𝕀 B (λ k . b) (postᵣ {𝕀} {Y} {B} r u) → postᵣ {𝕀} {Y} {B} r u ≡{arrᵣ B} (λ _ . b) = λ u h .
+    sym (section-map (happlyᵣ-fib 𝕀 B (λ k . b) (postᵣ {𝕀} {Y} {B} r u))
+           (is-equiv-sec (happlyᵣ-fib 𝕀 B (λ k . b) (postᵣ {𝕀} {Y} {B} r u)) (is-equiv-happlyᵣ-fib 𝕀 B (λ k . b) (postᵣ {𝕀} {Y} {B} r u))) h) in
+  is-equiv-htpy {point-pullback-coneᵣ 𝕀 {Y} {B} r b} {point-pullback-path-cone {Y} {B} r b}
+    {tot {arrᵣ Y} {λ u . Htpyᵣ 𝕀 B (λ k . b) (postᵣ {𝕀} {Y} {B} r u)} {λ u . postᵣ {𝕀} {Y} {B} r u ≡{arrᵣ B} (λ _ . b)} F}
+    {coneᵣ→path-cone {Y} {B} r b} (fun (u , h) → refl)
+    (is-equiv-tot {arrᵣ Y} {λ u . Htpyᵣ 𝕀 B (λ k . b) (postᵣ {𝕀} {Y} {B} r u)} {λ u . postᵣ {𝕀} {Y} {B} r u ≡{arrᵣ B} (λ _ . b)} F
+      (λ u . is-equiv-circ (sym {arrᵣ B} {λ k . b} {postᵣ {𝕀} {Y} {B} r u})
+        (section-map (happlyᵣ-fib 𝕀 B (λ k . b) (postᵣ {𝕀} {Y} {B} r u))
+           (is-equiv-sec (happlyᵣ-fib 𝕀 B (λ k . b) (postᵣ {𝕀} {Y} {B} r u)) (is-equiv-happlyᵣ-fib 𝕀 B (λ k . b) (postᵣ {𝕀} {Y} {B} r u))))
+        (is-equiv-sym {arrᵣ B} {λ k . b} {postᵣ {𝕀} {Y} {B} r u})
+        (is-equiv-section-map (happlyᵣ-fib 𝕀 B (λ k . b) (postᵣ {𝕀} {Y} {B} r u)) (is-equiv-happlyᵣ-fib 𝕀 B (λ k . b) (postᵣ {𝕀} {Y} {B} r u)))))
+
+arr→path-cone ∷ {Y B ∷ U} (r ∷ Y → B) (b ∷ B) → arrᵣ (point-pullback {Y} {B} r b) → point-pullback-path-cone {Y} {B} r b
+arr→path-cone {Y} {B} r b c = coneᵣ→path-cone {Y} {B} r b (point-pullback→coneᵣ 𝕀 {Y} {B} r b c)
+
+is-equiv-arr→path-cone ∷ {Y B ∷ U} (r ∷ Y → B) (b ∷ B) → is-equiv (arr→path-cone {Y} {B} r b)
+is-equiv-arr→path-cone {Y} {B} r b =
+  is-equiv-circ (coneᵣ→path-cone {Y} {B} r b) (point-pullback→coneᵣ 𝕀 {Y} {B} r b)
+    (is-equiv-coneᵣ→path-cone {Y} {B} r b) (is-equiv-point-pullback→coneᵣ 𝕀 {Y} {B} r b)
+
+-- the path of the cone of an arrow c of S (from the constant arrow at b to its image in B)
+point-pullback-arr-null ∷ {Y B ∷ U} (r ∷ Y → B) (b ∷ B) (c : arrᵣ (point-pullback {Y} {B} r b)) →
+  (λ k . b) ≡{arrᵣ B} postᵣ {𝕀} {Y} {B} r (postᵣ {𝕀} {point-pullback {Y} {B} r b} {Y} (point-pullback-proj {Y} {B} r b) c)
+point-pullback-arr-null {Y} {B} r b c =
+  let u : arrᵣ Y = postᵣ {𝕀} {point-pullback {Y} {B} r b} {Y} (point-pullback-proj {Y} {B} r b) c in
+  section-map (happlyᵣ-fib 𝕀 B (λ k . b) (postᵣ {𝕀} {Y} {B} r u))
+    (is-equiv-sec (happlyᵣ-fib 𝕀 B (λ k . b) (postᵣ {𝕀} {Y} {B} r u)) (is-equiv-happlyᵣ-fib 𝕀 B (λ k . b) (postᵣ {𝕀} {Y} {B} r u)))
+    (snd (λ u' . Htpyᵣ 𝕀 B (λ k . b) (postᵣ {𝕀} {Y} {B} r u')) (point-pullback→coneᵣ 𝕀 {Y} {B} r b c))

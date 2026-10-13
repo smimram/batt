@@ -12,6 +12,10 @@ open import Wedge
 open import Unitality
 open import Functoriality
 open import Fibration
+open import Transported-id
+open import Point-pullback
+open import Pullback-hom
+open import Base-change
 open import Coslice
 open import Composable
 open import Associativity
@@ -19,10 +23,6 @@ open import Simplex-edges
 open import Iso
 open import Connection
 open import Covariant
-open import Fibre
-open import Hom-family
-open import Relative-fold
-open import Yoneda
 open import Fold
 open import Codomain
 open import Univalent

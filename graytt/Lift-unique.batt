@@ -18,9 +18,8 @@
 -- injectivity of lift-homs implies injectivity of cocart-cell-lift (cocart-cell-lift-inj), hence
 -- that p is a cocartesian fibration given a section (is-cocartesian-fibration-from-inj).
 --
--- For the codomain projection ev₁ : (𝕀 →ᵣ A) → A, uniqueness of lifts holds when 𝕀 →ᵣ A is univalent
--- (codomain-fibration-univalent), in particular when A is oplax-complete (codomain-fibration): arrow
--- types of oplax-complete types are oplax-complete, hence univalent (Complete-univalent.batt).
+-- Uniqueness holds when X is univalent (is-cocartesian-fibration-univalent); it is applied to the
+-- codomain fibration (Codomain.batt) and to the projections of coslices (Coslice.batt).
 --
 
 open import Stdlib
@@ -28,6 +27,9 @@ open import Hom
 open import Segal
 open import Functoriality
 open import Fibration
+open import Composition
+open import Iso
+open import Univalent
 
 --
 -- Cocartesian cells as cocartesian homs with free endpoints
@@ -121,25 +123,9 @@ is-cocartesian-fibration-from-inj {X} {A} sX sA p sec inj =
   (sec , (σ , ret))
 
 --
--- The codomain projection, given uniqueness
---
-
-open import Fold
-open import Codomain
-
-codomain-fibration-from-inj ∷ {A ∷ U} (sA : is-segalᵣ A) →
-  is-inj (lift-homs {arrᵣ A} {A} (is-segal-arrᵣ {A} sA) sA (ev₁ {A})) →
-  is-cocartesian-fibration {arrᵣ A} {A} (is-segal-arrᵣ {A} sA) sA (ev₁ {A})
-codomain-fibration-from-inj {A} sA inj =
-  is-cocartesian-fibration-from-inj {arrᵣ A} {A} (is-segal-arrᵣ {A} sA) sA (ev₁ {A}) (codomain-lift-section {A} sA) inj
-
---
 -- Uniqueness of cocartesian lifts (for a univalent total type)
 --
 
-open import Composition
-open import Iso
-open import Univalent
 
 -- injectivity is fibrewise
 tot-inj-aux ∷ {B : U} {R Q : B → U} (L : (b : B) → R b → Q b) → ((b : B) → is-inj (L b)) →
@@ -236,17 +222,3 @@ is-cocartesian-fibration-univalent ∷ {X A ∷ U} (sX : is-segalᵣ X) (sA : is
   section (cocart-cell-lift {X} {A} sX sA p) → is-cocartesian-fibration {X} {A} sX sA p
 is-cocartesian-fibration-univalent {X} {A} sX sA p uX sec =
   is-cocartesian-fibration-from-inj {X} {A} sX sA p sec (lift-homs-inj {X} {A} sX sA p uX)
-
--- the codomain fibration: ev₁ : (𝕀 →ᵣ A) → A is a cocartesian fibration when 𝕀 →ᵣ A is univalent
-codomain-fibration-univalent ∷ {A ∷ U} (sA : is-segalᵣ A) → is-univalentᵣ (arrᵣ A) (is-segal-arrᵣ {A} sA) →
-  is-cocartesian-fibration {arrᵣ A} {A} (is-segal-arrᵣ {A} sA) sA (ev₁ {A})
-codomain-fibration-univalent {A} sA u =
-  codomain-fibration-from-inj {A} sA (lift-homs-inj {arrᵣ A} {A} (is-segal-arrᵣ {A} sA) sA (ev₁ {A}) u)
-
-open import Complete
-open import Complete-univalent
-
--- the codomain fibration of an oplax-complete A (𝕀 →ᵣ A is then univalent)
-codomain-fibration ∷ {A ∷ U} (sA : is-segalᵣ A) → is-completeᵣ A →
-  is-cocartesian-fibration {arrᵣ A} {A} (is-segal-arrᵣ {A} sA) sA (ev₁ {A})
-codomain-fibration {A} sA cA = codomain-fibration-univalent {A} sA (is-univalent-arrᵣ {A} sA cA)

@@ -1,5 +1,5 @@
 --
--- The codomain fibration: cocartesian lifts
+-- The codomain fibration
 --
 -- For a crisp oplax-Segal type A, the codomain projection ev₁ : (𝕀 →ᵣ A) → A has cocartesian
 -- lifts. A composable pair (t , u) of arrows of A is the pair of first edges of a 2-simplex σ
@@ -19,8 +19,14 @@
 -- (comp-simplex-2, Composition.batt). Both connections are ev₁-cocartesian by the fold lemma,
 -- hence so is χ_σ, by cancellation (is-cocartesian-cancel, Fibration.batt).
 --
+-- Every lifting datum is reached (codomain-lift-section), so ev₁ is a cocartesian fibration as soon
+-- as lifts are unique, which holds when 𝕀 →ᵣ A is univalent (codomain-fibration-univalent, by
+-- Lift-unique.batt), in particular when A is oplax-complete (codomain-fibration): arrow types of
+-- oplax-complete types are oplax-complete, hence univalent (Complete-univalent.batt).
+--
 -- Postulates relied on: fold-lemma (Fold.batt); univalence, truncation and is-set-𝕀 through
--- the Segal machinery.
+-- the Segal machinery; for codomain-fibration, also objectwise-equiv and pushout-up (through the
+-- oplax universal property of E).
 --
 
 open import Stdlib
@@ -149,3 +155,23 @@ codomain-lift-over {A} sA d =
 -- cocart-cell-lift has a section: every arrow of A has a cocartesian lift at every source
 codomain-lift-section ∷ {A ∷ U} (sA : is-segalᵣ A) → section (cocart-cell-lift {arrᵣ A} {A} (is-segal-arrᵣ {A} sA) sA (ev₁ {A}))
 codomain-lift-section {A} sA = (codomain-lift {A} sA , codomain-lift-over {A} sA)
+
+--
+-- The codomain fibration
+--
+
+open import Univalent
+open import Lift-unique
+open import Complete
+open import Complete-univalent
+
+-- ev₁ : (𝕀 →ᵣ A) → A is a cocartesian fibration when 𝕀 →ᵣ A is univalent
+codomain-fibration-univalent ∷ {A ∷ U} (sA : is-segalᵣ A) → is-univalentᵣ (arrᵣ A) (is-segal-arrᵣ {A} sA) →
+  is-cocartesian-fibration {arrᵣ A} {A} (is-segal-arrᵣ {A} sA) sA (ev₁ {A})
+codomain-fibration-univalent {A} sA u =
+  is-cocartesian-fibration-univalent {arrᵣ A} {A} (is-segal-arrᵣ {A} sA) sA (ev₁ {A}) u (codomain-lift-section {A} sA)
+
+-- the codomain fibration of an oplax-complete A (𝕀 →ᵣ A is then univalent)
+codomain-fibration ∷ {A ∷ U} (sA : is-segalᵣ A) → is-completeᵣ A →
+  is-cocartesian-fibration {arrᵣ A} {A} (is-segal-arrᵣ {A} sA) sA (ev₁ {A})
+codomain-fibration {A} sA cA = codomain-fibration-univalent {A} sA (is-univalent-arrᵣ {A} sA cA)

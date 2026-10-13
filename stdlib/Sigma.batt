@@ -25,3 +25,32 @@ open import Equality
 Σ-path-join {B} {Q} {b} {b'} e {v} {v'} =
   J b (λ b'' e' . (v'' : Q b'') → subst Q e' v ≡ v'' → (b , v) ≡{Σ (b3 : B) . Q b3} (b'' , v''))
     (λ v'' D . cong {Q b} {Σ (b3 : B) . Q b3} (λ z . (b , z)) D) e v'
+
+-- joining, towards an arbitrary point of the Σ-type
+Σ-path-join' ∷ {B : U} {Q : B → U} {b : B} {v : Q b} (w : Σ (b' : B) . Q b') →
+  (Σ (e : b ≡ fst Q w) . subst Q e v ≡ snd Q w) → (b , v) ≡{Σ (b' : B) . Q b'} w
+Σ-path-join' {B} {Q} {b} {v} (b' , v') (e , D) = Σ-path-join {B} {Q} {b} {b'} e {v} {v'} D
+
+Σ-path-join'-split ∷ {B : U} {Q : B → U} {b : B} {v : Q b} (w : Σ (b' : B) . Q b') (q : (b , v) ≡{Σ (b' : B) . Q b'} w) →
+  Σ-path-join' {B} {Q} {b} {v} w (Σ-path-split {B} {Q} {b} {v} {w} q) ≡ q
+Σ-path-join'-split {B} {Q} {b} {v} w q =
+  J {Σ (b' : B) . Q b'} (b , v)
+    (λ w' q' . Σ-path-join' {B} {Q} {b} {v} w' (Σ-path-split {B} {Q} {b} {v} {w'} q') ≡ q') refl q
+
+Σ-path-split-join' ∷ {B : U} {Q : B → U} {b : B} {v : Q b} (w : Σ (b' : B) . Q b')
+  (x : Σ (e : b ≡ fst Q w) . subst Q e v ≡ snd Q w) →
+  Σ-path-split {B} {Q} {b} {v} {w} (Σ-path-join' {B} {Q} {b} {v} w x) ≡ x
+Σ-path-split-join' {B} {Q} {b} {v} (b' , v') (e , D) =
+  J b (λ b'' e' . (v'' : Q b'') (D' : subst Q e' v ≡ v'') →
+         Σ-path-split {B} {Q} {b} {v} {(b'' , v'')} (Σ-path-join {B} {Q} {b} {b''} e' {v} {v''} D')
+           ≡{Σ (e'' : b ≡ b'') . subst Q e'' v ≡ v''} (e' , D'))
+    (λ v'' D' . J {Q b} v (λ v3 D3 . Σ-path-split {B} {Q} {b} {v} {(b , v3)} (Σ-path-join {B} {Q} {b} {b} refl {v} {v3} D3)
+                                       ≡{Σ (e'' : b ≡ b) . subst Q e'' v ≡ v3} (refl , D3)) refl D')
+    e v' D
+
+-- the first component of the split is the image of the path
+Σ-path-split-fst ∷ {B : U} {Q : B → U} {b : B} {v : Q b} (w : Σ (b' : B) . Q b') (q : (b , v) ≡{Σ (b' : B) . Q b'} w) →
+  fst {b ≡ fst Q w} (λ e . subst Q e v ≡ snd Q w) (Σ-path-split {B} {Q} {b} {v} {w} q) ≡ cong (fst Q) q
+Σ-path-split-fst {B} {Q} {b} {v} w q =
+  J {Σ (b' : B) . Q b'} (b , v)
+    (λ w' q' . fst {b ≡ fst Q w'} (λ e . subst Q e v ≡ snd Q w') (Σ-path-split {B} {Q} {b} {v} {w'} q') ≡ cong (fst Q) q') refl q

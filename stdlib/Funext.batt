@@ -386,3 +386,11 @@ is-equiv-funext-htpy ∷ {A : U} {B : A → U} (f g : (x : A) → B x) → is-eq
 is-equiv-funext-htpy {A} {B} f g =
   ((happly {A} {B} {f} {g} , funext-htpy-happly {A} {B} {f} {g}) ,
    (happly {A} {B} {f} {g} , happly-funext-htpy {A} {B} f g))
+
+-- the homotopy of the image of a path of functions, by postcomposition along an oplax map
+happlyᵣ-fib-cong-postᵣ ∷ {A S B ∷ U} (c : A →ᵣ S) {φ0 φ1 : S → B} (G' : φ0 ≡ φ1) →
+  happlyᵣ-fib A B (postᵣ {A} {S} {B} φ0 c) (postᵣ {A} {S} {B} φ1 c) (cong (λ φ . postᵣ {A} {S} {B} φ c) G')
+    ≡ ((λ k . (φ0 (c k) , φ1 (c k) , happly {S} {λ _ . B} G' (c k))) , refl , refl)
+happlyᵣ-fib-cong-postᵣ {A} {S} {B} c {φ0} {φ1} G' =
+  J φ0 (λ φ' G'' . happlyᵣ-fib A B (postᵣ {A} {S} {B} φ0 c) (postᵣ {A} {S} {B} φ' c) (cong (λ φ . postᵣ {A} {S} {B} φ c) G'')
+                     ≡ ((λ k . (φ0 (c k) , φ' (c k) , happly {S} {λ _ . B} G'' (c k))) , refl , refl)) refl G'

@@ -1,0 +1,121 @@
+--
+-- Transported identities and maps with a path to a constant map
+--
+-- For b : B and paths p : b ≡ x, q : b ≡ y, the transported identity
+--
+--   transported-id p q := (λ _ . b , p , q) : hom x y
+--
+-- is the identity of b moved along p and q; it composes as identities do (transported-id-comp)
+-- and is an isomorphism (is-iso-transported-id).
+--
+-- A constant map sends every hom to an identity (hom-map-const), compatibly with composition
+-- (hom-map-const-comp, from the degenerate 2-simplex). Consequently, a crisp map f with a crisp path
+-- G from the constant map at b ("null", as for null-homotopic maps) sends every hom to a transported
+-- identity (hom-map-null, by crisp path induction on G), compatibly with composition
+-- (hom-map-null-comp), and the cell of this path is the image of G (hom-map-null-cell).
+--
+-- Adapted from a first version by Samuel Mimram. No postulate besides those of the Segal machinery
+-- (univalence, truncation, is-set-𝕀).
+--
+
+open import Stdlib
+open import Hom
+open import Segal
+open import Composition
+open import Composable
+open import Simplex-edges
+open import Unitality
+open import Functoriality
+open import Iso
+
+--
+-- Transported identities
+--
+
+-- a transported identity
+transported-id ∷ {B ∷ U} {b ∷ B} {x y : B} (p : b ≡ x) (q : b ≡ y) → hom {B} x y
+transported-id {B} {b} {x} {y} p q = ((λ _ . b) , p , q)
+
+transported-id-comp ∷ {B ∷ U} (sB : is-segalᵣ B) {b ∷ B} {x : B} (p : b ≡ x) {y : B} (q : b ≡ y) {z : B} (r : b ≡ z) →
+  comp-homᵣ B sB {x} {y} {z} (transported-id {B} {b} {x} {y} p q) (transported-id {B} {b} {y} {z} q r) ≡ transported-id {B} {b} {x} {z} p r
+transported-id-comp {B} sB {b} refl refl refl = comp-simplex-2 B sB (λ σ . b)
+
+is-iso-transported-id ∷ {B ∷ U} (sB : is-segalᵣ B) {b ∷ B} {x : B} (p : b ≡ x) {y : B} (q : b ≡ y) →
+  is-iso-hom {B} sB {x} {y} (transported-id {B} {b} {x} {y} p q)
+is-iso-transported-id {B} sB {b} refl refl = is-iso-id {B} sB b
+
+-- the cell of the transported identity is constant
+cong-cell-transported-id ∷ {B ∷ U} {b ∷ B} {x0 x1 : B} {p p' : b ≡ x0} (a : p ≡ p') {q q' : b ≡ x1} (c : q ≡ q') →
+  cong (fst (hom-boundary {B} x0 x1)) (cong2 {b ≡ x0} {b ≡ x1} {hom {B} x0 x1} (λ p'' q'' . transported-id {B} {b} {x0} {x1} p'' q'') a c) ≡ refl
+cong-cell-transported-id {B} {b} {x0} {x1} {p} {p'} a {q} {q'} c =
+  J p (λ p2 a2 . cong (fst (hom-boundary {B} x0 x1)) (cong2 {b ≡ x0} {b ≡ x1} {hom {B} x0 x1} (λ p'' q'' . transported-id {B} {b} {x0} {x1} p'' q'') a2 c) ≡ refl)
+    (J q (λ q2 c2 . cong (fst (hom-boundary {B} x0 x1)) (cong2 {b ≡ x0} {b ≡ x1} {hom {B} x0 x1} (λ p'' q'' . transported-id {B} {b} {x0} {x1} p'' q'') refl c2) ≡ refl)
+      refl c) a
+
+--
+-- Constant maps and maps with a path to a constant map
+--
+
+-- the action on homs of a constant map
+hom-map-const-aux ∷ {S B ∷ U} (b ∷ B) (c : arrᵣ S) {w0 : S} (e0 : srcᵣ c ≡ w0) {w1 : S} (e1 : tgtᵣ c ≡ w1) →
+  hom-map {S} {B} (λ _ . b) {w0} {w1} (c , e0 , e1) ≡ Hom.id {B} b
+hom-map-const-aux {S} {B} b c {w0} e0 {w1} e1 =
+  cong2 {b ≡ b} {b ≡ b} {hom {B} b b} (λ p q . ((λ _ . b) , p , q)) (cong-cst b e0) (cong-cst b e1)
+
+hom-map-const ∷ {S B ∷ U} (b ∷ B) {w0 w1 : S} (g : hom w0 w1) → hom-map {S} {B} (λ _ . b) {w0} {w1} g ≡ Hom.id {B} b
+hom-map-const {S} {B} b {w0} {w1} g =
+  trans (cong {hom w0 w1} {hom {B} b b} (hom-map {S} {B} (λ _ . b) {w0} {w1}) (sym (hom-eta {S} {w0} {w1} g)))
+    (hom-map-const-aux {S} {B} b (hom-cell {S} {w0} {w1} g) (hom-src {S} {w0} {w1} g) (hom-tgt {S} {w0} {w1} g))
+
+hom-map-const-comp-stmt ∷ (S B ∷ U) (b ∷ B) (sS : is-segalᵣ S) (sB : is-segalᵣ B) {x y z : S} (u : hom x y) (v : hom y z) → U
+hom-map-const-comp-stmt S B b sS sB {x} {y} {z} u v =
+  hom-map-const {S} {B} b {x} {z} (comp-homᵣ S sS {x} {y} {z} u v)
+  ≡ trans (hom-map-comp S B (λ _ . b) sS sB {x} {y} {z} u v)
+      (trans (cong2 {hom {B} b b} {hom {B} b b} {hom {B} b b} (λ m n . comp-homᵣ B sB {b} {b} {b} m n) (hom-map-const {S} {B} b {x} {y} u) (hom-map-const {S} {B} b {y} {z} v))
+        (transported-id-comp {B} sB {b} {b} refl {b} refl {b} refl))
+
+hom-map-const-comp-simplex ∷ (S B ∷ U) (b ∷ B) (sS : is-segalᵣ S) (sB : is-segalᵣ B) (Ψ : simplex 2 →ᵣ S) →
+  hom-map-const-comp-stmt S B b sS sB (simplex-2-hom₀₁ {S} Ψ) (simplex-2-hom₁₂ {S} Ψ)
+hom-map-const-comp-simplex S B b sS sB Ψ =
+  let x0 : S = Ψ (simplex-2-e₀₁ 𝕀0) in
+  let x2 : S = Ψ (simplex-2-e₁₂ 𝕀1) in
+  let hm : hom x0 x2 → hom {B} b b = hom-map {S} {B} (λ _ . b) {x0} {x2} in
+  let C : hom x0 x2 = comp-homᵣ S sS (simplex-2-hom₀₁ {S} Ψ) (simplex-2-hom₁₂ {S} Ψ) in
+  let csX : C ≡ simplex-2-hom₀₂ {S} Ψ = comp-simplex-2 S sS Ψ in
+  let cs0 : comp-homᵣ B sB {b} {b} {b} (Hom.id {B} b) (Hom.id {B} b) ≡ Hom.id {B} b = comp-simplex-2 B sB (λ σ . b) in
+  let E : hom-map-comp S B (λ _ . b) sS sB (simplex-2-hom₀₁ {S} Ψ) (simplex-2-hom₁₂ {S} Ψ) ≡ trans (cong hm csX) (sym cs0) =
+    hom-map-comp-edges S B (λ _ . b) sS sB Ψ in
+  trans (nat-to-point hm (hom-map-const {S} {B} b {x0} {x2}) csX)
+    (trans (trans-sym-refl-cancel (cong hm csX) cs0)
+      (cong {hm C ≡ comp-homᵣ B sB {b} {b} {b} (Hom.id {B} b) (Hom.id {B} b)} {hm C ≡ Hom.id {B} b}
+        (λ w . trans w (trans refl cs0)) (sym E)))
+
+hom-map-const-comp ∷ (S B ∷ U) (b ∷ B) (sS : is-segalᵣ S) (sB : is-segalᵣ B) {x y z : S} (u : hom x y) (v : hom y z) →
+  hom-map-const-comp-stmt S B b sS sB {x} {y} {z} u v
+hom-map-const-comp S B b sS sB {x} {y} {z} u v =
+  let s : section (edges-2 {S}) = is-equiv-sec (edges-2 {S}) (is-equiv-edges-2 S sS) in
+  let r : pairs S = (x , y , z , u , v) in
+  subst (pair-family S (λ x' y' z' u' v' . hom-map-const-comp-stmt S B b sS sB {x'} {y'} {z'} u' v'))
+    (snd (is-section (edges-2 {S})) s r)
+    (hom-map-const-comp-simplex S B b sS sB (section-map (edges-2 {S}) s r))
+
+-- the action on homs of a map with a path to a constant map
+hom-map-null ∷ {S B ∷ U} {b ∷ B} (f ∷ S → B) (G ∷ (λ _ . b) ≡{S → B} f) {w0 w1 : S} (g : hom w0 w1) →
+  hom-map {S} {B} f {w0} {w1} g ≡ transported-id {B} {b} {f w0} {f w1} (happly {S} {λ _ . B} G w0) (happly {S} {λ _ . B} G w1)
+hom-map-null {S} {B} {b} refl {w0} {w1} g = hom-map-const {S} {B} b {w0} {w1} g
+
+-- the coherence for a map with a path to a constant map
+hom-map-null-comp ∷ {S B ∷ U} (sS : is-segalᵣ S) (sB : is-segalᵣ B) {b ∷ B} (f ∷ S → B) (G ∷ (λ _ . b) ≡{S → B} f)
+  {x y z : S} (u : hom x y) (v : hom y z) →
+  hom-map-null {S} {B} {b} f G {x} {z} (comp-homᵣ S sS {x} {y} {z} u v)
+  ≡ trans (hom-map-comp S B f sS sB {x} {y} {z} u v)
+      (trans (cong2 {hom (f x) (f y)} {hom (f y) (f z)} {hom (f x) (f z)} (λ m n . comp-homᵣ B sB {f x} {f y} {f z} m n)
+               (hom-map-null {S} {B} {b} f G {x} {y} u) (hom-map-null {S} {B} {b} f G {y} {z} v))
+        (transported-id-comp {B} sB {b} {f x} (happly {S} {λ _ . B} G x) {f y} (happly {S} {λ _ . B} G y) {f z} (happly {S} {λ _ . B} G z)))
+hom-map-null-comp {S} {B} sS sB {b} refl {x} {y} {z} u v = hom-map-const-comp S B b sS sB {x} {y} {z} u v
+
+-- by crisp path induction, the cell of hom-map-null is the image of the path to the constant map
+hom-map-null-cell ∷ {S B ∷ U} {b ∷ B} (f ∷ S → B) (G ∷ (λ _ . b) ≡{S → B} f) (c : arrᵣ S) →
+  cong (fst (hom-boundary {B} (f (c 𝕀0)) (f (c 𝕀1)))) (hom-map-null {S} {B} {b} f G {c 𝕀0} {c 𝕀1} (c , refl , refl))
+    ≡ cong (λ φ . postᵣ {𝕀} {S} {B} φ c) (sym G)
+hom-map-null-cell {S} {B} {b} refl c = refl
