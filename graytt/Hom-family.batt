@@ -171,3 +171,95 @@ push-hom-family {A} sA cA a {b} {c} u t =
       subst (push-hom-family-stmt {A} sA cA a) E (push-hom-family-simplex {A} sA cA a σ γ) in
     k2 r in
   k (pair-at-src-section {A} sA a (b , c , t , u))
+
+--
+-- Connections, and the cocartesian lifts as composites of connections
+--
+-- In the total space E of the hom family (the coslice), the connection of a 1-cell f of A
+-- starting at a is Γ̄_f := λ i . (f i , λ j . f (i ∧ j) , p , refl) (hom-family-conn), the
+-- ev₁-cocartesian lift of f at the identity of a. For a 2-simplex σ with a path γ from its first
+-- vertex to a, the 2-simplex
+--
+--   τ̄_σ := λ y . (λ k . σ (y₁ ∧ k , y₁ ∧ y₂ ∧ k) , γ)          (hom-family-lift-tri)
+--
+-- of E has edges Γ̄_t, χ̄_σ and Γ̄_{u ∘ t}, judgmentally, where t, u are the first edges of σ, u ∘ t
+-- its long edge and χ̄_σ the cocartesian lift of u at t (coslice-lift-sq). Hence Γ̄_t ; χ̄_σ = Γ̄_{u ∘ t}
+-- (hom-family-lift-comp). The point (y₁ ∧ k , y₁ ∧ y₂ ∧ k) is sorted by absorption, judgmentally,
+-- and is (0 , 0) for k = 0 whatever y, so that the same path γ fits every vertex.
+--
+-- Every cocartesian 1-cell of E is such a χ̄_σ, up to a path (hom-family-cocart-cell-ind): it is the
+-- image of a cocartesian 1-cell of the coslice, which is the canonical lift of its datum
+-- (coslice-lift, lifts being unique).
+--
+
+open import Connection
+
+-- the connection Γ̄_f
+hom-family-conn ∷ {A ∷ U} (a ∷ A) (f : arrᵣ A) (p : srcᵣ f ≡ a) → arrᵣ (Σ (x : A) . hom-family {A} a x)
+hom-family-conn {A} a f p = λ i . coslice→hom-family {A} a (conn {A} f i , p)
+
+-- the cocartesian lift χ̄_σ, in E
+hom-family-lift ∷ {A ∷ U} (sA : is-segalᵣ A) (a ∷ A) (σ : simplex 2 →ᵣ A) (γ : srcᵣ (lift-sq {A} σ 𝕀0) ≡ a) →
+  cocart-cell {Σ (x : A) . hom-family {A} a x} {A} (is-segalᵣ-hom-family {A} sA a) sA (fst (hom-family {A} a))
+hom-family-lift {A} sA a σ γ =
+  cocart-cell-equiv {coslice A a} {Σ (x : A) . hom-family {A} a x} {A} (is-segalᵣ-coslice {A} sA a) (is-segalᵣ-hom-family {A} sA a) sA
+    (coslice→hom-family {A} a) (is-equiv-coslice→hom-family {A} a) (fst (hom-family {A} a)) (coslice-lift-sq {A} sA a σ γ)
+
+-- the 2-simplex τ̄_σ
+hom-family-lift-tri ∷ {A ∷ U} (a ∷ A) (σ : simplex 2 →ᵣ A) (γ : srcᵣ (lift-sq {A} σ 𝕀0) ≡ a) →
+  (simplex 2 →ᵣ Σ (x : A) . hom-family {A} a x)
+hom-family-lift-tri {A} a σ γ = λ y .
+  coslice→hom-family {A} a
+    ((λ k . σ ((simplex-2-fst y 𝕀∧ k , simplex-2-fst y 𝕀∧ simplex-2-snd y 𝕀∧ k , tt) , (refl , tt))) , γ)
+
+-- its edges
+hom-family-lift-tri-edges ∷ {A ∷ U} (sA : is-segalᵣ A) (a ∷ A) (σ : simplex 2 →ᵣ A) (γ : srcᵣ (lift-sq {A} σ 𝕀0) ≡ a) →
+  (simplex-2-hom₀₁ {Σ (x : A) . hom-family {A} a x} (hom-family-lift-tri {A} a σ γ)
+     ≡ cell-hom {Σ (x : A) . hom-family {A} a x} (hom-family-conn {A} a (hom-cell (simplex-2-hom₀₁ {A} σ)) γ)) ×
+  (simplex-2-hom₁₂ {Σ (x : A) . hom-family {A} a x} (hom-family-lift-tri {A} a σ γ)
+     ≡ cell-hom {Σ (x : A) . hom-family {A} a x} (fst _ (hom-family-lift {A} sA a σ γ))) ×
+  (simplex-2-hom₀₂ {Σ (x : A) . hom-family {A} a x} (hom-family-lift-tri {A} a σ γ)
+     ≡ cell-hom {Σ (x : A) . hom-family {A} a x} (hom-family-conn {A} a (hom-cell (simplex-2-hom₀₂ {A} σ)) γ))
+hom-family-lift-tri-edges {A} sA a σ γ = (refl , refl , refl)
+
+-- Γ̄_t ; χ̄_σ = Γ̄_{u ∘ t}
+hom-family-lift-comp ∷ {A ∷ U} (sA : is-segalᵣ A) (a ∷ A) (σ : simplex 2 →ᵣ A) (γ : srcᵣ (lift-sq {A} σ 𝕀0) ≡ a) →
+  comp-homᵣ (Σ (x : A) . hom-family {A} a x) (is-segalᵣ-hom-family {A} sA a)
+    (cell-hom {Σ (x : A) . hom-family {A} a x} (hom-family-conn {A} a (hom-cell (simplex-2-hom₀₁ {A} σ)) γ))
+    (cell-hom {Σ (x : A) . hom-family {A} a x} (fst _ (hom-family-lift {A} sA a σ γ)))
+  ≡ cell-hom {Σ (x : A) . hom-family {A} a x} (hom-family-conn {A} a (hom-cell (simplex-2-hom₀₂ {A} σ)) γ)
+hom-family-lift-comp {A} sA a σ γ =
+  comp-simplex-2 (Σ (x : A) . hom-family {A} a x) (is-segalᵣ-hom-family {A} sA a) (hom-family-lift-tri {A} a σ γ)
+
+-- every cocartesian 1-cell of E is some χ̄_σ, up to a path
+hom-family-cocart-cell-ind ∷ {A ∷ U} (sA : is-segalᵣ A) (cA : is-completeᵣ A) (a ∷ A)
+  (P : cocart-cell {Σ (x : A) . hom-family {A} a x} {A} (is-segalᵣ-hom-family {A} sA a) sA (fst (hom-family {A} a)) → U) →
+  ((σ : simplex 2 →ᵣ A) (γ : srcᵣ (lift-sq {A} σ 𝕀0) ≡ a) → P (hom-family-lift {A} sA a σ γ)) →
+  (w : cocart-cell {Σ (x : A) . hom-family {A} a x} {A} (is-segalᵣ-hom-family {A} sA a) sA (fst (hom-family {A} a))) → P w
+hom-family-cocart-cell-ind {A} sA cA a P H w =
+  let S ∷ U = coslice A a in
+  let sS : is-segalᵣ S = is-segalᵣ-coslice {A} sA a in
+  let CS : U = cocart-cell {S} {A} sS sA (coslice-tgt {A} {a}) in
+  let D ∷ U = pullback {S} {arrᵣ A} {A} (coslice-tgt {A} {a}) (λ u . srcᵣ u) in
+  let Φ : CS → cocart-cell {Σ (x : A) . hom-family {A} a x} {A} (is-segalᵣ-hom-family {A} sA a) sA (fst (hom-family {A} a)) =
+    cocart-cell-equiv {S} {Σ (x : A) . hom-family {A} a x} {A} sS (is-segalᵣ-hom-family {A} sA a) sA
+      (coslice→hom-family {A} a) (is-equiv-coslice→hom-family {A} a) (fst (hom-family {A} a)) in
+  let eΦ : is-equiv Φ =
+    is-equiv-cocart-cell-equiv {S} {Σ (x : A) . hom-family {A} a x} {A} sS (is-segalᵣ-hom-family {A} sA a) sA
+      (coslice→hom-family {A} a) (is-equiv-coslice→hom-family {A} a) (fst (hom-family {A} a)) in
+  let L : CS → D = cocart-cell-lift {S} {A} sS sA (coslice-tgt {A} {a}) in
+  -- the canonical lifts satisfy P
+  let HD : (d : D) → P (Φ (coslice-lift {A} sA a d)) = fun (w0 , r) →
+    let k : (w0 : S) (r : Σ (u : arrᵣ A) . coslice-tgt {A} {a} w0 ≡ srcᵣ u) → P (Φ (coslice-lift {A} sA a (w0 , r))) =
+      fun (y , δ) r →
+        let d : pullback {arrᵣ A} {arrᵣ A} {A} (ev₁ {A}) (λ u . srcᵣ u) = (y , r) in
+        H (lift-simplex {A} sA d)
+          (trans (cong (λ d' . srcᵣ (fst {arrᵣ A} (λ y' . Σ (u : arrᵣ A) . tgtᵣ y' ≡ srcᵣ u) d')) (codomain-lift-over {A} sA d)) δ) in
+    k w0 r in
+  -- w is the image of a cocartesian 1-cell of the coslice, which is the canonical lift of its datum
+  let sΦ : section Φ = is-equiv-sec Φ eΦ in
+  let w' : CS = section-map Φ sΦ w in
+  let e' : coslice-lift {A} sA a (L w') ≡ w' =
+    retraction-inj L (is-equiv-ret L (coslice-fibration {A} sA cA a))
+      (coslice-lift-over {A} sA a (L w')) in
+  subst P (snd (is-section Φ) sΦ w) (subst (λ v . P (Φ v)) e' (HD (L w')))

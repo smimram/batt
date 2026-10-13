@@ -11,7 +11,8 @@
 -- the cocartesian fibrewise maps Π^cocart (cocart-fibrewise-map, Cocartesian-map.batt).
 --
 -- evid ∘ yon is the identity (evid-yon), since pushing forward along an identity is the identity
--- (push-id).
+-- (push-id). That yon u is cocartesian is reduced below to the images of connections
+-- (yon-cocart-from-conn), for any covariant F.
 --
 -- Postulates relied on: those of push-id (univalence, truncation, is-set-𝕀, through the Segal
 -- machinery).
@@ -36,3 +37,100 @@ yon {A} a F sA sF c u x f = push {A} F sA sF c {a} {x} f u
 evid-yon ∷ {A ∷ U} (a ∷ A) (F ∷ A → U) (sA : is-segalᵣ A) (sF : is-segalᵣ (Σ (x : A) . F x)) (c : is-covariant {A} F sA sF)
   (u : F a) → evid {A} a F (yon {A} a F sA sF c u) ≡ u
 evid-yon {A} a F sA sF c u = push-id {A} F sA sF c {a} u
+
+--
+-- yon lands in cocartesian maps: reduction to connections
+--
+-- The goal (yon-is-cocartesian): for every u : F a, yon u is a cocartesian fibrewise map, i.e. its
+-- total map Y := tot (yon u) : Σ (x : A) . hom a x → Σ (x : A) . F x (yon-total) sends cocartesian
+-- arrows to cocartesian arrows; yon then factors through Π^cocart (yon-cocart).
+--
+-- As in BATT.tex, it suffices that Y sends the connections Γ̄_f (the cocartesian lifts at the
+-- identity of a, hom-family-conn) to cocartesian arrows (yon-conn-stmt, yon-cocart-from-conn):
+--
+--   - it suffices to consider the homs of cocartesian 1-cells (preserves-cocartesian-cells), and
+--     every cocartesian 1-cell of Σ (x : A) . hom a x is a lift χ̄_σ, for a 2-simplex σ of A with a
+--     path from its first vertex to a (hom-family-cocart-cell-ind, Hom-family.batt);
+--   - Γ̄_t ; χ̄_σ = Γ̄_{u ∘ t} (hom-family-lift-comp), so Y Γ̄_t ; Y χ̄_σ = Y Γ̄_{u ∘ t}, by
+--     functoriality of Y (hom-map-comp);
+--   - Y Γ̄_t and Y Γ̄_{u ∘ t} are cocartesian, hence so is Y χ̄_σ (is-cocartesian-cancel).
+--
+-- This needs A oplax-complete (the hom family is then covariant, and lifts in it are unique).
+-- yon-conn-stmt is a hypothesis here: it is not proved yet.
+--
+-- Postulates relied on: those of coslice-fibration (fold-lemma, objectwise-equiv, pushout-up,
+-- univalence, truncation, is-set-𝕀).
+--
+
+open import Functoriality
+open import Composition
+open import Complete
+open import Codomain
+open import Cocartesian-map
+open import Hom-family
+
+-- the total map of yon u (Y)
+yon-total ∷ {A ∷ U} (a ∷ A) (F ∷ A → U) (sA : is-segalᵣ A) (sF : is-segalᵣ (Σ (x : A) . F x)) (c : is-covariant {A} F sA sF)
+  (u : F a) → (Σ (x : A) . hom-family {A} a x) → Σ (x : A) . F x
+yon-total {A} a F sA sF c u = tot {A} {hom-family {A} a} {F} (yon {A} a F sA sF c u)
+
+-- the goal: yon u is a cocartesian fibrewise map
+yon-is-cocartesian ∷ {A ∷ U} (a ∷ A) (F ∷ A → U) (sA : is-segalᵣ A) (sF : is-segalᵣ (Σ (x : A) . F x)) (c : is-covariant {A} F sA sF)
+  (u : F a) → U
+yon-is-cocartesian {A} a F sA sF c u =
+  is-cocartesian-map {A} (hom-family {A} a) F sA (is-segalᵣ-hom-family {A} sA a) sF (yon {A} a F sA sF c u)
+
+-- if so, yon and evid restrict to Π^cocart
+yon-cocart ∷ {A ∷ U} (a ∷ A) (F ∷ A → U) (sA : is-segalᵣ A) (sF : is-segalᵣ (Σ (x : A) . F x)) (c : is-covariant {A} F sA sF) →
+  ((u : F a) → yon-is-cocartesian {A} a F sA sF c u) →
+  F a → cocart-fibrewise-map {A} (hom-family {A} a) F sA (is-segalᵣ-hom-family {A} sA a) sF
+yon-cocart {A} a F sA sF c yc u = (yon {A} a F sA sF c u , λ {w} {w'} γ cγ . yc u {w} {w'} γ cγ)
+
+evid-cocart ∷ {A ∷ U} (a ∷ A) (F ∷ A → U) (sA : is-segalᵣ A) (sF : is-segalᵣ (Σ (x : A) . F x)) →
+  cocart-fibrewise-map {A} (hom-family {A} a) F sA (is-segalᵣ-hom-family {A} sA a) sF → F a
+evid-cocart {A} a F sA sF m =
+  evid {A} a F (cocart-fibrewise-map-fun {A} (hom-family {A} a) F sA (is-segalᵣ-hom-family {A} sA a) sF m)
+
+-- Y sends the connections Γ̄_f to cocartesian arrows
+yon-conn-stmt ∷ {A ∷ U} (a ∷ A) (F ∷ A → U) (sA : is-segalᵣ A) (sF : is-segalᵣ (Σ (x : A) . F x)) (c : is-covariant {A} F sA sF)
+  (u : F a) → U
+yon-conn-stmt {A} a F sA sF c u =
+  (f : arrᵣ A) (p : srcᵣ f ≡ a) →
+  is-cocartesian {Σ (x : A) . F x} {A} sF sA (fst F)
+    (hom-map {Σ (x : A) . hom-family {A} a x} {Σ (x : A) . F x} (yon-total {A} a F sA sF c u)
+      (cell-hom {Σ (x : A) . hom-family {A} a x} (hom-family-conn {A} a f p)))
+
+-- it suffices: Y then sends every cocartesian arrow to a cocartesian arrow
+yon-cocart-from-conn ∷ {A ∷ U} (sA : is-segalᵣ A) (cA : is-completeᵣ A) (a ∷ A) (F ∷ A → U)
+  (sF : is-segalᵣ (Σ (x : A) . F x)) (c : is-covariant {A} F sA sF) (u : F a) →
+  yon-conn-stmt {A} a F sA sF c u → yon-is-cocartesian {A} a F sA sF c u
+yon-cocart-from-conn {A} sA cA a F sF c u H =
+  let E ∷ U = Σ (x : A) . hom-family {A} a x in
+  let X ∷ U = Σ (x : A) . F x in
+  let sE : is-segalᵣ E = is-segalᵣ-hom-family {A} sA a in
+  let Y : E → X = yon-total {A} a F sA sF c u in
+  -- Y χ̄_σ is cocartesian
+  let lift-case : (σ : simplex 2 →ᵣ A) (γ : srcᵣ (lift-sq {A} σ 𝕀0) ≡ a) →
+                  is-cocartesian {X} {A} sF sA (fst F) (hom-map {E} {X} Y (cell-hom {E} (fst _ (hom-family-lift {A} sA a σ γ)))) =
+    λ σ γ .
+      let t : arrᵣ A = hom-cell (simplex-2-hom₀₁ {A} σ) in
+      let ut : arrᵣ A = hom-cell (simplex-2-hom₀₂ {A} σ) in
+      let Γt : hom {E} (hom-family-conn {A} a t γ 𝕀0) (hom-family-conn {A} a t γ 𝕀1) = cell-hom {E} (hom-family-conn {A} a t γ) in
+      let χ : arrᵣ E = fst _ (hom-family-lift {A} sA a σ γ) in
+      let χh : hom {E} (χ 𝕀0) (χ 𝕀1) = cell-hom {E} χ in
+      let Γut : hom {E} (hom-family-conn {A} a ut γ 𝕀0) (hom-family-conn {A} a ut γ 𝕀1) = cell-hom {E} (hom-family-conn {A} a ut γ) in
+      let YΓt : hom (Y (hom-family-conn {A} a t γ 𝕀0)) (Y (hom-family-conn {A} a t γ 𝕀1)) = hom-map {E} {X} Y Γt in
+      let Yχ : hom (Y (χ 𝕀0)) (Y (χ 𝕀1)) = hom-map {E} {X} Y χh in
+      -- Y Γ̄_t ; Y χ̄_σ = Y Γ̄_{u ∘ t}
+      let eq : comp-homᵣ X sF YΓt Yχ ≡ hom-map {E} {X} Y Γut =
+        trans (sym (hom-map-comp E X Y sE sF Γt χh))
+          (cong (hom-map {E} {X} Y) (hom-family-lift-comp {A} sA a σ γ)) in
+      snd _ (is-cocartesian-cancel {X} {A} sF sA (fst F) YΓt Yχ (H t γ))
+        (subst {hom {X} (Y (hom-family-conn {A} a ut γ 𝕀0)) (Y (hom-family-conn {A} a ut γ 𝕀1))}
+           (λ h . is-cocartesian {X} {A} sF sA (fst F) {Y (hom-family-conn {A} a ut γ 𝕀0)} {Y (hom-family-conn {A} a ut γ 𝕀1)} h)
+           (sym eq) (H ut γ)) in
+  preserves-cocartesian-cells {E} {X} {A} sE sF sA (fst (hom-family {A} a)) (fst F) Y
+    (λ cl ccl .
+      hom-family-cocart-cell-ind {A} sA cA a
+        (λ w . is-cocartesian {X} {A} sF sA (fst F) (hom-map {E} {X} Y (cell-hom {E} (fst _ w))))
+        lift-case (cl , ccl))

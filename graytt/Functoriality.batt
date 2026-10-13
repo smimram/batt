@@ -47,19 +47,19 @@ hom-map-idfun {X} {x} {y} (c , r) =
 
 -- the statement, for a composable pair
 hom-map-comp-stmt ∷
-  (X A ∷ U) (p ∷ X → A) (sX : is-segalᵣ X) (sA : is-segalᵣ A)
+  (X A ∷ U) (p : X → A) (sX : is-segalᵣ X) (sA : is-segalᵣ A)
   {x y z : X} (u : hom x y) (v : hom y z)
   → U
 hom-map-comp-stmt X A p sX sA {x} {y} {z} u v =
   hom-map p (comp-homᵣ X sX u v) ≡ comp-homᵣ A sA (hom-map p u) (hom-map p v)
 
 -- the statement, as a family over composable pairs
-pair-stmt ∷ (X A ∷ U) (p ∷ X → A) (sX : is-segalᵣ X) (sA : is-segalᵣ A) → pairs X → U
+pair-stmt ∷ (X A ∷ U) (p : X → A) (sX : is-segalᵣ X) (sA : is-segalᵣ A) → pairs X → U
 pair-stmt X A p sX sA = pair-family X (λ y z t v w . hom-map-comp-stmt X A p sX sA {y} {z} {t} v w)
 
 -- on the edges of a 2-simplex: both composites are the long edge
 hom-map-comp-simplex ∷
-  (X A ∷ U) (p ∷ X → A) (sX : is-segalᵣ X) (sA : is-segalᵣ A)
+  (X A ∷ U) (p : X → A) (sX : is-segalᵣ X) (sA : is-segalᵣ A)
   (Ψ : simplex 2 →ᵣ X)
   → pair-stmt X A p sX sA (edges-2 {X} Ψ)
 hom-map-comp-simplex X A p sX sA Ψ =
@@ -68,7 +68,7 @@ hom-map-comp-simplex X A p sX sA Ψ =
 
 -- for an arbitrary composable pair, by transport along the section of the edges
 hom-map-comp-def ∷
-  (X A ∷ U) (p ∷ X → A) (sX : is-segalᵣ X) (sA : is-segalᵣ A)
+  (X A ∷ U) (p : X → A) (sX : is-segalᵣ X) (sA : is-segalᵣ A)
   {x y z : X} (u : hom x y) (v : hom y z)
   → hom-map p (comp-homᵣ X sX u v) ≡ comp-homᵣ A sA (hom-map p u) (hom-map p v)
 hom-map-comp-def X A p sX sA {x} {y} {z} u v =
@@ -79,7 +79,7 @@ hom-map-comp-def X A p sX sA {x} {y} {z} u v =
 
 -- frozen (as assoc-simplex-3): it does not unfold, but it is equal to its definition
 hom-map-comp-freeze ∷
-  (X A ∷ U) (p ∷ X → A) (sX : is-segalᵣ X) (sA : is-segalᵣ A)
+  (X A ∷ U) (p : X → A) (sX : is-segalᵣ X) (sA : is-segalᵣ A)
   {x y z : X} (u : hom x y) (v : hom y z)
   → Σ (e : hom-map p (comp-homᵣ X sX u v) ≡ comp-homᵣ A sA (hom-map p u) (hom-map p v)) .
       e ≡ hom-map-comp-def X A p sX sA {x} {y} {z} u v
@@ -87,14 +87,14 @@ hom-map-comp-freeze X A p sX sA {x} {y} {z} u v = (hom-map-comp-def X A p sX sA 
 
 -- the action of p on homs commutes with composition
 hom-map-comp ∷
-  (X A ∷ U) (p ∷ X → A) (sX : is-segalᵣ X) (sA : is-segalᵣ A)
+  (X A ∷ U) (p : X → A) (sX : is-segalᵣ X) (sA : is-segalᵣ A)
   {x y z : X} (u : hom x y) (v : hom y z)
   → hom-map p (comp-homᵣ X sX u v) ≡ comp-homᵣ A sA (hom-map p u) (hom-map p v)
 hom-map-comp X A p sX sA {x} {y} {z} u v = fst _ (hom-map-comp-freeze X A p sX sA {x} {y} {z} u v)
 
 -- on the edges of a 2-simplex, it is the commutation given by that 2-simplex
 hom-map-comp-edges ∷
-  (X A ∷ U) (p ∷ X → A) (sX : is-segalᵣ X) (sA : is-segalᵣ A)
+  (X A ∷ U) (p : X → A) (sX : is-segalᵣ X) (sA : is-segalᵣ A)
   (Ψ : simplex 2 →ᵣ X)
   → hom-map-comp X A p sX sA (simplex-2-hom₀₁ {X} Ψ) (simplex-2-hom₁₂ {X} Ψ) ≡ hom-map-comp-simplex X A p sX sA Ψ
 hom-map-comp-edges X A p sX sA Ψ =

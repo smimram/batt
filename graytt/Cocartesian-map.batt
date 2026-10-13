@@ -51,6 +51,27 @@ is-prop-preserves-cocartesian {X} {Y} {A} sX sY sA p q f =
         is-prop-Π (λ _ . D {u} {v} γ) (λ _ .
           is-prop-is-cocartesian {Y} {A} sY sA q {f u} {f v} (hom-map {X} {Y} f {u} {v} γ)))))
 
+-- it suffices to check it on the homs of 1-cells, cell-hom c (with refl endpoint paths): the endpoint
+-- paths of a hom are moved away by path induction
+preserves-cocartesian-cells-aux ∷ {X Y A ∷ U} (sX : is-segalᵣ X) (sY : is-segalᵣ Y) (sA : is-segalᵣ A) (p ∷ X → A) (q ∷ Y → A)
+  (f : X → Y) →
+  ((c : arrᵣ X) → is-cocartesian {X} {A} sX sA p {srcᵣ c} {tgtᵣ c} (cell-hom {X} c) →
+    is-cocartesian {Y} {A} sY sA q {f (srcᵣ c)} {f (tgtᵣ c)} (hom-map {X} {Y} f {srcᵣ c} {tgtᵣ c} (cell-hom {X} c))) →
+  (c : arrᵣ X) {u : X} (r₀ : srcᵣ c ≡ u) {v : X} (r₁ : tgtᵣ c ≡ v) →
+  is-cocartesian {X} {A} sX sA p {u} {v} (c , r₀ , r₁) → is-cocartesian {Y} {A} sY sA q {f u} {f v} (hom-map {X} {Y} f {u} {v} (c , r₀ , r₁))
+preserves-cocartesian-cells-aux {X} {Y} {A} sX sY sA p q f H c refl refl = H c
+
+preserves-cocartesian-cells ∷ {X Y A ∷ U} (sX : is-segalᵣ X) (sY : is-segalᵣ Y) (sA : is-segalᵣ A) (p ∷ X → A) (q ∷ Y → A)
+  (f : X → Y) →
+  ((c : arrᵣ X) → is-cocartesian {X} {A} sX sA p {srcᵣ c} {tgtᵣ c} (cell-hom {X} c) →
+    is-cocartesian {Y} {A} sY sA q {f (srcᵣ c)} {f (tgtᵣ c)} (hom-map {X} {Y} f {srcᵣ c} {tgtᵣ c} (cell-hom {X} c))) →
+  preserves-cocartesian {X} {Y} {A} sX sY sA p q f
+preserves-cocartesian-cells {X} {Y} {A} sX sY sA p q f H {u} {v} (c , r) =
+  let k : (r : (srcᵣ c ≡ u) × (tgtᵣ c ≡ v)) →
+          is-cocartesian {X} {A} sX sA p {u} {v} (c , r) → is-cocartesian {Y} {A} sY sA q {f u} {f v} (hom-map {X} {Y} f {u} {v} (c , r)) =
+    fun (r₀ , r₁) → preserves-cocartesian-cells-aux {X} {Y} {A} sX sY sA p q f H c {u} r₀ {v} r₁ in
+  k r
+
 -- maps over A
 map-over ∷ {X Y A ∷ U} (p ∷ X → A) (q ∷ Y → A) → U
 map-over {X} {Y} {A} p q = Σ (f : X → Y) . (x : X) → q (f x) ≡ p x
