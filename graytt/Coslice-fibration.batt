@@ -9,7 +9,7 @@
 --
 -- Proof of the second point: the cocartesian lift for the codomain fibration has a constant source,
 -- so it lifts to a/A (coslice-lift); it is cocartesian there by base change (a/A is a pullback) and
--- the composite lemma, and lifts are unique since a/A is univalent.
+-- the composite lemma (is-cocartesian-circ, Fibration.batt), and lifts are unique since a/A is univalent.
 --
 -- Postulates relied on: fold-lemma, objectwise-equiv, pushout-up, univalence, truncation, is-set-𝕀.
 --
@@ -113,9 +113,9 @@ coslice-lift-sq {A} sA a σ γ =
     is-cocartesian-point-pullback-proj {arrᵣ A} {A} sY sA (λ g . srcᵣ g) a sS' {srcᵣ χ'} {tgtᵣ χ'} (cell-hom {S'} χ') in
   let cq : is-cocartesian {arrᵣ A} {A} sY sA (λ g . tgtᵣ g) {ι (srcᵣ χ')} {ι (tgtᵣ χ')} (hom-map {S'} {arrᵣ A} ι {srcᵣ χ'} {tgtᵣ χ'} (cell-hom {S'} χ')) =
     lift-sq-cocart {A} sA σ in
-  -- hence (ev₁ ∘ ι)-cocartesian (composite lemma), and so is its image in the coslice
+  -- hence (ev₁ ∘ ι)-cocartesian (is-cocartesian-circ), and so is its image in the coslice
   let c' : is-cocartesian {S'} {A} sS' sA (λ w . tgtᵣ (ι w)) {srcᵣ χ'} {tgtᵣ χ'} (cell-hom {S'} χ') =
-    is-cocartesian-comp-fib {S'} {arrᵣ A} {A} sS' sY sA ι (λ g . tgtᵣ g) {srcᵣ χ'} {tgtᵣ χ'} (cell-hom {S'} χ') cι cq in
+    is-cocartesian-circ {S'} {arrᵣ A} {A} sS' sY sA ι (λ g . tgtᵣ g) {srcᵣ χ'} {tgtᵣ χ'} (cell-hom {S'} χ') cι cq in
   let c0 : is-cocartesian {S} {A} (is-segalᵣ-coslice {A} sA a) sA (coslice-tgt {A} {a}) {e (srcᵣ χ')} {e (tgtᵣ χ')} (hom-map {S'} {S} e {srcᵣ χ'} {tgtᵣ χ'} (cell-hom {S'} χ')) =
     is-cocartesian-equiv {S'} {S} {A} sS' (is-segalᵣ-coslice {A} sA a) sA e ee (coslice-tgt {A} {a}) {srcᵣ χ'} {tgtᵣ χ'} (cell-hom {S'} χ') c' in
   (χ-cell ,

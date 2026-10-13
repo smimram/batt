@@ -57,7 +57,7 @@ evid-yon {A} a F sA sF cF u = push-id {A} F sA sF cF {a} u
 -- (hom-family-conn-cocart), to a cocartesian 1-cell lying over f; it starts at the image of
 -- (f 0 , λ j . f 0 , p , refl), which is the identity of a (hom-family-id-path), so it is a
 -- cocartesian lift of f at φ a id_a and computes the pushforward (push-cocart, Covariant.batt).
--- Its target is φ (f 1) (f , p , refl), and the target path of the lift is q (pb-path-snd), so the
+-- Its target is φ (f 1) (f , p , refl), and the target path of the lift is q (cong-right-pb-path), so the
 -- pushforward is φ x f, by naturality of transport (subst-fibrewise, subst-hom-tgt).
 --
 
@@ -90,7 +90,7 @@ cocart-map-push-id {A} sA a G sG cG φ cφ {x} (fc , r) =
         trans (trans-refl-l (trans (cong (λ d . tgtᵣ (fst {arrᵣ A} (λ l . fst G (fst {XG} (λ h . Σ (l' : arrᵣ A) . fst G h ≡ srcᵣ l') d) ≡ srcᵣ l)
                                                             (snd {XG} (λ h . Σ (l' : arrᵣ A) . fst G h ≡ srcᵣ l') d))) e) q))
           (trans (cong {tgtᵣ fc ≡ tgtᵣ fc} {tgtᵣ fc ≡ x} (λ c . trans c q)
-                   (pb-path-snd {XG} {arrᵣ A} {A} {A} (fst G) (λ g . srcᵣ g) (λ g . tgtᵣ g) α fc refl (sym p) αp))
+                   (cong-right-pb-path {XG} {arrᵣ A} {A} {A} (fst G) (λ g . srcᵣ g) (λ g . tgtᵣ g) α fc refl (sym p) αp))
             (trans-refl-l q)) in
       trans (push-cocart {A} G sA sG cG {a} {x} (fc , p , q) (φ a (Hom.id {A} a)) w e)
         (trans (sym (subst-fibrewise (hom-family {A} a) G φ tq (fc , p , refl)))

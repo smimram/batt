@@ -34,12 +34,18 @@ pb-path-both ∷ {H L T : U} (a : H → T) (b : L → T) {h1 h2 : H} (α : h1 �
 pb-path-both {H} {L} {T} a b {h1} refl {l1} refl e1 e2 E =
   cong {a h1 ≡ b l1} {Σ (h : H) . Σ (l : L) . a h ≡ b l} (λ e . (h1 , l1 , e)) (trans (sym (trans-refl-l e1)) E)
 
+-- two points with the same first component are equal when their second components are
+pb-path-right ∷ {H L T : U} (a : H → T) (b : L → T) (h : H) {l1 l2 : L} (α : l1 ≡ l2) (e1 : a h ≡ b l1) (e2 : a h ≡ b l2) →
+  trans e1 (cong b α) ≡ e2 → (h , l1 , e1) ≡{Σ (h : H) . Σ (l : L) . a h ≡ b l} (h , l2 , e2)
+pb-path-right {H} {L} {T} a b h {l1} refl e1 e2 E =
+  cong {a h ≡ b l1} {Σ (h : H) . Σ (l : L) . a h ≡ b l} (λ e . (h , l1 , e)) E
+
 -- along such a path, a function of the second component is constant
-pb-path-snd ∷ {H B C D : U} (F : H → C) (G : B → C) (t : B → D) {h1 h2 : H} (α : h1 ≡ h2) (k : B) (e1 : F h1 ≡ G k)
+cong-right-pb-path ∷ {H B C D : U} (F : H → C) (G : B → C) (t : B → D) {h1 h2 : H} (α : h1 ≡ h2) (k : B) (e1 : F h1 ≡ G k)
   (e2 : F h2 ≡ G k) (E : e1 ≡ trans (cong F α) e2) →
   cong (λ w . t (fst {B} (λ b . F (fst {H} (λ h . Σ (b' : B) . F h ≡ G b') w) ≡ G b) (snd {H} (λ h . Σ (b' : B) . F h ≡ G b') w)))
     (pb-path F G α k e1 e2 E) ≡ refl
-pb-path-snd {H} {B} {C} {D} F G t {h1} refl k e1 e2 E =
+cong-right-pb-path {H} {B} {C} {D} F G t {h1} refl k e1 e2 E =
   trans (sym (cong-comp (λ w . t (fst {B} (λ b . F (fst {H} (λ h . Σ (b' : B) . F h ≡ G b') w) ≡ G b) (snd {H} (λ h . Σ (b' : B) . F h ≡ G b') w)))
                         (λ e . (h1 , k , e)) (trans E (trans-refl-l e2))))
     (cong-cst (t k) (trans E (trans-refl-l e2)))
@@ -430,3 +436,68 @@ pullback-coneₗ-eta K {A} {B} {C} g h (x , ps) =
       ((Product.fst x , Product.fst (Product.snd x) , Product.snd (Product.snd x)) , Product.fst ps , Product.snd ps) ≡{pullback-coneₗ K {A} {B} {C} g h} (x , ps) =
     fun (u , r) ps → k u r ps in
   k1 x ps
+
+-- Restricting a fibre product along a map a : H → M of its left factor: the type of points h : H
+-- with a point of M ×_T L lying over a h is the fibre product H ×_T L of Q ∘ a and b (the path
+-- a h ≡ m is contracted with m).
+pb-restrict-r ∷ {H M L T : U} (a : H → M) (Q : M → T) (b : L → T) (h : H) {m : M} (e : a h ≡ m) (s : Σ (l : L) . Q m ≡ b l) →
+  Σ (l : L) . Q (a h) ≡ b l
+pb-restrict-r {H} {M} {L} {T} a Q b h e (l , f) = (l , trans (cong Q e) f)
+
+pb-restrict-z ∷ {H M L T : U} (a : H → M) (Q : M → T) (b : L → T) (h : H) (z : pullback {M} {L} {T} Q b) →
+  a h ≡ fst (λ m . Σ (l : L) . Q m ≡ b l) z → Σ (l : L) . Q (a h) ≡ b l
+pb-restrict-z {H} {M} {L} {T} a Q b h (m , s) e = pb-restrict-r a Q b h {m} e s
+
+pb-restrict ∷ {H M L T : U} (a : H → M) (Q : M → T) (b : L → T) →
+  (Σ (h : H) . Σ (z : pullback {M} {L} {T} Q b) . a h ≡ fst (λ m . Σ (l : L) . Q m ≡ b l) z) →
+  pullback {H} {L} {T} (λ h . Q (a h)) b
+pb-restrict {H} {M} {L} {T} a Q b (h , r) =
+  let k : (r : Σ (z : pullback {M} {L} {T} Q b) . a h ≡ fst (λ m . Σ (l : L) . Q m ≡ b l) z) → Σ (l : L) . Q (a h) ≡ b l =
+    fun (z , e) → pb-restrict-z a Q b h z e in
+  (h , k r)
+
+pb-unrestrict ∷ {H M L T : U} (a : H → M) (Q : M → T) (b : L → T) →
+  (Σ (h : H) . Σ (l : L) . Q (a h) ≡ b l) →
+  Σ (h : H) . Σ (z : pullback {M} {L} {T} Q b) . a h ≡ fst (λ m . Σ (l : L) . Q m ≡ b l) z
+pb-unrestrict {H} {M} {L} {T} a Q b (h , s) = (h , ((a h , s) , refl))
+
+pb-restrict-sec-r ∷ {H M L T : U} (a : H → M) (Q : M → T) (b : L → T) (h : H) (s : Σ (l : L) . Q (a h) ≡ b l) →
+  pb-restrict a Q b (pb-unrestrict a Q b (h , s)) ≡{pullback {H} {L} {T} (λ h . Q (a h)) b} (h , s)
+pb-restrict-sec-r {H} {M} {L} {T} a Q b h (l , f) =
+  cong {Q (a h) ≡ b l} {Σ (h : H) . Σ (l : L) . Q (a h) ≡ b l} (λ f' . (h , (l , f'))) (trans-refl-l f)
+
+pb-restrict-retr-r ∷ {H M L T : U} (a : H → M) (Q : M → T) (b : L → T) (h : H) {m : M} (e : a h ≡ m) (l : L) (f : Q m ≡ b l) →
+  pb-unrestrict a Q b (pb-restrict a Q b (h , ((m , (l , f)) , e)))
+    ≡{Σ (h : H) . Σ (z : pullback {M} {L} {T} Q b) . a h ≡ fst (λ m . Σ (l : L) . Q m ≡ b l) z} (h , ((m , (l , f)) , e))
+pb-restrict-retr-r {H} {M} {L} {T} a Q b h refl l f =
+  cong {Q (a h) ≡ b l} {Σ (h : H) . Σ (z : pullback {M} {L} {T} Q b) . a h ≡ fst (λ m . Σ (l : L) . Q m ≡ b l) z}
+    (λ f' . (h , ((a h , (l , f')) , refl))) (trans-refl-l f)
+
+pb-restrict-retr-s ∷ {H M L T : U} (a : H → M) (Q : M → T) (b : L → T) (h : H) (m : M) (s : Σ (l : L) . Q m ≡ b l) (e : a h ≡ m) →
+  pb-unrestrict a Q b (pb-restrict a Q b (h , ((m , s) , e)))
+    ≡{Σ (h : H) . Σ (z : pullback {M} {L} {T} Q b) . a h ≡ fst (λ m . Σ (l : L) . Q m ≡ b l) z} (h , ((m , s) , e))
+pb-restrict-retr-s {H} {M} {L} {T} a Q b h m (l , f) e = pb-restrict-retr-r a Q b h {m} e l f
+
+pb-restrict-retr-z ∷ {H M L T : U} (a : H → M) (Q : M → T) (b : L → T) (h : H) (z : pullback {M} {L} {T} Q b)
+  (e : a h ≡ fst (λ m . Σ (l : L) . Q m ≡ b l) z) →
+  pb-unrestrict a Q b (pb-restrict a Q b (h , (z , e)))
+    ≡{Σ (h : H) . Σ (z : pullback {M} {L} {T} Q b) . a h ≡ fst (λ m . Σ (l : L) . Q m ≡ b l) z} (h , (z , e))
+pb-restrict-retr-z {H} {M} {L} {T} a Q b h (m , s) e = pb-restrict-retr-s a Q b h m s e
+
+pb-restrict-retr ∷ {H M L T : U} (a : H → M) (Q : M → T) (b : L → T)
+  (w : Σ (h : H) . Σ (z : pullback {M} {L} {T} Q b) . a h ≡ fst (λ m . Σ (l : L) . Q m ≡ b l) z) →
+  pb-unrestrict a Q b (pb-restrict a Q b w) ≡ w
+pb-restrict-retr {H} {M} {L} {T} a Q b (h , r) =
+  let k : (r : Σ (z : pullback {M} {L} {T} Q b) . a h ≡ fst (λ m . Σ (l : L) . Q m ≡ b l) z) →
+          pb-unrestrict a Q b (pb-restrict a Q b (h , r))
+            ≡{Σ (h : H) . Σ (z : pullback {M} {L} {T} Q b) . a h ≡ fst (λ m . Σ (l : L) . Q m ≡ b l) z} (h , r) =
+    fun (z , e) → pb-restrict-retr-z a Q b h z e in
+  k r
+
+pb-restrict-sec ∷ {H M L T : U} (a : H → M) (Q : M → T) (b : L → T) (w : pullback {H} {L} {T} (λ h . Q (a h)) b) →
+  pb-restrict a Q b (pb-unrestrict a Q b w) ≡ w
+pb-restrict-sec {H} {M} {L} {T} a Q b (h , s) = pb-restrict-sec-r a Q b h s
+
+is-equiv-pb-restrict ∷ {H M L T : U} (a : H → M) (Q : M → T) (b : L → T) → is-equiv (pb-restrict a Q b)
+is-equiv-pb-restrict {H} {M} {L} {T} a Q b =
+  ((pb-unrestrict a Q b , pb-restrict-sec a Q b) , (pb-unrestrict a Q b , pb-restrict-retr a Q b))

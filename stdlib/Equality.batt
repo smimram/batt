@@ -269,3 +269,21 @@ trans-sym-trans-cancel {A} {x} {y} {z} p q =
 subst-fibrewise ∷ {A : Type} (F G : A → Type) (φ : (x : A) → F x → G x) {x y : A} (q : x ≡ y) (v : F x) →
   φ y (subst F q v) ≡ subst G q (φ x v)
 subst-fibrewise {A} F G φ {x} refl v = refl
+
+-- cancelling the second argument of cong2 f d e against cong (f x) e
+trans-cong2-cancel-r ∷ {T S1 S2 : U} (f : S1 → S2 → T) {t0 t1 t2 : T} (a : t0 ≡ t1) (b : t1 ≡ t2)
+  {x x' : S1} (d : x ≡ x') {y y' : S2} (e : y ≡ y') (c : t2 ≡ f x' y') →
+  trans (trans a (trans b (trans c (sym (cong2 f d e))))) (cong (f x) e)
+    ≡ trans a (trans (trans b c) (cong (λ m . f m y') (sym d)))
+trans-cong2-cancel-r {T} {S1} {S2} f a b {x} refl {y} refl c = refl
+
+-- cancelling the first argument of cong2 F d1 d2 against cong (λ x . F x b0) d1, under a
+-- conjugation by c0 and a transport along e'
+trans-cong2-cancel-l-core ∷ {T : U} {X0 Y0 : T} (c0 : X0 ≡ Y0) {Z0 : T} (h : Y0 ≡ Z0) → trans refl h ≡ trans (sym c0) (trans c0 (trans refl h))
+trans-cong2-cancel-l-core {T} {X0} {Y0} c0 refl = sym (trans-sym-l c0)
+
+trans-cong2-cancel-l ∷ {M T P1 P2 : U} (P : M → T) (F : P1 → P2 → T) {X0 : T} {m : M} (c0 : X0 ≡ P m) {m' : M} (e' : m ≡ m')
+  {a0 a : P1} (d1 : a0 ≡ a) {b0 b : P2} (d2 : b0 ≡ b) (h : P m' ≡ F a b) →
+  trans (sym (cong P (sym e'))) (trans h (cong (F a) (sym d2)))
+  ≡ trans (sym c0) (trans (trans c0 (trans (cong P e') (trans h (sym (cong2 F d1 d2))))) (cong (λ x . F x b0) d1))
+trans-cong2-cancel-l {M} {T} {P1} {P2} P F {X0} {m} c0 refl {a0} refl {b0} refl h = trans-cong2-cancel-l-core c0 h

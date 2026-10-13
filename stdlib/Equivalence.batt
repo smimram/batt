@@ -468,3 +468,9 @@ is-equiv-prod-map {A} {A'} {B} {B'} f g ef eg =
 -- a map between propositions with a map back is an equivalence
 is-equiv-prop ∷ {P Q : U} → is-prop P → is-prop Q → (f : P → Q) → (Q → P) → is-equiv f
 is-equiv-prop {P} {Q} pP pQ f g = ((g , λ q . prop-path pQ (f (g q)) q) , (g , λ x . prop-path pP (g (f x)) x))
+
+-- pre- and post-composition with fixed paths is an equivalence
+is-equiv-trans-trans ∷ {T : U} {x y : T} (p : x ≡ y) {z w : T} (r : z ≡ w) →
+  is-equiv {y ≡ z} {x ≡ w} (λ f . trans p (trans f r))
+is-equiv-trans-trans {T} {x} refl {z} refl =
+  is-equiv-htpy {x ≡ z} {x ≡ z} {id} {λ f . trans refl (trans f refl)} (λ f . sym (trans-refl-l f)) (is-equiv-id (x ≡ z))
