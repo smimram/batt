@@ -17,9 +17,9 @@ jobs:
       run: dune runtest
     - name: Build website
       run: |
-        sudo apt-get -y install mkdocs
+        mkdir _site
         cp -rL _build/default/web _site
-        chmod -R u+w _site
+        sudo apt-get -y install mkdocs
         mkdocs build --strict -f documentation/mkdocs.yml -d ../_site/documentation
     - name: Upload webpage
       uses: actions/upload-pages-artifact@v5
