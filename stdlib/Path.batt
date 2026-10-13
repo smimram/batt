@@ -18,6 +18,14 @@ path-src (x , _) = x
 path-tgt ∷ {A : U} → path A → A
 path-tgt {A} (x , q) = fst _ q
 
+-- the path itself
+path-eq ∷ {A : U} (w : path A) → path-src {A} w ≡ path-tgt {A} w
+path-eq {A} (x , q) = snd (λ y . x ≡ y) q
+
+-- η: a free path is the free path of its path
+path-eta ∷ {A : U} (w : path A) → (path-src {A} w , path-tgt {A} w , path-eq {A} w) ≡{path A} w
+path-eta {A} (x , q) = let h : (q : Σ (y : A) . x ≡ y) → (x , fst (λ y . x ≡ y) q , snd (λ y . x ≡ y) q) ≡{path A} (x , q) = fun (y , e) → refl in h q
+
 -- constructor
 path-of ∷ {A : U} {x y : A} → x ≡ y → path A
 path-of {A} {x} {y} p = (x , y , p)

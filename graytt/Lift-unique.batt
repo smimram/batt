@@ -137,18 +137,6 @@ open import Composition
 open import Iso
 open import Univalent
 
--- paths in a Σ-type: split into a path of first components and a transport, and back
-Σ-path-split ∷ {B : U} {Q : B → U} {b : B} {v : Q b} {w : Σ (b' : B) . Q b'} →
-  (b , v) ≡{Σ (b' : B) . Q b'} w → Σ (e : b ≡ fst Q w) . subst Q e v ≡ snd Q w
-Σ-path-split {B} {Q} {b} {v} {w} q =
-  J {Σ (b' : B) . Q b'} (b , v) (λ w' q' . Σ (e : b ≡ fst Q w') . subst Q e v ≡ snd Q w') (refl , refl) q
-
-Σ-path-join ∷ {B : U} {Q : B → U} {b b' : B} (e : b ≡ b') {v : Q b} {v' : Q b'} → subst Q e v ≡ v' →
-  (b , v) ≡{Σ (b'' : B) . Q b''} (b' , v')
-Σ-path-join {B} {Q} {b} {b'} e {v} {v'} =
-  J b (λ b'' e' . (v'' : Q b'') → subst Q e' v ≡ v'' → (b , v) ≡{Σ (b3 : B) . Q b3} (b'' , v''))
-    (λ v'' D . cong {Q b} {Σ (b3 : B) . Q b3} (λ z . (b , z)) D) e v'
-
 -- injectivity is fibrewise
 tot-inj-aux ∷ {B : U} {R Q : B → U} (L : (b : B) → R b → Q b) → ((b : B) → is-inj (L b)) →
   (b : B) (r : R b) {b' : B} (e : b ≡ b') (r' : R b') → subst Q e (L b r) ≡ L b' r' → (b , r) ≡{Σ (b'' : B) . R b''} (b' , r')

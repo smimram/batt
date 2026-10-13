@@ -360,3 +360,23 @@ funext-htpy-happly ∷ {A : U} {B : A → U} {f g : (x : A) → B x} (p : f ≡ 
 funext-htpy-happly {A} {B} {f} {g} p =
   retraction-inj (happly {A} {B} {f} {g}) (is-equiv-ret (happly {A} {B} {f} {g}) (is-equiv-happly {A} {B} f g))
     (happly-funext-htpy {A} {B} f g (happly {A} {B} {f} {g} p))
+
+-- evaluating the image of a path of functions under postcomposition
+happly-cong-post ∷ {Z X Y : U} (f : X → Y) {G G' : Z → X} (P : G ≡ G') (z : Z) →
+  happly {Z} {λ _ . Y} {post {Z} {X} {Y} f G} {post {Z} {X} {Y} f G'} (cong (post {Z} {X} {Y} f) P) z ≡ cong f (happly {Z} {λ _ . X} {G} {G'} P z)
+happly-cong-post {Z} {X} {Y} f {G} refl z = refl
+
+-- postcomposition of a funext path is the funext of the pointwise images
+cong-post-funext ∷ {Z X Y : U} (f : X → Y) (G G' : Z → X) (h : (z : Z) → G z ≡ G' z) →
+  cong (post {Z} {X} {Y} f) (funext-htpy {Z} {λ _ . X} G G' h)
+    ≡ funext-htpy {Z} {λ _ . Y} (post {Z} {X} {Y} f G) (post {Z} {X} {Y} f G') (λ z . cong f (h z))
+cong-post-funext {Z} {X} {Y} f G G' h =
+  let fG : Z → Y = post {Z} {X} {Y} f G in
+  let fG' : Z → Y = post {Z} {X} {Y} f G' in
+  let ha : (fG ≡ fG') → (z : Z) → fG z ≡ fG' z = happly {Z} {λ _ . Y} {fG} {fG'} in
+  let P : G ≡ G' = funext-htpy {Z} {λ _ . X} G G' h in
+  retraction-inj ha (is-equiv-ret ha (is-equiv-happly {Z} {λ _ . Y} fG fG'))
+    (trans (funext-htpy {Z} {λ z . fG z ≡ fG' z} (ha (cong (post {Z} {X} {Y} f) P)) (λ z . cong f (h z))
+              (λ z . trans (happly-cong-post {Z} {X} {Y} f {G} {G'} P z)
+                       (cong {G z ≡ G' z} {fG z ≡ fG' z} (cong f) (happly {Z} {λ z' . G z' ≡ G' z'} {happly {Z} {λ _ . X} {G} {G'} P} {h} (happly-funext-htpy {Z} {λ _ . X} G G' h) z))))
+      (sym (happly-funext-htpy {Z} {λ _ . Y} fG fG' (λ z . cong f (h z)))))

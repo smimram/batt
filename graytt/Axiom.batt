@@ -11,8 +11,8 @@
 --
 --   ♭(□[𝐚] → X) → ♭(□[𝐚] → Y),   𝄫g ↦ 𝄫(f ∘ g).
 --
--- The converse holds in the theory (objectwise-equiv-converse): ♭ preserves crisp equivalences,
--- and so does postcomposition.
+-- The converse holds in the theory (objectwise-equiv-converse): ♭ preserves crisp equivalences
+-- (flat-map-equiv, Flat.batt), and so does postcomposition.
 --
 -- Postulates introduced: objectwise-equiv.
 --
@@ -33,16 +33,6 @@ postulate objectwise-equiv ∷ {X Y ∷ U} (f ∷ X → Y) → is-objectwise-equ
 --
 -- The converse
 --
-
--- ♭ preserves crisp equivalences
-flat-map-equiv ∷ {A B ∷ U} (f ∷ A → B) (e ∷ is-equiv f) → is-equiv (flat-map {A} {B} f)
-flat-map-equiv {A} {B} f e =
-  let s ∷ B → A = section-map f (is-equiv-sec f e) in
-  let ss ∷ (y : B) → f (s y) ≡ y = snd (is-section f) (is-equiv-sec f e) in
-  let r ∷ B → A = retraction-map f (is-equiv-ret f e) in
-  let rr ∷ (x : A) → r (f x) ≡ x = snd (is-retraction f) (is-equiv-ret f e) in
-  ((flat-map {B} {A} s , fun 𝄫y → flat-≡ {B} {f (s y)} {y} (ss y)) ,
-   (flat-map {B} {A} r , fun 𝄫x → flat-≡ {A} {r (f x)} {x} (rr x)))
 
 objectwise-equiv-converse ∷ {X Y ∷ U} (f ∷ X → Y) (e ∷ is-equiv f) → is-objectwise-equiv {X} {Y} f
 objectwise-equiv-converse {X} {Y} f e a =

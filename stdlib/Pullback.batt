@@ -181,3 +181,138 @@ pb-map-unmap {Z} {A} {B} {C} g h (α , r) =
 is-equiv-pb-map ∷ {Z A B C : U} (g : A → C) (h : B → C) → is-equiv (pb-map {Z} {A} {B} {C} g h)
 is-equiv-pb-map {Z} {A} {B} {C} g h =
   ((pb-unmap {Z} {A} {B} {C} g h , pb-map-unmap {Z} {A} {B} {C} g h) , (pb-unmap {Z} {A} {B} {C} g h , pb-unmap-map {Z} {A} {B} {C} g h))
+
+---
+--- The universal property of pullbacks, homotopy form
+---
+--- The same, with the commutation given by a homotopy H : Z → path C and two paths fixing its
+--- endpoints (the form used for oplax maps, where the homotopy has to be a map into path C):
+---   pb-map-H : (Z → A ×_C B) → pullback-H g h,   φ ↦ ((a , b , λ z . (g (a z) , h (b z) , e z)) , refl , refl)
+--- is an equivalence.
+---
+
+open import Path
+
+pb-data-H ∷ (Z A B C : U) → U
+pb-data-H Z A B C = (Z → A) × (Z → B) × (Z → path C)
+
+pullback-H ∷ {Z A B C : U} (g : A → C) (h : B → C) → U
+pullback-H {Z} {A} {B} {C} g h =
+  Σ (x : pb-data-H Z A B C) .
+    (post {Z} {path C} {C} (path-src {C}) (Product.snd (Product.snd x)) ≡ post {Z} {A} {C} g (Product.fst x)) ×
+    (post {Z} {path C} {C} (path-tgt {C}) (Product.snd (Product.snd x)) ≡ post {Z} {B} {C} h (Product.fst (Product.snd x)))
+
+pb-map-H ∷ {Z A B C : U} (g : A → C) (h : B → C) → (Z → pullback {A} {B} {C} g h) → pullback-H {Z} {A} {B} {C} g h
+pb-map-H {Z} {A} {B} {C} g h φ =
+  let a : Z → A = λ z . fst (λ a' . Σ (b : B) . g a' ≡ h b) (φ z) in
+  let b : Z → B = λ z . fst (λ b' . g (a z) ≡ h b') (snd (λ a' . Σ (b' : B) . g a' ≡ h b') (φ z)) in
+  let e : (z : Z) → g (a z) ≡ h (b z) = λ z . snd (λ b' . g (a z) ≡ h b') (snd (λ a' . Σ (b' : B) . g a' ≡ h b') (φ z)) in
+  ((a , b , λ z . (g (a z) , h (b z) , e z)) , refl , refl)
+
+pb-unmap-H ∷ {Z A B C : U} (g : A → C) (h : B → C) → pullback-H {Z} {A} {B} {C} g h → (Z → pullback {A} {B} {C} g h)
+pb-unmap-H {Z} {A} {B} {C} g h (x , ss) z =
+  let α : Z → A = Product.fst x in
+  let β : Z → B = Product.fst (Product.snd x) in
+  let H : Z → path C = Product.snd (Product.snd x) in
+  let s : post {Z} {path C} {C} (path-src {C}) H ≡ post {Z} {A} {C} g α = Product.fst ss in
+  let s' : post {Z} {path C} {C} (path-tgt {C}) H ≡ post {Z} {B} {C} h β = Product.snd ss in
+  (α z , β z ,
+   trans (sym (happly {Z} {λ _ . C} {post {Z} {path C} {C} (path-src {C}) H} {post {Z} {A} {C} g α} s z))
+     (trans (path-eq {C} (H z)) (happly {Z} {λ _ . C} {post {Z} {path C} {C} (path-tgt {C}) H} {post {Z} {B} {C} h β} s' z)))
+
+pb-unmap-map-H ∷ {Z A B C : U} (g : A → C) (h : B → C) (φ : Z → pullback {A} {B} {C} g h) →
+  pb-unmap-H {Z} {A} {B} {C} g h (pb-map-H {Z} {A} {B} {C} g h φ) ≡ φ
+pb-unmap-map-H {Z} {A} {B} {C} g h φ =
+  funext-htpy {Z} {λ _ . pullback {A} {B} {C} g h} (pb-unmap-H {Z} {A} {B} {C} g h (pb-map-H {Z} {A} {B} {C} g h φ)) φ
+    (λ z .
+      let a : A = fst (λ a' . Σ (b : B) . g a' ≡ h b) (φ z) in
+      let b : B = fst (λ b' . g a ≡ h b') (snd (λ a' . Σ (b' : B) . g a' ≡ h b') (φ z)) in
+      trans (cong {g a ≡ h b} {pullback {A} {B} {C} g h} (λ q . (a , b , q))
+               (trans-refl-l (snd (λ b' . g a ≡ h b') (snd (λ a' . Σ (b' : B) . g a' ≡ h b') (φ z)))))
+        (pb-eta {A} {B} {C} g h (φ z)))
+
+-- transport in a family of pairs of paths with a fixed endpoint
+subst-path-pair ∷ {X Y Y' : U} (l : X → Y) (l' : X → Y') {c : Y} {c' : Y'} {x x' : X} (P : x ≡ x') (q : l x ≡ c) (q' : l' x ≡ c') →
+  subst (λ w . (l w ≡ c) × (l' w ≡ c')) P (q , q') ≡ (trans (sym (cong l P)) q , trans (sym (cong l' P)) q')
+subst-path-pair {X} {Y} {Y'} l l' {c} {c'} {x} refl q q' = cong2 {l x ≡ c} {l' x ≡ c'} {(l x ≡ c) × (l' x ≡ c')} pair (sym (trans-refl-l q)) (sym (trans-refl-l q'))
+
+-- the source and target of the η-path of a free path are trivial
+cong-src-path-eta ∷ {C : U} (w : path C) → cong (path-src {C}) (path-eta {C} w) ≡ refl
+cong-src-path-eta {C} (x , q) = let k : (q : Σ (y : C) . x ≡ y) → cong (path-src {C}) (path-eta {C} (x , q)) ≡ refl = fun (y , e) → refl in k q
+
+cong-tgt-path-eta ∷ {C : U} (w : path C) → cong (path-tgt {C}) (path-eta {C} w) ≡ refl
+cong-tgt-path-eta {C} (x , q) = let k : (q : Σ (y : C) . x ≡ y) → cong (path-tgt {C}) (path-eta {C} (x , q)) ≡ refl = fun (y , e) → refl in k q
+
+-- the coherence of the second round trip: re-gluing a homotopy along its endpoint paths gives it
+-- back (by J on the two endpoint paths, then the η of free paths)
+pb-H-reglue ∷ {Z C : U} (H : Z → path C) {F : Z → C} (s : post {Z} {path C} {C} (path-src {C}) H ≡ F)
+  {F' : Z → C} (s' : post {Z} {path C} {C} (path-tgt {C}) H ≡ F') →
+  ((λ z . (F z , F' z , trans (sym (happly {Z} {λ _ . C} {post {Z} {path C} {C} (path-src {C}) H} {F} s z))
+                          (trans (path-eq {C} (H z)) (happly {Z} {λ _ . C} {post {Z} {path C} {C} (path-tgt {C}) H} {F'} s' z)))) ,
+   refl , refl)
+    ≡{Σ (H' : Z → path C) . (post {Z} {path C} {C} (path-src {C}) H' ≡ F) × (post {Z} {path C} {C} (path-tgt {C}) H' ≡ F')}
+  (H , s , s')
+pb-H-reglue {Z} {C} H refl refl =
+  let src : Z → C = post {Z} {path C} {C} (path-src {C}) H in
+  let tgt : Z → C = post {Z} {path C} {C} (path-tgt {C}) H in
+  let H'' : Z → path C = λ z . (src z , tgt z , trans refl (path-eq {C} (H z))) in
+  let rho : (z : Z) → H'' z ≡ H z = λ z .
+    trans (cong {src z ≡ tgt z} {path C} (λ q . (src z , tgt z , q)) (trans-refl-l (path-eq {C} (H z)))) (path-eta {C} (H z)) in
+  let P : H'' ≡ H = funext-htpy {Z} {λ _ . path C} H'' H rho in
+  -- the endpoints of P are trivial
+  let κs : (z : Z) → cong (path-src {C}) (rho z) ≡ refl = λ z .
+    trans (cong-trans {path C} {C} (path-src {C}) (cong {src z ≡ tgt z} {path C} (λ q . (src z , tgt z , q)) (trans-refl-l (path-eq {C} (H z)))) (path-eta {C} (H z)))
+      (trans (cong2 {src z ≡ src z} {src z ≡ src z} {src z ≡ src z} (λ a b . trans a b)
+                (trans (sym (cong-comp {src z ≡ tgt z} {path C} {C} (path-src {C}) (λ q . (src z , tgt z , q)) (trans-refl-l (path-eq {C} (H z)))))
+                  (cong-cst {src z ≡ tgt z} {C} (src z) (trans-refl-l (path-eq {C} (H z)))))
+                (cong-src-path-eta {C} (H z)))
+        refl) in
+  let κt : (z : Z) → cong (path-tgt {C}) (rho z) ≡ refl = λ z .
+    trans (cong-trans {path C} {C} (path-tgt {C}) (cong {src z ≡ tgt z} {path C} (λ q . (src z , tgt z , q)) (trans-refl-l (path-eq {C} (H z)))) (path-eta {C} (H z)))
+      (trans (cong2 {tgt z ≡ tgt z} {tgt z ≡ tgt z} {tgt z ≡ tgt z} (λ a b . trans a b)
+                (trans (sym (cong-comp {src z ≡ tgt z} {path C} {C} (path-tgt {C}) (λ q . (src z , tgt z , q)) (trans-refl-l (path-eq {C} (H z)))))
+                  (cong-cst {src z ≡ tgt z} {C} (tgt z) (trans-refl-l (path-eq {C} (H z)))))
+                (cong-tgt-path-eta {C} (H z)))
+        refl) in
+  let Ps : cong (post {Z} {path C} {C} (path-src {C})) P ≡ refl =
+    trans (cong-post-funext {Z} {path C} {C} (path-src {C}) H'' H rho)
+      (trans (cong {(z : Z) → src z ≡ src z} {src ≡ src} (funext-htpy {Z} {λ _ . C} src src)
+                (funext-htpy {Z} {λ z . src z ≡ src z} (λ z . cong (path-src {C}) (rho z)) (λ z . refl) κs))
+        (funext-htpy-happly {Z} {λ _ . C} {src} {src} refl)) in
+  let Pt : cong (post {Z} {path C} {C} (path-tgt {C})) P ≡ refl =
+    trans (cong-post-funext {Z} {path C} {C} (path-tgt {C}) H'' H rho)
+      (trans (cong {(z : Z) → tgt z ≡ tgt z} {tgt ≡ tgt} (funext-htpy {Z} {λ _ . C} tgt tgt)
+                (funext-htpy {Z} {λ z . tgt z ≡ tgt z} (λ z . cong (path-tgt {C}) (rho z)) (λ z . refl) κt))
+        (funext-htpy-happly {Z} {λ _ . C} {tgt} {tgt} refl)) in
+  Σ-path-join {Z → path C} {λ w . (post {Z} {path C} {C} (path-src {C}) w ≡ src) × (post {Z} {path C} {C} (path-tgt {C}) w ≡ tgt)}
+    P
+    (trans (subst-path-pair {Z → path C} {Z → C} {Z → C} (post {Z} {path C} {C} (path-src {C})) (post {Z} {path C} {C} (path-tgt {C})) {src} {tgt} P refl refl)
+      (cong2 {src ≡ src} {tgt ≡ tgt} {(src ≡ src) × (tgt ≡ tgt)} pair (cong sym Ps) (cong sym Pt)))
+
+pb-map-unmap-H ∷ {Z A B C : U} (g : A → C) (h : B → C) (d : pullback-H {Z} {A} {B} {C} g h) →
+  pb-map-H {Z} {A} {B} {C} g h (pb-unmap-H {Z} {A} {B} {C} g h d) ≡ d
+pb-map-unmap-H {Z} {A} {B} {C} g h (x , ss) =
+  let k : (α : Z → A) (β : Z → B) (H : Z → path C)
+          (s : post {Z} {path C} {C} (path-src {C}) H ≡ post {Z} {A} {C} g α) (s' : post {Z} {path C} {C} (path-tgt {C}) H ≡ post {Z} {B} {C} h β) →
+          pb-map-H {Z} {A} {B} {C} g h (pb-unmap-H {Z} {A} {B} {C} g h ((α , β , H) , s , s')) ≡ ((α , β , H) , s , s') =
+    λ α β H s s' .
+      cong {Σ (H' : Z → path C) . (post {Z} {path C} {C} (path-src {C}) H' ≡ post {Z} {A} {C} g α) × (post {Z} {path C} {C} (path-tgt {C}) H' ≡ post {Z} {B} {C} h β)}
+           {pullback-H {Z} {A} {B} {C} g h}
+        (λ w . ((α , β , fst (λ H' . (post {Z} {path C} {C} (path-src {C}) H' ≡ post {Z} {A} {C} g α) × (post {Z} {path C} {C} (path-tgt {C}) H' ≡ post {Z} {B} {C} h β)) w) ,
+                snd (λ H' . (post {Z} {path C} {C} (path-src {C}) H' ≡ post {Z} {A} {C} g α) × (post {Z} {path C} {C} (path-tgt {C}) H' ≡ post {Z} {B} {C} h β)) w))
+        (pb-H-reglue {Z} {C} H {post {Z} {A} {C} g α} s {post {Z} {B} {C} h β} s') in
+  let k2 : (x : pb-data-H Z A B C) (ss : (post {Z} {path C} {C} (path-src {C}) (Product.snd (Product.snd x)) ≡ post {Z} {A} {C} g (Product.fst x)) ×
+                                       (post {Z} {path C} {C} (path-tgt {C}) (Product.snd (Product.snd x)) ≡ post {Z} {B} {C} h (Product.fst (Product.snd x)))) →
+           pb-map-H {Z} {A} {B} {C} g h (pb-unmap-H {Z} {A} {B} {C} g h (x , ss)) ≡ (x , ss) =
+    fun (α , r) →
+      let k3 : (r : (Z → B) × (Z → path C))
+               (ss : (post {Z} {path C} {C} (path-src {C}) (Product.snd r) ≡ post {Z} {A} {C} g α) ×
+                     (post {Z} {path C} {C} (path-tgt {C}) (Product.snd r) ≡ post {Z} {B} {C} h (Product.fst r))) →
+               pb-map-H {Z} {A} {B} {C} g h (pb-unmap-H {Z} {A} {B} {C} g h ((α , r) , ss)) ≡ ((α , r) , ss) =
+        fun (β , H) (s , s') → k α β H s s' in
+      k3 r in
+  k2 x ss
+
+is-equiv-pb-map-H ∷ {Z A B C : U} (g : A → C) (h : B → C) → is-equiv (pb-map-H {Z} {A} {B} {C} g h)
+is-equiv-pb-map-H {Z} {A} {B} {C} g h =
+  ((pb-unmap-H {Z} {A} {B} {C} g h , pb-map-unmap-H {Z} {A} {B} {C} g h) , (pb-unmap-H {Z} {A} {B} {C} g h , pb-unmap-map-H {Z} {A} {B} {C} g h))
