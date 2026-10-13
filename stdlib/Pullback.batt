@@ -276,7 +276,7 @@ pullback-cone-reglue {Z} {C} H refl refl =
   Σ-path-join {Z → path C} {λ w . (post {Z} {path C} {C} (path-src {C}) w ≡ src) × (post {Z} {path C} {C} (path-tgt {C}) w ≡ tgt)}
     P
     (trans (subst-path-pair {Z → path C} {Z → C} {Z → C} (post {Z} {path C} {C} (path-src {C})) (post {Z} {path C} {C} (path-tgt {C})) {src} {tgt} P refl refl)
-      (cong2 {src ≡ src} {tgt ≡ tgt} {(src ≡ src) × (tgt ≡ tgt)} pair (cong sym Ps) (cong sym Pt)))
+      (cong2 {src ≡ src} {tgt ≡ tgt} {(src ≡ src) × (tgt ≡ tgt)} pair (cong {src ≡ src} {src ≡ src} (sym {Z → C} {src} {src}) Ps) (cong {tgt ≡ tgt} {tgt ≡ tgt} (sym {Z → C} {tgt} {tgt}) Pt)))
 
 pullback→cone-sec ∷ {Z A B C : U} (g : A → C) (h : B → C) (d : pullback-cone {Z} {A} {B} {C} g h) →
   pullback→cone {Z} {A} {B} {C} g h (cone→pullback {Z} {A} {B} {C} g h d) ≡ d

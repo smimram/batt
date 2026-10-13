@@ -30,3 +30,4 @@ open import Lift-unique
 open import Axiom
 open import Pullback-up
 open import Pushout-up
+open import FreeEquiv-up
