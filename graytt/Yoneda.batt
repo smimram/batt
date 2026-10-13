@@ -1,0 +1,38 @@
+--
+-- The Yoneda lemma for covariant families
+--
+-- For an oplax-Segal type A, a crisp a : A and a covariant family F over A, the Yoneda maps are
+--
+--   evid φ := φ a id_a                  : (Π (x : A) . hom a x → F x) → F a
+--   yon u  := λ x . λ f . f_! u          : F a → Π (x : A) . hom a x → F x
+--
+-- where f_! u is the pushforward of u along f (push, Covariant.batt). Here they are defined
+-- with the plain dependent product Π (x : A) . hom a x → F x; the Yoneda lemma restricts them to
+-- the cocartesian fibrewise maps Π^cocart (cocart-fibrewise-map, Cocartesian-map.batt).
+--
+-- evid ∘ yon is the identity (evid-yon), since pushing forward along an identity is the identity
+-- (push-id).
+--
+-- Postulates relied on: those of push-id (univalence, truncation, is-set-𝕀, through the Segal
+-- machinery).
+--
+
+open import Stdlib
+open import Hom
+open import Segal
+open import Fibration
+open import Covariant
+
+-- evaluation at the identity
+evid ∷ {A ∷ U} (a ∷ A) (F ∷ A → U) → ((x : A) → hom {A} a x → F x) → F a
+evid {A} a F φ = φ a (Hom.id {A} a)
+
+-- the Yoneda map: pushing u forward along every arrow out of a
+yon ∷ {A ∷ U} (a ∷ A) (F ∷ A → U) (sA : is-segalᵣ A) (sF : is-segalᵣ (Σ (x : A) . F x)) (c : is-covariant {A} F sA sF) →
+  F a → (x : A) → hom {A} a x → F x
+yon {A} a F sA sF c u x f = push {A} F sA sF c {a} {x} f u
+
+-- evid ∘ yon is the identity
+evid-yon ∷ {A ∷ U} (a ∷ A) (F ∷ A → U) (sA : is-segalᵣ A) (sF : is-segalᵣ (Σ (x : A) . F x)) (c : is-covariant {A} F sA sF)
+  (u : F a) → evid {A} a F (yon {A} a F sA sF c u) ≡ u
+evid-yon {A} a F sA sF c u = push-id {A} F sA sF c {a} u
