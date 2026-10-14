@@ -239,7 +239,7 @@ push-hom-family-simplex {A} rA a σ γ =
   -- the lift χ̄_σ lies over (t , u) judgmentally; its target is the long edge of σ
   let p : push {A} F sA (is-segalᵣ-hom-family {A} sA a) (hom-family-covariant {A} rA a)
             {σ (simplex2-edge₁₂ 𝕀0)} {σ (simplex2-edge₁₂ 𝕀1)} (simplex2-hom₁₂ {A} σ) t
-          ≡ (hom-cell {A} {σ (simplex2-edge₀₂ 𝕀0)} {σ (simplex2-edge₀₂ 𝕀1)} (simplex2-hom₀₂ {A} σ) , γ' , refl) =
+          ≡ (hom-cell {A} {σ (Spine2.edge₀₂ 𝕀0)} {σ (Spine2.edge₀₂ 𝕀1)} (simplex2-hom₀₂ {A} σ) , γ' , refl) =
     push-cocart {A} F sA (is-segalᵣ-hom-family {A} sA a) (hom-family-covariant {A} rA a)
       {σ (simplex2-edge₁₂ 𝕀0)} {σ (simplex2-edge₁₂ 𝕀1)} (simplex2-hom₁₂ {A} σ) t (hom-family-lift {A} sA a σ γ') refl in
   trans p (sym (comp-simplex2-src A sA σ {a} γ'))

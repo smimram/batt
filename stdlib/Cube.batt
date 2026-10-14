@@ -17,6 +17,7 @@ simplex2 = Σ (i : 𝕀) . Σ (j : 𝕀) . i ≥ j
 -- The 2-spine (two consecutive edges)
 spine2 ∷ Type
 spine2 = Σ (i : 𝕀) . Σ (j : 𝕀) . (j ≡ 𝕀0) ∨ (i ≡ 𝕀1)
+
 -- Canonical inclusion from the 2-spine to the 2-simplex
 spine2→simplex2 ∷ spine2 → simplex2
 spine2→simplex2 (i , y) =
@@ -136,27 +137,29 @@ spine→simplex (succ n) (x , p) = (x , is-in-spine→is-sorted n x p)
 -- Edges of the 2-spine and of the 2-simplex (coordinates x₁ ≥ x₂; vertices (0,0), (1,0), (1,1))
 --
 
--- first edge of the spine, t ↦ (t, 0)
-spine2-edge₀₁ ∷ 𝕀 → spine 2
-spine2-edge₀₁ t =
-  ((t , 𝕀0 , tt) ,
-   unit-prop-trunc (sum ((𝕀0 , tt) ≡{cart-cube 1} origin 1) ((t ≡ 𝕀1) × is-in-spine 1 (𝕀0 , tt)))
-     (inl {(𝕀0 , tt) ≡{cart-cube 1} origin 1} {(t ≡ 𝕀1) × is-in-spine 1 (𝕀0 , tt)} refl))
+Spine2 = record
+  -- first edge of the spine, t ↦ (t, 0)
+  edge₀₁ ∷ 𝕀 → spine 2
+  edge₀₁ t =
+    ((t , 𝕀0 , tt) ,
+     unit-prop-trunc (sum ((𝕀0 , tt) ≡{cart-cube 1} origin 1) ((t ≡ 𝕀1) × is-in-spine 1 (𝕀0 , tt)))
+       (inl {(𝕀0 , tt) ≡{cart-cube 1} origin 1} {(t ≡ 𝕀1) × is-in-spine 1 (𝕀0 , tt)} refl))
 
--- second edge of the spine, t ↦ (1, t)
-spine2-edge₁₂ ∷ 𝕀 → spine 2
-spine2-edge₁₂ t =
-  let p : is-in-spine 1 (t , tt) =
-    unit-prop-trunc (sum (tt ≡ origin 0) ((t ≡ 𝕀1) × is-in-spine 0 tt))
-      (inl {tt ≡ origin 0} {(t ≡ 𝕀1) × is-in-spine 0 tt} refl)
-  in
-  ((𝕀1 , t , tt) ,
-   unit-prop-trunc (sum ((t , tt) ≡{cart-cube 1} origin 1) ((𝕀1 ≡ 𝕀1) × is-in-spine 1 (t , tt)))
-     (inr {(t , tt) ≡{cart-cube 1} origin 1} {(𝕀1 ≡ 𝕀1) × is-in-spine 1 (t , tt)} (refl , p)))
+  -- second edge of the spine, t ↦ (1, t)
+  edge₁₂ ∷ 𝕀 → spine 2
+  edge₁₂ t =
+    let p : is-in-spine 1 (t , tt) =
+      unit-prop-trunc (sum (tt ≡ origin 0) ((t ≡ 𝕀1) × is-in-spine 0 tt))
+        (inl {tt ≡ origin 0} {(t ≡ 𝕀1) × is-in-spine 0 tt} refl)
+    in
+    ((𝕀1 , t , tt) ,
+     unit-prop-trunc (sum ((t , tt) ≡{cart-cube 1} origin 1) ((𝕀1 ≡ 𝕀1) × is-in-spine 1 (t , tt)))
+       (inr {(t , tt) ≡{cart-cube 1} origin 1} {(𝕀1 ≡ 𝕀1) × is-in-spine 1 (t , tt)} (refl , p)))
 
--- long edge of the 2-simplex, t ↦ (t, t)
-simplex2-edge₀₂ ∷ 𝕀 → simplex 2
-simplex2-edge₀₂ t = ((t , t , tt) , (refl , tt))
+  -- long edge of the 2-simplex, t ↦ (t, t)
+  edge₀₂ ∷ 𝕀 → simplex 2
+  edge₀₂ t = ((t , t , tt) , (refl , tt))
+end
 
 -- two points of a simplex with the same coordinates are equal (sortedness is a proposition)
 sorted-path ∷ (n ∷ ℕ) (x ∷ cart-cube (succ n)) (p q ∷ is-sorted n x) → (x , p) ≡{simplex (succ n)} (x , q)
@@ -186,11 +189,11 @@ spine1-pt ∷ (t : 𝕀) → is-in-spine 1 (t , tt)
 spine1-pt t = unit-prop-trunc (sum (tt ≡ origin 0) ((t ≡ 𝕀1) × is-in-spine 0 tt)) (inl {tt ≡ origin 0} {(t ≡ 𝕀1) × is-in-spine 0 tt} refl)
 
 -- In the 2-spine, the target of the first edge coincides with the source of the second edge
-spine-glue ∷ spine2-edge₀₁ 𝕀1 ≡{spine 2} spine2-edge₁₂ 𝕀0
+spine-glue ∷ Spine2.edge₀₁ 𝕀1 ≡{spine 2} Spine2.edge₁₂ 𝕀0
 spine-glue =
   let c0 ∷ cart-cube 2 = (𝕀1 , 𝕀0 , tt) in
-  let τ ∷ snd (is-in-spine 2) (spine2-edge₀₁ 𝕀1) ≡ snd (is-in-spine 2) (spine2-edge₁₂ 𝕀0) =
-    prop-path (is-prop-is-in-spine 2 c0) (snd (is-in-spine 2) (spine2-edge₀₁ 𝕀1)) (snd (is-in-spine 2) (spine2-edge₁₂ 𝕀0)) in
+  let τ ∷ snd (is-in-spine 2) (Spine2.edge₀₁ 𝕀1) ≡ snd (is-in-spine 2) (Spine2.edge₁₂ 𝕀0) =
+    prop-path (is-prop-is-in-spine 2 c0) (snd (is-in-spine 2) (Spine2.edge₀₁ 𝕀1)) (snd (is-in-spine 2) (Spine2.edge₁₂ 𝕀0)) in
   cong {is-in-spine 2 c0} {spine 2} (λ w . (c0 , w)) τ
 
 -- the two coordinates of a point of the 2-simplex
@@ -257,16 +260,16 @@ simplex3-d₃ y = ((simplex2-fst y , simplex2-snd y , 𝕀0 , tt) , (simplex2-ge
 simplex3-faces-edges ∷
   ((λ t . simplex3-d₃ (simplex2-edge₀₁ t)) ≡{𝕀 → simplex 3} simplex3-edge₀₁) ×
   ((λ t . simplex3-d₃ (simplex2-edge₁₂ t)) ≡{𝕀 → simplex 3} simplex3-edge₁₂) ×
-  ((λ t . simplex3-d₃ (simplex2-edge₀₂ t)) ≡{𝕀 → simplex 3} simplex3-edge₀₂) ×
+  ((λ t . simplex3-d₃ (Spine2.edge₀₂ t)) ≡{𝕀 → simplex 3} simplex3-edge₀₂) ×
   ((λ t . simplex3-d₀ (simplex2-edge₀₁ t)) ≡{𝕀 → simplex 3} simplex3-edge₁₂) ×
   ((λ t . simplex3-d₀ (simplex2-edge₁₂ t)) ≡{𝕀 → simplex 3} simplex3-edge₂₃) ×
-  ((λ t . simplex3-d₀ (simplex2-edge₀₂ t)) ≡{𝕀 → simplex 3} simplex3-edge₁₃) ×
+  ((λ t . simplex3-d₀ (Spine2.edge₀₂ t)) ≡{𝕀 → simplex 3} simplex3-edge₁₃) ×
   ((λ t . simplex3-d₁ (simplex2-edge₀₁ t)) ≡{𝕀 → simplex 3} simplex3-edge₀₂) ×
   ((λ t . simplex3-d₁ (simplex2-edge₁₂ t)) ≡{𝕀 → simplex 3} simplex3-edge₂₃) ×
-  ((λ t . simplex3-d₁ (simplex2-edge₀₂ t)) ≡{𝕀 → simplex 3} simplex3-edge₀₃) ×
+  ((λ t . simplex3-d₁ (Spine2.edge₀₂ t)) ≡{𝕀 → simplex 3} simplex3-edge₀₃) ×
   ((λ t . simplex3-d₂ (simplex2-edge₀₁ t)) ≡{𝕀 → simplex 3} simplex3-edge₀₁) ×
   ((λ t . simplex3-d₂ (simplex2-edge₁₂ t)) ≡{𝕀 → simplex 3} simplex3-edge₁₃) ×
-  ((λ t . simplex3-d₂ (simplex2-edge₀₂ t)) ≡{𝕀 → simplex 3} simplex3-edge₀₃)
+  ((λ t . simplex3-d₂ (Spine2.edge₀₂ t)) ≡{𝕀 → simplex 3} simplex3-edge₀₃)
 simplex3-faces-edges = (refl , refl , refl , refl , refl , refl , refl , refl , refl , refl , refl , refl)
 
 

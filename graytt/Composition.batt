@@ -23,12 +23,12 @@ open import Spine-up
 
 fst-cell ∷ {X ∷ U} → (spine 2 →ᵣ X) → (𝕀 →ᵣ X)
 fst-cell {X} φ =
-  let e ∷ 𝕀 → spine 2 = spine2-edge₀₁ in
+  let e ∷ 𝕀 → spine 2 = Spine2.edge₀₁ in
   preᵣ {𝕀} φ e
 
 snd-cell ∷ {X ∷ U} → (spine 2 →ᵣ X) → (𝕀 →ᵣ X)
 snd-cell {X} φ =
-  let e ∷ 𝕀 → spine 2 = spine2-edge₁₂ in
+  let e ∷ 𝕀 → spine 2 = Spine2.edge₁₂ in
   preᵣ {𝕀} φ e
 
 --
@@ -70,7 +70,7 @@ comp-fillerᵣ X s φ =
 -- the composite of a composable pair: the long edge of its filler
 compᵣ ∷ (X ∷ U) → is-segalᵣ X → (spine 2 →ᵣ X) → (𝕀 →ᵣ X)
 compᵣ X s φ =
-  let δ ∷ 𝕀 → simplex 2 = simplex2-edge₀₂ in
+  let δ ∷ 𝕀 → simplex 2 = Spine2.edge₀₂ in
   preᵣ {𝕀} (comp-fillerᵣ X s φ) δ
 
 --
@@ -90,15 +90,15 @@ comp-fillerᵣ-spine X s φ v {y} r =
 
 compᵣ-src ∷ (X ∷ U) (s : is-segalᵣ X) (φ : spine 2 →ᵣ X) → compᵣ X s φ 𝕀0 ≡ fst-cell {X} φ 𝕀0
 compᵣ-src X s φ =
-  comp-fillerᵣ-spine X s φ (spine2-edge₀₁ 𝕀0)
+  comp-fillerᵣ-spine X s φ (Spine2.edge₀₁ 𝕀0)
     (sorted-path 1 (𝕀0 , 𝕀0 , tt) (refl , tt)
-      (is-in-spine→is-sorted 1 (𝕀0 , 𝕀0 , tt) (snd (is-in-spine 2) (spine2-edge₀₁ 𝕀0))))
+      (is-in-spine→is-sorted 1 (𝕀0 , 𝕀0 , tt) (snd (is-in-spine 2) (Spine2.edge₀₁ 𝕀0))))
 
 compᵣ-tgt ∷ (X ∷ U) (s : is-segalᵣ X) (φ : spine 2 →ᵣ X) → compᵣ X s φ 𝕀1 ≡ snd-cell {X} φ 𝕀1
 compᵣ-tgt X s φ =
-  comp-fillerᵣ-spine X s φ (spine2-edge₁₂ 𝕀1)
+  comp-fillerᵣ-spine X s φ (Spine2.edge₁₂ 𝕀1)
     (sorted-path 1 (𝕀1 , 𝕀1 , tt) (refl , tt)
-      (is-in-spine→is-sorted 1 (𝕀1 , 𝕀1 , tt) (snd (is-in-spine 2) (spine2-edge₁₂ 𝕀1))))
+      (is-in-spine→is-sorted 1 (𝕀1 , 𝕀1 , tt) (snd (is-in-spine 2) (Spine2.edge₁₂ 𝕀1))))
 
 --
 -- Uniqueness of fillers: any 2-simplex restricting to φ on the spine is the filler of φ, so its
@@ -118,9 +118,9 @@ comp-fillerᵣ-unique X s φ Ψ H =
     (trans (comp-fillerᵣ-restr X s φ) (sym H))
 
 compᵣ-unique ∷ (X ∷ U) (s : is-segalᵣ X) (φ : spine 2 →ᵣ X) (Ψ : simplex 2 →ᵣ X) →
-  spine-restrᵣ 2 X Ψ ≡ φ → compᵣ X s φ ≡ preᵣ {𝕀} {simplex 2} {X} Ψ simplex2-edge₀₂
+  spine-restrᵣ 2 X Ψ ≡ φ → compᵣ X s φ ≡ preᵣ {𝕀} {simplex 2} {X} Ψ Spine2.edge₀₂
 compᵣ-unique X s φ Ψ H =
-  let δ ∷ 𝕀 → simplex 2 = simplex2-edge₀₂ in
+  let δ ∷ 𝕀 → simplex 2 = Spine2.edge₀₂ in
   cong {simplex 2 →ᵣ X} {𝕀 →ᵣ X} (λ F . preᵣ {𝕀} {simplex 2} {X} F δ) (comp-fillerᵣ-unique X s φ Ψ H)
 
 --
@@ -179,12 +179,12 @@ is-contr-hom-fill X s {x} {y} {z} u v =
   is-contr-fib (simplex2→coconeᵣ X) (is-equiv-simplex2→coconeᵣ X s) (homs→spine2-cocone {X} {x} {y} {z} u v)
 
 -- the long edge starts at the vertex 0 and ends at the vertex 2 of the spine
-simplex2-edge₀₂-src ∷ simplex2-edge₀₂ 𝕀0 ≡{simplex 2} spine→simplex 2 (spine2-edge-1-incl spine2-edge-1-start)
+simplex2-edge₀₂-src ∷ Spine2.edge₀₂ 𝕀0 ≡{simplex 2} spine→simplex 2 (spine2-edge-1-incl spine2-edge-1-start)
 simplex2-edge₀₂-src =
   sorted-path 1 (𝕀0 , 𝕀0 , tt) (refl , tt)
     (is-in-spine→is-sorted 1 (𝕀0 , 𝕀0 , tt) (snd (is-in-spine 2) (spine2-edge-1-incl spine2-edge-1-start)))
 
-simplex2-edge₀₂-tgt ∷ simplex2-edge₀₂ 𝕀1 ≡{simplex 2} spine→simplex 2 (spine2-edge-2-incl spine2-edge-2-end)
+simplex2-edge₀₂-tgt ∷ Spine2.edge₀₂ 𝕀1 ≡{simplex 2} spine→simplex 2 (spine2-edge-2-incl spine2-edge-2-end)
 simplex2-edge₀₂-tgt =
   sorted-path 1 (𝕀1 , 𝕀1 , tt) (refl , tt)
     (is-in-spine→is-sorted 1 (𝕀1 , 𝕀1 , tt) (snd (is-in-spine 2) (spine2-edge-2-incl spine2-edge-2-end)))
@@ -193,7 +193,7 @@ simplex2-edge₀₂-tgt =
 -- vertices of the spine
 fill-hom ∷ (X ∷ U) {x y z : X} (u : hom x y) (v : hom y z) → hom-fill X {x} {y} {z} u v → hom x z
 fill-hom X {x} {y} {z} u v (Ψ , P) =
-  let δ ∷ 𝕀 → simplex 2 = simplex2-edge₀₂ in
+  let δ ∷ 𝕀 → simplex 2 = Spine2.edge₀₂ in
   (preᵣ {𝕀} {simplex 2} {X} Ψ δ ,
    trans (congᵣ {simplex 2} {X} Ψ simplex2-edge₀₂-src)
      (trans (happlyᵣ {spine2-edge-1} {X} (cong (spine2-cocone-edge-1 {X}) P) spine2-edge-1-start) (hom-src {X} {x} {y} u)) ,
@@ -239,9 +239,9 @@ simplex2-hom₁₂ {X} Ψ =
   let e ∷ 𝕀 → simplex 2 = simplex2-edge₁₂ in
   (preᵣ {𝕀} {simplex 2} {X} Ψ e , refl , refl)
 
-simplex2-hom₀₂ ∷ {X ∷ U} (Ψ : simplex 2 →ᵣ X) → hom (Ψ (simplex2-edge₀₂ 𝕀0)) (Ψ (simplex2-edge₀₂ 𝕀1))
+simplex2-hom₀₂ ∷ {X ∷ U} (Ψ : simplex 2 →ᵣ X) → hom (Ψ (Spine2.edge₀₂ 𝕀0)) (Ψ (Spine2.edge₀₂ 𝕀1))
 simplex2-hom₀₂ {X} Ψ =
-  let e ∷ 𝕀 → simplex 2 = simplex2-edge₀₂ in
+  let e ∷ 𝕀 → simplex 2 = Spine2.edge₀₂ in
   (preᵣ {𝕀} {simplex 2} {X} Ψ e , refl , refl)
 
 -- on the two edges of the spine, the inclusion into the simplex is the edge of the simplex
@@ -343,8 +343,8 @@ fill-hom-simplex2 {X} Ψ =
   let src : trans (congᵣ {simplex 2} {X} Ψ simplex2-edge₀₂-src)
               (happlyᵣ {spine2-edge-1} {X} (cong (spine2-cocone-edge-1 {X}) (simplex2→cocone-edges {X} Ψ))
                   spine2-edge-1-start) ≡ refl =
-    trans (cong {Ψ (spine→simplex 2 (spine2-edge-1-incl spine2-edge-1-start)) ≡ Ψ (simplex2-edge₀₂ 𝕀0)}
-        {Ψ (simplex2-edge₀₂ 𝕀0) ≡ Ψ (simplex2-edge₀₂ 𝕀0)}
+    trans (cong {Ψ (spine→simplex 2 (spine2-edge-1-incl spine2-edge-1-start)) ≡ Ψ (Spine2.edge₀₂ 𝕀0)}
+        {Ψ (Spine2.edge₀₂ 𝕀0) ≡ Ψ (Spine2.edge₀₂ 𝕀0)}
             (λ β . trans (congᵣ {simplex 2} {X} Ψ simplex2-edge₀₂-src) β)
             (trans (cong {_ ≡ _} {_ ≡ _} (λ p . happlyᵣ {spine2-edge-1} {X} p spine2-edge-1-start) (Product.fst fg))
               (happlyᵣ-preᵣ-path spine2-edge-1 {simplex 2} {X} {λ a . spine→simplex 2 (spine2-edge-1-incl a)}
@@ -356,8 +356,8 @@ fill-hom-simplex2 {X} Ψ =
   let tgt : trans (congᵣ {simplex 2} {X} Ψ simplex2-edge₀₂-tgt)
               (happlyᵣ {spine2-edge-2} {X} (cong (spine2-cocone-edge-2 {X}) (simplex2→cocone-edges {X} Ψ))
                   spine2-edge-2-end) ≡ refl =
-    trans (cong {Ψ (spine→simplex 2 (spine2-edge-2-incl spine2-edge-2-end)) ≡ Ψ (simplex2-edge₀₂ 𝕀1)}
-        {Ψ (simplex2-edge₀₂ 𝕀1) ≡ Ψ (simplex2-edge₀₂ 𝕀1)}
+    trans (cong {Ψ (spine→simplex 2 (spine2-edge-2-incl spine2-edge-2-end)) ≡ Ψ (Spine2.edge₀₂ 𝕀1)}
+        {Ψ (Spine2.edge₀₂ 𝕀1) ≡ Ψ (Spine2.edge₀₂ 𝕀1)}
             (λ β . trans (congᵣ {simplex 2} {X} Ψ simplex2-edge₀₂-tgt) β)
             (trans (cong {_ ≡ _} {_ ≡ _} (λ p . happlyᵣ {spine2-edge-2} {X} p spine2-edge-2-end) (Product.snd fg))
               (happlyᵣ-preᵣ-path spine2-edge-2 {simplex 2} {X} {λ b . spine→simplex 2 (spine2-edge-2-incl b)}
@@ -365,11 +365,11 @@ fill-hom-simplex2 {X} Ψ =
       (trans (sym (congᵣ-trans {simplex 2} {X} simplex2-edge₀₂-tgt (happly {spine2-edge-2} {λ _ . simplex 2} PB spine2-edge-2-end) Ψ))
         (congᵣ-set (is-set-simplex 1) (trans simplex2-edge₀₂-tgt
               (happly {spine2-edge-2} {λ _ . simplex 2} PB spine2-edge-2-end)) refl Ψ)) in
-  cong {(Ψ (simplex2-edge₀₂ 𝕀0) ≡ Ψ (simplex2-edge₀₂ 𝕀0)) × (Ψ (simplex2-edge₀₂ 𝕀1) ≡ Ψ (simplex2-edge₀₂ 𝕀1))}
-    {hom (Ψ (simplex2-edge₀₂ 𝕀0)) (Ψ (simplex2-edge₀₂ 𝕀1))}
-    (λ w . (preᵣ {𝕀} {simplex 2} {X} Ψ simplex2-edge₀₂ , w))
-    (cong2 {Ψ (simplex2-edge₀₂ 𝕀0) ≡ Ψ (simplex2-edge₀₂ 𝕀0)} {Ψ (simplex2-edge₀₂ 𝕀1) ≡ Ψ (simplex2-edge₀₂ 𝕀1)}
-        {(Ψ (simplex2-edge₀₂ 𝕀0) ≡ Ψ (simplex2-edge₀₂ 𝕀0)) × (Ψ (simplex2-edge₀₂ 𝕀1) ≡ Ψ (simplex2-edge₀₂ 𝕀1))}
+  cong {(Ψ (Spine2.edge₀₂ 𝕀0) ≡ Ψ (Spine2.edge₀₂ 𝕀0)) × (Ψ (Spine2.edge₀₂ 𝕀1) ≡ Ψ (Spine2.edge₀₂ 𝕀1))}
+    {hom (Ψ (Spine2.edge₀₂ 𝕀0)) (Ψ (Spine2.edge₀₂ 𝕀1))}
+    (λ w . (preᵣ {𝕀} {simplex 2} {X} Ψ Spine2.edge₀₂ , w))
+    (cong2 {Ψ (Spine2.edge₀₂ 𝕀0) ≡ Ψ (Spine2.edge₀₂ 𝕀0)} {Ψ (Spine2.edge₀₂ 𝕀1) ≡ Ψ (Spine2.edge₀₂ 𝕀1)}
+        {(Ψ (Spine2.edge₀₂ 𝕀0) ≡ Ψ (Spine2.edge₀₂ 𝕀0)) × (Ψ (Spine2.edge₀₂ 𝕀1) ≡ Ψ (Spine2.edge₀₂ 𝕀1))}
       pair src tgt)
 
 -- the composite of the two first edges of a 2-simplex is its long edge
@@ -386,7 +386,7 @@ comp-simplex2 X s Ψ =
 comp-simplex2-src ∷ (X ∷ U) (s : is-segalᵣ X) (Ψ : simplex 2 →ᵣ X) {x : X} (γ : Ψ (simplex2-edge₀₁ 𝕀0) ≡ x) →
   comp-homᵣ X s {x} {Ψ (simplex2-edge₀₁ 𝕀1)} {Ψ (simplex2-edge₁₂ 𝕀1)}
     (hom-cell {X} {Ψ (simplex2-edge₀₁ 𝕀0)} {Ψ (simplex2-edge₀₁ 𝕀1)} (simplex2-hom₀₁ {X} Ψ) , γ , refl) (simplex2-hom₁₂ {X} Ψ)
-    ≡ (hom-cell {X} {Ψ (simplex2-edge₀₂ 𝕀0)} {Ψ (simplex2-edge₀₂ 𝕀1)} (simplex2-hom₀₂ {X} Ψ) , γ , refl)
+    ≡ (hom-cell {X} {Ψ (Spine2.edge₀₂ 𝕀0)} {Ψ (Spine2.edge₀₂ 𝕀1)} (simplex2-hom₀₂ {X} Ψ) , γ , refl)
 comp-simplex2-src X s Ψ refl = comp-simplex2 X s Ψ
 
 -- the same with a path from the middle vertex to any point, as target path of the first edge and
@@ -396,5 +396,5 @@ comp-simplex2-paths ∷ (X ∷ U) (s : is-segalᵣ X) (Ψ : simplex 2 →ᵣ X) 
   comp-homᵣ X s {x} {z} {Ψ (simplex2-edge₁₂ 𝕀1)}
     (hom-cell {X} {Ψ (simplex2-edge₀₁ 𝕀0)} {Ψ (simplex2-edge₀₁ 𝕀1)} (simplex2-hom₀₁ {X} Ψ) , γ₀ , γ₁)
     (hom-cell {X} {Ψ (simplex2-edge₁₂ 𝕀0)} {Ψ (simplex2-edge₁₂ 𝕀1)} (simplex2-hom₁₂ {X} Ψ) , γ₁ , refl)
-    ≡ (hom-cell {X} {Ψ (simplex2-edge₀₂ 𝕀0)} {Ψ (simplex2-edge₀₂ 𝕀1)} (simplex2-hom₀₂ {X} Ψ) , γ₀ , refl)
+    ≡ (hom-cell {X} {Ψ (Spine2.edge₀₂ 𝕀0)} {Ψ (Spine2.edge₀₂ 𝕀1)} (simplex2-hom₀₂ {X} Ψ) , γ₀ , refl)
 comp-simplex2-paths X s Ψ {x} γ₀ refl = comp-simplex2-src X s Ψ {x} γ₀
