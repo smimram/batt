@@ -69,6 +69,7 @@ is-equiv-comp-iso-r {X} s {x} {y} f (g , e) x' =
 hom-map-id ∷ {X A ∷ U} (p ∷ X → A) (x : X) → hom-map {X} {A} p {x} {x} (Hom.id {X} x) ≡ Hom.id {A} (p x)
 hom-map-id {X} {A} p x = refl
 
+-- maps send isomorphisms to isomorphisms
 is-iso-map ∷ {X A ∷ U} (sX : is-segalᵣ X) (sA : is-segalᵣ A) (p ∷ X → A) {x y : X} (f : hom x y) →
   is-iso {X} sX {x} {y} f → is-iso {A} sA {p x} {p y} (hom-map {X} {A} p {x} {y} f)
 is-iso-map {X} {A} sX sA p {x} {y} f (g , e) =
