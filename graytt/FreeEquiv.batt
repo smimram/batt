@@ -15,49 +15,45 @@ open import Stdlib
 open import Spine
 
 --
--- Vertices and edges of Δ³ (vertex k has its first k coordinates equal to 1, as x₁ ≥ x₂ ≥ x₃)
+-- The collapsed edges of Δ³, parametrized by Δ¹ (see Simplex3 in Cube)
 --
 
 -- the edge [0,2] of Δ³, t ↦ (t, t, 0)
-edge-02 ∷ simplex 1 → simplex 3
-edge-02 x =
-  let t : 𝕀 = Simplex1.to𝕀 x in
-  ((t , t , 𝕀0 , tt) , (refl , refl , tt))
+edge₀₂ ∷ simplex 1 → simplex 3
+edge₀₂ x = Simplex3.edge₀₂ (Simplex1.to𝕀 x)
 
 -- the edge [1,3] of Δ³, t ↦ (1, t, t)
-edge-13 ∷ simplex 1 → simplex 3
-edge-13 x =
-  let t : 𝕀 = Simplex1.to𝕀 x in
-  ((𝕀1 , t , t , tt) , (refl , refl , tt))
+edge₁₃ ∷ simplex 1 → simplex 3
+edge₁₃ x = Simplex3.edge₁₃ (Simplex1.to𝕀 x)
 
 --
 -- The free-standing equivalence
 --
 
 -- Δ³ with the edge [0,2] collapsed: 1 +_{Δ¹} Δ³
-free-equiv-02 ∷ U
-free-equiv-02 = pushout-obj {simplex 1} {⊤} {simplex 3} (λ _ . tt) edge-02
+free-equiv₀₂ ∷ U
+free-equiv₀₂ = pushout-obj {simplex 1} {⊤} {simplex 3} (λ _ . tt) edge₀₂
 
-simplex3→free-equiv-02 ∷ simplex 3 → free-equiv-02
-simplex3→free-equiv-02 = pushout-inr {simplex 1} {⊤} {simplex 3} (λ _ . tt) edge-02
+simplex3→free-equiv₀₂ ∷ simplex 3 → free-equiv₀₂
+simplex3→free-equiv₀₂ = pushout-inr {simplex 1} {⊤} {simplex 3} (λ _ . tt) edge₀₂
 
 -- then the edge [1,3] collapsed: E = 1 +_{Δ¹} Δ³ +_{Δ¹} 1
-edge-13' ∷ simplex 1 → free-equiv-02
-edge-13' x = simplex3→free-equiv-02 (edge-13 x)
+edge₁₃' ∷ simplex 1 → free-equiv₀₂
+edge₁₃' x = simplex3→free-equiv₀₂ (edge₁₃ x)
 
 free-equiv ∷ U
-free-equiv = pushout-obj {simplex 1} {⊤} {free-equiv-02} (λ _ . tt) edge-13'
+free-equiv = pushout-obj {simplex 1} {⊤} {free-equiv₀₂} (λ _ . tt) edge₁₃'
 
 -- the quotient map Δ³ → E
 simplex3→free-equiv ∷ simplex 3 → free-equiv
-simplex3→free-equiv x = pushout-inr {simplex 1} {⊤} {free-equiv-02} (λ _ . tt) edge-13' (simplex3→free-equiv-02 x)
+simplex3→free-equiv x = pushout-inr {simplex 1} {⊤} {free-equiv₀₂} (λ _ . tt) edge₁₃' (simplex3→free-equiv₀₂ x)
 
 -- the two collapsed edges are constant in E
-free-equiv-02-cst ∷ (x : simplex 1) → pushout-inl {simplex 1} {⊤} {simplex 3} (λ _ . tt) edge-02 tt ≡ simplex3→free-equiv-02 (edge-02 x)
-free-equiv-02-cst = pushout-eq {simplex 1} {⊤} {simplex 3} (λ _ . tt) edge-02
+free-equiv₀₂-cst ∷ (x : simplex 1) → pushout-inl {simplex 1} {⊤} {simplex 3} (λ _ . tt) edge₀₂ tt ≡ simplex3→free-equiv₀₂ (edge₀₂ x)
+free-equiv₀₂-cst = pushout-eq {simplex 1} {⊤} {simplex 3} (λ _ . tt) edge₀₂
 
-free-equiv-13-cst ∷ (x : simplex 1) → pushout-inl {simplex 1} {⊤} {free-equiv-02} (λ _ . tt) edge-13' tt ≡ simplex3→free-equiv (edge-13 x)
-free-equiv-13-cst = pushout-eq {simplex 1} {⊤} {free-equiv-02} (λ _ . tt) edge-13'
+free-equiv₁₃-cst ∷ (x : simplex 1) → pushout-inl {simplex 1} {⊤} {free-equiv₀₂} (λ _ . tt) edge₁₃' tt ≡ simplex3→free-equiv (edge₁₃ x)
+free-equiv₁₃-cst = pushout-eq {simplex 1} {⊤} {free-equiv₀₂} (λ _ . tt) edge₁₃'
 
 -- τ : E → 1
 τ ∷ free-equiv → ⊤

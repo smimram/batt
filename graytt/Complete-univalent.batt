@@ -146,16 +146,16 @@ diagram-hom {X} (σ , cs) = (σ (Simplex3.edge₁₂ 𝕀0) , σ (Simplex3.edge�
 
 diagram→iso ∷ {X ∷ U} (s : is-segalᵣ X) → free-equiv-diagramᵣ X → iso-total X s
 diagram→iso {X} s (σ , cs) =
-  let k : (cs : is-collapsedᵣ {X} (λ x . σ (edge-02 x)) × is-collapsedᵣ {X} (λ x . σ (edge-13 x))) → iso-total X s =
+  let k : (cs : is-collapsedᵣ {X} (λ x . σ (edge₀₂ x)) × is-collapsedᵣ {X} (λ x . σ (edge₁₃ x))) → iso-total X s =
     fun (c₀₂ , c₁₃) →
       let f : hom (σ (Simplex3.edge₁₂ 𝕀0)) (σ (Simplex3.edge₁₂ 𝕀1)) = simplex3-hom {X} Simplex3.edge₁₂ σ in
       -- face 123: f ; σ₂₃ is the hom of a path, since σ₁₃ is collapsed
-      let k13 : is-collapsedᵣ {X} (λ x . σ (edge-13 x)) →
+      let k13 : is-collapsedᵣ {X} (λ x . σ (edge₁₃ x)) →
                 Σ (g : hom (σ (Simplex3.edge₁₂ 𝕀1)) (σ (Simplex3.edge₁₂ 𝕀0))) .
                   comp-homᵣ X s {σ (Simplex3.edge₁₂ 𝕀0)} {σ (Simplex3.edge₁₂ 𝕀1)} {σ (Simplex3.edge₁₂ 𝕀0)} f g ≡ Hom.id {X} (σ (Simplex3.edge₁₂ 𝕀0)) =
         fun (y , p) →
           let ep : Σ (e' : σ (Simplex3.edge₁₃ 𝕀0) ≡ σ (Simplex3.edge₁₃ 𝕀1)) . simplex3-hom {X} Simplex3.edge₁₃ σ ≡ path→hom {X} s e' =
-            collapsed→path {X} s y {λ x . σ (edge-13 x)} p in
+            collapsed→path {X} s y {λ x . σ (edge₁₃ x)} p in
           let e : σ (Simplex3.edge₁₃ 𝕀0) ≡ σ (Simplex3.edge₁₃ 𝕀1) =
             fst {σ (Simplex3.edge₁₃ 𝕀0) ≡ σ (Simplex3.edge₁₃ 𝕀1)}
               (λ e' . simplex3-hom {X} Simplex3.edge₁₃ σ ≡ path→hom {X} s e') ep in
@@ -164,12 +164,12 @@ diagram→iso {X} s (σ , cs) =
             (trans (simplex3-face-path X s Simplex3.d₀ σ)
               (snd {σ (Simplex3.edge₁₃ 𝕀0) ≡ σ (Simplex3.edge₁₃ 𝕀1)} (λ e' . simplex3-hom {X} Simplex3.edge₁₃ σ ≡ path→hom {X} s e') ep)) in
       -- face 012: σ₀₁ ; f is the hom of a path, since σ₀₂ is collapsed
-      let k02 : is-collapsedᵣ {X} (λ x . σ (edge-02 x)) →
+      let k02 : is-collapsedᵣ {X} (λ x . σ (edge₀₂ x)) →
                 Σ (h : hom (σ (Simplex3.edge₁₂ 𝕀1)) (σ (Simplex3.edge₁₂ 𝕀0))) .
                   comp-homᵣ X s {σ (Simplex3.edge₁₂ 𝕀1)} {σ (Simplex3.edge₁₂ 𝕀0)} {σ (Simplex3.edge₁₂ 𝕀1)} h f ≡ Hom.id {X} (σ (Simplex3.edge₁₂ 𝕀1)) =
         fun (y , p) →
           let ep : Σ (e' : σ (Simplex3.edge₀₂ 𝕀0) ≡ σ (Simplex3.edge₀₂ 𝕀1)) . simplex3-hom {X} Simplex3.edge₀₂ σ ≡ path→hom {X} s e' =
-            collapsed→path {X} s y {λ x . σ (edge-02 x)} p in
+            collapsed→path {X} s y {λ x . σ (edge₀₂ x)} p in
           let e : σ (Simplex3.edge₀₂ 𝕀0) ≡ σ (Simplex3.edge₀₂ 𝕀1) =
             fst {σ (Simplex3.edge₀₂ 𝕀0) ≡ σ (Simplex3.edge₀₂ 𝕀1)}
               (λ e' . simplex3-hom {X} Simplex3.edge₀₂ σ ≡ path→hom {X} s e') ep in
@@ -183,7 +183,7 @@ diagram→iso {X} s (σ , cs) =
 diagram→iso-hom ∷ {X ∷ U} (s : is-segalᵣ X) (δ : free-equiv-diagramᵣ X) →
   fst {homs-total X} (iso-total-biinv {X} s) (diagram→iso {X} s δ) ≡ diagram-hom {X} δ
 diagram→iso-hom {X} s (σ , cs) =
-  let k : (cs : is-collapsedᵣ {X} (λ x . σ (edge-02 x)) × is-collapsedᵣ {X} (λ x . σ (edge-13 x))) →
+  let k : (cs : is-collapsedᵣ {X} (λ x . σ (edge₀₂ x)) × is-collapsedᵣ {X} (λ x . σ (edge₁₃ x))) →
           fst {homs-total X} (iso-total-biinv {X} s) (diagram→iso {X} s (σ , cs)) ≡ diagram-hom {X} (σ , cs) =
     fun (c₀₂ , c₁₃) → refl in
   k cs
