@@ -175,19 +175,21 @@ simplex-path n {x} {x'} e =
 --
 
 Spine2 = record
+  t = spine 2
+
   --
   -- Edges of the 2-spine (coordinates x₁ ≥ x₂; vertices (0,0), (1,0), (1,1))
   --
 
   -- first edge of the spine, t ↦ (t, 0)
-  edge₀₁ ∷ 𝕀 → spine 2
+  edge₀₁ ∷ 𝕀 → t
   edge₀₁ t =
     ((t , 𝕀0 , tt) ,
      unit-prop-trunc (sum ((𝕀0 , tt) ≡{cart-cube 1} origin 1) ((t ≡ 𝕀1) × is-in-spine 1 (𝕀0 , tt)))
        (inl {(𝕀0 , tt) ≡{cart-cube 1} origin 1} {(t ≡ 𝕀1) × is-in-spine 1 (𝕀0 , tt)} refl))
 
   -- second edge of the spine, t ↦ (1, t)
-  edge₁₂ ∷ 𝕀 → spine 2
+  edge₁₂ ∷ 𝕀 → t
   edge₁₂ t =
     let p : is-in-spine 1 (t , tt) =
       unit-prop-trunc (sum (tt ≡ origin 0) ((t ≡ 𝕀1) × is-in-spine 0 tt))
@@ -198,12 +200,12 @@ Spine2 = record
        (inr {(t , tt) ≡{cart-cube 1} origin 1} {(𝕀1 ≡ 𝕀1) × is-in-spine 1 (t , tt)} (refl , p)))
 
   -- In the 2-spine, the target of the first edge coincides with the source of the second edge
-  glue ∷ edge₀₁ 𝕀1 ≡{spine 2} edge₁₂ 𝕀0
+  glue ∷ edge₀₁ 𝕀1 ≡{t} edge₁₂ 𝕀0
   glue =
     let c0 ∷ cart-cube 2 = (𝕀1 , 𝕀0 , tt) in
     let τ ∷ snd (is-in-spine 2) (edge₀₁ 𝕀1) ≡ snd (is-in-spine 2) (edge₁₂ 𝕀0) =
       prop-path (is-prop-is-in-spine 2 c0) (snd (is-in-spine 2) (edge₀₁ 𝕀1)) (snd (is-in-spine 2) (edge₁₂ 𝕀0)) in
-    cong {is-in-spine 2 c0} {spine 2} (λ w . (c0 , w)) τ
+    cong {is-in-spine 2 c0} {t} (λ w . (c0 , w)) τ
 end
 
 Simplex2 = record
