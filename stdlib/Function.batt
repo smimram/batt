@@ -80,13 +80,3 @@ preᵣ g f a = g (f a)
 -- l-precomposition: preₗ A g f = g ∘ f
 preₗ ∷ {A B C ∷ U} → (B →ₗ C) → (A → B) →ₗ (A →ₗ C)
 preₗ g f a = g (f a)
-
----
---- Conversion
----
-
-arr→arrₗ ∷ {A B ∷ U} → (A → B) → (A →ₗ B)
-arr→arrₗ f a = f a
-
-arr→arrᵣ ∷ {A B ∷ U} → (A → B) → (A →ᵣ B)
-arr→arrᵣ f a = f a

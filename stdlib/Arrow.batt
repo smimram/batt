@@ -31,3 +31,13 @@ srcᵣ f = f 𝕀0
 
 tgtᵣ ∷ {A ∷ U} → arrᵣ A → A
 tgtᵣ f = f 𝕀1
+
+---
+--- Conversion
+---
+
+arr→arrₗ ∷ {A B ∷ U} → (A → B) → (A →ₗ B)
+arr→arrₗ f a = f a
+
+arr→arrᵣ ∷ {A B ∷ U} → (A → B) → (A →ᵣ B)
+arr→arrᵣ f a = f a

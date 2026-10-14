@@ -6,6 +6,7 @@
 --
 
 open import Function
+open import Arrow
 
 ---
 --- Identity types
