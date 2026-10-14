@@ -1,0 +1,4 @@
+-- no crisp assumptions before →ᵣ/→ₗ
+
+crisp-arrow ∷ {A ∷ U} (x ∷ A) →ᵣ A -- this fails and it is intended.
+crisp-arrow {A} x = x
