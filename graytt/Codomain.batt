@@ -41,8 +41,8 @@ lift-sq-over {A} σ = refl
 -- τ_σ = λ y . λ k . σ (y₁ ∧ k , y₂ ∧ k), sorted since y₁ ≥ y₂ gives y₁ ∧ k ≥ y₂ ∧ k
 lift-tri ∷ {A ∷ U} → (simplex 2 →ᵣ A) → (simplex 2 →ᵣ arrᵣ A)
 lift-tri {A} σ = λ y . λ k .
-  σ ((simplex2-fst y 𝕀∧ k , simplex2-snd y 𝕀∧ k , tt) ,
-     (cong {𝕀} {𝕀} (λ z . z 𝕀∧ k) (simplex2-geq y) , tt))
+  σ ((Simplex2.fst y 𝕀∧ k , Simplex2.snd y 𝕀∧ k , tt) ,
+     (cong {𝕀} {𝕀} (λ z . z 𝕀∧ k) (Simplex2.geq y) , tt))
 
 -- its edges are Γ_t, χ_σ and Γ_{u ∘ t}, judgmentally
 lift-tri-edges ∷ {A ∷ U} (σ : simplex 2 →ᵣ A) →

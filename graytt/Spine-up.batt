@@ -86,7 +86,7 @@ spine2-edge-2-end = ((𝕀1 , 𝕀1 , tt) , (refl , spine1-pt 𝕀1))
 
 -- the glue is the vertex path of Cube.batt
 spine2-glue ∷ spine2-edge-1-incl spine2-edge-1-end ≡{spine 2} spine2-edge-2-incl spine2-edge-2-start
-spine2-glue = spine-glue
+spine2-glue = Spine2.glue
 
 -- the intersection of the two edges is contractible, with centre the vertex
 spine2-meet-contr-aux2 ∷ (c1 : 𝕀) (xs : cart-cube 1) (w : spine2-on-edge-1 (c1 , xs) × spine2-on-edge-2 (c1 , xs)) →

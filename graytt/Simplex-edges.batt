@@ -363,7 +363,7 @@ is-equiv-spine3-cocone→triple {X} =
 -- the pair of edges of a 2-simplex
 edges-2 ∷ {X ∷ U} (Ψ : simplex 2 →ᵣ X) → pairs X
 edges-2 {X} Ψ =
-  (Ψ (simplex2-edge₀₁ 𝕀0) , Ψ (simplex2-edge₁₂ 𝕀0) , Ψ (simplex2-edge₁₂ 𝕀1) , simplex2-hom₀₁ {X} Ψ , simplex2-hom₁₂ {X} Ψ)
+  (Ψ (Simplex2.edge₀₁ 𝕀0) , Ψ (Simplex2.edge₁₂ 𝕀0) , Ψ (Simplex2.edge₁₂ 𝕀1) , simplex2-hom₀₁ {X} Ψ , simplex2-hom₁₂ {X} Ψ)
 
 -- the pair given by two crisp paths in Δ² and a path between the images of their endpoints
 -- (the analogue of tri-shape, Associativity.batt)
@@ -390,12 +390,12 @@ spine2-edge-1-in-simplex t = spine→simplex 2 (spine2-edge-1-incl (𝕀→spine
 spine2-edge-2-in-simplex ∷ 𝕀 → simplex 2
 spine2-edge-2-in-simplex t = spine→simplex 2 (spine2-edge-2-incl (𝕀→spine2-edge-2 t))
 
-spine2-edge-1-in-simplex-path ∷ spine2-edge-1-in-simplex ≡{𝕀 → simplex 2} simplex2-edge₀₁
-spine2-edge-1-in-simplex-path = funext-htpy {𝕀} {λ _ . simplex 2} spine2-edge-1-in-simplex simplex2-edge₀₁
+spine2-edge-1-in-simplex-path ∷ spine2-edge-1-in-simplex ≡{𝕀 → simplex 2} Simplex2.edge₀₁
+spine2-edge-1-in-simplex-path = funext-htpy {𝕀} {λ _ . simplex 2} spine2-edge-1-in-simplex Simplex2.edge₀₁
   (λ t . spine2-edge-1-in-simplex-pt (𝕀→spine2-edge-1 t))
 
-spine2-edge-2-in-simplex-path ∷ spine2-edge-2-in-simplex ≡{𝕀 → simplex 2} simplex2-edge₁₂
-spine2-edge-2-in-simplex-path = funext-htpy {𝕀} {λ _ . simplex 2} spine2-edge-2-in-simplex simplex2-edge₁₂
+spine2-edge-2-in-simplex-path ∷ spine2-edge-2-in-simplex ≡{𝕀 → simplex 2} Simplex2.edge₁₂
+spine2-edge-2-in-simplex-path = funext-htpy {𝕀} {λ _ . simplex 2} spine2-edge-2-in-simplex Simplex2.edge₁₂
   (λ t . spine2-edge-2-in-simplex-pt (𝕀→spine2-edge-2 t))
 
 -- the pair read off the restriction of a 2-simplex to the 2-spine is its pair of edges
@@ -436,27 +436,27 @@ is-equiv-edges-tri X s =
 -- on the edges of a 3-simplex, the associator is the one given by its four faces
 -- (assoc-simplex3-def, Associativity.batt): the fibres of edges-tri are contractible
 comp-homᵣ-assoc-edges ∷ (X ∷ U) (s : is-segalᵣ X) (Θ : simplex 3 →ᵣ X) →
-  comp-homᵣ-assoc X s (simplex3-hom {X} simplex3-edge₀₁ Θ) (simplex3-hom {X} simplex3-edge₁₂ Θ) (simplex3-hom {X} simplex3-edge₂₃ Θ)
+  comp-homᵣ-assoc X s (simplex3-hom {X} Simplex3.edge₀₁ Θ) (simplex3-hom {X} Simplex3.edge₁₂ Θ) (simplex3-hom {X} Simplex3.edge₂₃ Θ)
     ≡ assoc-simplex3-def X s Θ
 comp-homᵣ-assoc-edges X s Θ =
-  trans (comp-homᵣ-assoc-eq X s (simplex3-hom {X} simplex3-edge₀₁ Θ) (simplex3-hom {X} simplex3-edge₁₂ Θ)
-      (simplex3-hom {X} simplex3-edge₂₃ Θ))
+  trans (comp-homᵣ-assoc-eq X s (simplex3-hom {X} Simplex3.edge₀₁ Θ) (simplex3-hom {X} Simplex3.edge₁₂ Θ)
+      (simplex3-hom {X} Simplex3.edge₂₃ Θ))
     (trans
       (transfer-equiv (edges-tri {X}) (is-equiv-edges-tri X s) (tri-assoc X s) (assoc-simplex3 X s) Θ
-        (assoc-filler X s (simplex3-hom {X} simplex3-edge₀₁ Θ) (simplex3-hom {X} simplex3-edge₁₂ Θ)
-            (simplex3-hom {X} simplex3-edge₂₃ Θ))
-        (assoc-filler-edges X s (simplex3-hom {X} simplex3-edge₀₁ Θ) (simplex3-hom {X} simplex3-edge₁₂ Θ)
-            (simplex3-hom {X} simplex3-edge₂₃ Θ)))
+        (assoc-filler X s (simplex3-hom {X} Simplex3.edge₀₁ Θ) (simplex3-hom {X} Simplex3.edge₁₂ Θ)
+            (simplex3-hom {X} Simplex3.edge₂₃ Θ))
+        (assoc-filler-edges X s (simplex3-hom {X} Simplex3.edge₀₁ Θ) (simplex3-hom {X} Simplex3.edge₁₂ Θ)
+            (simplex3-hom {X} Simplex3.edge₂₃ Θ)))
       (assoc-simplex3-eq X s Θ))
 
 -- every composable pair out of a is, up to a path, the pair of edges of a 2-simplex with a path from
 -- its first vertex to a: give the pair a trivial source path, take the 2-simplex with these edges,
 -- and transport the source path back
 pair-from-edges-2 ∷ (X ∷ U) (s : is-segalᵣ X) (a : X) (z : pair-from X a) →
-  Σ (σ : simplex 2 →ᵣ X) . Σ (γ : σ (simplex2-edge₀₁ 𝕀0) ≡ a) . pair→pair-from {X} a (edges-2 {X} σ) γ ≡ z
+  Σ (σ : simplex 2 →ᵣ X) . Σ (γ : σ (Simplex2.edge₀₁ 𝕀0) ≡ a) . pair→pair-from {X} a (edges-2 {X} σ) γ ≡ z
 pair-from-edges-2 X s a (y , r) =
   let R : pair-from X a → U = λ z' .
-    Σ (σ : simplex 2 →ᵣ X) . Σ (γ : σ (simplex2-edge₀₁ 𝕀0) ≡ a) . pair→pair-from {X} a (edges-2 {X} σ) γ ≡ z' in
+    Σ (σ : simplex 2 →ᵣ X) . Σ (γ : σ (Simplex2.edge₀₁ 𝕀0) ≡ a) . pair→pair-from {X} a (edges-2 {X} σ) γ ≡ z' in
   let k : (r : Σ (z : X) . hom {X} a y × hom {X} y z) → R (y , r) = fun (z , uv) →
     let k2 : (uv : hom {X} a y × hom {X} y z) → R (y , z , uv) = fun (u , v) →
       let k3 : (u : hom {X} a y) → R (y , z , u , v) = fun (f , pq) →
@@ -477,11 +477,11 @@ pair-from-edges-2 X s a (y , r) =
 -- 2-simplex with paths from its first two vertices to b and a: give the pair trivial paths, take
 -- the 2-simplex with these edges, and transport the paths back
 hom-coslice-edges-2 ∷ (X ∷ U) (s : is-segalᵣ X) (a b : X) (z : hom {X} b a × coslice X a) →
-  Σ (σ : simplex 2 →ᵣ X) . Σ (γ₀ : σ (simplex2-edge₀₁ 𝕀0) ≡ b) . Σ (γ₁ : σ (simplex2-edge₀₁ 𝕀1) ≡ a) .
+  Σ (σ : simplex 2 →ᵣ X) . Σ (γ₀ : σ (Simplex2.edge₀₁ 𝕀0) ≡ b) . Σ (γ₁ : σ (Simplex2.edge₀₁ 𝕀1) ≡ a) .
     pair→hom-coslice {X} a b (edges-2 {X} σ) γ₀ γ₁ ≡ z
 hom-coslice-edges-2 X s a b (g , fp) =
   let R : hom {X} b a × coslice X a → U = λ z' .
-    Σ (σ : simplex 2 →ᵣ X) . Σ (γ₀ : σ (simplex2-edge₀₁ 𝕀0) ≡ b) . Σ (γ₁ : σ (simplex2-edge₀₁ 𝕀1) ≡ a) .
+    Σ (σ : simplex 2 →ᵣ X) . Σ (γ₀ : σ (Simplex2.edge₀₁ 𝕀0) ≡ b) . Σ (γ₁ : σ (Simplex2.edge₀₁ 𝕀1) ≡ a) .
       pair→hom-coslice {X} a b (edges-2 {X} σ) γ₀ γ₁ ≡ z' in
   let k : (g : hom {X} b a) (fp : coslice X a) → R (g , fp) = fun (c , q) → fun (f , p) →
     let k2 : (q : (srcᵣ c ≡ b) × (tgtᵣ c ≡ a)) → R ((c , q) , (f , p)) = fun (q₀ , q₁) →
