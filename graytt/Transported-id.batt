@@ -67,8 +67,8 @@ hom-map-const-comp-stmt S B b sS sB {x} {y} {z} u v =
 hom-map-const-comp-simplex ∷ (S B ∷ U) (b ∷ B) (sS : is-segalᵣ S) (sB : is-segalᵣ B) (Ψ : simplex 2 →ᵣ S) →
   hom-map-const-comp-stmt S B b sS sB (simplex2-hom₀₁ {S} Ψ) (simplex2-hom₁₂ {S} Ψ)
 hom-map-const-comp-simplex S B b sS sB Ψ =
-  let x0 : S = Ψ (simplex2-e₀₁ 𝕀0) in
-  let x2 : S = Ψ (simplex2-e₁₂ 𝕀1) in
+  let x0 : S = Ψ (simplex2-edge₀₁ 𝕀0) in
+  let x2 : S = Ψ (simplex2-edge₁₂ 𝕀1) in
   let hm : hom x0 x2 → hom {B} b b = hom-map {S} {B} (λ _ . b) {x0} {x2} in
   let C : hom x0 x2 = comp-homᵣ S sS (simplex2-hom₀₁ {S} Ψ) (simplex2-hom₁₂ {S} Ψ) in
   let csX : C ≡ simplex2-hom₀₂ {S} Ψ = comp-simplex2 S sS Ψ in
