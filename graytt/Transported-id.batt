@@ -31,7 +31,7 @@ transported-id-comp ∷ {B ∷ U} (sB : is-segalᵣ B) {b ∷ B} {x : B} (p : b 
 transported-id-comp {B} sB {b} refl refl refl = comp-simplex2 B sB (λ σ . b)
 
 is-iso-transported-id ∷ {B ∷ U} (sB : is-segalᵣ B) {b ∷ B} {x : B} (p : b ≡ x) {y : B} (q : b ≡ y) →
-  is-iso-hom {B} sB {x} {y} (transported-id {B} {b} {x} {y} p q)
+  is-iso {B} sB {x} {y} (transported-id {B} {b} {x} {y} p q)
 is-iso-transported-id {B} sB {b} refl refl = is-iso-id {B} sB b
 
 -- the cell of the transported identity is constant

@@ -18,7 +18,7 @@ open import Iso
 --
 -- Bi-invertible homs
 --
--- The two-sided inverses of Iso.batt (is-iso-hom) are not a proposition in general (the analogue
+-- The two-sided inverses of Iso.batt (is-iso) are not a proposition in general (the analogue
 -- of quasi-inverses of functions). Bi-invertibility, a section and a retraction separately, is a
 -- proposition (is-prop-is-biinv-hom) and is logically equivalent (biinv→iso, iso→biinv).
 --
@@ -38,16 +38,16 @@ biinv-sec-ret {X} s {x} {y} f g h p q =
         (trans (cong {hom y y} {hom y x} (λ k . comp-homᵣ X s {y} {y} {x} k g) q)
           (comp-homᵣ-lunit X s {y} {x} g))))
 
-biinv→iso ∷ {X ∷ U} (s : is-segalᵣ X) {x y : X} (f : hom x y) → is-biinv-hom {X} s {x} {y} f → is-iso-hom {X} s {x} {y} f
+biinv→iso ∷ {X ∷ U} (s : is-segalᵣ X) {x y : X} (f : hom x y) → is-biinv-hom {X} s {x} {y} f → is-iso {X} s {x} {y} f
 biinv→iso {X} s {x} {y} f (gp , hq) =
   let k : (gp : Σ (g : hom y x) . comp-homᵣ X s {x} {y} {x} f g ≡ Hom.id {X} x)
-          (hq : Σ (h : hom y x) . comp-homᵣ X s {y} {x} {y} h f ≡ Hom.id {X} y) → is-iso-hom {X} s {x} {y} f =
+          (hq : Σ (h : hom y x) . comp-homᵣ X s {y} {x} {y} h f ≡ Hom.id {X} y) → is-iso {X} s {x} {y} f =
     fun (g , p) (h , q) →
       (g , p , trans (cong {hom y x} {hom y y} (λ k . comp-homᵣ X s {y} {x} {y} k f) (sym (biinv-sec-ret {X} s {x} {y} f g h p q))) q)
   in
   k gp hq
 
-iso→biinv ∷ {X ∷ U} (s : is-segalᵣ X) {x y : X} (f : hom x y) → is-iso-hom {X} s {x} {y} f → is-biinv-hom {X} s {x} {y} f
+iso→biinv ∷ {X ∷ U} (s : is-segalᵣ X) {x y : X} (f : hom x y) → is-iso {X} s {x} {y} f → is-biinv-hom {X} s {x} {y} f
 iso→biinv {X} s {x} {y} f (g , e) = ((g , Product.fst e) , (g , Product.snd e))
 
 -- bi-invertibility is a proposition: once inhabited, composition with f is an equivalence on
@@ -55,7 +55,7 @@ iso→biinv {X} s {x} {y} f (g , e) = ((g , Product.fst e) , (g , Product.snd e)
 is-contr-is-biinv-hom ∷ {X ∷ U} (s : is-segalᵣ X) {x y : X} (f : hom x y) →
   is-biinv-hom {X} s {x} {y} f → is-contr (is-biinv-hom {X} s {x} {y} f)
 is-contr-is-biinv-hom {X} s {x} {y} f b =
-  let i : is-iso-hom {X} s {x} {y} f = biinv→iso {X} s {x} {y} f b in
+  let i : is-iso {X} s {x} {y} f = biinv→iso {X} s {x} {y} f b in
   is-contr-prod
     (is-contr-fib (λ g . comp-homᵣ X s {x} {y} {x} f g) (is-equiv-comp-iso-l {X} s {x} {y} f i x) (Hom.id {X} x))
     (is-contr-fib (λ h . comp-homᵣ X s {y} {x} {y} h f) (is-equiv-comp-iso-r {X} s {x} {y} f i y) (Hom.id {X} y))

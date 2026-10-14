@@ -168,11 +168,11 @@ lift-unique-core {X} {A} sX sA p uX {x} {y} f c {y'} f' c' q =
     subst {hom x y'} (λ h . is-cocartesian {X} {A} sX sA p {x} {y'} h) (sym fg) c' in
   let c-g : is-cocartesian {X} {A} sX sA p {y} {y'} g =
     snd _ (is-cocartesian-cancel {X} {A} sX sA p {x} {y} {y'} f g c) c-fg in
-  let iso-ke : is-iso-hom {A} sA {p y} {p y'} ke =
+  let iso-ke : is-iso {A} sA {p y} {p y'} ke =
     biinv→iso {A} sA {p y} {p y'} ke (snd (λ h . is-biinv-hom {A} sA {p y} {p y'} h) (idtoiso {A} sA {p y} {p y'} e)) in
-  let iso-pg : is-iso-hom {A} sA {p y} {p y'} (hom-map {X} {A} p {y} {y'} g) =
-    subst {hom (p y) (p y')} (λ h . is-iso-hom {A} sA {p y} {p y'} h) (sym pg) iso-ke in
-  let iso-g : is-iso-hom {X} sX {y} {y'} g = is-iso-cocartesian {X} {A} sX sA p {y} {y'} g c-g iso-pg in
+  let iso-pg : is-iso {A} sA {p y} {p y'} (hom-map {X} {A} p {y} {y'} g) =
+    subst {hom (p y) (p y')} (λ h . is-iso {A} sA {p y} {p y'} h) (sym pg) iso-ke in
+  let iso-g : is-iso {X} sX {y} {y'} g = is-iso-cocartesian {X} {A} sX sA p {y} {y'} g c-g iso-pg in
   -- 3. univalence: g is path→hom of a path P, and transporting f along P is f ; g = f'
   let I : y ≡ y' → iso {X} sX y y' = idtoiso {X} sX {y} {y'} in
   let τ : section I = is-equiv-sec I (uX y y') in

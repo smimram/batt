@@ -18,12 +18,12 @@ open import Composition
 open import Composable
 open import Associativity
 open import Simplex-edges
-open import Iso
-open import Univalent
 open import Spine
 open import FreeEquiv
 open import Complete
 open import FreeEquiv-up
+open import Iso
+open import Univalent
 
 --
 -- The total space of isomorphisms
@@ -232,7 +232,7 @@ iso-filler-edges {X} s {x} {y} f g =
   snd (is-section (edges-tri {X})) (is-equiv-sec (edges-tri {X}) (is-equiv-edges-tri X s)) (y , x , g , y , x , f , g)
 
 -- its two faces are collapsed
-iso→diagram ∷ {X ∷ U} (s : is-segalᵣ X) {x y : X} (f : hom x y) → is-iso-hom {X} s {x} {y} f → free-equiv-diagramᵣ X
+iso→diagram ∷ {X ∷ U} (s : is-segalᵣ X) {x y : X} (f : hom x y) → is-iso {X} s {x} {y} f → free-equiv-diagramᵣ X
 iso→diagram {X} s {x} {y} f (g , pq) =
   let σ : simplex 3 →ᵣ X = iso-filler {X} s {x} {y} f g in
   let P : edges-tri {X} σ ≡{triples X} (y , x , g , y , x , f , g) = iso-filler-edges {X} s {x} {y} f g in
@@ -257,7 +257,7 @@ iso→diagram {X} s {x} {y} f (g , pq) =
          (λ e . comp-homᵣ X s (simplex3-hom {X} Simplex3.edge₁₂ σ) (simplex3-hom {X} Simplex3.edge₂₃ σ) ≡ path→hom {X} s e) d₁₃)))
 
 -- its middle edge is f
-iso→diagram-hom ∷ {X ∷ U} (s : is-segalᵣ X) {x y : X} (f : hom x y) (i : is-iso-hom {X} s {x} {y} f) →
+iso→diagram-hom ∷ {X ∷ U} (s : is-segalᵣ X) {x y : X} (f : hom x y) (i : is-iso {X} s {x} {y} f) →
   diagram-hom {X} (iso→diagram {X} s {x} {y} f i) ≡{homs-total X} (x , y , f)
 iso→diagram-hom {X} s {x} {y} f (g , pq) = cong (tri-mid {X}) (iso-filler-edges {X} s {x} {y} f g)
 
@@ -273,7 +273,7 @@ iso→thick-free-equiv {X} s (w , b) =
 thick-free-equiv→iso→thick ∷ {X ∷ U} (s : is-segalᵣ X) (t : iso-total X s) →
   thick-free-equiv→iso {X} s (iso→thick-free-equiv {X} s t) ≡ t
 thick-free-equiv→iso→thick {X} s (w , b) =
-  let i : is-iso-hom {X} s {homs-src {X} w} {homs-tgt {X} w} (homs-hom {X} w) = biinv→iso {X} s {homs-src {X} w} {homs-tgt {X} w} (homs-hom {X} w) b in
+  let i : is-iso {X} s {homs-src {X} w} {homs-tgt {X} w} (homs-hom {X} w) = biinv→iso {X} s {homs-src {X} w} {homs-tgt {X} w} (homs-hom {X} w) b in
   let δ : free-equiv-diagramᵣ X = iso→diagram {X} s {homs-src {X} w} {homs-tgt {X} w} (homs-hom {X} w) i in
   let sec : section (free-equiv-restrᵣ X) = is-equiv-sec (free-equiv-restrᵣ X) (free-equiv-oplax-up X) in
   let h : free-equiv →ᵣ X = section-map (free-equiv-restrᵣ X) sec δ in

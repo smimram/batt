@@ -167,26 +167,26 @@ is-contr-fib-sym {A} {B} f e y =
   is-contr-retract s (r , rs) (is-contr-fib f e y)
 
 is-cocartesian-iso ∷ {X A ∷ U} (sX : is-segalᵣ X) (sA : is-segalᵣ A) (p ∷ X → A) {x y : X} (f : hom x y) →
-  is-iso-hom {X} sX {x} {y} f → is-cocartesian {X} {A} sX sA p {x} {y} f
+  is-iso {X} sX {x} {y} f → is-cocartesian {X} {A} sX sA p {x} {y} f
 is-cocartesian-iso {X} {A} sX sA p {x} {y} f i y' =
   let pf : hom (p x) (p y) = hom-map {X} {A} p {x} {y} f in
   let P : hom x y' → U = λ h . Σ (k : hom (p y) (p y')) . hom-map {X} {A} p {x} {y'} h ≡ comp-homᵣ A sA {p x} {p y} {p y'} pf k in
   let π : cocart-pb {X} {A} sA p {x} {y} f y' → hom x y' = fst P in
   let eπ : is-equiv π =
     is-equiv-fst-contr P (λ h . is-contr-fib-sym (λ k . comp-homᵣ A sA {p x} {p y} {p y'} pf k)
-      (is-equiv-comp-iso-l {A} sA {p x} {p y} pf (is-iso-hom-map {X} {A} sX sA p {x} {y} f i) (p y'))
+      (is-equiv-comp-iso-l {A} sA {p x} {p y} pf (is-iso-map {X} {A} sX sA p {x} {y} f i) (p y'))
       (hom-map {X} {A} p {x} {y'} h)) in
   is-equiv-cancel-l π (cocart-gap {X} {A} sX sA p {x} {y} f y') eπ (is-equiv-comp-iso-l {X} sX {x} {y} f i y')
 
 is-cartesian-iso ∷ {X A ∷ U} (sX : is-segalᵣ X) (sA : is-segalᵣ A) (p ∷ X → A) {x y : X} (f : hom x y) →
-  is-iso-hom {X} sX {x} {y} f → is-cartesian {X} {A} sX sA p {x} {y} f
+  is-iso {X} sX {x} {y} f → is-cartesian {X} {A} sX sA p {x} {y} f
 is-cartesian-iso {X} {A} sX sA p {x} {y} f i x' =
   let pf : hom (p x) (p y) = hom-map {X} {A} p {x} {y} f in
   let P : hom x' y → U = λ h . Σ (k : hom (p x') (p x)) . hom-map {X} {A} p {x'} {y} h ≡ comp-homᵣ A sA {p x'} {p x} {p y} k pf in
   let π : cart-pb {X} {A} sA p {x} {y} f x' → hom x' y = fst P in
   let eπ : is-equiv π =
     is-equiv-fst-contr P (λ h . is-contr-fib-sym (λ k . comp-homᵣ A sA {p x'} {p x} {p y} k pf)
-      (is-equiv-comp-iso-r {A} sA {p x} {p y} pf (is-iso-hom-map {X} {A} sX sA p {x} {y} f i) (p x'))
+      (is-equiv-comp-iso-r {A} sA {p x} {p y} pf (is-iso-map {X} {A} sX sA p {x} {y} f i) (p x'))
       (hom-map {X} {A} p {x'} {y} h)) in
   is-equiv-cancel-l π (cart-gap {X} {A} sX sA p {x} {y} f x') eπ (is-equiv-comp-iso-r {X} sX {x} {y} f i x')
 
@@ -310,7 +310,7 @@ cocart-right-inv {X} {A} sX sA p {y1} {y2} m cm k e =
 -- too, and n' is m
 is-iso-cocartesian ∷ {X A ∷ U} (sX : is-segalᵣ X) (sA : is-segalᵣ A) (p ∷ X → A) {y1 y2 : X} (m : hom y1 y2) →
   is-cocartesian {X} {A} sX sA p {y1} {y2} m →
-  is-iso-hom {A} sA {p y1} {p y2} (hom-map {X} {A} p {y1} {y2} m) → is-iso-hom {X} sX {y1} {y2} m
+  is-iso {A} sA {p y1} {p y2} (hom-map {X} {A} p {y1} {y2} m) → is-iso {X} sX {y1} {y2} m
 is-iso-cocartesian {X} {A} sX sA p {y1} {y2} m cm (k , ek) =
   let pm : hom (p y1) (p y2) = hom-map {X} {A} p {y1} {y2} m in
   let ek1 : comp-homᵣ A sA {p y1} {p y2} {p y1} pm k ≡ Hom.id {A} (p y1) = Product.fst ek in

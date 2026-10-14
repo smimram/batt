@@ -9,7 +9,7 @@
 --
 -- with inverses given by composition with g (by associativity and unitality), and
 --
---   is-iso-hom-map : maps send isomorphisms to isomorphisms (by functoriality on homs).
+--   is-iso-map : maps send isomorphisms to isomorphisms (by functoriality on homs).
 --
 
 open import Stdlib
@@ -21,19 +21,19 @@ open import Associativity
 open import Functoriality
 
 -- two-sided inverses
-is-iso-hom ∷ {X ∷ U} (s : is-segalᵣ X) {x y : X} (f : hom x y) → U
-is-iso-hom {X} s {x} {y} f =
+is-iso ∷ {X ∷ U} (s : is-segalᵣ X) {x y : X} (f : hom x y) → U
+is-iso {X} s {x} {y} f =
   Σ (g : hom y x) . (comp-homᵣ X s {x} {y} {x} f g ≡ Hom.id {X} x) × (comp-homᵣ X s {y} {x} {y} g f ≡ Hom.id {X} y)
 
 -- identities are isomorphisms
-is-iso-id ∷ {X ∷ U} (s : is-segalᵣ X) (x : X) → is-iso-hom {X} s {x} {x} (Hom.id {X} x)
+is-iso-id ∷ {X ∷ U} (s : is-segalᵣ X) (x : X) → is-iso {X} s {x} {x} (Hom.id {X} x)
 is-iso-id {X} s x = (Hom.id {X} x , comp-homᵣ-lunit X s {x} {x} (Hom.id {X} x) , comp-homᵣ-lunit X s {x} {x} (Hom.id {X} x))
 
 --
 -- Composition with an isomorphism is an equivalence
 --
 
-is-equiv-comp-iso-l ∷ {X ∷ U} (s : is-segalᵣ X) {x y : X} (f : hom x y) → is-iso-hom {X} s {x} {y} f → (y' : X) →
+is-equiv-comp-iso-l ∷ {X ∷ U} (s : is-segalᵣ X) {x y : X} (f : hom x y) → is-iso {X} s {x} {y} f → (y' : X) →
   is-equiv (λ g . comp-homᵣ X s {x} {y} {y'} f g)
 is-equiv-comp-iso-l {X} s {x} {y} f (g , e) y' =
   let fg : comp-homᵣ X s {x} {y} {x} f g ≡ Hom.id {X} x = Product.fst e in
@@ -47,7 +47,7 @@ is-equiv-comp-iso-l {X} s {x} {y} f (g , e) y' =
       (trans (cong {hom y y} {hom y y'} (λ l . comp-homᵣ X s {y} {y} {y'} l k) gf) (comp-homᵣ-lunit X s {y} {y'} k)) in
   ((inv , sec) , (inv , ret))
 
-is-equiv-comp-iso-r ∷ {X ∷ U} (s : is-segalᵣ X) {x y : X} (f : hom x y) → is-iso-hom {X} s {x} {y} f → (x' : X) →
+is-equiv-comp-iso-r ∷ {X ∷ U} (s : is-segalᵣ X) {x y : X} (f : hom x y) → is-iso {X} s {x} {y} f → (x' : X) →
   is-equiv (λ g . comp-homᵣ X s {x'} {x} {y} g f)
 is-equiv-comp-iso-r {X} s {x} {y} f (g , e) x' =
   let fg : comp-homᵣ X s {x} {y} {x} f g ≡ Hom.id {X} x = Product.fst e in
@@ -69,9 +69,9 @@ is-equiv-comp-iso-r {X} s {x} {y} f (g , e) x' =
 hom-map-id ∷ {X A ∷ U} (p ∷ X → A) (x : X) → hom-map {X} {A} p {x} {x} (Hom.id {X} x) ≡ Hom.id {A} (p x)
 hom-map-id {X} {A} p x = refl
 
-is-iso-hom-map ∷ {X A ∷ U} (sX : is-segalᵣ X) (sA : is-segalᵣ A) (p ∷ X → A) {x y : X} (f : hom x y) →
-  is-iso-hom {X} sX {x} {y} f → is-iso-hom {A} sA {p x} {p y} (hom-map {X} {A} p {x} {y} f)
-is-iso-hom-map {X} {A} sX sA p {x} {y} f (g , e) =
+is-iso-map ∷ {X A ∷ U} (sX : is-segalᵣ X) (sA : is-segalᵣ A) (p ∷ X → A) {x y : X} (f : hom x y) →
+  is-iso {X} sX {x} {y} f → is-iso {A} sA {p x} {p y} (hom-map {X} {A} p {x} {y} f)
+is-iso-map {X} {A} sX sA p {x} {y} f (g , e) =
   let fg : comp-homᵣ X sX {x} {y} {x} f g ≡ Hom.id {X} x = Product.fst e in
   let gf : comp-homᵣ X sX {y} {x} {y} g f ≡ Hom.id {X} y = Product.snd e in
   (hom-map {X} {A} p {y} {x} g ,
