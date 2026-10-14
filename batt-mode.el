@@ -6,8 +6,9 @@
    ;; Definition names come before operators so that names containing
    ;; symbols (e.g. f→g) are highlighted as a whole.
    ("^\\(abstract\\)[ \t]+\\([^ (=\n]+\\)" (1 font-lock-keyword-face) (2 'font-lock-function-name-face))
+   ("^\\(end\\)\\_>" 1 font-lock-keyword-face)
    ("^\\([^ (=\n]+\\)" 1 'font-lock-function-name-face)
-   ("\\_<\\(let\\|in\\|fun\\|λ\\|open\\|import\\|abstract\\)\\_>\\|:\\|∷\\|=" . font-lock-keyword-face)
+   ("\\_<\\(let\\|in\\|fun\\|λ\\|open\\|import\\|abstract\\|record\\|end\\)\\_>\\|:\\|∷\\|=" . font-lock-keyword-face)
    ("\\_<\\(true\\|false\\|tt\\|refl\\|zero\\|succ\\|nil\\|cons\\|[0-9]+\\)\\_>" . font-lock-constant-face)
    ("\\<\\(Nat\\|ℕ\\)" 1 font-lock-builtin-face)
    ("\\\\\\(bigotimes\\|otimes\\|Sigma\\|times\\|fflat\\|flat\\|equiv\\|simeq\\|circ\\|top\\|bot\\|tol\\|tor\\|to\\)\\|\\_<\\(U\\|Type\\|TYPE\\|List\\|Bool\\|Unit\\|Empty\\|II[01vw]?\\)\\_>\\|𝕀[01∨∧]?\\|->l\\|->r\\|->\\|→ₗ\\|→ᵣ\\|⇀\\|⇁\\|→\\|⨂\\|⊗\\|@\\|≡\\|≃\\|∘\\|Σ\\|×\\|⊥\\|⊤\\|♭\\|𝄫" . font-lock-builtin-face)
@@ -25,6 +26,18 @@
   "Syntax table for BATT major mode.")
 
 (defvar batt-tab-width 4)
+
+(defcustom batt-indent-offset 2
+  "Number of spaces added on the left by `indent-region' in BATT buffers."
+  :type 'integer
+  :group 'batt)
+
+(defun batt-indent-region (start end)
+  "Shift the lines between START and END right by `batt-indent-offset'.
+Blank lines are left untouched."
+  (save-excursion
+    (goto-char start)
+    (indent-rigidly (line-beginning-position) end batt-indent-offset)))
 
 (defcustom batt-default-input-method "TeX"
   "Input method automatically activated in BATT buffers.
@@ -131,6 +144,8 @@ Return non-nil when the position of an error could be found."
   (set (make-local-variable 'comment-start) "--")
   (set (make-local-variable 'comment-start-skip) "--+\\s-*")
   (set (make-local-variable 'font-lock-defaults) '(batt-font-lock-keywords))
+  (set (make-local-variable 'indent-region-function) #'batt-indent-region)
+  (set (make-local-variable 'indent-tabs-mode) nil)
   (setq mode-name "BATT")
   (when batt-default-input-method
     (set-input-method batt-default-input-method))

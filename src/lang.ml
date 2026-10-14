@@ -968,6 +968,18 @@ and infer k env ctx (t:term) : term * value =
         if List.mem_assoc m tm then error ~t "module %s contains a field %s, this is expected to cause problems" m m;
         T.Record (`Recursive, tm), V.RecordType ty
     )
+  | Record (`Recursive, l) ->
+    let decls = List.map (fun (x,t) -> T.Def (x, Crisp, false, None, t)) l in
+    let _,tm,ty = check_decls k env ctx decls in
+    T.Record (`Recursive, tm), V.RecordType ty
+  | Let (c, x, a, t, u) ->
+    let a, _level = check_type k env (Context.crisp ~crispness:c ctx) a in
+    let av = V.eval env a in
+    let t = check k env (Context.crisp ~crispness:c ctx) t av in
+    let env = (x, V.eval env t)::env in
+    let ctx = Context.ext ~crispness:c ctx x av in
+    let u, b = infer k env ctx u in
+    Let (c, x, a, t, u), b
   | RecordField (t, x) ->
     let t0 = t in
     let t, a = infer k env ctx t in

@@ -1,0 +1,47 @@
+import Bool
+
+import Bool
+
+f : Bool → Bool → Bool
+f = Bool.or
+
+r = record
+  n : ℕ
+  n = 5
+
+  b : Bool
+  b = false
+end
+
+y : ℕ
+y = r.n
+
+z : Bool
+z = r.b
+
+open r
+
+b' : Bool
+b' = b
+
+-- nested records and records referring to previous fields
+w = record
+  m : ℕ
+  m = succ 3
+
+  inner = record
+    p : ℕ
+    p = m
+  end
+
+  q : ℕ
+  q = inner.p
+end
+
+w' : w.q ≡ 4
+w' = refl
+
+open r
+
+n' : n ≡ 5
+n' = refl

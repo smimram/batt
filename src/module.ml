@@ -1,4 +1,5 @@
 let parse_lexbuf lexbuf =
+  Lexer.records := [];
   try MenhirLib.Convert.Simplified.traditional2revised Parser.main (Sedlexing.with_tokenizer Lexer.token lexbuf)
   with
   | Failure err ->

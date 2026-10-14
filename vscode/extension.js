@@ -542,7 +542,7 @@ function messageHtml(text) {
 // whole before being classified. The printer writes Bool / Unit / Empty for the
 // builtin types, and `_` for anonymous binders (not metas, which print as ?n).
 const TOKEN_RE = /(𝕀∨|𝕀∧)|(_≃_|(?:[A-Za-z]|𝕀)(?:[A-Za-z0-9'_\-→⁻ₗᵣ]|𝕀)*)|(→ₗ|→ᵣ|⇀|⇁|→)|(⊗|⨂|×|Σ|♭|𝄫|≡|≃|∘|¬|∷)|(λ)|(\?\d*)|(\d+)/gu;
-const KEYWORDS = new Set(['let', 'in', 'fun', 'postulate', 'abstract', 'import', 'open']);
+const KEYWORDS = new Set(['let', 'in', 'fun', 'postulate', 'abstract', 'import', 'open', 'record', 'end']);
 const TYPES = new Set(['Type', 'TYPE', 'U', 'Bool', 'Unit', 'Empty', 'bool', 'unit', 'empty', '𝕀']);
 const CONSTANTS = new Set(['tt', 'true', 'false', 'refl', '𝕀0', '𝕀1']);
 // names the checker always puts in the crisp context

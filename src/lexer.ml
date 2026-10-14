@@ -7,6 +7,9 @@ let digit = [%sedlex.regexp? '0'..'9']
 let digit_subscript = [%sedlex.regexp? 0x2080 .. 0x2089]
 let space = [%sedlex.regexp? ' ' | '\t' | '\r']
 
+(** Indentation of the fields of the records we are currently in, innermost first ([None] when not known yet, i.e. before the first newline following [record]). *)
+let records : int option list ref = ref []
+
 let rec token lexbuf =
   match%sedlex lexbuf with
   | "Type" -> TYPE
@@ -67,6 +70,8 @@ let rec token lexbuf =
   | "postulate" -> POSTULATE
   | "abstract" -> ABSTRACT
   | "open" -> OPEN
+  | "record" -> records := None :: !records; RECORD
+  | "end" -> (match !records with _::l -> records := l | [] -> ()); END
   | "import ", Star letter , Star (letter | digit | '-' | '_') ->
     let s = Sedlexing.Utf8.lexeme lexbuf in
     IMPORT (String.sub s 7 (String.length s - 7))
@@ -74,8 +79,17 @@ let rec token lexbuf =
   | ((letter | Utf8 "𝕀"), Star (letter | digit | '\'' | '-' | '_' | Utf8 "→" | Utf8 "⁻" | Utf8 "ₗ" | Utf8 "ᵣ" | Utf8 "♭" | digit_subscript | Utf8 "𝕀" | Utf8 "≡" | Utf8 "≃" | Utf8 "⁎")) | Utf8 "_≃_" -> IDENT (Sedlexing.Utf8.lexeme lexbuf)
   | "--", Star (Compl '\n') -> token lexbuf
   | Plus space -> token lexbuf
-  | "\n " -> token lexbuf (* quick hack, we should properly handle indentation *)
-  | '\n' -> N
+  | '\n', Star ' ' ->
+    (* An indented line continues the previous one, excepted for the fields of a record (which are indented at the same level as the first one). *)
+    (* TODO: properly handle indentation *)
+    let indent = String.length (Sedlexing.Utf8.lexeme lexbuf) - 1 in
+    (
+      match !records with
+      | _ when indent = 0 -> N
+      | None :: l -> records := Some indent :: l; N
+      | Some i :: _ when i = indent -> N
+      | _ -> token lexbuf
+    )
   | eof -> EOF
   | _ ->
     let s = Sedlexing.Utf8.lexeme lexbuf in
