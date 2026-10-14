@@ -27,6 +27,18 @@
 
 (defvar batt-tab-width 4)
 
+(defcustom batt-indent-offset 2
+  "Number of spaces added on the left by `indent-region' in BATT buffers."
+  :type 'integer
+  :group 'batt)
+
+(defun batt-indent-region (start end)
+  "Shift the lines between START and END right by `batt-indent-offset'.
+Blank lines are left untouched."
+  (save-excursion
+    (goto-char start)
+    (indent-rigidly (line-beginning-position) end batt-indent-offset)))
+
 (defcustom batt-default-input-method "TeX"
   "Input method automatically activated in BATT buffers.
 Set to nil to disable automatic activation."
@@ -132,6 +144,8 @@ Return non-nil when the position of an error could be found."
   (set (make-local-variable 'comment-start) "--")
   (set (make-local-variable 'comment-start-skip) "--+\\s-*")
   (set (make-local-variable 'font-lock-defaults) '(batt-font-lock-keywords))
+  (set (make-local-variable 'indent-region-function) #'batt-indent-region)
+  (set (make-local-variable 'indent-tabs-mode) nil)
   (setq mode-name "BATT")
   (when batt-default-input-method
     (set-input-method batt-default-input-method))
