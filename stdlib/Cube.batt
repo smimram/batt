@@ -182,8 +182,8 @@ is-prop-is-in-spine (succ n) x = is-prop-type-prop-trunc _
 is-set-spine ∷ (n ∷ ℕ) → is-set (spine n)
 is-set-spine n = is-set-Σ-prop (is-in-spine n) (is-set-cart-cube n) (is-prop-is-in-spine n)
 
-spine-1-pt ∷ (t : 𝕀) → is-in-spine 1 (t , tt)
-spine-1-pt t = unit-prop-trunc (sum (tt ≡ origin 0) ((t ≡ 𝕀1) × is-in-spine 0 tt)) (inl {tt ≡ origin 0} {(t ≡ 𝕀1) × is-in-spine 0 tt} refl)
+spine1-pt ∷ (t : 𝕀) → is-in-spine 1 (t , tt)
+spine1-pt t = unit-prop-trunc (sum (tt ≡ origin 0) ((t ≡ 𝕀1) × is-in-spine 0 tt)) (inl {tt ≡ origin 0} {(t ≡ 𝕀1) × is-in-spine 0 tt} refl)
 
 -- In the 2-spine, the target of the first edge coincides with the source of the second edge
 spine-glue ∷ spine-edge-1 𝕀1 ≡{spine 2} spine-edge-2 𝕀0
@@ -194,11 +194,11 @@ spine-glue =
   cong {is-in-spine 2 c0} {spine 2} (λ w . (c0 , w)) τ
 
 -- the two coordinates of a point of the 2-simplex
-simplex-2-fst ∷ simplex 2 → 𝕀
-simplex-2-fst z = Product.fst {𝕀} {cart-cube 1} (fst (is-sorted 1) z)
+simplex2-fst ∷ simplex 2 → 𝕀
+simplex2-fst z = Product.fst {𝕀} {cart-cube 1} (fst (is-sorted 1) z)
 
-simplex-2-snd ∷ simplex 2 → 𝕀
-simplex-2-snd z = Product.fst {𝕀} {⊤} (Product.snd {𝕀} {cart-cube 1} (fst (is-sorted 1) z))
+simplex2-snd ∷ simplex 2 → 𝕀
+simplex2-snd z = Product.fst {𝕀} {⊤} (Product.snd {𝕀} {cart-cube 1} (fst (is-sorted 1) z))
 
 -- simplices are sets
 is-set-simplex ∷ (n ∷ ℕ) → is-set (simplex (succ n))
@@ -211,63 +211,63 @@ is-set-simplex n = is-set-Σ-prop (is-sorted n) (is-set-cart-cube (succ n)) (is-
 --
 
 -- the first and second edges of the 2-simplex, t ↦ (t, 0) and t ↦ (1, t)
-simplex-2-e₀₁ ∷ 𝕀 → simplex 2
-simplex-2-e₀₁ t = ((t , 𝕀0 , tt) , (refl , tt))
+simplex2-e₀₁ ∷ 𝕀 → simplex 2
+simplex2-e₀₁ t = ((t , 𝕀0 , tt) , (refl , tt))
 
-simplex-2-e₁₂ ∷ 𝕀 → simplex 2
-simplex-2-e₁₂ t = ((𝕀1 , t , tt) , (refl , tt))
+simplex2-e₁₂ ∷ 𝕀 → simplex 2
+simplex2-e₁₂ t = ((𝕀1 , t , tt) , (refl , tt))
 
 -- the edges of the 3-simplex
-simplex-3-e₀₁ ∷ 𝕀 → simplex 3
-simplex-3-e₀₁ t = ((t , 𝕀0 , 𝕀0 , tt) , (refl , (refl , tt)))
+simplex3-e₀₁ ∷ 𝕀 → simplex 3
+simplex3-e₀₁ t = ((t , 𝕀0 , 𝕀0 , tt) , (refl , (refl , tt)))
 
-simplex-3-e₁₂ ∷ 𝕀 → simplex 3
-simplex-3-e₁₂ t = ((𝕀1 , t , 𝕀0 , tt) , (refl , (refl , tt)))
+simplex3-e₁₂ ∷ 𝕀 → simplex 3
+simplex3-e₁₂ t = ((𝕀1 , t , 𝕀0 , tt) , (refl , (refl , tt)))
 
-simplex-3-e₂₃ ∷ 𝕀 → simplex 3
-simplex-3-e₂₃ t = ((𝕀1 , 𝕀1 , t , tt) , (refl , (refl , tt)))
+simplex3-e₂₃ ∷ 𝕀 → simplex 3
+simplex3-e₂₃ t = ((𝕀1 , 𝕀1 , t , tt) , (refl , (refl , tt)))
 
-simplex-3-e₀₂ ∷ 𝕀 → simplex 3
-simplex-3-e₀₂ t = ((t , t , 𝕀0 , tt) , (refl , (refl , tt)))
+simplex3-e₀₂ ∷ 𝕀 → simplex 3
+simplex3-e₀₂ t = ((t , t , 𝕀0 , tt) , (refl , (refl , tt)))
 
-simplex-3-e₁₃ ∷ 𝕀 → simplex 3
-simplex-3-e₁₃ t = ((𝕀1 , t , t , tt) , (refl , (refl , tt)))
+simplex3-e₁₃ ∷ 𝕀 → simplex 3
+simplex3-e₁₃ t = ((𝕀1 , t , t , tt) , (refl , (refl , tt)))
 
-simplex-3-e₀₃ ∷ 𝕀 → simplex 3
-simplex-3-e₀₃ t = ((t , t , t , tt) , (refl , (refl , tt)))
+simplex3-e₀₃ ∷ 𝕀 → simplex 3
+simplex3-e₀₃ t = ((t , t , t , tt) , (refl , (refl , tt)))
 
 -- the inequality of a point of the 2-simplex
-simplex-2-geq ∷ (y : simplex 2) → simplex-2-fst y ≥ simplex-2-snd y
-simplex-2-geq y = Product.fst (snd (is-sorted 1) y)
+simplex2-geq ∷ (y : simplex 2) → simplex2-fst y ≥ simplex2-snd y
+simplex2-geq y = Product.fst (snd (is-sorted 1) y)
 
 -- the faces dᵢ : Δ² → Δ³, missing the vertex i
-simplex-3-d₀ ∷ simplex 2 → simplex 3
-simplex-3-d₀ y = ((𝕀1 , simplex-2-fst y , simplex-2-snd y , tt) , (refl , (simplex-2-geq y , tt)))
+simplex3-d₀ ∷ simplex 2 → simplex 3
+simplex3-d₀ y = ((𝕀1 , simplex2-fst y , simplex2-snd y , tt) , (refl , (simplex2-geq y , tt)))
 
-simplex-3-d₁ ∷ simplex 2 → simplex 3
-simplex-3-d₁ y = ((simplex-2-fst y , simplex-2-fst y , simplex-2-snd y , tt) , (refl , (simplex-2-geq y , tt)))
+simplex3-d₁ ∷ simplex 2 → simplex 3
+simplex3-d₁ y = ((simplex2-fst y , simplex2-fst y , simplex2-snd y , tt) , (refl , (simplex2-geq y , tt)))
 
-simplex-3-d₂ ∷ simplex 2 → simplex 3
-simplex-3-d₂ y = ((simplex-2-fst y , simplex-2-snd y , simplex-2-snd y , tt) , (simplex-2-geq y , (refl , tt)))
+simplex3-d₂ ∷ simplex 2 → simplex 3
+simplex3-d₂ y = ((simplex2-fst y , simplex2-snd y , simplex2-snd y , tt) , (simplex2-geq y , (refl , tt)))
 
-simplex-3-d₃ ∷ simplex 2 → simplex 3
-simplex-3-d₃ y = ((simplex-2-fst y , simplex-2-snd y , 𝕀0 , tt) , (simplex-2-geq y , (refl , tt)))
+simplex3-d₃ ∷ simplex 2 → simplex 3
+simplex3-d₃ y = ((simplex2-fst y , simplex2-snd y , 𝕀0 , tt) , (simplex2-geq y , (refl , tt)))
 
 -- the faces of the edges are edges, judgmentally
-simplex-3-faces-edges ∷
-  ((λ t . simplex-3-d₃ (simplex-2-e₀₁ t)) ≡{𝕀 → simplex 3} simplex-3-e₀₁) ×
-  ((λ t . simplex-3-d₃ (simplex-2-e₁₂ t)) ≡{𝕀 → simplex 3} simplex-3-e₁₂) ×
-  ((λ t . simplex-3-d₃ (long-edge t)) ≡{𝕀 → simplex 3} simplex-3-e₀₂) ×
-  ((λ t . simplex-3-d₀ (simplex-2-e₀₁ t)) ≡{𝕀 → simplex 3} simplex-3-e₁₂) ×
-  ((λ t . simplex-3-d₀ (simplex-2-e₁₂ t)) ≡{𝕀 → simplex 3} simplex-3-e₂₃) ×
-  ((λ t . simplex-3-d₀ (long-edge t)) ≡{𝕀 → simplex 3} simplex-3-e₁₃) ×
-  ((λ t . simplex-3-d₁ (simplex-2-e₀₁ t)) ≡{𝕀 → simplex 3} simplex-3-e₀₂) ×
-  ((λ t . simplex-3-d₁ (simplex-2-e₁₂ t)) ≡{𝕀 → simplex 3} simplex-3-e₂₃) ×
-  ((λ t . simplex-3-d₁ (long-edge t)) ≡{𝕀 → simplex 3} simplex-3-e₀₃) ×
-  ((λ t . simplex-3-d₂ (simplex-2-e₀₁ t)) ≡{𝕀 → simplex 3} simplex-3-e₀₁) ×
-  ((λ t . simplex-3-d₂ (simplex-2-e₁₂ t)) ≡{𝕀 → simplex 3} simplex-3-e₁₃) ×
-  ((λ t . simplex-3-d₂ (long-edge t)) ≡{𝕀 → simplex 3} simplex-3-e₀₃)
-simplex-3-faces-edges = (refl , refl , refl , refl , refl , refl , refl , refl , refl , refl , refl , refl)
+simplex3-faces-edges ∷
+  ((λ t . simplex3-d₃ (simplex2-e₀₁ t)) ≡{𝕀 → simplex 3} simplex3-e₀₁) ×
+  ((λ t . simplex3-d₃ (simplex2-e₁₂ t)) ≡{𝕀 → simplex 3} simplex3-e₁₂) ×
+  ((λ t . simplex3-d₃ (long-edge t)) ≡{𝕀 → simplex 3} simplex3-e₀₂) ×
+  ((λ t . simplex3-d₀ (simplex2-e₀₁ t)) ≡{𝕀 → simplex 3} simplex3-e₁₂) ×
+  ((λ t . simplex3-d₀ (simplex2-e₁₂ t)) ≡{𝕀 → simplex 3} simplex3-e₂₃) ×
+  ((λ t . simplex3-d₀ (long-edge t)) ≡{𝕀 → simplex 3} simplex3-e₁₃) ×
+  ((λ t . simplex3-d₁ (simplex2-e₀₁ t)) ≡{𝕀 → simplex 3} simplex3-e₀₂) ×
+  ((λ t . simplex3-d₁ (simplex2-e₁₂ t)) ≡{𝕀 → simplex 3} simplex3-e₂₃) ×
+  ((λ t . simplex3-d₁ (long-edge t)) ≡{𝕀 → simplex 3} simplex3-e₀₃) ×
+  ((λ t . simplex3-d₂ (simplex2-e₀₁ t)) ≡{𝕀 → simplex 3} simplex3-e₀₁) ×
+  ((λ t . simplex3-d₂ (simplex2-e₁₂ t)) ≡{𝕀 → simplex 3} simplex3-e₁₃) ×
+  ((λ t . simplex3-d₂ (long-edge t)) ≡{𝕀 → simplex 3} simplex3-e₀₃)
+simplex3-faces-edges = (refl , refl , refl , refl , refl , refl , refl , refl , refl , refl , refl , refl)
 
 
 -- a path of coordinates gives a path of points of a simplex, whatever the sortedness proofs

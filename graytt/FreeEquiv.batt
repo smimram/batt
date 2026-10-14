@@ -19,19 +19,19 @@ open import Spine
 --
 
 -- the coordinate of a point of Δ¹
-simplex-1-coord ∷ simplex 1 → 𝕀
-simplex-1-coord x = Product.fst {𝕀} {⊤} (fst (is-sorted 0) x)
+simplex1-coord ∷ simplex 1 → 𝕀
+simplex1-coord x = Product.fst {𝕀} {⊤} (fst (is-sorted 0) x)
 
 -- the edge [0,2] of Δ³, t ↦ (t, t, 0)
 edge-02 ∷ simplex 1 → simplex 3
 edge-02 x =
-  let t : 𝕀 = simplex-1-coord x in
+  let t : 𝕀 = simplex1-coord x in
   ((t , t , 𝕀0 , tt) , (refl , refl , tt))
 
 -- the edge [1,3] of Δ³, t ↦ (1, t, t)
 edge-13 ∷ simplex 1 → simplex 3
 edge-13 x =
-  let t : 𝕀 = simplex-1-coord x in
+  let t : 𝕀 = simplex1-coord x in
   ((𝕀1 , t , t , tt) , (refl , refl , tt))
 
 --
@@ -42,25 +42,25 @@ edge-13 x =
 free-equiv-02 ∷ U
 free-equiv-02 = pushout-obj {simplex 1} {⊤} {simplex 3} (λ _ . tt) edge-02
 
-simplex-3→free-equiv-02 ∷ simplex 3 → free-equiv-02
-simplex-3→free-equiv-02 = pushout-inr {simplex 1} {⊤} {simplex 3} (λ _ . tt) edge-02
+simplex3→free-equiv-02 ∷ simplex 3 → free-equiv-02
+simplex3→free-equiv-02 = pushout-inr {simplex 1} {⊤} {simplex 3} (λ _ . tt) edge-02
 
 -- then the edge [1,3] collapsed: E = 1 +_{Δ¹} Δ³ +_{Δ¹} 1
 edge-13' ∷ simplex 1 → free-equiv-02
-edge-13' x = simplex-3→free-equiv-02 (edge-13 x)
+edge-13' x = simplex3→free-equiv-02 (edge-13 x)
 
 free-equiv ∷ U
 free-equiv = pushout-obj {simplex 1} {⊤} {free-equiv-02} (λ _ . tt) edge-13'
 
 -- the quotient map Δ³ → E
-simplex-3→free-equiv ∷ simplex 3 → free-equiv
-simplex-3→free-equiv x = pushout-inr {simplex 1} {⊤} {free-equiv-02} (λ _ . tt) edge-13' (simplex-3→free-equiv-02 x)
+simplex3→free-equiv ∷ simplex 3 → free-equiv
+simplex3→free-equiv x = pushout-inr {simplex 1} {⊤} {free-equiv-02} (λ _ . tt) edge-13' (simplex3→free-equiv-02 x)
 
 -- the two collapsed edges are constant in E
-free-equiv-02-cst ∷ (x : simplex 1) → pushout-inl {simplex 1} {⊤} {simplex 3} (λ _ . tt) edge-02 tt ≡ simplex-3→free-equiv-02 (edge-02 x)
+free-equiv-02-cst ∷ (x : simplex 1) → pushout-inl {simplex 1} {⊤} {simplex 3} (λ _ . tt) edge-02 tt ≡ simplex3→free-equiv-02 (edge-02 x)
 free-equiv-02-cst = pushout-eq {simplex 1} {⊤} {simplex 3} (λ _ . tt) edge-02
 
-free-equiv-13-cst ∷ (x : simplex 1) → pushout-inl {simplex 1} {⊤} {free-equiv-02} (λ _ . tt) edge-13' tt ≡ simplex-3→free-equiv (edge-13 x)
+free-equiv-13-cst ∷ (x : simplex 1) → pushout-inl {simplex 1} {⊤} {free-equiv-02} (λ _ . tt) edge-13' tt ≡ simplex3→free-equiv (edge-13 x)
 free-equiv-13-cst = pushout-eq {simplex 1} {⊤} {free-equiv-02} (λ _ . tt) edge-13'
 
 -- τ : E → 1

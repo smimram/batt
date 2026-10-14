@@ -158,8 +158,8 @@ yon-is-cocartesian-from-conn {A} rA a F sF cF u H =
   let lift-case : (σ : simplex 2 →ᵣ A) (γ : srcᵣ (lift-sq {A} σ 𝕀0) ≡ a) →
                   is-cocartesian {X} {A} sF sA (fst F) (hom-map {E} {X} Y (cell-hom {E} (fst _ (hom-family-lift {A} sA a σ γ)))) =
     λ σ γ .
-      let t : arrᵣ A = hom-cell (simplex-2-hom₀₁ {A} σ) in
-      let ut : arrᵣ A = hom-cell (simplex-2-hom₀₂ {A} σ) in
+      let t : arrᵣ A = hom-cell (simplex2-hom₀₁ {A} σ) in
+      let ut : arrᵣ A = hom-cell (simplex2-hom₀₂ {A} σ) in
       let Γt : hom {E} (hom-family-conn {A} a t γ 𝕀0) (hom-family-conn {A} a t γ 𝕀1) = cell-hom {E} (hom-family-conn {A} a t γ) in
       let χ : arrᵣ E = fst _ (hom-family-lift {A} sA a σ γ) in
       let χh : hom {E} (χ 𝕀0) (χ 𝕀1) = cell-hom {E} χ in
@@ -216,7 +216,7 @@ yoneda {A} a F sA sF cF yc =
 -- For g : hom b a, Y := tot (yon g) sends the connection Γ̄_f to a cocartesian 1-cell
 -- (yon-hom-conn-cocart). Pointwise, (f_{≤ i})_! g = g ; f_{≤ i} (push-hom-family). If g and f are
 -- the first edges of a 2-simplex σ, then g ; f_{≤ i} is the long edge of the 2-simplex
--- σ_i := λ y . σ (y₁ , y₁ ∧ y₂ ∧ i) (comp-simplex-2-paths), which is χ_σ i. These pointwise paths form
+-- σ_i := λ y . σ (y₁ , y₁ ∧ y₂ ∧ i) (comp-simplex2-paths), which is χ_σ i. These pointwise paths form
 -- an oplax homotopy 𝕀 →ᵣ path (Σ (x : A) . hom b x), hence a path of 1-cells (htpyᵣ→path, oplax
 -- funext) from Y ∘ Γ̄_f to the cocartesian lift χ̄_σ (yon-hom-conn-cocart-simplex). Every pair
 -- (g , f) is the pair of first edges of a 2-simplex, up to paths (hom-coslice-edges-2,
@@ -236,17 +236,17 @@ yon-hom-conn-cocart-stmt {A} rA a b (g , fp) =
 
 -- for the first edges of a 2-simplex σ, with paths γ₀ : σ 0 ≡ b and γ₁ : σ 1 ≡ a
 yon-hom-conn-cocart-simplex ∷ {A ∷ U} (rA : is-rezkᵣ A) (a b ∷ A) (σ : simplex 2 →ᵣ A)
-  (γ₀ : σ (simplex-2-e₀₁ 𝕀0) ≡ b) (γ₁ : σ (simplex-2-e₀₁ 𝕀1) ≡ a) →
+  (γ₀ : σ (simplex2-e₀₁ 𝕀0) ≡ b) (γ₁ : σ (simplex2-e₀₁ 𝕀1) ≡ a) →
   yon-hom-conn-cocart-stmt {A} rA a b
-    ((hom-cell {A} {σ (simplex-2-e₀₁ 𝕀0)} {σ (simplex-2-e₀₁ 𝕀1)} (simplex-2-hom₀₁ {A} σ) , γ₀ , γ₁) ,
-     (hom-cell {A} {σ (simplex-2-e₁₂ 𝕀0)} {σ (simplex-2-e₁₂ 𝕀1)} (simplex-2-hom₁₂ {A} σ) , γ₁))
+    ((hom-cell {A} {σ (simplex2-e₀₁ 𝕀0)} {σ (simplex2-e₀₁ 𝕀1)} (simplex2-hom₀₁ {A} σ) , γ₀ , γ₁) ,
+     (hom-cell {A} {σ (simplex2-e₁₂ 𝕀0)} {σ (simplex2-e₁₂ 𝕀1)} (simplex2-hom₁₂ {A} σ) , γ₁))
 yon-hom-conn-cocart-simplex {A} rA a b σ γ₀ γ₁ =
   let sA : is-segalᵣ A = rezk-segalᵣ {A} rA in
   let Ea ∷ U = Σ (x : A) . hom-family {A} a x in
   let Eb ∷ U = Σ (x : A) . hom-family {A} b x in
   let sEb : is-segalᵣ Eb = is-segalᵣ-hom-family {A} sA b in
-  let t : arrᵣ A = hom-cell {A} {σ (simplex-2-e₀₁ 𝕀0)} {σ (simplex-2-e₀₁ 𝕀1)} (simplex-2-hom₀₁ {A} σ) in
-  let s : arrᵣ A = hom-cell {A} {σ (simplex-2-e₁₂ 𝕀0)} {σ (simplex-2-e₁₂ 𝕀1)} (simplex-2-hom₁₂ {A} σ) in
+  let t : arrᵣ A = hom-cell {A} {σ (simplex2-e₀₁ 𝕀0)} {σ (simplex2-e₀₁ 𝕀1)} (simplex2-hom₀₁ {A} σ) in
+  let s : arrᵣ A = hom-cell {A} {σ (simplex2-e₁₂ 𝕀0)} {σ (simplex2-e₁₂ 𝕀1)} (simplex2-hom₁₂ {A} σ) in
   let g : hom {A} b a = (t , γ₀ , γ₁) in
   let Y : Ea → Eb = yon-total {A} a (hom-family {A} b) sA sEb (hom-family-covariant {A} rA b) g in
   let Γ : arrᵣ Ea = hom-family-conn {A} a s γ₁ in
@@ -256,7 +256,7 @@ yon-hom-conn-cocart-simplex {A} rA a b σ γ₀ γ₁ =
     (Y (Γ i) , χ i ,
      cong {hom {A} b (s i)} {Eb} (λ h . (s i , h))
        (trans (push-hom-family {A} rA b {a} {s i} (conn {A} s i , γ₁ , refl) g)
-         (comp-simplex-2-paths A sA (λ y . σ ((simplex-2-fst y , simplex-2-fst y 𝕀∧ simplex-2-snd y 𝕀∧ i , tt) , (refl , tt)))
+         (comp-simplex2-paths A sA (λ y . σ ((simplex2-fst y , simplex2-fst y 𝕀∧ simplex2-snd y 𝕀∧ i , tt) , (refl , tt)))
            {b} γ₀ {a} γ₁))) in
   is-cocartesian-cell-path {Eb} {A} sEb sA (fst (hom-family {A} b)) {λ i . Y (Γ i)} {χ}
     (htpyᵣ→path 𝕀 Eb H) (snd _ (hom-family-lift {A} sA b σ γ₀))
@@ -265,10 +265,10 @@ yon-hom-conn-cocart-simplex {A} rA a b σ γ₀ γ₁ =
 yon-hom-conn-cocart ∷ {A ∷ U} (rA : is-rezkᵣ A) (a b ∷ A) (z : hom {A} b a × coslice A a) → yon-hom-conn-cocart-stmt {A} rA a b z
 yon-hom-conn-cocart {A} rA a b z =
   let R : (σ : simplex 2 →ᵣ A) → U = λ σ .
-    Σ (γ₀ : σ (simplex-2-e₀₁ 𝕀0) ≡ b) . Σ (γ₁ : σ (simplex-2-e₀₁ 𝕀1) ≡ a) . pair→hom-coslice {A} a b (edges-2 {A} σ) γ₀ γ₁ ≡ z in
+    Σ (γ₀ : σ (simplex2-e₀₁ 𝕀0) ≡ b) . Σ (γ₁ : σ (simplex2-e₀₁ 𝕀1) ≡ a) . pair→hom-coslice {A} a b (edges-2 {A} σ) γ₀ γ₁ ≡ z in
   let k : (Σ (σ : simplex 2 →ᵣ A) . R σ) → yon-hom-conn-cocart-stmt {A} rA a b z = fun (σ , r) →
     let k2 : (r : R σ) → yon-hom-conn-cocart-stmt {A} rA a b z = fun (γ₀ , r2) →
-      let k3 : (r2 : Σ (γ₁ : σ (simplex-2-e₀₁ 𝕀1) ≡ a) . pair→hom-coslice {A} a b (edges-2 {A} σ) γ₀ γ₁ ≡ z) →
+      let k3 : (r2 : Σ (γ₁ : σ (simplex2-e₀₁ 𝕀1) ≡ a) . pair→hom-coslice {A} a b (edges-2 {A} σ) γ₀ γ₁ ≡ z) →
                yon-hom-conn-cocart-stmt {A} rA a b z = fun (γ₁ , E) →
         subst (yon-hom-conn-cocart-stmt {A} rA a b) E
           (yon-hom-conn-cocart-simplex {A} rA a b σ (trans refl γ₀) (trans refl γ₁)) in

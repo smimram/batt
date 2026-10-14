@@ -28,7 +28,7 @@ transported-id {B} {b} {x} {y} p q = ((λ _ . b) , p , q)
 
 transported-id-comp ∷ {B ∷ U} (sB : is-segalᵣ B) {b ∷ B} {x : B} (p : b ≡ x) {y : B} (q : b ≡ y) {z : B} (r : b ≡ z) →
   comp-homᵣ B sB {x} {y} {z} (transported-id {B} {b} {x} {y} p q) (transported-id {B} {b} {y} {z} q r) ≡ transported-id {B} {b} {x} {z} p r
-transported-id-comp {B} sB {b} refl refl refl = comp-simplex-2 B sB (λ σ . b)
+transported-id-comp {B} sB {b} refl refl refl = comp-simplex2 B sB (λ σ . b)
 
 is-iso-transported-id ∷ {B ∷ U} (sB : is-segalᵣ B) {b ∷ B} {x : B} (p : b ≡ x) {y : B} (q : b ≡ y) →
   is-iso-hom {B} sB {x} {y} (transported-id {B} {b} {x} {y} p q)
@@ -65,15 +65,15 @@ hom-map-const-comp-stmt S B b sS sB {x} {y} {z} u v =
         (transported-id-comp {B} sB {b} {b} refl {b} refl {b} refl))
 
 hom-map-const-comp-simplex ∷ (S B ∷ U) (b ∷ B) (sS : is-segalᵣ S) (sB : is-segalᵣ B) (Ψ : simplex 2 →ᵣ S) →
-  hom-map-const-comp-stmt S B b sS sB (simplex-2-hom₀₁ {S} Ψ) (simplex-2-hom₁₂ {S} Ψ)
+  hom-map-const-comp-stmt S B b sS sB (simplex2-hom₀₁ {S} Ψ) (simplex2-hom₁₂ {S} Ψ)
 hom-map-const-comp-simplex S B b sS sB Ψ =
-  let x0 : S = Ψ (simplex-2-e₀₁ 𝕀0) in
-  let x2 : S = Ψ (simplex-2-e₁₂ 𝕀1) in
+  let x0 : S = Ψ (simplex2-e₀₁ 𝕀0) in
+  let x2 : S = Ψ (simplex2-e₁₂ 𝕀1) in
   let hm : hom x0 x2 → hom {B} b b = hom-map {S} {B} (λ _ . b) {x0} {x2} in
-  let C : hom x0 x2 = comp-homᵣ S sS (simplex-2-hom₀₁ {S} Ψ) (simplex-2-hom₁₂ {S} Ψ) in
-  let csX : C ≡ simplex-2-hom₀₂ {S} Ψ = comp-simplex-2 S sS Ψ in
-  let cs0 : comp-homᵣ B sB {b} {b} {b} (Hom.id {B} b) (Hom.id {B} b) ≡ Hom.id {B} b = comp-simplex-2 B sB (λ σ . b) in
-  let E : hom-map-comp S B (λ _ . b) sS sB (simplex-2-hom₀₁ {S} Ψ) (simplex-2-hom₁₂ {S} Ψ) ≡ trans (cong hm csX) (sym cs0) =
+  let C : hom x0 x2 = comp-homᵣ S sS (simplex2-hom₀₁ {S} Ψ) (simplex2-hom₁₂ {S} Ψ) in
+  let csX : C ≡ simplex2-hom₀₂ {S} Ψ = comp-simplex2 S sS Ψ in
+  let cs0 : comp-homᵣ B sB {b} {b} {b} (Hom.id {B} b) (Hom.id {B} b) ≡ Hom.id {B} b = comp-simplex2 B sB (λ σ . b) in
+  let E : hom-map-comp S B (λ _ . b) sS sB (simplex2-hom₀₁ {S} Ψ) (simplex2-hom₁₂ {S} Ψ) ≡ trans (cong hm csX) (sym cs0) =
     hom-map-comp-edges S B (λ _ . b) sS sB Ψ in
   trans (nat-to-point hm (hom-map-const {S} {B} b {x0} {x2}) csX)
     (trans (trans-sym-refl-cancel (cong hm csX) cs0)

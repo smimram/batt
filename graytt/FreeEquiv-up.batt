@@ -132,7 +132,7 @@ free-equiv-restrᵣ Y h =
 -- its 3-simplex is the composite with the quotient map Δ³ → E, judgmentally
 free-equiv-restrᵣ-simplex ∷ (Y ∷ U) (h : free-equiv →ᵣ Y) →
   fst {simplex 3 →ᵣ Y} (λ σ . is-collapsedᵣ {Y} (λ x . σ (edge-02 x)) × is-collapsedᵣ {Y} (λ x . σ (edge-13 x))) (free-equiv-restrᵣ Y h)
-    ≡{simplex 3 →ᵣ Y} (λ s . h (simplex-3→free-equiv s))
+    ≡{simplex 3 →ᵣ Y} (λ s . h (simplex3→free-equiv s))
 free-equiv-restrᵣ-simplex Y h = refl
 
 -- the oplax universal property of the free-standing equivalence
@@ -265,7 +265,7 @@ free-equiv-restrₗ Y h =
 -- its 3-simplex is the composite with the quotient map Δ³ → E, judgmentally
 free-equiv-restrₗ-simplex ∷ (Y ∷ U) (h : free-equiv →ₗ Y) →
   fst {simplex 3 →ₗ Y} (λ σ . is-collapsedₗ {Y} (λ x . σ (edge-02 x)) × is-collapsedₗ {Y} (λ x . σ (edge-13 x))) (free-equiv-restrₗ Y h)
-    ≡{simplex 3 →ₗ Y} (λ s . h (simplex-3→free-equiv s))
+    ≡{simplex 3 →ₗ Y} (λ s . h (simplex3→free-equiv s))
 free-equiv-restrₗ-simplex Y h = refl
 
 -- the lax universal property of the free-standing equivalence

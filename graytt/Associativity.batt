@@ -17,12 +17,12 @@ open import Composable
 -- Edges of a 3-simplex, as homs with refl boundary paths
 --
 
-simplex-3-hom ∷ {X ∷ U} (e ∷ 𝕀 → simplex 3) (Θ : simplex 3 →ᵣ X) → hom (Θ (e 𝕀0)) (Θ (e 𝕀1))
-simplex-3-hom {X} e Θ = (preᵣ {𝕀} {simplex 3} {X} Θ e , refl , refl)
+simplex3-hom ∷ {X ∷ U} (e ∷ 𝕀 → simplex 3) (Θ : simplex 3 →ᵣ X) → hom (Θ (e 𝕀0)) (Θ (e 𝕀1))
+simplex3-hom {X} e Θ = (preᵣ {𝕀} {simplex 3} {X} Θ e , refl , refl)
 
 -- the faces of a 3-simplex
-simplex-3-face ∷ {X ∷ U} (d ∷ simplex 2 → simplex 3) (Θ : simplex 3 →ᵣ X) → (simplex 2 →ᵣ X)
-simplex-3-face {X} d Θ = preᵣ {simplex 2} {simplex 3} {X} Θ d
+simplex3-face ∷ {X ∷ U} (d ∷ simplex 2 → simplex 3) (Θ : simplex 3 →ᵣ X) → (simplex 2 →ᵣ X)
+simplex3-face {X} d Θ = preᵣ {simplex 2} {simplex 3} {X} Θ d
 
 --
 -- Associativity for the edges of a 3-simplex
@@ -55,45 +55,45 @@ assoc-of-faces X s {x} {y} {z} {t} u v w {a} {b} {c} c3 c1 c2 c0 =
         (cong (λ h . comp-homᵣ X s {x} {y} {t} u h) (sym c0))))
 
 -- the path given by a face of a 3-simplex
-simplex-3-face-path ∷ (X ∷ U) (s : is-segalᵣ X) (d ∷ simplex 2 → simplex 3) (Θ : simplex 3 →ᵣ X) →
-  comp-homᵣ X s (simplex-2-hom₀₁ {X} (simplex-3-face {X} d Θ)) (simplex-2-hom₁₂ {X} (simplex-3-face {X} d Θ))
-    ≡ simplex-2-hom₀₂ {X} (simplex-3-face {X} d Θ)
-simplex-3-face-path X s d Θ = comp-simplex-2 X s (simplex-3-face {X} d Θ)
+simplex3-face-path ∷ (X ∷ U) (s : is-segalᵣ X) (d ∷ simplex 2 → simplex 3) (Θ : simplex 3 →ᵣ X) →
+  comp-homᵣ X s (simplex2-hom₀₁ {X} (simplex3-face {X} d Θ)) (simplex2-hom₁₂ {X} (simplex3-face {X} d Θ))
+    ≡ simplex2-hom₀₂ {X} (simplex3-face {X} d Θ)
+simplex3-face-path X s d Θ = comp-simplex2 X s (simplex3-face {X} d Θ)
 
 -- the associator of the edges of a 3-simplex, from its four faces
-assoc-simplex-3-def ∷ (X ∷ U) (s : is-segalᵣ X) (Θ : simplex 3 →ᵣ X) →
-  comp-homᵣ X s (comp-homᵣ X s (simplex-3-hom {X} simplex-3-e₀₁ Θ) (simplex-3-hom {X} simplex-3-e₁₂ Θ))
-    (simplex-3-hom {X} simplex-3-e₂₃ Θ)
-    ≡ comp-homᵣ X s (simplex-3-hom {X} simplex-3-e₀₁ Θ)
-      (comp-homᵣ X s (simplex-3-hom {X} simplex-3-e₁₂ Θ) (simplex-3-hom {X} simplex-3-e₂₃ Θ))
-assoc-simplex-3-def X s Θ =
+assoc-simplex3-def ∷ (X ∷ U) (s : is-segalᵣ X) (Θ : simplex 3 →ᵣ X) →
+  comp-homᵣ X s (comp-homᵣ X s (simplex3-hom {X} simplex3-e₀₁ Θ) (simplex3-hom {X} simplex3-e₁₂ Θ))
+    (simplex3-hom {X} simplex3-e₂₃ Θ)
+    ≡ comp-homᵣ X s (simplex3-hom {X} simplex3-e₀₁ Θ)
+      (comp-homᵣ X s (simplex3-hom {X} simplex3-e₁₂ Θ) (simplex3-hom {X} simplex3-e₂₃ Θ))
+assoc-simplex3-def X s Θ =
   assoc-of-faces X s
-    (simplex-3-hom {X} simplex-3-e₀₁ Θ) (simplex-3-hom {X} simplex-3-e₁₂ Θ) (simplex-3-hom {X} simplex-3-e₂₃ Θ)
-    {simplex-3-hom {X} simplex-3-e₀₂ Θ} {simplex-3-hom {X} simplex-3-e₁₃ Θ} {simplex-3-hom {X} simplex-3-e₀₃ Θ}
-    (simplex-3-face-path X s simplex-3-d₃ Θ)
-    (simplex-3-face-path X s simplex-3-d₁ Θ)
-    (simplex-3-face-path X s simplex-3-d₂ Θ)
-    (simplex-3-face-path X s simplex-3-d₀ Θ)
+    (simplex3-hom {X} simplex3-e₀₁ Θ) (simplex3-hom {X} simplex3-e₁₂ Θ) (simplex3-hom {X} simplex3-e₂₃ Θ)
+    {simplex3-hom {X} simplex3-e₀₂ Θ} {simplex3-hom {X} simplex3-e₁₃ Θ} {simplex3-hom {X} simplex3-e₀₃ Θ}
+    (simplex3-face-path X s simplex3-d₃ Θ)
+    (simplex3-face-path X s simplex3-d₁ Θ)
+    (simplex3-face-path X s simplex3-d₂ Θ)
+    (simplex3-face-path X s simplex3-d₀ Θ)
 
--- frozen: assoc-simplex-3 does not unfold (unfolding it in unified terms is expensive), but it
--- is equal to its definition (assoc-simplex-3-eq)
-assoc-simplex-3-freeze ∷ (X ∷ U) (s : is-segalᵣ X) (Θ : simplex 3 →ᵣ X) →
-  Σ (a : comp-homᵣ X s (comp-homᵣ X s (simplex-3-hom {X} simplex-3-e₀₁ Θ)
-        (simplex-3-hom {X} simplex-3-e₁₂ Θ)) (simplex-3-hom {X} simplex-3-e₂₃ Θ)
-    ≡ comp-homᵣ X s (simplex-3-hom {X} simplex-3-e₀₁ Θ)
-      (comp-homᵣ X s (simplex-3-hom {X} simplex-3-e₁₂ Θ) (simplex-3-hom {X} simplex-3-e₂₃ Θ))) .
-    a ≡ assoc-simplex-3-def X s Θ
-assoc-simplex-3-freeze X s Θ = (assoc-simplex-3-def X s Θ , refl)
+-- frozen: assoc-simplex3 does not unfold (unfolding it in unified terms is expensive), but it
+-- is equal to its definition (assoc-simplex3-eq)
+assoc-simplex3-freeze ∷ (X ∷ U) (s : is-segalᵣ X) (Θ : simplex 3 →ᵣ X) →
+  Σ (a : comp-homᵣ X s (comp-homᵣ X s (simplex3-hom {X} simplex3-e₀₁ Θ)
+        (simplex3-hom {X} simplex3-e₁₂ Θ)) (simplex3-hom {X} simplex3-e₂₃ Θ)
+    ≡ comp-homᵣ X s (simplex3-hom {X} simplex3-e₀₁ Θ)
+      (comp-homᵣ X s (simplex3-hom {X} simplex3-e₁₂ Θ) (simplex3-hom {X} simplex3-e₂₃ Θ))) .
+    a ≡ assoc-simplex3-def X s Θ
+assoc-simplex3-freeze X s Θ = (assoc-simplex3-def X s Θ , refl)
 
-assoc-simplex-3 ∷ (X ∷ U) (s : is-segalᵣ X) (Θ : simplex 3 →ᵣ X) →
-  comp-homᵣ X s (comp-homᵣ X s (simplex-3-hom {X} simplex-3-e₀₁ Θ) (simplex-3-hom {X} simplex-3-e₁₂ Θ))
-    (simplex-3-hom {X} simplex-3-e₂₃ Θ)
-    ≡ comp-homᵣ X s (simplex-3-hom {X} simplex-3-e₀₁ Θ)
-      (comp-homᵣ X s (simplex-3-hom {X} simplex-3-e₁₂ Θ) (simplex-3-hom {X} simplex-3-e₂₃ Θ))
-assoc-simplex-3 X s Θ = fst _ (assoc-simplex-3-freeze X s Θ)
+assoc-simplex3 ∷ (X ∷ U) (s : is-segalᵣ X) (Θ : simplex 3 →ᵣ X) →
+  comp-homᵣ X s (comp-homᵣ X s (simplex3-hom {X} simplex3-e₀₁ Θ) (simplex3-hom {X} simplex3-e₁₂ Θ))
+    (simplex3-hom {X} simplex3-e₂₃ Θ)
+    ≡ comp-homᵣ X s (simplex3-hom {X} simplex3-e₀₁ Θ)
+      (comp-homᵣ X s (simplex3-hom {X} simplex3-e₁₂ Θ) (simplex3-hom {X} simplex3-e₂₃ Θ))
+assoc-simplex3 X s Θ = fst _ (assoc-simplex3-freeze X s Θ)
 
-assoc-simplex-3-eq ∷ (X ∷ U) (s : is-segalᵣ X) (Θ : simplex 3 →ᵣ X) → assoc-simplex-3 X s Θ ≡ assoc-simplex-3-def X s Θ
-assoc-simplex-3-eq X s Θ = snd _ (assoc-simplex-3-freeze X s Θ)
+assoc-simplex3-eq ∷ (X ∷ U) (s : is-segalᵣ X) (Θ : simplex 3 →ᵣ X) → assoc-simplex3 X s Θ ≡ assoc-simplex3-def X s Θ
+assoc-simplex3-eq X s Θ = snd _ (assoc-simplex3-freeze X s Θ)
 
 --
 -- Composable triples drawn on a 3-simplex
@@ -108,7 +108,7 @@ tri-shape {X} Θ path-u path-v path-w α β =
 
 -- the triple of edges of a 3-simplex
 edges-tri ∷ {X ∷ U} (Θ : simplex 3 →ᵣ X) → triples X
-edges-tri {X} Θ = tri-shape {X} Θ simplex-3-e₀₁ simplex-3-e₁₂ simplex-3-e₂₃ refl refl
+edges-tri {X} Θ = tri-shape {X} Θ simplex3-e₀₁ simplex3-e₁₂ simplex3-e₂₃ refl refl
 
 -- homotopic shape data give the same triple: by crisp path induction, then the glues are images
 -- of crisp paths in the set Δ³
@@ -125,46 +125,46 @@ tri-shape-path {X} Θ path-u refl path-v refl path-w refl glue-uv glue-uv' glue-
     (congᵣ-set (is-set-simplex 2) glue-uv glue-uv' Θ) (congᵣ-set (is-set-simplex 2) glue-vw glue-vw' Θ)
 
 -- the edges of the 3-spine, included in the 3-simplex
-spine-3-edge-1-in-simplex ∷ 𝕀 → simplex 3
-spine-3-edge-1-in-simplex t = spine→simplex 3 (spine-3-edge-1-incl (𝕀→spine-3-edge-1 t))
+spine3-edge-1-in-simplex ∷ 𝕀 → simplex 3
+spine3-edge-1-in-simplex t = spine→simplex 3 (spine3-edge-1-incl (𝕀→spine3-edge-1 t))
 
-spine-3-edge-2-in-simplex ∷ 𝕀 → simplex 3
-spine-3-edge-2-in-simplex t = spine→simplex 3 (spine-3-tail-incl (𝕀→spine-3-tail-edge-1 t))
+spine3-edge-2-in-simplex ∷ 𝕀 → simplex 3
+spine3-edge-2-in-simplex t = spine→simplex 3 (spine3-tail-incl (𝕀→spine3-tail-edge-1 t))
 
-spine-3-edge-3-in-simplex ∷ 𝕀 → simplex 3
-spine-3-edge-3-in-simplex t = spine→simplex 3 (spine-3-tail-incl (𝕀→spine-3-tail-edge-2 t))
+spine3-edge-3-in-simplex ∷ 𝕀 → simplex 3
+spine3-edge-3-in-simplex t = spine→simplex 3 (spine3-tail-incl (𝕀→spine3-tail-edge-2 t))
 
-spine-3-edge-1-in-simplex-path ∷ spine-3-edge-1-in-simplex ≡{𝕀 → simplex 3} simplex-3-e₀₁
-spine-3-edge-1-in-simplex-path = funext-htpy {𝕀} {λ _ . simplex 3} spine-3-edge-1-in-simplex simplex-3-e₀₁
+spine3-edge-1-in-simplex-path ∷ spine3-edge-1-in-simplex ≡{𝕀 → simplex 3} simplex3-e₀₁
+spine3-edge-1-in-simplex-path = funext-htpy {𝕀} {λ _ . simplex 3} spine3-edge-1-in-simplex simplex3-e₀₁
   (λ t . simplex-path 2 {(t , 𝕀0 , 𝕀0 , tt)} {(t , 𝕀0 , 𝕀0 , tt)} refl
-      (snd (is-sorted 2) (spine-3-edge-1-in-simplex t)) (refl , (refl , tt)))
+      (snd (is-sorted 2) (spine3-edge-1-in-simplex t)) (refl , (refl , tt)))
 
-spine-3-edge-2-in-simplex-path ∷ spine-3-edge-2-in-simplex ≡{𝕀 → simplex 3} simplex-3-e₁₂
-spine-3-edge-2-in-simplex-path = funext-htpy {𝕀} {λ _ . simplex 3} spine-3-edge-2-in-simplex simplex-3-e₁₂
+spine3-edge-2-in-simplex-path ∷ spine3-edge-2-in-simplex ≡{𝕀 → simplex 3} simplex3-e₁₂
+spine3-edge-2-in-simplex-path = funext-htpy {𝕀} {λ _ . simplex 3} spine3-edge-2-in-simplex simplex3-e₁₂
   (λ t . simplex-path 2 {(𝕀1 , t , 𝕀0 , tt)} {(𝕀1 , t , 𝕀0 , tt)} refl
-      (snd (is-sorted 2) (spine-3-edge-2-in-simplex t)) (refl , (refl , tt)))
+      (snd (is-sorted 2) (spine3-edge-2-in-simplex t)) (refl , (refl , tt)))
 
-spine-3-edge-3-in-simplex-path ∷ spine-3-edge-3-in-simplex ≡{𝕀 → simplex 3} simplex-3-e₂₃
-spine-3-edge-3-in-simplex-path = funext-htpy {𝕀} {λ _ . simplex 3} spine-3-edge-3-in-simplex simplex-3-e₂₃
+spine3-edge-3-in-simplex-path ∷ spine3-edge-3-in-simplex ≡{𝕀 → simplex 3} simplex3-e₂₃
+spine3-edge-3-in-simplex-path = funext-htpy {𝕀} {λ _ . simplex 3} spine3-edge-3-in-simplex simplex3-e₂₃
   (λ t . simplex-path 2 {(𝕀1 , 𝕀1 , t , tt)} {(𝕀1 , 𝕀1 , t , tt)} refl
-      (snd (is-sorted 2) (spine-3-edge-3-in-simplex t)) (refl , (refl , tt)))
+      (snd (is-sorted 2) (spine3-edge-3-in-simplex t)) (refl , (refl , tt)))
 
 -- the triple read off the restriction of a 3-simplex to the 3-spine is its triple of edges
 spine-restr-edges-tri ∷ {X ∷ U} (Θ : simplex 3 →ᵣ X) →
-  spine-3-cocone→triple {X} (spine-3→coconeᵣ X (spine-restrᵣ 3 X Θ)) ≡ edges-tri {X} Θ
+  spine3-cocone→triple {X} (spine3→coconeᵣ X (spine-restrᵣ 3 X Θ)) ≡ edges-tri {X} Θ
 spine-restr-edges-tri {X} Θ =
   trans
-    (cong2 {Θ (spine-3-edge-1-in-simplex 𝕀1) ≡ Θ (spine-3-edge-2-in-simplex 𝕀0)}
-        {Θ (spine-3-edge-2-in-simplex 𝕀1) ≡ Θ (spine-3-edge-3-in-simplex 𝕀0)} {triples X}
-        (λ α β . tri-shape {X} Θ spine-3-edge-1-in-simplex spine-3-edge-2-in-simplex
-          spine-3-edge-3-in-simplex α β)
-      (congᵣ-preᵣ (spine 3) {simplex 3} {X} {spine-3-edge-1-incl spine-3-edge-1-end}
-          {spine-3-tail-incl spine-3-tail-start} spine-3-glue (spine→simplex 3) Θ)
-      (congᵣ-preᵣ spine-3-tail {simplex 3} {X} {𝕀→spine-3-tail-edge-1 𝕀1} {𝕀→spine-3-tail-edge-2 𝕀0}
-          spine-3-tail-glue (λ b . spine→simplex 3 (spine-3-tail-incl b)) Θ))
-    (tri-shape-path {X} Θ spine-3-edge-1-in-simplex spine-3-edge-1-in-simplex-path spine-3-edge-2-in-simplex
-        spine-3-edge-2-in-simplex-path spine-3-edge-3-in-simplex spine-3-edge-3-in-simplex-path
-      (cong (spine→simplex 3) spine-3-glue) refl (cong (λ b . spine→simplex 3 (spine-3-tail-incl b)) spine-3-tail-glue) refl)
+    (cong2 {Θ (spine3-edge-1-in-simplex 𝕀1) ≡ Θ (spine3-edge-2-in-simplex 𝕀0)}
+        {Θ (spine3-edge-2-in-simplex 𝕀1) ≡ Θ (spine3-edge-3-in-simplex 𝕀0)} {triples X}
+        (λ α β . tri-shape {X} Θ spine3-edge-1-in-simplex spine3-edge-2-in-simplex
+          spine3-edge-3-in-simplex α β)
+      (congᵣ-preᵣ (spine 3) {simplex 3} {X} {spine3-edge-1-incl spine3-edge-1-end}
+          {spine3-tail-incl spine3-tail-start} spine3-glue (spine→simplex 3) Θ)
+      (congᵣ-preᵣ spine3-tail {simplex 3} {X} {𝕀→spine3-tail-edge-1 𝕀1} {𝕀→spine3-tail-edge-2 𝕀0}
+          spine3-tail-glue (λ b . spine→simplex 3 (spine3-tail-incl b)) Θ))
+    (tri-shape-path {X} Θ spine3-edge-1-in-simplex spine3-edge-1-in-simplex-path spine3-edge-2-in-simplex
+        spine3-edge-2-in-simplex-path spine3-edge-3-in-simplex spine3-edge-3-in-simplex-path
+      (cong (spine→simplex 3) spine3-glue) refl (cong (λ b . spine→simplex 3 (spine3-tail-incl b)) spine3-tail-glue) refl)
 
 --
 -- Associativity, as a family over composable triples
@@ -185,19 +185,19 @@ tri-assoc X s = tri-family X (λ x y z t u v w . assoc-stmt X s {x} {y} {z} {t} 
 assoc-filler ∷ (X ∷ U) (s : is-segalᵣ X) {x y z t : X} (u : hom x y) (v : hom y z) (w : hom z t) → (simplex 3 →ᵣ X)
 assoc-filler X s {x} {y} {z} {t} u v w =
   section-map (spine-restrᵣ 3 X) (is-equiv-sec (spine-restrᵣ 3 X) (is-segalᵣ-unthick X s 3))
-    (cocone→spine-3ᵣ X (tri-section X {x} {y} {z} {t} u v w))
+    (cocone→spine3ᵣ X (tri-section X {x} {y} {z} {t} u v w))
 
 -- its triple of edges is the given triple
 assoc-filler-edges ∷ (X ∷ U) (s : is-segalᵣ X) {x y z t : X} (u : hom x y) (v : hom y z) (w : hom z t) →
   edges-tri {X} (assoc-filler X s {x} {y} {z} {t} u v w) ≡ (x , y , u , z , t , v , w)
 assoc-filler-edges X s {x} {y} {z} {t} u v w =
   let Θs : spine 3 →ᵣ X =
-    cocone→spine-3ᵣ X (tri-section X {x} {y} {z} {t} u v w) in
+    cocone→spine3ᵣ X (tri-section X {x} {y} {z} {t} u v w) in
   trans (sym (spine-restr-edges-tri {X} (assoc-filler X s {x} {y} {z} {t} u v w)))
-    (trans (cong {spine 3 →ᵣ X} {triples X} (λ φ . spine-3-cocone→triple {X} (spine-3→coconeᵣ X φ))
+    (trans (cong {spine 3 →ᵣ X} {triples X} (λ φ . spine3-cocone→triple {X} (spine3→coconeᵣ X φ))
              (snd (is-section (spine-restrᵣ 3 X)) (is-equiv-sec (spine-restrᵣ 3 X) (is-segalᵣ-unthick X s 3)) Θs))
-      (trans (cong {spine-3-coconeᵣ X} {triples X} (spine-3-cocone→triple {X})
-               (spine-3→coconeᵣ-sec X (tri-section X {x} {y} {z} {t} u v w)))
+      (trans (cong {spine3-coconeᵣ X} {triples X} (spine3-cocone→triple {X})
+               (spine3→coconeᵣ-sec X (tri-section X {x} {y} {z} {t} u v w)))
         (tri-section-path X {x} {y} {z} {t} u v w)))
 
 -- associativity of composition in an oplax-Segal type: the associativity of the 3-simplex
@@ -206,9 +206,9 @@ comp-homᵣ-assoc-def ∷ (X ∷ U) (s : is-segalᵣ X) {x y z t : X} (u : hom x
   comp-homᵣ X s {x} {z} {t} (comp-homᵣ X s {x} {y} {z} u v) w ≡ comp-homᵣ X s {x} {y} {t} u (comp-homᵣ X s {y} {z} {t} v w)
 comp-homᵣ-assoc-def X s {x} {y} {z} {t} u v w =
   subst {triples X} (tri-assoc X s) (assoc-filler-edges X s {x} {y} {z} {t} u v w)
-    (assoc-simplex-3 X s (assoc-filler X s {x} {y} {z} {t} u v w))
+    (assoc-simplex3 X s (assoc-filler X s {x} {y} {z} {t} u v w))
 
--- frozen, as assoc-simplex-3
+-- frozen, as assoc-simplex3
 comp-homᵣ-assoc-freeze ∷ (X ∷ U) (s : is-segalᵣ X) {x y z t : X} (u : hom x y) (v : hom y z) (w : hom z t) →
   Σ (a : comp-homᵣ X s {x} {z} {t} (comp-homᵣ X s {x} {y} {z} u v) w ≡ comp-homᵣ X s {x} {y} {t} u
       (comp-homᵣ X s {y} {z} {t} v w)) . a ≡ comp-homᵣ-assoc-def X s {x} {y} {z} {t} u v w
