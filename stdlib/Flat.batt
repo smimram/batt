@@ -239,7 +239,7 @@ is-discrete-flat A =
   let g : ♭ A → ♭ ♭ A = λ 𝄫 a . 𝄫 𝄫 a in
   let fg : (x : ♭ A) → f (g x) ≡ x = fun 𝄫a → refl in
   let gf : (x : ♭ ♭ A) → g (f x) ≡ x = fun 𝄫 x →
-    let h : (x ∷ ♭ A) → g (f (𝄫 x)) ≡ 𝄫 x = fun 𝄫 x → refl in
+    let h : (x ∷ ♭ A) → g (f (𝄫 x)) ≡ 𝄫 x = fun 𝄫 x → refl in -- here crisp ♭-induction is prformed, it seems crucial
     h x
   in
   -- is-iso→is-equiv (g , fg , gf)
