@@ -141,6 +141,16 @@ type item =
 
 and pattern = [`Var of icit * string | `Unit | `Pair of string * string | `Tens of string * string | `Flatten of string | `Refl | `Bool of bool | `Nat of string option | `List of (string * string) option]
 
+(** Fields of a recursive record defined by the given declarations. *)
+let record_fields (decls : decls) =
+  List.map
+    (function
+      | Def (x, _, false, None, t) -> x, t
+      | Def (x, c, false, Some a, t) -> x, Let (c, x, a, t, Var x)
+      | Def (x, _, true, _, _) -> failwith @@ Printf.sprintf "abstract field %s not supported in records" x
+      | Open _ -> failwith "open not supported in records"
+    ) decls
+
 (** Group signatures with their defining clauses. *)
 let rec group_decls items =
   (* Gather the clauses for x at the head of the items. *)

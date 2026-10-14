@@ -35,7 +35,7 @@ const LITERALS = [
   ['𝕀0', 'KW'], ['II0', 'KW'], ['𝕀1', 'KW'], ['II1', 'KW'], ['𝕀∨', 'KW'], ['IIv', 'KW'],
   ['𝕀∧', 'KW'], ['IIw', 'KW'], ['𝕀', 'KW'], ['II', 'KW'],
   ['_', 'KW'], ['refl', 'KW'], ['let', 'LET'], ['in', 'IN'],
-  ['postulate', 'POSTULATE'], ['open', 'OPEN']
+  ['postulate', 'POSTULATE'], ['open', 'OPEN'], ['record', 'KW'], ['end', 'KW']
 ];
 
 const isGreek = (c) => (c >= 0x391 && c <= 0x3A1) || (c >= 0x3A3 && c <= 0x3A9)
