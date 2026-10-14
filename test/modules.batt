@@ -5,12 +5,7 @@ import Bool
 f : Bool → Bool → Bool
 f = Bool.or
 
-open Bool
-
-f : Bool → Bool → Bool
-f = or
-
-x = record
+r = record
   n : ℕ
   n = 5
 
@@ -19,10 +14,15 @@ x = record
 end
 
 y : ℕ
-y = x.n
+y = r.n
 
 z : Bool
-z = x.b
+z = r.b
+
+open r
+
+b' : Bool
+b' = b
 
 -- nested records and records referring to previous fields
 w = record
@@ -41,7 +41,7 @@ end
 w' : w.q ≡ 4
 w' = refl
 
-open x
+open r
 
 n' : n ≡ 5
 n' = refl
