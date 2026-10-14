@@ -18,20 +18,16 @@ open import Spine
 -- Vertices and edges of Δ³ (vertex k has its first k coordinates equal to 1, as x₁ ≥ x₂ ≥ x₃)
 --
 
--- the coordinate of a point of Δ¹
-simplex1-coord ∷ simplex 1 → 𝕀
-simplex1-coord x = Product.fst {𝕀} {⊤} (fst (is-sorted 0) x)
-
 -- the edge [0,2] of Δ³, t ↦ (t, t, 0)
 edge-02 ∷ simplex 1 → simplex 3
 edge-02 x =
-  let t : 𝕀 = simplex1-coord x in
+  let t : 𝕀 = Simplex1.to𝕀 x in
   ((t , t , 𝕀0 , tt) , (refl , refl , tt))
 
 -- the edge [1,3] of Δ³, t ↦ (1, t, t)
 edge-13 ∷ simplex 1 → simplex 3
 edge-13 x =
-  let t : 𝕀 = simplex1-coord x in
+  let t : 𝕀 = Simplex1.to𝕀 x in
   ((𝕀1 , t , t , tt) , (refl , refl , tt))
 
 --

@@ -109,9 +109,9 @@ is-complete-arrᵣ {A} cA a b =
       (tens-curry-right {grid b} {simplex 1} {A}) (snd _ (tens-curry-equiv-right {grid b} {simplex 1} {A})) e2 in
   let e4 : is-equiv (cur-const {grid a} {free-equiv} {grid b →ᵣ arrᵣ A}) =
     cur-const-equiv {grid a} {free-equiv} {grid b →ᵣ simplex 1 →ᵣ A} {grid b →ᵣ arrᵣ A}
-      (postᵣ {grid b} {simplex 1 →ᵣ A} {𝕀 →ᵣ A} (λ φ . preᵣ {𝕀} {simplex 1} {A} φ 𝕀→simplex1))
-      (postᵣ-equiv (grid b) {simplex 1 →ᵣ A} {𝕀 →ᵣ A} (λ φ . preᵣ {𝕀} {simplex 1} {A} φ 𝕀→simplex1)
-        (preᵣ-equiv 𝕀 (simplex 1) 𝕀→simplex1 is-equiv-𝕀→simplex1 A)) e3 in
+      (postᵣ {grid b} {simplex 1 →ᵣ A} {𝕀 →ᵣ A} (λ φ . preᵣ {𝕀} {simplex 1} {A} φ Simplex1.of𝕀))
+      (postᵣ-equiv (grid b) {simplex 1 →ᵣ A} {𝕀 →ᵣ A} (λ φ . preᵣ {𝕀} {simplex 1} {A} φ Simplex1.of𝕀)
+        (preᵣ-equiv 𝕀 (simplex 1) Simplex1.of𝕀 Simplex1.is-equiv-of𝕀 A)) e3 in
   is-equiv-conj' (complete-restrᵣ a b (arrᵣ A)) (cur-const {grid a} {free-equiv} {grid b →ᵣ arrᵣ A})
     (tens-curry-right {grid a} {grid b} {arrᵣ A}) (cur2 {grid a} {free-equiv} {grid b} {arrᵣ A})
     (cur-complete-restr a b (arrᵣ A)) (snd _ (tens-curry-equiv-right {grid a} {grid b} {arrᵣ A}))

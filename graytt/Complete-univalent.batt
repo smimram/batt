@@ -101,12 +101,12 @@ univalent-from-section {X} s r H x y =
 
 -- a collapsed edge (equal to a constant oplax map) is the hom of a path
 collapsed→path ∷ {X ∷ U} (s : is-segalᵣ X) (y : ⊤ →ᵣ X) {φ : simplex 1 →ᵣ X} (p : (λ x . y tt) ≡{simplex 1 →ᵣ X} φ) →
-  Σ (e : φ (𝕀→simplex1 𝕀0) ≡ φ (𝕀→simplex1 𝕀1)) .
-    (preᵣ {𝕀} {simplex 1} {X} φ 𝕀→simplex1 , refl , refl) ≡{hom (φ (𝕀→simplex1 𝕀0)) (φ (𝕀→simplex1 𝕀1))} path→hom {X} s e
+  Σ (e : φ (Simplex1.of𝕀 𝕀0) ≡ φ (Simplex1.of𝕀 𝕀1)) .
+    (preᵣ {𝕀} {simplex 1} {X} φ Simplex1.of𝕀 , refl , refl) ≡{hom (φ (Simplex1.of𝕀 𝕀0)) (φ (Simplex1.of𝕀 𝕀1))} path→hom {X} s e
 collapsed→path {X} s y {φ} p =
   J {simplex 1 →ᵣ X} (λ x . y tt)
-    (λ φ' p' . Σ (e : φ' (𝕀→simplex1 𝕀0) ≡ φ' (𝕀→simplex1 𝕀1)) .
-       (preᵣ {𝕀} {simplex 1} {X} φ' 𝕀→simplex1 , refl , refl) ≡{hom (φ' (𝕀→simplex1 𝕀0)) (φ' (𝕀→simplex1 𝕀1))} path→hom {X} s e)
+    (λ φ' p' . Σ (e : φ' (Simplex1.of𝕀 𝕀0) ≡ φ' (Simplex1.of𝕀 𝕀1)) .
+       (preᵣ {𝕀} {simplex 1} {X} φ' Simplex1.of𝕀 , refl , refl) ≡{hom (φ' (Simplex1.of𝕀 𝕀0)) (φ' (Simplex1.of𝕀 𝕀1))} path→hom {X} s e)
     (refl , refl) p
 
 -- the cell of the hom of a path is constant
@@ -115,11 +115,11 @@ path→hom-cell {X} s {x} {z} e = J x (λ z' e' . hom-cell {X} {x} {z'} (path→
 
 -- conversely, an edge of a 3-simplex whose hom is the hom of a path is collapsed
 path→collapsed ∷ {X ∷ U} (s : is-segalᵣ X) (σ : simplex 3 →ᵣ X) (E ∷ 𝕀 → simplex 3) (e : σ (E 𝕀0) ≡ σ (E 𝕀1)) →
-  simplex3-hom {X} E σ ≡ path→hom {X} s e → is-collapsedᵣ {X} (λ x . σ (E (simplex1→𝕀 x)))
+  simplex3-hom {X} E σ ≡ path→hom {X} s e → is-collapsedᵣ {X} (λ x . σ (E (Simplex1.to𝕀 x)))
 path→collapsed {X} s σ E e Q =
   let R : (λ i . σ (E 𝕀0)) ≡{arrᵣ X} preᵣ {𝕀} {simplex 3} {X} σ E =
     sym (trans (cong (hom-cell {X} {σ (E 𝕀0)} {σ (E 𝕀1)}) Q) (path→hom-cell {X} s e)) in
-  ((λ u . σ (E 𝕀0)) , cong {arrᵣ X} {simplex 1 →ᵣ X} (λ c . λ x . c (simplex1→𝕀 x)) R)
+  ((λ u . σ (E 𝕀0)) , cong {arrᵣ X} {simplex 1 →ᵣ X} (λ c . λ x . c (Simplex1.to𝕀 x)) R)
 
 -- a section, resp. a retraction, up to the path collapsing the composite
 sec-from-collapse ∷ {X ∷ U} (s : is-segalᵣ X) {x y : X} (f : hom x y) {z : X} (g : hom y z) (e : x ≡ z) →

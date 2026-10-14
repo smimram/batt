@@ -9,6 +9,7 @@
 open import Interval
 open import Unit
 open import Sigma
+open import Equivalence
 
 -- The 2-simplex (a filled triangle)
 simplex2 ∷ Type
@@ -173,6 +174,27 @@ simplex-path n {x} {x'} e =
 --
 -- Low-dimensional structures
 --
+
+Simplex1 = record
+  t = simplex 1
+
+  to𝕀 ∷ t → 𝕀
+  to𝕀 x = Product.fst {𝕀} {⊤} (fst (is-sorted 0) x)
+
+  of𝕀 ∷ 𝕀 → t
+  of𝕀 x = ((x , tt) , tt)
+
+  of-to𝕀 ∷ (x : t) → of𝕀 (to𝕀 x) ≡ x
+  of-to𝕀 (y , v) =
+    let e : (Product.fst y , tt) ≡{cart-cube 1} y = prod-path-join' y refl (prop-path is-prop-unit tt (Product.snd y)) in
+    simplex-path 0 e tt v
+
+  equiv𝕀 ∷ t ≃ 𝕀
+  equiv𝕀 = iso→equiv to𝕀 of𝕀 (λ i . refl) of-to𝕀
+
+  is-equiv-of𝕀 ∷ is-equiv of𝕀
+  is-equiv-of𝕀 = ((to𝕀 , of-to𝕀) , (to𝕀 , λ i . refl))
+end
 
 Spine2 = record
   t = spine 2
