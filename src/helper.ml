@@ -142,22 +142,33 @@ type item =
 and pattern = [`Var of icit * string | `Unit | `Pair of string * string | `Tens of string * string | `Flatten of string | `Refl | `Bool of bool | `Nat of string option | `List of (string * string) option]
 
 (** Group signatures with their defining clauses. *)
-let rec group_decls = function
-  | [] -> []
-  | Decls d :: items -> d @ group_decls items
-  | Clause (pos, x, _, _) :: _ -> failwith @@ Printf.sprintf "%s: missing type declaration for %s" (Pos.to_string pos) x
-  | Sig (pos, abstract, x, c, a) :: items ->
-    let rec clauses = function
-      | Clause (pos, y, l, t) :: items when y = x -> let cl, items = clauses items in (pos, (l, t)) :: cl, items
+let rec group_decls items =
+  (* Gather the clauses for x at the head of the items. *)
+  let clauses x items =
+    let rec aux = function
+      | Clause (pos, y, l, t) :: items when y = x -> let cl, items = aux items in (pos, (l, t)) :: cl, items
       | items -> [], items
     in
-    let cl, items = clauses items in
+    let cl, items = aux items in
+    let t = lazy (
+      let pos = List.fold_left (fun pos (pos', _) -> Pos.union pos pos') (fst (List.hd cl)) cl in
+      compile_clauses ~pos (List.map snd cl)
+    ) in
+    cl, t, items
+  in
+  match items with
+  | [] -> []
+  | Decls d :: items -> d @ group_decls items
+  | Clause (_, x, _, _) :: _ ->
+    (* Definition without type: its type is inferred. *)
+    let _, t, items = clauses x items in
+    Def (x, Crisp, false, None, Lazy.force t) :: group_decls items
+  | Sig (pos, abstract, x, c, a) :: items ->
+    let cl, t, items = clauses x items in
     (
       match cl, items with
       | [], Clause (pos, _, _, _) :: _ -> failwith (Pos.to_string pos ^ ", function name should be the same as in type declaration")
       | [], _ -> failwith @@ Printf.sprintf "%s: missing definition for %s" (Pos.to_string pos) x
       | _ -> ()
     );
-    let pos = List.fold_left (fun pos (pos', _) -> Pos.union pos pos') (fst (List.hd cl)) cl in
-    let t = compile_clauses ~pos (List.map snd cl) in
-    Def (x, c, abstract, Some a, t) :: group_decls items
+    Def (x, c, abstract, Some a, Lazy.force t) :: group_decls items
