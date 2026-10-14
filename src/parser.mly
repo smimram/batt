@@ -28,7 +28,7 @@ let meta ~pos = mk ~pos @@ Meta (`Fresh (Some pos))
 %token LIST NIL CONS
 %token I I0 I1 Iv Iw
 %token<string> IDENT
-%token OPEN
+%token OPEN RECORD END
 %token<string> IMPORT
 
 %nonassoc below_DOT
@@ -90,6 +90,7 @@ atom:
   | I0 { mk ~pos:$loc @@ I0 }
   | I1 { mk ~pos:$loc @@ I1 }
   | LPAR t=term RPAR { t }
+  | RECORD l=items END { mk ~pos:$loc @@ Record (`Recursive, record_fields (group_decls l)) }
   | LANGLE t=term RANGLE { app ~pos:$loc (mk ~pos:$loc($1) @@ Var "type") t }
   | t=atom DOT x=IDENT { mk ~pos:$loc @@ RecordField (t, x) }
   | BOOL DOT x=IDENT { mk ~pos:$loc @@ RecordField (mk ~pos:$loc($1) @@ Var "Bool", x) }
