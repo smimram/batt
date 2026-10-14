@@ -276,20 +276,4 @@ Simplex3 = record
 
   d₃ ∷ Simplex2.t → t
   d₃ y = ((Simplex2.fst y , Simplex2.snd y , 𝕀0 , tt) , (Simplex2.geq y , (refl , tt)))
-
-  -- the faces of the edges are edges, judgmentally
-  faces-edges ∷
-    ((λ t . d₃ (Simplex2.edge₀₁ t)) ≡{𝕀 → t} edge₀₁) ×
-    ((λ t . d₃ (Simplex2.edge₁₂ t)) ≡{𝕀 → t} edge₁₂) ×
-    ((λ t . d₃ (Simplex2.edge₀₂ t)) ≡{𝕀 → t} edge₀₂) ×
-    ((λ t . d₀ (Simplex2.edge₀₁ t)) ≡{𝕀 → t} edge₁₂) ×
-    ((λ t . d₀ (Simplex2.edge₁₂ t)) ≡{𝕀 → t} edge₂₃) ×
-    ((λ t . d₀ (Simplex2.edge₀₂ t)) ≡{𝕀 → t} edge₁₃) ×
-    ((λ t . d₁ (Simplex2.edge₀₁ t)) ≡{𝕀 → t} edge₀₂) ×
-    ((λ t . d₁ (Simplex2.edge₁₂ t)) ≡{𝕀 → t} edge₂₃) ×
-    ((λ t . d₁ (Simplex2.edge₀₂ t)) ≡{𝕀 → t} edge₀₃) ×
-    ((λ t . d₂ (Simplex2.edge₀₁ t)) ≡{𝕀 → t} edge₀₁) ×
-    ((λ t . d₂ (Simplex2.edge₁₂ t)) ≡{𝕀 → t} edge₁₃) ×
-    ((λ t . d₂ (Simplex2.edge₀₂ t)) ≡{𝕀 → t} edge₀₃)
-  faces-edges = (refl , refl , refl , refl , refl , refl , refl , refl , refl , refl , refl , refl)
 end

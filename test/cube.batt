@@ -1,0 +1,41 @@
+open import Stdlib
+
+-- The faces of the edges of the 3-simplex are edges, judgmentally
+
+open Simplex3
+
+d₃-edge₀₁ ∷ (λ t . d₃ (Simplex2.edge₀₁ t)) ≡{𝕀 → t} edge₀₁
+d₃-edge₀₁ = refl
+
+d₃-edge₁₂ ∷ (λ t . d₃ (Simplex2.edge₁₂ t)) ≡{𝕀 → t} edge₁₂
+d₃-edge₁₂ = refl
+
+d₃-edge₀₂ ∷ (λ t . d₃ (Simplex2.edge₀₂ t)) ≡{𝕀 → t} edge₀₂
+d₃-edge₀₂ = refl
+
+d₀-edge₀₁ ∷ (λ t . d₀ (Simplex2.edge₀₁ t)) ≡{𝕀 → t} edge₁₂
+d₀-edge₀₁ = refl
+
+d₀-edge₁₂ ∷ (λ t . d₀ (Simplex2.edge₁₂ t)) ≡{𝕀 → t} edge₂₃
+d₀-edge₁₂ = refl
+
+d₀-edge₀₂ ∷ (λ t . d₀ (Simplex2.edge₀₂ t)) ≡{𝕀 → t} edge₁₃
+d₀-edge₀₂ = refl
+
+d₁-edge₀₁ ∷ (λ t . d₁ (Simplex2.edge₀₁ t)) ≡{𝕀 → t} edge₀₂
+d₁-edge₀₁ = refl
+
+d₁-edge₁₂ ∷ (λ t . d₁ (Simplex2.edge₁₂ t)) ≡{𝕀 → t} edge₂₃
+d₁-edge₁₂ = refl
+
+d₁-edge₀₂ ∷ (λ t . d₁ (Simplex2.edge₀₂ t)) ≡{𝕀 → t} edge₀₃
+d₁-edge₀₂ = refl
+
+d₂-edge₀₁ ∷ (λ t . d₂ (Simplex2.edge₀₁ t)) ≡{𝕀 → t} edge₀₁
+d₂-edge₀₁ = refl
+
+d₂-edge₁₂ ∷ (λ t . d₂ (Simplex2.edge₁₂ t)) ≡{𝕀 → t} edge₁₃
+d₂-edge₁₂ = refl
+
+d₂-edge₀₂ ∷ (λ t . d₂ (Simplex2.edge₀₂ t)) ≡{𝕀 → t} edge₀₃
+d₂-edge₀₂ = refl
