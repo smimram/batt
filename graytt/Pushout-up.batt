@@ -27,33 +27,33 @@ curried-coconeᵣ T {X} {A} {B} f g Y =
 cocone-tensᵣ ∷ (T ∷ U) {X A B ∷ U} (f ∷ X → A) (g ∷ X → B) (Y ∷ U) → U
 cocone-tensᵣ T {X} {A} {B} f g Y =
   Σ (α : T ⨂ A → Y) . Σ (β : T ⨂ B → Y) .
-    (λ z . α (tens-map {T} {T} {X} {A} (λ t . t) f z)) ≡{T ⨂ X → Y} (λ z . β (tens-map {T} {T} {X} {B} (λ t . t) g z))
+    (λ z . α (Tensor.map {T} {T} {X} {A} (λ t . t) f z)) ≡{T ⨂ X → Y} (λ z . β (Tensor.map {T} {T} {X} {B} (λ t . t) g z))
 
 -- lax currying: to cocones in T →ₗ Y
 cocone-tensᵣ→cocone-fib ∷ (T ∷ U) {X A B ∷ U} (f ∷ X → A) (g ∷ X → B) (Y ∷ U) (α : T ⨂ A → Y) →
-  (Σ (β : T ⨂ B → Y) . (λ z . α (tens-map {T} {T} {X} {A} (λ t . t) f z)) ≡{T ⨂ X → Y} (λ z . β (tens-map {T} {T} {X} {B} (λ t . t) g z))) →
-  Σ (β : B → T →ₗ Y) . (λ x . tens-curry-left' {T} {A} {Y} α (f x)) ≡{X → T →ₗ Y} (λ x . β (g x))
-cocone-tensᵣ→cocone-fib T {X} {A} {B} f g Y α (β , p) = (tens-curry-left' {T} {B} {Y} β , cong (tens-curry-left' {T} {X} {Y}) p)
+  (Σ (β : T ⨂ B → Y) . (λ z . α (Tensor.map {T} {T} {X} {A} (λ t . t) f z)) ≡{T ⨂ X → Y} (λ z . β (Tensor.map {T} {T} {X} {B} (λ t . t) g z))) →
+  Σ (β : B → T →ₗ Y) . (λ x . Tensor.curry-left' {T} {A} {Y} α (f x)) ≡{X → T →ₗ Y} (λ x . β (g x))
+cocone-tensᵣ→cocone-fib T {X} {A} {B} f g Y α (β , p) = (Tensor.curry-left' {T} {B} {Y} β , cong (Tensor.curry-left' {T} {X} {Y}) p)
 
 cocone-tensᵣ→cocone ∷ (T ∷ U) {X A B ∷ U} (f ∷ X → A) (g ∷ X → B) (Y ∷ U) → cocone-tensᵣ T {X} {A} {B} f g Y → cocone {X} {A} {B} f g (T →ₗ Y)
 cocone-tensᵣ→cocone T {X} {A} {B} f g Y =
   flat-Σ-map {T ⨂ A → Y} {A → T →ₗ Y}
-    {λ α . Σ (β : T ⨂ B → Y) . (λ z . α (tens-map {T} {T} {X} {A} (λ t . t) f z)) ≡{T ⨂ X → Y} (λ z . β (tens-map {T} {T} {X} {B} (λ t . t) g z))}
+    {λ α . Σ (β : T ⨂ B → Y) . (λ z . α (Tensor.map {T} {T} {X} {A} (λ t . t) f z)) ≡{T ⨂ X → Y} (λ z . β (Tensor.map {T} {T} {X} {B} (λ t . t) g z))}
     {λ α' . Σ (β : B → T →ₗ Y) . (λ x . α' (f x)) ≡{X → T →ₗ Y} (λ x . β (g x))}
-    (tens-curry-left' {T} {A} {Y}) (cocone-tensᵣ→cocone-fib T {X} {A} {B} f g Y)
+    (Tensor.curry-left' {T} {A} {Y}) (cocone-tensᵣ→cocone-fib T {X} {A} {B} f g Y)
 
 -- oplax currying: to T-indexed oplax cocones
 cocone-tensᵣ→curried-fib ∷ (T ∷ U) {X A B ∷ U} (f ∷ X → A) (g ∷ X → B) (Y ∷ U) (α : T ⨂ A → Y) →
-  (Σ (β : T ⨂ B → Y) . (λ z . α (tens-map {T} {T} {X} {A} (λ t . t) f z)) ≡{T ⨂ X → Y} (λ z . β (tens-map {T} {T} {X} {B} (λ t . t) g z))) →
-  Σ (β : T → B →ᵣ Y) . (λ t . λ x . tens-curry-right' {T} {A} {Y} α t (f x)) ≡{T → X →ᵣ Y} (λ t . λ x . β t (g x))
-cocone-tensᵣ→curried-fib T {X} {A} {B} f g Y α (β , p) = (tens-curry-right' {T} {B} {Y} β , cong (tens-curry-right' {T} {X} {Y}) p)
+  (Σ (β : T ⨂ B → Y) . (λ z . α (Tensor.map {T} {T} {X} {A} (λ t . t) f z)) ≡{T ⨂ X → Y} (λ z . β (Tensor.map {T} {T} {X} {B} (λ t . t) g z))) →
+  Σ (β : T → B →ᵣ Y) . (λ t . λ x . Tensor.curry-right' {T} {A} {Y} α t (f x)) ≡{T → X →ᵣ Y} (λ t . λ x . β t (g x))
+cocone-tensᵣ→curried-fib T {X} {A} {B} f g Y α (β , p) = (Tensor.curry-right' {T} {B} {Y} β , cong (Tensor.curry-right' {T} {X} {Y}) p)
 
 cocone-tensᵣ→curried ∷ (T ∷ U) {X A B ∷ U} (f ∷ X → A) (g ∷ X → B) (Y ∷ U) → cocone-tensᵣ T {X} {A} {B} f g Y → curried-coconeᵣ T {X} {A} {B} f g Y
 cocone-tensᵣ→curried T {X} {A} {B} f g Y =
   flat-Σ-map {T ⨂ A → Y} {T → A →ᵣ Y}
-    {λ α . Σ (β : T ⨂ B → Y) . (λ z . α (tens-map {T} {T} {X} {A} (λ t . t) f z)) ≡{T ⨂ X → Y} (λ z . β (tens-map {T} {T} {X} {B} (λ t . t) g z))}
+    {λ α . Σ (β : T ⨂ B → Y) . (λ z . α (Tensor.map {T} {T} {X} {A} (λ t . t) f z)) ≡{T ⨂ X → Y} (λ z . β (Tensor.map {T} {T} {X} {B} (λ t . t) g z))}
     {λ α' . Σ (β : T → B →ᵣ Y) . (λ t . λ x . α' t (f x)) ≡{T → X →ᵣ Y} (λ t . λ x . β t (g x))}
-    (tens-curry-right' {T} {A} {Y}) (cocone-tensᵣ→curried-fib T {X} {A} {B} f g Y)
+    (Tensor.curry-right' {T} {A} {Y}) (cocone-tensᵣ→curried-fib T {X} {A} {B} f g Y)
 
 -- distributing T over the Σ (a genuine equivalence, by funext)
 curried→coconesᵣ ∷ (T ∷ U) {X A B ∷ U} (f ∷ X → A) (g ∷ X → B) (Y ∷ U) → curried-coconeᵣ T {X} {A} {B} f g Y → T → coconeᵣ {X} {A} {B} f g Y
@@ -101,66 +101,66 @@ is-equiv-curried→coconesᵣ T {X} {A} {B} f g Y =
 
 -- the two currying maps are equivalences on global points
 is-equiv-flat-cocone-tensᵣ→cocone-fib ∷ (T ∷ U) {X A B ∷ U} (f ∷ X → A) (g ∷ X → B) (Y ∷ U) (α ∷ T ⨂ A → Y) →
-  is-equiv (flat-map {Σ (β : T ⨂ B → Y) . (λ z . α (tens-map {T} {T} {X} {A} (λ t . t) f z)) ≡{T ⨂ X → Y} (λ z . β (tens-map {T} {T} {X} {B} (λ t . t) g z))}
-                     {Σ (β : B → T →ₗ Y) . (λ x . tens-curry-left' {T} {A} {Y} α (f x)) ≡{X → T →ₗ Y} (λ x . β (g x))}
+  is-equiv (flat-map {Σ (β : T ⨂ B → Y) . (λ z . α (Tensor.map {T} {T} {X} {A} (λ t . t) f z)) ≡{T ⨂ X → Y} (λ z . β (Tensor.map {T} {T} {X} {B} (λ t . t) g z))}
+                     {Σ (β : B → T →ₗ Y) . (λ x . Tensor.curry-left' {T} {A} {Y} α (f x)) ≡{X → T →ₗ Y} (λ x . β (g x))}
                      (cocone-tensᵣ→cocone-fib T {X} {A} {B} f g Y α))
 is-equiv-flat-cocone-tensᵣ→cocone-fib T {X} {A} {B} f g Y α =
-  let S ∷ T ⨂ X → Y = λ z . α (tens-map {T} {T} {X} {A} (λ t . t) f z) in
-  let src ∷ U = Σ (β : T ⨂ B → Y) . S ≡{T ⨂ X → Y} (λ z . β (tens-map {T} {T} {X} {B} (λ t . t) g z)) in
-  let tgt ∷ U = Σ (β : B → T →ₗ Y) . (λ x . tens-curry-left' {T} {A} {Y} α (f x)) ≡{X → T →ₗ Y} (λ x . β (g x)) in
+  let S ∷ T ⨂ X → Y = λ z . α (Tensor.map {T} {T} {X} {A} (λ t . t) f z) in
+  let src ∷ U = Σ (β : T ⨂ B → Y) . S ≡{T ⨂ X → Y} (λ z . β (Tensor.map {T} {T} {X} {B} (λ t . t) g z)) in
+  let tgt ∷ U = Σ (β : B → T →ₗ Y) . (λ x . Tensor.curry-left' {T} {A} {Y} α (f x)) ≡{X → T →ₗ Y} (λ x . β (g x)) in
   let m ∷ src → tgt =
-    flat-Σ-map {T ⨂ B → Y} {B → T →ₗ Y} {λ β . S ≡{T ⨂ X → Y} (λ z . β (tens-map {T} {T} {X} {B} (λ t . t) g z))}
-      {λ β . (λ x . tens-curry-left' {T} {A} {Y} α (f x)) ≡{X → T →ₗ Y} (λ x . β (g x))}
-      (tens-curry-left' {T} {B} {Y}) (λ β . cong (tens-curry-left' {T} {X} {Y}) {S} {λ z . β (tens-map {T} {T} {X} {B} (λ t . t) g z)}) in
+    flat-Σ-map {T ⨂ B → Y} {B → T →ₗ Y} {λ β . S ≡{T ⨂ X → Y} (λ z . β (Tensor.map {T} {T} {X} {B} (λ t . t) g z))}
+      {λ β . (λ x . Tensor.curry-left' {T} {A} {Y} α (f x)) ≡{X → T →ₗ Y} (λ x . β (g x))}
+      (Tensor.curry-left' {T} {B} {Y}) (λ β . cong (Tensor.curry-left' {T} {X} {Y}) {S} {λ z . β (Tensor.map {T} {T} {X} {B} (λ t . t) g z)}) in
   is-equiv-htpy {♭ src} {♭ tgt} {flat-map {src} {tgt} m} {flat-map {src} {tgt} (cocone-tensᵣ→cocone-fib T {X} {A} {B} f g Y α)}
     (fun 𝄫w → let h : (w ∷ src) → flat-map {src} {tgt} m 𝄫w ≡ flat-map {src} {tgt} (cocone-tensᵣ→cocone-fib T {X} {A} {B} f g Y α) 𝄫w =
                 fun (β , p) → refl in h w)
-    (flat-Σ-map-equiv {T ⨂ B → Y} {B → T →ₗ Y} {λ β . S ≡{T ⨂ X → Y} (λ z . β (tens-map {T} {T} {X} {B} (λ t . t) g z))}
-      {λ β . (λ x . tens-curry-left' {T} {A} {Y} α (f x)) ≡{X → T →ₗ Y} (λ x . β (g x))}
-      (tens-curry-left' {T} {B} {Y}) (λ β . cong (tens-curry-left' {T} {X} {Y}) {S} {λ z . β (tens-map {T} {T} {X} {B} (λ t . t) g z)})
+    (flat-Σ-map-equiv {T ⨂ B → Y} {B → T →ₗ Y} {λ β . S ≡{T ⨂ X → Y} (λ z . β (Tensor.map {T} {T} {X} {B} (λ t . t) g z))}
+      {λ β . (λ x . Tensor.curry-left' {T} {A} {Y} α (f x)) ≡{X → T →ₗ Y} (λ x . β (g x))}
+      (Tensor.curry-left' {T} {B} {Y}) (λ β . cong (Tensor.curry-left' {T} {X} {Y}) {S} {λ z . β (Tensor.map {T} {T} {X} {B} (λ t . t) g z)})
       (is-equiv-flat-tens-uncurryₗ {T} {B} {Y})
-      (λ β . flat-cong-equiv (tens-curry-left' {T} {X} {Y}) (is-equiv-flat-tens-uncurryₗ {T} {X} {Y})
-               S (λ z . β (tens-map {T} {T} {X} {B} (λ t . t) g z))))
+      (λ β . flat-cong-equiv (Tensor.curry-left' {T} {X} {Y}) (is-equiv-flat-tens-uncurryₗ {T} {X} {Y})
+               S (λ z . β (Tensor.map {T} {T} {X} {B} (λ t . t) g z))))
 
 is-equiv-flat-cocone-tensᵣ→cocone ∷ (T ∷ U) {X A B ∷ U} (f ∷ X → A) (g ∷ X → B) (Y ∷ U) →
   is-equiv (flat-map {cocone-tensᵣ T {X} {A} {B} f g Y} {cocone {X} {A} {B} f g (T →ₗ Y)} (cocone-tensᵣ→cocone T {X} {A} {B} f g Y))
 is-equiv-flat-cocone-tensᵣ→cocone T {X} {A} {B} f g Y =
   flat-Σ-map-equiv {T ⨂ A → Y} {A → T →ₗ Y}
-    {λ α . Σ (β : T ⨂ B → Y) . (λ z . α (tens-map {T} {T} {X} {A} (λ t . t) f z)) ≡{T ⨂ X → Y} (λ z . β (tens-map {T} {T} {X} {B} (λ t . t) g z))}
+    {λ α . Σ (β : T ⨂ B → Y) . (λ z . α (Tensor.map {T} {T} {X} {A} (λ t . t) f z)) ≡{T ⨂ X → Y} (λ z . β (Tensor.map {T} {T} {X} {B} (λ t . t) g z))}
     {λ α' . Σ (β : B → T →ₗ Y) . (λ x . α' (f x)) ≡{X → T →ₗ Y} (λ x . β (g x))}
-    (tens-curry-left' {T} {A} {Y}) (cocone-tensᵣ→cocone-fib T {X} {A} {B} f g Y)
+    (Tensor.curry-left' {T} {A} {Y}) (cocone-tensᵣ→cocone-fib T {X} {A} {B} f g Y)
     (is-equiv-flat-tens-uncurryₗ {T} {A} {Y})
     (is-equiv-flat-cocone-tensᵣ→cocone-fib T {X} {A} {B} f g Y)
 
 is-equiv-flat-cocone-tensᵣ→curried-fib ∷ (T ∷ U) {X A B ∷ U} (f ∷ X → A) (g ∷ X → B) (Y ∷ U) (α ∷ T ⨂ A → Y) →
-  is-equiv (flat-map {Σ (β : T ⨂ B → Y) . (λ z . α (tens-map {T} {T} {X} {A} (λ t . t) f z)) ≡{T ⨂ X → Y} (λ z . β (tens-map {T} {T} {X} {B} (λ t . t) g z))}
-                     {Σ (β : T → B →ᵣ Y) . (λ t . λ x . tens-curry-right' {T} {A} {Y} α t (f x)) ≡{T → X →ᵣ Y} (λ t . λ x . β t (g x))}
+  is-equiv (flat-map {Σ (β : T ⨂ B → Y) . (λ z . α (Tensor.map {T} {T} {X} {A} (λ t . t) f z)) ≡{T ⨂ X → Y} (λ z . β (Tensor.map {T} {T} {X} {B} (λ t . t) g z))}
+                     {Σ (β : T → B →ᵣ Y) . (λ t . λ x . Tensor.curry-right' {T} {A} {Y} α t (f x)) ≡{T → X →ᵣ Y} (λ t . λ x . β t (g x))}
                      (cocone-tensᵣ→curried-fib T {X} {A} {B} f g Y α))
 is-equiv-flat-cocone-tensᵣ→curried-fib T {X} {A} {B} f g Y α =
-  let S ∷ T ⨂ X → Y = λ z . α (tens-map {T} {T} {X} {A} (λ t . t) f z) in
-  let src ∷ U = Σ (β : T ⨂ B → Y) . S ≡{T ⨂ X → Y} (λ z . β (tens-map {T} {T} {X} {B} (λ t . t) g z)) in
-  let tgt ∷ U = Σ (β : T → B →ᵣ Y) . (λ t . λ x . tens-curry-right' {T} {A} {Y} α t (f x)) ≡{T → X →ᵣ Y} (λ t . λ x . β t (g x)) in
+  let S ∷ T ⨂ X → Y = λ z . α (Tensor.map {T} {T} {X} {A} (λ t . t) f z) in
+  let src ∷ U = Σ (β : T ⨂ B → Y) . S ≡{T ⨂ X → Y} (λ z . β (Tensor.map {T} {T} {X} {B} (λ t . t) g z)) in
+  let tgt ∷ U = Σ (β : T → B →ᵣ Y) . (λ t . λ x . Tensor.curry-right' {T} {A} {Y} α t (f x)) ≡{T → X →ᵣ Y} (λ t . λ x . β t (g x)) in
   let m ∷ src → tgt =
-    flat-Σ-map {T ⨂ B → Y} {T → B →ᵣ Y} {λ β . S ≡{T ⨂ X → Y} (λ z . β (tens-map {T} {T} {X} {B} (λ t . t) g z))}
-      {λ β . (λ t . λ x . tens-curry-right' {T} {A} {Y} α t (f x)) ≡{T → X →ᵣ Y} (λ t . λ x . β t (g x))}
-      (tens-curry-right' {T} {B} {Y}) (λ β . cong (tens-curry-right' {T} {X} {Y}) {S} {λ z . β (tens-map {T} {T} {X} {B} (λ t . t) g z)}) in
+    flat-Σ-map {T ⨂ B → Y} {T → B →ᵣ Y} {λ β . S ≡{T ⨂ X → Y} (λ z . β (Tensor.map {T} {T} {X} {B} (λ t . t) g z))}
+      {λ β . (λ t . λ x . Tensor.curry-right' {T} {A} {Y} α t (f x)) ≡{T → X →ᵣ Y} (λ t . λ x . β t (g x))}
+      (Tensor.curry-right' {T} {B} {Y}) (λ β . cong (Tensor.curry-right' {T} {X} {Y}) {S} {λ z . β (Tensor.map {T} {T} {X} {B} (λ t . t) g z)}) in
   is-equiv-htpy {♭ src} {♭ tgt} {flat-map {src} {tgt} m} {flat-map {src} {tgt} (cocone-tensᵣ→curried-fib T {X} {A} {B} f g Y α)}
     (fun 𝄫w → let h : (w ∷ src) → flat-map {src} {tgt} m 𝄫w ≡ flat-map {src} {tgt} (cocone-tensᵣ→curried-fib T {X} {A} {B} f g Y α) 𝄫w =
                 fun (β , p) → refl in h w)
-    (flat-Σ-map-equiv {T ⨂ B → Y} {T → B →ᵣ Y} {λ β . S ≡{T ⨂ X → Y} (λ z . β (tens-map {T} {T} {X} {B} (λ t . t) g z))}
-      {λ β . (λ t . λ x . tens-curry-right' {T} {A} {Y} α t (f x)) ≡{T → X →ᵣ Y} (λ t . λ x . β t (g x))}
-      (tens-curry-right' {T} {B} {Y}) (λ β . cong (tens-curry-right' {T} {X} {Y}) {S} {λ z . β (tens-map {T} {T} {X} {B} (λ t . t) g z)})
+    (flat-Σ-map-equiv {T ⨂ B → Y} {T → B →ᵣ Y} {λ β . S ≡{T ⨂ X → Y} (λ z . β (Tensor.map {T} {T} {X} {B} (λ t . t) g z))}
+      {λ β . (λ t . λ x . Tensor.curry-right' {T} {A} {Y} α t (f x)) ≡{T → X →ᵣ Y} (λ t . λ x . β t (g x))}
+      (Tensor.curry-right' {T} {B} {Y}) (λ β . cong (Tensor.curry-right' {T} {X} {Y}) {S} {λ z . β (Tensor.map {T} {T} {X} {B} (λ t . t) g z)})
       (is-equiv-flat-tens-uncurryᵣ {T} {B} {Y})
-      (λ β . flat-cong-equiv (tens-curry-right' {T} {X} {Y}) (is-equiv-flat-tens-uncurryᵣ {T} {X} {Y})
-               S (λ z . β (tens-map {T} {T} {X} {B} (λ t . t) g z))))
+      (λ β . flat-cong-equiv (Tensor.curry-right' {T} {X} {Y}) (is-equiv-flat-tens-uncurryᵣ {T} {X} {Y})
+               S (λ z . β (Tensor.map {T} {T} {X} {B} (λ t . t) g z))))
 
 is-equiv-flat-cocone-tensᵣ→curried ∷ (T ∷ U) {X A B ∷ U} (f ∷ X → A) (g ∷ X → B) (Y ∷ U) →
   is-equiv (flat-map {cocone-tensᵣ T {X} {A} {B} f g Y} {curried-coconeᵣ T {X} {A} {B} f g Y} (cocone-tensᵣ→curried T {X} {A} {B} f g Y))
 is-equiv-flat-cocone-tensᵣ→curried T {X} {A} {B} f g Y =
   flat-Σ-map-equiv {T ⨂ A → Y} {T → A →ᵣ Y}
-    {λ α . Σ (β : T ⨂ B → Y) . (λ z . α (tens-map {T} {T} {X} {A} (λ t . t) f z)) ≡{T ⨂ X → Y} (λ z . β (tens-map {T} {T} {X} {B} (λ t . t) g z))}
+    {λ α . Σ (β : T ⨂ B → Y) . (λ z . α (Tensor.map {T} {T} {X} {A} (λ t . t) f z)) ≡{T ⨂ X → Y} (λ z . β (Tensor.map {T} {T} {X} {B} (λ t . t) g z))}
     {λ α' . Σ (β : T → B →ᵣ Y) . (λ t . λ x . α' t (f x)) ≡{T → X →ᵣ Y} (λ t . λ x . β t (g x))}
-    (tens-curry-right' {T} {A} {Y}) (cocone-tensᵣ→curried-fib T {X} {A} {B} f g Y)
+    (Tensor.curry-right' {T} {A} {Y}) (cocone-tensᵣ→curried-fib T {X} {A} {B} f g Y)
     (is-equiv-flat-tens-uncurryᵣ {T} {A} {Y})
     (is-equiv-flat-cocone-tensᵣ→curried-fib T {X} {A} {B} f g Y)
 
@@ -185,10 +185,10 @@ flat-cocone-swapᵣ T {X} {A} {B} f g Y 𝄫c = 𝄫(cocone-swapᵣ T {X} {A} {B
 
 cong-restr-swapᵣ ∷ {T X P Y ∷ U} (ψ ∷ T → P →ᵣ Y) {k₀ k₁ ∷ X → P} (q ∷ k₀ ≡ k₁) (t : T) →
   happly {T} {λ _ . X →ᵣ Y}
-    {crisp-swapₗᵣ {X} {T} {Y} (post {X} {P} {T →ₗ Y} (tens-curry-left' {T} {P} {Y} (tens-uncurry-crispᵣ {T} {P} {Y} ψ)) k₀)}
-    {crisp-swapₗᵣ {X} {T} {Y} (post {X} {P} {T →ₗ Y} (tens-curry-left' {T} {P} {Y} (tens-uncurry-crispᵣ {T} {P} {Y} ψ)) k₁)}
+    {crisp-swapₗᵣ {X} {T} {Y} (post {X} {P} {T →ₗ Y} (Tensor.curry-left' {T} {P} {Y} (tens-uncurry-crispᵣ {T} {P} {Y} ψ)) k₀)}
+    {crisp-swapₗᵣ {X} {T} {Y} (post {X} {P} {T →ₗ Y} (Tensor.curry-left' {T} {P} {Y} (tens-uncurry-crispᵣ {T} {P} {Y} ψ)) k₁)}
     (crisp-cong {X → T →ₗ Y} {T → X →ᵣ Y} (crisp-swapₗᵣ {X} {T} {Y})
-      (cong {X → P} {X → T →ₗ Y} (post {X} {P} {T →ₗ Y} (tens-curry-left' {T} {P} {Y} (tens-uncurry-crispᵣ {T} {P} {Y} ψ))) q)) t
+      (cong {X → P} {X → T →ₗ Y} (post {X} {P} {T →ₗ Y} (Tensor.curry-left' {T} {P} {Y} (tens-uncurry-crispᵣ {T} {P} {Y} ψ))) q)) t
   ≡ congᵣ {X → P} {X →ᵣ Y} (preᵣ {X} {P} {Y} (ψ t)) q
 cong-restr-swapᵣ {T} {X} {P} {Y} ψ {k₀} refl t = refl
 
@@ -215,26 +215,26 @@ flat-cocone-tensᵣ-triangle T {X} {A} {B} f g Y 𝄫c =
   let h : (c ∷ cocone-tensᵣ T {X} {A} {B} f g Y) →
           flat-cocone-tensᵣ→cocones-curried T {X} {A} {B} f g Y 𝄫c ≡ flat-cocone-tensᵣ→cocones-swapped T {X} {A} {B} f g Y 𝄫c =
     fun (α , r) →
-      let h2 : (r ∷ Σ (β : T ⨂ B → Y) . (λ z . α (tens-map {T} {T} {X} {A} (λ t . t) f z)) ≡{T ⨂ X → Y} (λ z . β (tens-map {T} {T} {X} {B} (λ t . t) g z))) →
+      let h2 : (r ∷ Σ (β : T ⨂ B → Y) . (λ z . α (Tensor.map {T} {T} {X} {A} (λ t . t) f z)) ≡{T ⨂ X → Y} (λ z . β (Tensor.map {T} {T} {X} {B} (λ t . t) g z))) →
                flat-cocone-tensᵣ→cocones-curried T {X} {A} {B} f g Y 𝄫(α , r) ≡ flat-cocone-tensᵣ→cocones-swapped T {X} {A} {B} f g Y 𝄫(α , r) =
         fun (β , p) →
-          let S ∷ T ⨂ X → Y = λ z . α (tens-map {T} {T} {X} {A} (λ t . t) f z) in
-          let S' ∷ T ⨂ X → Y = λ z . β (tens-map {T} {T} {X} {B} (λ t . t) g z) in
-          let e ∷ (tens-curry-right' {T} {X} {Y} S) ≡{T → X →ᵣ Y} (tens-curry-right' {T} {X} {Y} S') =
-            cong (tens-curry-right' {T} {X} {Y}) p in
-          let e' ∷ (tens-curry-right' {T} {X} {Y} S) ≡{T → X →ᵣ Y} (tens-curry-right' {T} {X} {Y} S') =
-            crisp-cong {X → T →ₗ Y} {T → X →ᵣ Y} (crisp-swapₗᵣ {X} {T} {Y}) (cong (tens-curry-left' {T} {X} {Y}) p) in
+          let S ∷ T ⨂ X → Y = λ z . α (Tensor.map {T} {T} {X} {A} (λ t . t) f z) in
+          let S' ∷ T ⨂ X → Y = λ z . β (Tensor.map {T} {T} {X} {B} (λ t . t) g z) in
+          let e ∷ (Tensor.curry-right' {T} {X} {Y} S) ≡{T → X →ᵣ Y} (Tensor.curry-right' {T} {X} {Y} S') =
+            cong (Tensor.curry-right' {T} {X} {Y}) p in
+          let e' ∷ (Tensor.curry-right' {T} {X} {Y} S) ≡{T → X →ᵣ Y} (Tensor.curry-right' {T} {X} {Y} S') =
+            crisp-cong {X → T →ₗ Y} {T → X →ᵣ Y} (crisp-swapₗᵣ {X} {T} {Y}) (cong (Tensor.curry-left' {T} {X} {Y}) p) in
           flat-≡ {T → coconeᵣ {X} {A} {B} f g Y}
             (funext-htpy {T} {λ _ . coconeᵣ {X} {A} {B} f g Y}
-              (λ t . (tens-curry-right' {T} {A} {Y} α t , tens-curry-right' {T} {B} {Y} β t ,
-                      happly {T} {λ _ . X →ᵣ Y} {tens-curry-right' {T} {X} {Y} S} {tens-curry-right' {T} {X} {Y} S'} e t))
-              (λ t . (tens-curry-right' {T} {A} {Y} α t , tens-curry-right' {T} {B} {Y} β t ,
-                      happly {T} {λ _ . X →ᵣ Y} {tens-curry-right' {T} {X} {Y} S} {tens-curry-right' {T} {X} {Y} S'} e' t))
-              (λ t . cong {tens-curry-right' {T} {X} {Y} S t ≡{X →ᵣ Y} tens-curry-right' {T} {X} {Y} S' t} {coconeᵣ {X} {A} {B} f g Y}
-                       (λ s . (tens-curry-right' {T} {A} {Y} α t , tens-curry-right' {T} {B} {Y} β t , s))
-                       (cong {(tens-curry-right' {T} {X} {Y} S) ≡{T → X →ᵣ Y} (tens-curry-right' {T} {X} {Y} S')}
-                             {tens-curry-right' {T} {X} {Y} S t ≡{X →ᵣ Y} tens-curry-right' {T} {X} {Y} S' t}
-                          (λ d . happly {T} {λ _ . X →ᵣ Y} {tens-curry-right' {T} {X} {Y} S} {tens-curry-right' {T} {X} {Y} S'} d t)
+              (λ t . (Tensor.curry-right' {T} {A} {Y} α t , Tensor.curry-right' {T} {B} {Y} β t ,
+                      happly {T} {λ _ . X →ᵣ Y} {Tensor.curry-right' {T} {X} {Y} S} {Tensor.curry-right' {T} {X} {Y} S'} e t))
+              (λ t . (Tensor.curry-right' {T} {A} {Y} α t , Tensor.curry-right' {T} {B} {Y} β t ,
+                      happly {T} {λ _ . X →ᵣ Y} {Tensor.curry-right' {T} {X} {Y} S} {Tensor.curry-right' {T} {X} {Y} S'} e' t))
+              (λ t . cong {Tensor.curry-right' {T} {X} {Y} S t ≡{X →ᵣ Y} Tensor.curry-right' {T} {X} {Y} S' t} {coconeᵣ {X} {A} {B} f g Y}
+                       (λ s . (Tensor.curry-right' {T} {A} {Y} α t , Tensor.curry-right' {T} {B} {Y} β t , s))
+                       (cong {(Tensor.curry-right' {T} {X} {Y} S) ≡{T → X →ᵣ Y} (Tensor.curry-right' {T} {X} {Y} S')}
+                             {Tensor.curry-right' {T} {X} {Y} S t ≡{X →ᵣ Y} Tensor.curry-right' {T} {X} {Y} S' t}
+                          (λ d . happly {T} {λ _ . X →ᵣ Y} {Tensor.curry-right' {T} {X} {Y} S} {Tensor.curry-right' {T} {X} {Y} S'} d t)
                           (cong-curry-swapₗᵣ {T} {X} {Y} {S} {S'} p)))) in
       h2 r in
   h c
@@ -271,7 +271,7 @@ flat-cocone-restrᵣ-factored-htpy ∷ (T ∷ U) {X A B P ∷ U} (f ∷ X → A)
     ≡ flat-map {T → P →ᵣ Y} {T → coconeᵣ {X} {A} {B} f g Y}
         (post {T} {P →ᵣ Y} {coconeᵣ {X} {A} {B} f g Y} (cocone-restrᵣ {X} {A} {B} {P} f g i j q Y)) c
 flat-cocone-restrᵣ-factored-htpy T {X} {A} {B} {P} f g i j q Y 𝄫ψ =
-  let K ∷ P → T →ₗ Y = tens-curry-left' {T} {P} {Y} (tens-uncurry-crispᵣ {T} {P} {Y} ψ) in
+  let K ∷ P → T →ₗ Y = Tensor.curry-left' {T} {P} {Y} (tens-uncurry-crispᵣ {T} {P} {Y} ψ) in
   flat-≡ {T → coconeᵣ {X} {A} {B} f g Y}
     (funext-htpy {T} {λ _ . coconeᵣ {X} {A} {B} f g Y}
       (cocone-swapᵣ T {X} {A} {B} f g Y (cocone-restr {X} {A} {B} {P} f g i j q (T →ₗ Y) K))
@@ -349,33 +349,33 @@ curried-coconeₗ T {X} {A} {B} f g Y =
 cocone-tensₗ ∷ (T ∷ U) {X A B ∷ U} (f ∷ X → A) (g ∷ X → B) (Y ∷ U) → U
 cocone-tensₗ T {X} {A} {B} f g Y =
   Σ (α : A ⨂ T → Y) . Σ (β : B ⨂ T → Y) .
-    (λ z . α (tens-map {X} {A} {T} {T} f (λ t . t) z)) ≡{X ⨂ T → Y} (λ z . β (tens-map {X} {B} {T} {T} g (λ t . t) z))
+    (λ z . α (Tensor.map {X} {A} {T} {T} f (λ t . t) z)) ≡{X ⨂ T → Y} (λ z . β (Tensor.map {X} {B} {T} {T} g (λ t . t) z))
 
 -- oplax currying: to cocones in T →ᵣ Y
 cocone-tensₗ→cocone-fib ∷ (T ∷ U) {X A B ∷ U} (f ∷ X → A) (g ∷ X → B) (Y ∷ U) (α : A ⨂ T → Y) →
-  (Σ (β : B ⨂ T → Y) . (λ z . α (tens-map {X} {A} {T} {T} f (λ t . t) z)) ≡{X ⨂ T → Y} (λ z . β (tens-map {X} {B} {T} {T} g (λ t . t) z))) →
-  Σ (β : B → T →ᵣ Y) . (λ x . tens-curry-right' {A} {T} {Y} α (f x)) ≡{X → T →ᵣ Y} (λ x . β (g x))
-cocone-tensₗ→cocone-fib T {X} {A} {B} f g Y α (β , p) = (tens-curry-right' {B} {T} {Y} β , cong (tens-curry-right' {X} {T} {Y}) p)
+  (Σ (β : B ⨂ T → Y) . (λ z . α (Tensor.map {X} {A} {T} {T} f (λ t . t) z)) ≡{X ⨂ T → Y} (λ z . β (Tensor.map {X} {B} {T} {T} g (λ t . t) z))) →
+  Σ (β : B → T →ᵣ Y) . (λ x . Tensor.curry-right' {A} {T} {Y} α (f x)) ≡{X → T →ᵣ Y} (λ x . β (g x))
+cocone-tensₗ→cocone-fib T {X} {A} {B} f g Y α (β , p) = (Tensor.curry-right' {B} {T} {Y} β , cong (Tensor.curry-right' {X} {T} {Y}) p)
 
 cocone-tensₗ→cocone ∷ (T ∷ U) {X A B ∷ U} (f ∷ X → A) (g ∷ X → B) (Y ∷ U) → cocone-tensₗ T {X} {A} {B} f g Y → cocone {X} {A} {B} f g (T →ᵣ Y)
 cocone-tensₗ→cocone T {X} {A} {B} f g Y =
   flat-Σ-map {A ⨂ T → Y} {A → T →ᵣ Y}
-    {λ α . Σ (β : B ⨂ T → Y) . (λ z . α (tens-map {X} {A} {T} {T} f (λ t . t) z)) ≡{X ⨂ T → Y} (λ z . β (tens-map {X} {B} {T} {T} g (λ t . t) z))}
+    {λ α . Σ (β : B ⨂ T → Y) . (λ z . α (Tensor.map {X} {A} {T} {T} f (λ t . t) z)) ≡{X ⨂ T → Y} (λ z . β (Tensor.map {X} {B} {T} {T} g (λ t . t) z))}
     {λ α' . Σ (β : B → T →ᵣ Y) . (λ x . α' (f x)) ≡{X → T →ᵣ Y} (λ x . β (g x))}
-    (tens-curry-right' {A} {T} {Y}) (cocone-tensₗ→cocone-fib T {X} {A} {B} f g Y)
+    (Tensor.curry-right' {A} {T} {Y}) (cocone-tensₗ→cocone-fib T {X} {A} {B} f g Y)
 
 -- lax currying: to T-indexed lax cocones
 cocone-tensₗ→curried-fib ∷ (T ∷ U) {X A B ∷ U} (f ∷ X → A) (g ∷ X → B) (Y ∷ U) (α : A ⨂ T → Y) →
-  (Σ (β : B ⨂ T → Y) . (λ z . α (tens-map {X} {A} {T} {T} f (λ t . t) z)) ≡{X ⨂ T → Y} (λ z . β (tens-map {X} {B} {T} {T} g (λ t . t) z))) →
-  Σ (β : T → B →ₗ Y) . (λ t . λ x . tens-curry-left' {A} {T} {Y} α t (f x)) ≡{T → X →ₗ Y} (λ t . λ x . β t (g x))
-cocone-tensₗ→curried-fib T {X} {A} {B} f g Y α (β , p) = (tens-curry-left' {B} {T} {Y} β , cong (tens-curry-left' {X} {T} {Y}) p)
+  (Σ (β : B ⨂ T → Y) . (λ z . α (Tensor.map {X} {A} {T} {T} f (λ t . t) z)) ≡{X ⨂ T → Y} (λ z . β (Tensor.map {X} {B} {T} {T} g (λ t . t) z))) →
+  Σ (β : T → B →ₗ Y) . (λ t . λ x . Tensor.curry-left' {A} {T} {Y} α t (f x)) ≡{T → X →ₗ Y} (λ t . λ x . β t (g x))
+cocone-tensₗ→curried-fib T {X} {A} {B} f g Y α (β , p) = (Tensor.curry-left' {B} {T} {Y} β , cong (Tensor.curry-left' {X} {T} {Y}) p)
 
 cocone-tensₗ→curried ∷ (T ∷ U) {X A B ∷ U} (f ∷ X → A) (g ∷ X → B) (Y ∷ U) → cocone-tensₗ T {X} {A} {B} f g Y → curried-coconeₗ T {X} {A} {B} f g Y
 cocone-tensₗ→curried T {X} {A} {B} f g Y =
   flat-Σ-map {A ⨂ T → Y} {T → A →ₗ Y}
-    {λ α . Σ (β : B ⨂ T → Y) . (λ z . α (tens-map {X} {A} {T} {T} f (λ t . t) z)) ≡{X ⨂ T → Y} (λ z . β (tens-map {X} {B} {T} {T} g (λ t . t) z))}
+    {λ α . Σ (β : B ⨂ T → Y) . (λ z . α (Tensor.map {X} {A} {T} {T} f (λ t . t) z)) ≡{X ⨂ T → Y} (λ z . β (Tensor.map {X} {B} {T} {T} g (λ t . t) z))}
     {λ α' . Σ (β : T → B →ₗ Y) . (λ t . λ x . α' t (f x)) ≡{T → X →ₗ Y} (λ t . λ x . β t (g x))}
-    (tens-curry-left' {A} {T} {Y}) (cocone-tensₗ→curried-fib T {X} {A} {B} f g Y)
+    (Tensor.curry-left' {A} {T} {Y}) (cocone-tensₗ→curried-fib T {X} {A} {B} f g Y)
 
 -- distributing T over the Σ (a genuine equivalence, by funext)
 curried→coconesₗ ∷ (T ∷ U) {X A B ∷ U} (f ∷ X → A) (g ∷ X → B) (Y ∷ U) → curried-coconeₗ T {X} {A} {B} f g Y → T → coconeₗ {X} {A} {B} f g Y
@@ -423,66 +423,66 @@ is-equiv-curried→coconesₗ T {X} {A} {B} f g Y =
 
 -- the two currying maps are equivalences on global points
 is-equiv-flat-cocone-tensₗ→cocone-fib ∷ (T ∷ U) {X A B ∷ U} (f ∷ X → A) (g ∷ X → B) (Y ∷ U) (α ∷ A ⨂ T → Y) →
-  is-equiv (flat-map {Σ (β : B ⨂ T → Y) . (λ z . α (tens-map {X} {A} {T} {T} f (λ t . t) z)) ≡{X ⨂ T → Y} (λ z . β (tens-map {X} {B} {T} {T} g (λ t . t) z))}
-                     {Σ (β : B → T →ᵣ Y) . (λ x . tens-curry-right' {A} {T} {Y} α (f x)) ≡{X → T →ᵣ Y} (λ x . β (g x))}
+  is-equiv (flat-map {Σ (β : B ⨂ T → Y) . (λ z . α (Tensor.map {X} {A} {T} {T} f (λ t . t) z)) ≡{X ⨂ T → Y} (λ z . β (Tensor.map {X} {B} {T} {T} g (λ t . t) z))}
+                     {Σ (β : B → T →ᵣ Y) . (λ x . Tensor.curry-right' {A} {T} {Y} α (f x)) ≡{X → T →ᵣ Y} (λ x . β (g x))}
                      (cocone-tensₗ→cocone-fib T {X} {A} {B} f g Y α))
 is-equiv-flat-cocone-tensₗ→cocone-fib T {X} {A} {B} f g Y α =
-  let S ∷ X ⨂ T → Y = λ z . α (tens-map {X} {A} {T} {T} f (λ t . t) z) in
-  let src ∷ U = Σ (β : B ⨂ T → Y) . S ≡{X ⨂ T → Y} (λ z . β (tens-map {X} {B} {T} {T} g (λ t . t) z)) in
-  let tgt ∷ U = Σ (β : B → T →ᵣ Y) . (λ x . tens-curry-right' {A} {T} {Y} α (f x)) ≡{X → T →ᵣ Y} (λ x . β (g x)) in
+  let S ∷ X ⨂ T → Y = λ z . α (Tensor.map {X} {A} {T} {T} f (λ t . t) z) in
+  let src ∷ U = Σ (β : B ⨂ T → Y) . S ≡{X ⨂ T → Y} (λ z . β (Tensor.map {X} {B} {T} {T} g (λ t . t) z)) in
+  let tgt ∷ U = Σ (β : B → T →ᵣ Y) . (λ x . Tensor.curry-right' {A} {T} {Y} α (f x)) ≡{X → T →ᵣ Y} (λ x . β (g x)) in
   let m ∷ src → tgt =
-    flat-Σ-map {B ⨂ T → Y} {B → T →ᵣ Y} {λ β . S ≡{X ⨂ T → Y} (λ z . β (tens-map {X} {B} {T} {T} g (λ t . t) z))}
-      {λ β . (λ x . tens-curry-right' {A} {T} {Y} α (f x)) ≡{X → T →ᵣ Y} (λ x . β (g x))}
-      (tens-curry-right' {B} {T} {Y}) (λ β . cong (tens-curry-right' {X} {T} {Y}) {S} {λ z . β (tens-map {X} {B} {T} {T} g (λ t . t) z)}) in
+    flat-Σ-map {B ⨂ T → Y} {B → T →ᵣ Y} {λ β . S ≡{X ⨂ T → Y} (λ z . β (Tensor.map {X} {B} {T} {T} g (λ t . t) z))}
+      {λ β . (λ x . Tensor.curry-right' {A} {T} {Y} α (f x)) ≡{X → T →ᵣ Y} (λ x . β (g x))}
+      (Tensor.curry-right' {B} {T} {Y}) (λ β . cong (Tensor.curry-right' {X} {T} {Y}) {S} {λ z . β (Tensor.map {X} {B} {T} {T} g (λ t . t) z)}) in
   is-equiv-htpy {♭ src} {♭ tgt} {flat-map {src} {tgt} m} {flat-map {src} {tgt} (cocone-tensₗ→cocone-fib T {X} {A} {B} f g Y α)}
     (fun 𝄫w → let h : (w ∷ src) → flat-map {src} {tgt} m 𝄫w ≡ flat-map {src} {tgt} (cocone-tensₗ→cocone-fib T {X} {A} {B} f g Y α) 𝄫w =
                 fun (β , p) → refl in h w)
-    (flat-Σ-map-equiv {B ⨂ T → Y} {B → T →ᵣ Y} {λ β . S ≡{X ⨂ T → Y} (λ z . β (tens-map {X} {B} {T} {T} g (λ t . t) z))}
-      {λ β . (λ x . tens-curry-right' {A} {T} {Y} α (f x)) ≡{X → T →ᵣ Y} (λ x . β (g x))}
-      (tens-curry-right' {B} {T} {Y}) (λ β . cong (tens-curry-right' {X} {T} {Y}) {S} {λ z . β (tens-map {X} {B} {T} {T} g (λ t . t) z)})
+    (flat-Σ-map-equiv {B ⨂ T → Y} {B → T →ᵣ Y} {λ β . S ≡{X ⨂ T → Y} (λ z . β (Tensor.map {X} {B} {T} {T} g (λ t . t) z))}
+      {λ β . (λ x . Tensor.curry-right' {A} {T} {Y} α (f x)) ≡{X → T →ᵣ Y} (λ x . β (g x))}
+      (Tensor.curry-right' {B} {T} {Y}) (λ β . cong (Tensor.curry-right' {X} {T} {Y}) {S} {λ z . β (Tensor.map {X} {B} {T} {T} g (λ t . t) z)})
       (is-equiv-flat-tens-uncurryᵣ {B} {T} {Y})
-      (λ β . flat-cong-equiv (tens-curry-right' {X} {T} {Y}) (is-equiv-flat-tens-uncurryᵣ {X} {T} {Y})
-               S (λ z . β (tens-map {X} {B} {T} {T} g (λ t . t) z))))
+      (λ β . flat-cong-equiv (Tensor.curry-right' {X} {T} {Y}) (is-equiv-flat-tens-uncurryᵣ {X} {T} {Y})
+               S (λ z . β (Tensor.map {X} {B} {T} {T} g (λ t . t) z))))
 
 is-equiv-flat-cocone-tensₗ→cocone ∷ (T ∷ U) {X A B ∷ U} (f ∷ X → A) (g ∷ X → B) (Y ∷ U) →
   is-equiv (flat-map {cocone-tensₗ T {X} {A} {B} f g Y} {cocone {X} {A} {B} f g (T →ᵣ Y)} (cocone-tensₗ→cocone T {X} {A} {B} f g Y))
 is-equiv-flat-cocone-tensₗ→cocone T {X} {A} {B} f g Y =
   flat-Σ-map-equiv {A ⨂ T → Y} {A → T →ᵣ Y}
-    {λ α . Σ (β : B ⨂ T → Y) . (λ z . α (tens-map {X} {A} {T} {T} f (λ t . t) z)) ≡{X ⨂ T → Y} (λ z . β (tens-map {X} {B} {T} {T} g (λ t . t) z))}
+    {λ α . Σ (β : B ⨂ T → Y) . (λ z . α (Tensor.map {X} {A} {T} {T} f (λ t . t) z)) ≡{X ⨂ T → Y} (λ z . β (Tensor.map {X} {B} {T} {T} g (λ t . t) z))}
     {λ α' . Σ (β : B → T →ᵣ Y) . (λ x . α' (f x)) ≡{X → T →ᵣ Y} (λ x . β (g x))}
-    (tens-curry-right' {A} {T} {Y}) (cocone-tensₗ→cocone-fib T {X} {A} {B} f g Y)
+    (Tensor.curry-right' {A} {T} {Y}) (cocone-tensₗ→cocone-fib T {X} {A} {B} f g Y)
     (is-equiv-flat-tens-uncurryᵣ {A} {T} {Y})
     (is-equiv-flat-cocone-tensₗ→cocone-fib T {X} {A} {B} f g Y)
 
 is-equiv-flat-cocone-tensₗ→curried-fib ∷ (T ∷ U) {X A B ∷ U} (f ∷ X → A) (g ∷ X → B) (Y ∷ U) (α ∷ A ⨂ T → Y) →
-  is-equiv (flat-map {Σ (β : B ⨂ T → Y) . (λ z . α (tens-map {X} {A} {T} {T} f (λ t . t) z)) ≡{X ⨂ T → Y} (λ z . β (tens-map {X} {B} {T} {T} g (λ t . t) z))}
-                     {Σ (β : T → B →ₗ Y) . (λ t . λ x . tens-curry-left' {A} {T} {Y} α t (f x)) ≡{T → X →ₗ Y} (λ t . λ x . β t (g x))}
+  is-equiv (flat-map {Σ (β : B ⨂ T → Y) . (λ z . α (Tensor.map {X} {A} {T} {T} f (λ t . t) z)) ≡{X ⨂ T → Y} (λ z . β (Tensor.map {X} {B} {T} {T} g (λ t . t) z))}
+                     {Σ (β : T → B →ₗ Y) . (λ t . λ x . Tensor.curry-left' {A} {T} {Y} α t (f x)) ≡{T → X →ₗ Y} (λ t . λ x . β t (g x))}
                      (cocone-tensₗ→curried-fib T {X} {A} {B} f g Y α))
 is-equiv-flat-cocone-tensₗ→curried-fib T {X} {A} {B} f g Y α =
-  let S ∷ X ⨂ T → Y = λ z . α (tens-map {X} {A} {T} {T} f (λ t . t) z) in
-  let src ∷ U = Σ (β : B ⨂ T → Y) . S ≡{X ⨂ T → Y} (λ z . β (tens-map {X} {B} {T} {T} g (λ t . t) z)) in
-  let tgt ∷ U = Σ (β : T → B →ₗ Y) . (λ t . λ x . tens-curry-left' {A} {T} {Y} α t (f x)) ≡{T → X →ₗ Y} (λ t . λ x . β t (g x)) in
+  let S ∷ X ⨂ T → Y = λ z . α (Tensor.map {X} {A} {T} {T} f (λ t . t) z) in
+  let src ∷ U = Σ (β : B ⨂ T → Y) . S ≡{X ⨂ T → Y} (λ z . β (Tensor.map {X} {B} {T} {T} g (λ t . t) z)) in
+  let tgt ∷ U = Σ (β : T → B →ₗ Y) . (λ t . λ x . Tensor.curry-left' {A} {T} {Y} α t (f x)) ≡{T → X →ₗ Y} (λ t . λ x . β t (g x)) in
   let m ∷ src → tgt =
-    flat-Σ-map {B ⨂ T → Y} {T → B →ₗ Y} {λ β . S ≡{X ⨂ T → Y} (λ z . β (tens-map {X} {B} {T} {T} g (λ t . t) z))}
-      {λ β . (λ t . λ x . tens-curry-left' {A} {T} {Y} α t (f x)) ≡{T → X →ₗ Y} (λ t . λ x . β t (g x))}
-      (tens-curry-left' {B} {T} {Y}) (λ β . cong (tens-curry-left' {X} {T} {Y}) {S} {λ z . β (tens-map {X} {B} {T} {T} g (λ t . t) z)}) in
+    flat-Σ-map {B ⨂ T → Y} {T → B →ₗ Y} {λ β . S ≡{X ⨂ T → Y} (λ z . β (Tensor.map {X} {B} {T} {T} g (λ t . t) z))}
+      {λ β . (λ t . λ x . Tensor.curry-left' {A} {T} {Y} α t (f x)) ≡{T → X →ₗ Y} (λ t . λ x . β t (g x))}
+      (Tensor.curry-left' {B} {T} {Y}) (λ β . cong (Tensor.curry-left' {X} {T} {Y}) {S} {λ z . β (Tensor.map {X} {B} {T} {T} g (λ t . t) z)}) in
   is-equiv-htpy {♭ src} {♭ tgt} {flat-map {src} {tgt} m} {flat-map {src} {tgt} (cocone-tensₗ→curried-fib T {X} {A} {B} f g Y α)}
     (fun 𝄫w → let h : (w ∷ src) → flat-map {src} {tgt} m 𝄫w ≡ flat-map {src} {tgt} (cocone-tensₗ→curried-fib T {X} {A} {B} f g Y α) 𝄫w =
                 fun (β , p) → refl in h w)
-    (flat-Σ-map-equiv {B ⨂ T → Y} {T → B →ₗ Y} {λ β . S ≡{X ⨂ T → Y} (λ z . β (tens-map {X} {B} {T} {T} g (λ t . t) z))}
-      {λ β . (λ t . λ x . tens-curry-left' {A} {T} {Y} α t (f x)) ≡{T → X →ₗ Y} (λ t . λ x . β t (g x))}
-      (tens-curry-left' {B} {T} {Y}) (λ β . cong (tens-curry-left' {X} {T} {Y}) {S} {λ z . β (tens-map {X} {B} {T} {T} g (λ t . t) z)})
+    (flat-Σ-map-equiv {B ⨂ T → Y} {T → B →ₗ Y} {λ β . S ≡{X ⨂ T → Y} (λ z . β (Tensor.map {X} {B} {T} {T} g (λ t . t) z))}
+      {λ β . (λ t . λ x . Tensor.curry-left' {A} {T} {Y} α t (f x)) ≡{T → X →ₗ Y} (λ t . λ x . β t (g x))}
+      (Tensor.curry-left' {B} {T} {Y}) (λ β . cong (Tensor.curry-left' {X} {T} {Y}) {S} {λ z . β (Tensor.map {X} {B} {T} {T} g (λ t . t) z)})
       (is-equiv-flat-tens-uncurryₗ {B} {T} {Y})
-      (λ β . flat-cong-equiv (tens-curry-left' {X} {T} {Y}) (is-equiv-flat-tens-uncurryₗ {X} {T} {Y})
-               S (λ z . β (tens-map {X} {B} {T} {T} g (λ t . t) z))))
+      (λ β . flat-cong-equiv (Tensor.curry-left' {X} {T} {Y}) (is-equiv-flat-tens-uncurryₗ {X} {T} {Y})
+               S (λ z . β (Tensor.map {X} {B} {T} {T} g (λ t . t) z))))
 
 is-equiv-flat-cocone-tensₗ→curried ∷ (T ∷ U) {X A B ∷ U} (f ∷ X → A) (g ∷ X → B) (Y ∷ U) →
   is-equiv (flat-map {cocone-tensₗ T {X} {A} {B} f g Y} {curried-coconeₗ T {X} {A} {B} f g Y} (cocone-tensₗ→curried T {X} {A} {B} f g Y))
 is-equiv-flat-cocone-tensₗ→curried T {X} {A} {B} f g Y =
   flat-Σ-map-equiv {A ⨂ T → Y} {T → A →ₗ Y}
-    {λ α . Σ (β : B ⨂ T → Y) . (λ z . α (tens-map {X} {A} {T} {T} f (λ t . t) z)) ≡{X ⨂ T → Y} (λ z . β (tens-map {X} {B} {T} {T} g (λ t . t) z))}
+    {λ α . Σ (β : B ⨂ T → Y) . (λ z . α (Tensor.map {X} {A} {T} {T} f (λ t . t) z)) ≡{X ⨂ T → Y} (λ z . β (Tensor.map {X} {B} {T} {T} g (λ t . t) z))}
     {λ α' . Σ (β : T → B →ₗ Y) . (λ t . λ x . α' t (f x)) ≡{T → X →ₗ Y} (λ t . λ x . β t (g x))}
-    (tens-curry-left' {A} {T} {Y}) (cocone-tensₗ→curried-fib T {X} {A} {B} f g Y)
+    (Tensor.curry-left' {A} {T} {Y}) (cocone-tensₗ→curried-fib T {X} {A} {B} f g Y)
     (is-equiv-flat-tens-uncurryₗ {A} {T} {Y})
     (is-equiv-flat-cocone-tensₗ→curried-fib T {X} {A} {B} f g Y)
 
@@ -507,10 +507,10 @@ flat-cocone-swapₗ T {X} {A} {B} f g Y 𝄫c = 𝄫(cocone-swapₗ T {X} {A} {B
 
 cong-restr-swapₗ ∷ {T X P Y ∷ U} (ψ ∷ T → P →ₗ Y) {k₀ k₁ ∷ X → P} (q ∷ k₀ ≡ k₁) (t : T) →
   happly {T} {λ _ . X →ₗ Y}
-    {crisp-swapᵣₗ {X} {T} {Y} (post {X} {P} {T →ᵣ Y} (tens-curry-right' {P} {T} {Y} (tens-uncurry-crispₗ {P} {T} {Y} ψ)) k₀)}
-    {crisp-swapᵣₗ {X} {T} {Y} (post {X} {P} {T →ᵣ Y} (tens-curry-right' {P} {T} {Y} (tens-uncurry-crispₗ {P} {T} {Y} ψ)) k₁)}
+    {crisp-swapᵣₗ {X} {T} {Y} (post {X} {P} {T →ᵣ Y} (Tensor.curry-right' {P} {T} {Y} (tens-uncurry-crispₗ {P} {T} {Y} ψ)) k₀)}
+    {crisp-swapᵣₗ {X} {T} {Y} (post {X} {P} {T →ᵣ Y} (Tensor.curry-right' {P} {T} {Y} (tens-uncurry-crispₗ {P} {T} {Y} ψ)) k₁)}
     (crisp-cong {X → T →ᵣ Y} {T → X →ₗ Y} (crisp-swapᵣₗ {X} {T} {Y})
-      (cong {X → P} {X → T →ᵣ Y} (post {X} {P} {T →ᵣ Y} (tens-curry-right' {P} {T} {Y} (tens-uncurry-crispₗ {P} {T} {Y} ψ))) q)) t
+      (cong {X → P} {X → T →ᵣ Y} (post {X} {P} {T →ᵣ Y} (Tensor.curry-right' {P} {T} {Y} (tens-uncurry-crispₗ {P} {T} {Y} ψ))) q)) t
   ≡ congₗ {X → P} {X →ₗ Y} (preₗ {X} {P} {Y} (ψ t)) q
 cong-restr-swapₗ {T} {X} {P} {Y} ψ {k₀} refl t = refl
 
@@ -537,26 +537,26 @@ flat-cocone-tensₗ-triangle T {X} {A} {B} f g Y 𝄫c =
   let h : (c ∷ cocone-tensₗ T {X} {A} {B} f g Y) →
           flat-cocone-tensₗ→cocones-curried T {X} {A} {B} f g Y 𝄫c ≡ flat-cocone-tensₗ→cocones-swapped T {X} {A} {B} f g Y 𝄫c =
     fun (α , r) →
-      let h2 : (r ∷ Σ (β : B ⨂ T → Y) . (λ z . α (tens-map {X} {A} {T} {T} f (λ t . t) z)) ≡{X ⨂ T → Y} (λ z . β (tens-map {X} {B} {T} {T} g (λ t . t) z))) →
+      let h2 : (r ∷ Σ (β : B ⨂ T → Y) . (λ z . α (Tensor.map {X} {A} {T} {T} f (λ t . t) z)) ≡{X ⨂ T → Y} (λ z . β (Tensor.map {X} {B} {T} {T} g (λ t . t) z))) →
                flat-cocone-tensₗ→cocones-curried T {X} {A} {B} f g Y 𝄫(α , r) ≡ flat-cocone-tensₗ→cocones-swapped T {X} {A} {B} f g Y 𝄫(α , r) =
         fun (β , p) →
-          let S ∷ X ⨂ T → Y = λ z . α (tens-map {X} {A} {T} {T} f (λ t . t) z) in
-          let S' ∷ X ⨂ T → Y = λ z . β (tens-map {X} {B} {T} {T} g (λ t . t) z) in
-          let e ∷ (tens-curry-left' {X} {T} {Y} S) ≡{T → X →ₗ Y} (tens-curry-left' {X} {T} {Y} S') =
-            cong (tens-curry-left' {X} {T} {Y}) p in
-          let e' ∷ (tens-curry-left' {X} {T} {Y} S) ≡{T → X →ₗ Y} (tens-curry-left' {X} {T} {Y} S') =
-            crisp-cong {X → T →ᵣ Y} {T → X →ₗ Y} (crisp-swapᵣₗ {X} {T} {Y}) (cong (tens-curry-right' {X} {T} {Y}) p) in
+          let S ∷ X ⨂ T → Y = λ z . α (Tensor.map {X} {A} {T} {T} f (λ t . t) z) in
+          let S' ∷ X ⨂ T → Y = λ z . β (Tensor.map {X} {B} {T} {T} g (λ t . t) z) in
+          let e ∷ (Tensor.curry-left' {X} {T} {Y} S) ≡{T → X →ₗ Y} (Tensor.curry-left' {X} {T} {Y} S') =
+            cong (Tensor.curry-left' {X} {T} {Y}) p in
+          let e' ∷ (Tensor.curry-left' {X} {T} {Y} S) ≡{T → X →ₗ Y} (Tensor.curry-left' {X} {T} {Y} S') =
+            crisp-cong {X → T →ᵣ Y} {T → X →ₗ Y} (crisp-swapᵣₗ {X} {T} {Y}) (cong (Tensor.curry-right' {X} {T} {Y}) p) in
           flat-≡ {T → coconeₗ {X} {A} {B} f g Y}
             (funext-htpy {T} {λ _ . coconeₗ {X} {A} {B} f g Y}
-              (λ t . (tens-curry-left' {A} {T} {Y} α t , tens-curry-left' {B} {T} {Y} β t ,
-                      happly {T} {λ _ . X →ₗ Y} {tens-curry-left' {X} {T} {Y} S} {tens-curry-left' {X} {T} {Y} S'} e t))
-              (λ t . (tens-curry-left' {A} {T} {Y} α t , tens-curry-left' {B} {T} {Y} β t ,
-                      happly {T} {λ _ . X →ₗ Y} {tens-curry-left' {X} {T} {Y} S} {tens-curry-left' {X} {T} {Y} S'} e' t))
-              (λ t . cong {tens-curry-left' {X} {T} {Y} S t ≡{X →ₗ Y} tens-curry-left' {X} {T} {Y} S' t} {coconeₗ {X} {A} {B} f g Y}
-                       (λ s . (tens-curry-left' {A} {T} {Y} α t , tens-curry-left' {B} {T} {Y} β t , s))
-                       (cong {(tens-curry-left' {X} {T} {Y} S) ≡{T → X →ₗ Y} (tens-curry-left' {X} {T} {Y} S')}
-                             {tens-curry-left' {X} {T} {Y} S t ≡{X →ₗ Y} tens-curry-left' {X} {T} {Y} S' t}
-                          (λ d . happly {T} {λ _ . X →ₗ Y} {tens-curry-left' {X} {T} {Y} S} {tens-curry-left' {X} {T} {Y} S'} d t)
+              (λ t . (Tensor.curry-left' {A} {T} {Y} α t , Tensor.curry-left' {B} {T} {Y} β t ,
+                      happly {T} {λ _ . X →ₗ Y} {Tensor.curry-left' {X} {T} {Y} S} {Tensor.curry-left' {X} {T} {Y} S'} e t))
+              (λ t . (Tensor.curry-left' {A} {T} {Y} α t , Tensor.curry-left' {B} {T} {Y} β t ,
+                      happly {T} {λ _ . X →ₗ Y} {Tensor.curry-left' {X} {T} {Y} S} {Tensor.curry-left' {X} {T} {Y} S'} e' t))
+              (λ t . cong {Tensor.curry-left' {X} {T} {Y} S t ≡{X →ₗ Y} Tensor.curry-left' {X} {T} {Y} S' t} {coconeₗ {X} {A} {B} f g Y}
+                       (λ s . (Tensor.curry-left' {A} {T} {Y} α t , Tensor.curry-left' {B} {T} {Y} β t , s))
+                       (cong {(Tensor.curry-left' {X} {T} {Y} S) ≡{T → X →ₗ Y} (Tensor.curry-left' {X} {T} {Y} S')}
+                             {Tensor.curry-left' {X} {T} {Y} S t ≡{X →ₗ Y} Tensor.curry-left' {X} {T} {Y} S' t}
+                          (λ d . happly {T} {λ _ . X →ₗ Y} {Tensor.curry-left' {X} {T} {Y} S} {Tensor.curry-left' {X} {T} {Y} S'} d t)
                           (cong-curry-swapᵣₗ {X} {T} {Y} {S} {S'} p)))) in
       h2 r in
   h c
@@ -593,7 +593,7 @@ flat-cocone-restrₗ-factored-htpy ∷ (T ∷ U) {X A B P ∷ U} (f ∷ X → A)
     ≡ flat-map {T → P →ₗ Y} {T → coconeₗ {X} {A} {B} f g Y}
         (post {T} {P →ₗ Y} {coconeₗ {X} {A} {B} f g Y} (cocone-restrₗ {X} {A} {B} {P} f g i j q Y)) c
 flat-cocone-restrₗ-factored-htpy T {X} {A} {B} {P} f g i j q Y 𝄫ψ =
-  let K ∷ P → T →ᵣ Y = tens-curry-right' {P} {T} {Y} (tens-uncurry-crispₗ {P} {T} {Y} ψ) in
+  let K ∷ P → T →ᵣ Y = Tensor.curry-right' {P} {T} {Y} (tens-uncurry-crispₗ {P} {T} {Y} ψ) in
   flat-≡ {T → coconeₗ {X} {A} {B} f g Y}
     (funext-htpy {T} {λ _ . coconeₗ {X} {A} {B} f g Y}
       (cocone-swapₗ T {X} {A} {B} f g Y (cocone-restr {X} {A} {B} {P} f g i j q (T →ᵣ Y) K))

@@ -6,7 +6,7 @@
 -- and with cartesian, oplax and lax function types.
 --
 
-open import Tensor
+import Tensor
 open import Empty
 open import Unit
 open import Bool
@@ -302,7 +302,7 @@ is-discrete-id {A} {x} {y} d =
 ---
 
 flat-tens-to-prod ∷ {A B ∷ U} → ♭(A ⨂ B) → ♭(A × B)
-flat-tens-to-prod = flat-map tens-to-prod
+flat-tens-to-prod = flat-map Tensor.tens→prod
 -- flat-tens-to-prod A B 𝄫ab =
 --   let f : (ab ∷ A ⨂ B) → ♭(A × B) = fun (a ⊗ b) → 𝄫 (a , b) in
 --   f ab
@@ -331,7 +331,7 @@ flat-tens≃prod {A} {B} =
 -- a crisp left factor makes the tensor cartesian
 flat-tens-prod-l ∷ {A B ∷ U} → ♭A ⨂ B ≃ ♭A × B
 flat-tens-prod-l {A} {B} =
-  let f ∷ ♭A ⨂ B → ♭A × B = tens-to-prod in
+  let f ∷ ♭A ⨂ B → ♭A × B = Tensor.tens→prod in
   let g ∷ ♭A × B → ♭A ⨂ B = fun (u , b) →
     let h : (u : ♭A) → B → ♭A ⨂ B = fun 𝄫a → fun b → 𝄫a ⊗ b in
     h u b
@@ -348,7 +348,7 @@ flat-tens-prod-l {A} {B} =
 
 flat-tens-prod-r ∷ {A B ∷ U} → A ⨂ ♭B ≃ A × ♭B
 flat-tens-prod-r {A} {B} =
-  let f ∷ A ⨂ ♭B → A × ♭B = tens-to-prod in
+  let f ∷ A ⨂ ♭B → A × ♭B = Tensor.tens→prod in
   let g ∷ A × ♭B → A ⨂ ♭B = fun (a , v) →
     let h : (v : ♭B) → A → A ⨂ ♭B = fun 𝄫b → fun a → a ⊗ 𝄫b in
     h v a
@@ -416,20 +416,20 @@ tens-uncurry-crispᵣ ∷ {T K W ∷ U} (F ∷ T → K →ᵣ W) → T ⨂ K →
 tens-uncurry-crispᵣ {T} {K} {W} F (t ⊗ k) = F t k
 
 -- the two round trips
-tens-curry-uncurry-crispᵣ ∷ {T K W ∷ U} (F ∷ T → K →ᵣ W) → tens-curry-right' {T} {K} {W} (tens-uncurry-crispᵣ {T} {K} {W} F) ≡ F
+tens-curry-uncurry-crispᵣ ∷ {T K W ∷ U} (F ∷ T → K →ᵣ W) → Tensor.curry-right' {T} {K} {W} (tens-uncurry-crispᵣ {T} {K} {W} F) ≡ F
 tens-curry-uncurry-crispᵣ {T} {K} {W} F = refl
 
-tens-uncurry-curry-crispᵣ ∷ {T K W ∷ U} (G ∷ T ⨂ K → W) → tens-uncurry-crispᵣ {T} {K} {W} (tens-curry-right' {T} {K} {W} G) ≡ G
+tens-uncurry-curry-crispᵣ ∷ {T K W ∷ U} (G ∷ T ⨂ K → W) → tens-uncurry-crispᵣ {T} {K} {W} (Tensor.curry-right' {T} {K} {W} G) ≡ G
 tens-uncurry-curry-crispᵣ {T} {K} {W} G =
-  funext-htpy {T ⨂ K} {λ _ . W} (tens-uncurry-crispᵣ {T} {K} {W} (tens-curry-right' {T} {K} {W} G)) G
-    (λ z . let h : (z : T ⨂ K) → tens-uncurry-crispᵣ {T} {K} {W} (tens-curry-right' {T} {K} {W} G) z ≡ G z = fun (t ⊗ k) → refl in h z)
+  funext-htpy {T ⨂ K} {λ _ . W} (tens-uncurry-crispᵣ {T} {K} {W} (Tensor.curry-right' {T} {K} {W} G)) G
+    (λ z . let h : (z : T ⨂ K) → tens-uncurry-crispᵣ {T} {K} {W} (Tensor.curry-right' {T} {K} {W} G) z ≡ G z = fun (t ⊗ k) → refl in h z)
 
 -- on global points, currying is an equivalence
 flat-tens-curryᵣ ∷ {T K W ∷ U} → ♭(T → K →ᵣ W) → ♭(T ⨂ K → W)
 flat-tens-curryᵣ {T} {K} {W} 𝄫F = 𝄫(tens-uncurry-crispᵣ {T} {K} {W} F)
 
 flat-tens-uncurryᵣ ∷ {T K W ∷ U} → ♭(T ⨂ K → W) → ♭(T → K →ᵣ W)
-flat-tens-uncurryᵣ {T} {K} {W} = flat-map {T ⨂ K → W} {T → K →ᵣ W} (tens-curry-right' {T} {K} {W})
+flat-tens-uncurryᵣ {T} {K} {W} = flat-map {T ⨂ K → W} {T → K →ᵣ W} (Tensor.curry-right' {T} {K} {W})
 
 is-equiv-flat-tens-curryᵣ ∷ {T K W ∷ U} → is-equiv (flat-tens-curryᵣ {T} {K} {W})
 is-equiv-flat-tens-curryᵣ {T} {K} {W} =
@@ -513,19 +513,19 @@ is-equiv-flat-tens-uncurryᵣ {T} {K} {W} =
 tens-uncurry-crispₗ ∷ {A B W ∷ U} (F ∷ B → A →ₗ W) → A ⨂ B → W
 tens-uncurry-crispₗ {A} {B} {W} F (a ⊗ b) = F b a
 
-tens-curry-uncurry-crispₗ ∷ {A B W ∷ U} (F ∷ B → A →ₗ W) → tens-curry-left' {A} {B} {W} (tens-uncurry-crispₗ {A} {B} {W} F) ≡ F
+tens-curry-uncurry-crispₗ ∷ {A B W ∷ U} (F ∷ B → A →ₗ W) → Tensor.curry-left' {A} {B} {W} (tens-uncurry-crispₗ {A} {B} {W} F) ≡ F
 tens-curry-uncurry-crispₗ {A} {B} {W} F = refl
 
-tens-uncurry-curry-crispₗ ∷ {A B W ∷ U} (G ∷ A ⨂ B → W) → tens-uncurry-crispₗ {A} {B} {W} (tens-curry-left' {A} {B} {W} G) ≡ G
+tens-uncurry-curry-crispₗ ∷ {A B W ∷ U} (G ∷ A ⨂ B → W) → tens-uncurry-crispₗ {A} {B} {W} (Tensor.curry-left' {A} {B} {W} G) ≡ G
 tens-uncurry-curry-crispₗ {A} {B} {W} G =
-  funext-htpy {A ⨂ B} {λ _ . W} (tens-uncurry-crispₗ {A} {B} {W} (tens-curry-left' {A} {B} {W} G)) G
-    (λ z . let h : (z : A ⨂ B) → tens-uncurry-crispₗ {A} {B} {W} (tens-curry-left' {A} {B} {W} G) z ≡ G z = fun (a ⊗ b) → refl in h z)
+  funext-htpy {A ⨂ B} {λ _ . W} (tens-uncurry-crispₗ {A} {B} {W} (Tensor.curry-left' {A} {B} {W} G)) G
+    (λ z . let h : (z : A ⨂ B) → tens-uncurry-crispₗ {A} {B} {W} (Tensor.curry-left' {A} {B} {W} G) z ≡ G z = fun (a ⊗ b) → refl in h z)
 
 flat-tens-curryₗ ∷ {A B W ∷ U} → ♭(B → A →ₗ W) → ♭(A ⨂ B → W)
 flat-tens-curryₗ {A} {B} {W} 𝄫F = 𝄫(tens-uncurry-crispₗ {A} {B} {W} F)
 
 flat-tens-uncurryₗ ∷ {A B W ∷ U} → ♭(A ⨂ B → W) → ♭(B → A →ₗ W)
-flat-tens-uncurryₗ {A} {B} {W} = flat-map {A ⨂ B → W} {B → A →ₗ W} (tens-curry-left' {A} {B} {W})
+flat-tens-uncurryₗ {A} {B} {W} = flat-map {A ⨂ B → W} {B → A →ₗ W} (Tensor.curry-left' {A} {B} {W})
 
 is-equiv-flat-tens-curryₗ ∷ {A B W ∷ U} → is-equiv (flat-tens-curryₗ {A} {B} {W})
 is-equiv-flat-tens-curryₗ {A} {B} {W} =
@@ -539,9 +539,9 @@ is-equiv-flat-tens-uncurryₗ {A} {B} {W} =
 
 -- on crisp paths, oplax currying is lax currying followed by the crisp swap (and conversely)
 cong-curry-swapₗᵣ ∷ {T X Y ∷ U} {φ₀ φ₁ ∷ T ⨂ X → Y} (p ∷ φ₀ ≡ φ₁) →
-  cong (tens-curry-right' {T} {X} {Y}) p ≡ crisp-cong {X → T →ₗ Y} {T → X →ᵣ Y} (crisp-swapₗᵣ {X} {T} {Y}) (cong (tens-curry-left' {T} {X} {Y}) p)
+  cong (Tensor.curry-right' {T} {X} {Y}) p ≡ crisp-cong {X → T →ₗ Y} {T → X →ᵣ Y} (crisp-swapₗᵣ {X} {T} {Y}) (cong (Tensor.curry-left' {T} {X} {Y}) p)
 cong-curry-swapₗᵣ {T} {X} {Y} {φ₀} refl = refl
 
 cong-curry-swapᵣₗ ∷ {X T Y ∷ U} {φ₀ φ₁ ∷ X ⨂ T → Y} (p ∷ φ₀ ≡ φ₁) →
-  cong (tens-curry-left' {X} {T} {Y}) p ≡ crisp-cong {X → T →ᵣ Y} {T → X →ₗ Y} (crisp-swapᵣₗ {X} {T} {Y}) (cong (tens-curry-right' {X} {T} {Y}) p)
+  cong (Tensor.curry-left' {X} {T} {Y}) p ≡ crisp-cong {X → T →ᵣ Y} {T → X →ₗ Y} (crisp-swapᵣₗ {X} {T} {Y}) (cong (Tensor.curry-right' {X} {T} {Y}) p)
 cong-curry-swapᵣₗ {X} {T} {Y} {φ₀} refl = refl

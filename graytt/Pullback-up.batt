@@ -31,9 +31,9 @@ curried-cone-pathsᵣ T K {A} {B} {C} g h y =
 cone-data→curriedᵣ ∷ (T K A B C ∷ U) → pullback-cone-data (T ⨂ K) A B C → curried-cone-dataᵣ T K A B C
 cone-data→curriedᵣ T K A B C =
   flat-Σ-map {T ⨂ K → A} {T → K →ᵣ A} {λ _ . (T ⨂ K → B) × (T ⨂ K → path C)} {λ _ . (T → K →ᵣ B) × (T → K →ᵣ path C)}
-    (tens-curry-right' {T} {K} {A})
+    (Tensor.curry-right' {T} {K} {A})
     (λ _ . flat-Σ-map {T ⨂ K → B} {T → K →ᵣ B} {λ _ . T ⨂ K → path C} {λ _ . T → K →ᵣ path C}
-             (tens-curry-right' {T} {K} {B}) (λ _ . tens-curry-right' {T} {K} {path C}))
+             (Tensor.curry-right' {T} {K} {B}) (λ _ . Tensor.curry-right' {T} {K} {path C}))
 
 cone-paths→curriedᵣ ∷ (T K ∷ U) {A B C ∷ U} (g ∷ A → C) (h ∷ B → C) (x : pullback-cone-data (T ⨂ K) A B C) →
   ((post {T ⨂ K} {path C} {C} (path-src {C}) (Product.snd (Product.snd x)) ≡ post {T ⨂ K} {A} {C} g (Product.fst x)) ×
@@ -44,7 +44,7 @@ cone-paths→curriedᵣ T K {A} {B} {C} g h (α , r) =
       ((post {T ⨂ K} {path C} {C} (path-src {C}) (Product.snd r) ≡ post {T ⨂ K} {A} {C} g α) ×
        (post {T ⨂ K} {path C} {C} (path-tgt {C}) (Product.snd r) ≡ post {T ⨂ K} {B} {C} h (Product.fst r))) →
       curried-cone-pathsᵣ T K {A} {B} {C} g h (cone-data→curriedᵣ T K A B C (α , r)) = fun (β , H) → fun (p , p') →
-    (cong (tens-curry-right' {T} {K} {C}) p , cong (tens-curry-right' {T} {K} {C}) p') in
+    (cong (Tensor.curry-right' {T} {K} {C}) p , cong (Tensor.curry-right' {T} {K} {C}) p') in
   k r
 
 cone→curriedᵣ ∷ (T K ∷ U) {A B C ∷ U} (g ∷ A → C) (h ∷ B → C) →
@@ -60,12 +60,12 @@ cone→curriedᵣ T K {A} {B} {C} g h =
 is-equiv-flat-cone-data→curriedᵣ ∷ (T K A B C ∷ U) → is-equiv (flat-map {pullback-cone-data (T ⨂ K) A B C} {curried-cone-dataᵣ T K A B C} (cone-data→curriedᵣ T K A B C))
 is-equiv-flat-cone-data→curriedᵣ T K A B C =
   flat-Σ-map-equiv {T ⨂ K → A} {T → K →ᵣ A} {λ _ . (T ⨂ K → B) × (T ⨂ K → path C)} {λ _ . (T → K →ᵣ B) × (T → K →ᵣ path C)}
-    (tens-curry-right' {T} {K} {A})
+    (Tensor.curry-right' {T} {K} {A})
     (λ _ . flat-Σ-map {T ⨂ K → B} {T → K →ᵣ B} {λ _ . T ⨂ K → path C} {λ _ . T → K →ᵣ path C}
-             (tens-curry-right' {T} {K} {B}) (λ _ . tens-curry-right' {T} {K} {path C}))
+             (Tensor.curry-right' {T} {K} {B}) (λ _ . Tensor.curry-right' {T} {K} {path C}))
     (is-equiv-flat-tens-uncurryᵣ {T} {K} {A})
     (λ _ . flat-Σ-map-equiv {T ⨂ K → B} {T → K →ᵣ B} {λ _ . T ⨂ K → path C} {λ _ . T → K →ᵣ path C}
-             (tens-curry-right' {T} {K} {B}) (λ _ . tens-curry-right' {T} {K} {path C})
+             (Tensor.curry-right' {T} {K} {B}) (λ _ . Tensor.curry-right' {T} {K} {path C})
              (is-equiv-flat-tens-uncurryᵣ {T} {K} {B}) (λ _ . is-equiv-flat-tens-uncurryᵣ {T} {K} {path C}))
 
 is-equiv-flat-cone-paths→curriedᵣ ∷ (T K ∷ U) {A B C ∷ U} (g ∷ A → C) (h ∷ B → C) (x ∷ pullback-cone-data (T ⨂ K) A B C) →
@@ -83,7 +83,7 @@ is-equiv-flat-cone-paths→curriedᵣ T K {A} {B} {C} g h (α , r) =
     let S' ∷ T ⨂ K → C = post {T ⨂ K} {path C} {C} (path-tgt {C}) H in
     let G ∷ T ⨂ K → C = post {T ⨂ K} {A} {C} g α in
     let G' ∷ T ⨂ K → C = post {T ⨂ K} {B} {C} h β in
-    let c ∷ (T ⨂ K → C) → (T → K →ᵣ C) = tens-curry-right' {T} {K} {C} in
+    let c ∷ (T ⨂ K → C) → (T → K →ᵣ C) = Tensor.curry-right' {T} {K} {C} in
     is-equiv-htpy {♭((S ≡ G) × (S' ≡ G'))} {♭((c S ≡ c G) × (c S' ≡ c G'))}
       {flat-map {(S ≡ G) × (S' ≡ G')} {(c S ≡ c G) × (c S' ≡ c G')}
          (flat-Σ-map {S ≡ G} {c S ≡ c G} {λ _ . S' ≡ G'} {λ _ . c S' ≡ c G'} (cong c {S} {G}) (λ _ . cong c {S'} {G'}))}
@@ -270,9 +270,9 @@ curried-cone-pathsₗ T K {A} {B} {C} g h y =
 cone-data→curriedₗ ∷ (T K A B C ∷ U) → pullback-cone-data (K ⨂ T) A B C → curried-cone-dataₗ T K A B C
 cone-data→curriedₗ T K A B C =
   flat-Σ-map {K ⨂ T → A} {T → K →ₗ A} {λ _ . (K ⨂ T → B) × (K ⨂ T → path C)} {λ _ . (T → K →ₗ B) × (T → K →ₗ path C)}
-    (tens-curry-left' {K} {T} {A})
+    (Tensor.curry-left' {K} {T} {A})
     (λ _ . flat-Σ-map {K ⨂ T → B} {T → K →ₗ B} {λ _ . K ⨂ T → path C} {λ _ . T → K →ₗ path C}
-             (tens-curry-left' {K} {T} {B}) (λ _ . tens-curry-left' {K} {T} {path C}))
+             (Tensor.curry-left' {K} {T} {B}) (λ _ . Tensor.curry-left' {K} {T} {path C}))
 
 cone-paths→curriedₗ ∷ (T K ∷ U) {A B C ∷ U} (g ∷ A → C) (h ∷ B → C) (x : pullback-cone-data (K ⨂ T) A B C) →
   ((post {K ⨂ T} {path C} {C} (path-src {C}) (Product.snd (Product.snd x)) ≡ post {K ⨂ T} {A} {C} g (Product.fst x)) ×
@@ -283,7 +283,7 @@ cone-paths→curriedₗ T K {A} {B} {C} g h (α , r) =
       ((post {K ⨂ T} {path C} {C} (path-src {C}) (Product.snd r) ≡ post {K ⨂ T} {A} {C} g α) ×
        (post {K ⨂ T} {path C} {C} (path-tgt {C}) (Product.snd r) ≡ post {K ⨂ T} {B} {C} h (Product.fst r))) →
       curried-cone-pathsₗ T K {A} {B} {C} g h (cone-data→curriedₗ T K A B C (α , r)) = fun (β , H) → fun (p , p') →
-    (cong (tens-curry-left' {K} {T} {C}) p , cong (tens-curry-left' {K} {T} {C}) p') in
+    (cong (Tensor.curry-left' {K} {T} {C}) p , cong (Tensor.curry-left' {K} {T} {C}) p') in
   k r
 
 cone→curriedₗ ∷ (T K ∷ U) {A B C ∷ U} (g ∷ A → C) (h ∷ B → C) →
@@ -299,12 +299,12 @@ cone→curriedₗ T K {A} {B} {C} g h =
 is-equiv-flat-cone-data→curriedₗ ∷ (T K A B C ∷ U) → is-equiv (flat-map {pullback-cone-data (K ⨂ T) A B C} {curried-cone-dataₗ T K A B C} (cone-data→curriedₗ T K A B C))
 is-equiv-flat-cone-data→curriedₗ T K A B C =
   flat-Σ-map-equiv {K ⨂ T → A} {T → K →ₗ A} {λ _ . (K ⨂ T → B) × (K ⨂ T → path C)} {λ _ . (T → K →ₗ B) × (T → K →ₗ path C)}
-    (tens-curry-left' {K} {T} {A})
+    (Tensor.curry-left' {K} {T} {A})
     (λ _ . flat-Σ-map {K ⨂ T → B} {T → K →ₗ B} {λ _ . K ⨂ T → path C} {λ _ . T → K →ₗ path C}
-             (tens-curry-left' {K} {T} {B}) (λ _ . tens-curry-left' {K} {T} {path C}))
+             (Tensor.curry-left' {K} {T} {B}) (λ _ . Tensor.curry-left' {K} {T} {path C}))
     (is-equiv-flat-tens-uncurryₗ {K} {T} {A})
     (λ _ . flat-Σ-map-equiv {K ⨂ T → B} {T → K →ₗ B} {λ _ . K ⨂ T → path C} {λ _ . T → K →ₗ path C}
-             (tens-curry-left' {K} {T} {B}) (λ _ . tens-curry-left' {K} {T} {path C})
+             (Tensor.curry-left' {K} {T} {B}) (λ _ . Tensor.curry-left' {K} {T} {path C})
              (is-equiv-flat-tens-uncurryₗ {K} {T} {B}) (λ _ . is-equiv-flat-tens-uncurryₗ {K} {T} {path C}))
 
 is-equiv-flat-cone-paths→curriedₗ ∷ (T K ∷ U) {A B C ∷ U} (g ∷ A → C) (h ∷ B → C) (x ∷ pullback-cone-data (K ⨂ T) A B C) →
@@ -322,7 +322,7 @@ is-equiv-flat-cone-paths→curriedₗ T K {A} {B} {C} g h (α , r) =
     let S' ∷ K ⨂ T → C = post {K ⨂ T} {path C} {C} (path-tgt {C}) H in
     let G ∷ K ⨂ T → C = post {K ⨂ T} {A} {C} g α in
     let G' ∷ K ⨂ T → C = post {K ⨂ T} {B} {C} h β in
-    let c ∷ (K ⨂ T → C) → (T → K →ₗ C) = tens-curry-left' {K} {T} {C} in
+    let c ∷ (K ⨂ T → C) → (T → K →ₗ C) = Tensor.curry-left' {K} {T} {C} in
     is-equiv-htpy {♭((S ≡ G) × (S' ≡ G'))} {♭((c S ≡ c G) × (c S' ≡ c G'))}
       {flat-map {(S ≡ G) × (S' ≡ G')} {(c S ≡ c G) × (c S' ≡ c G')}
          (flat-Σ-map {S ≡ G} {c S ≡ c G} {λ _ . S' ≡ G'} {λ _ . c S' ≡ c G'} (cong c {S} {G}) (λ _ . cong c {S'} {G'}))}

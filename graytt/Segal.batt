@@ -108,13 +108,13 @@ is-segalᵣ-unthick X s n =
 --
 
 cur2 ∷ {Q S G T ∷ U} → (Q ⨂ (S ⨂ G) →ᵣ T) → (Q →ᵣ S →ᵣ G →ᵣ T)
-cur2 {Q} {S} {G} {T} f = postᵣ {Q} {S ⨂ G →ᵣ T} {S →ᵣ G →ᵣ T} (tens-curry-right {S} {G} {T}) (tens-curry-right {Q} {S ⨂ G} {T} f)
+cur2 {Q} {S} {G} {T} f = postᵣ {Q} {S ⨂ G →ᵣ T} {S →ᵣ G →ᵣ T} (Tensor.curry-right {S} {G} {T}) (Tensor.curry-right {Q} {S ⨂ G} {T} f)
 
 is-equiv-cur2 ∷ {Q S G T ∷ U} → is-equiv (cur2 {Q} {S} {G} {T})
 is-equiv-cur2 {Q} {S} {G} {T} =
-  is-equiv-circ (postᵣ {Q} {S ⨂ G →ᵣ T} {S →ᵣ G →ᵣ T} (tens-curry-right {S} {G} {T})) (tens-curry-right {Q} {S ⨂ G} {T})
-    (postᵣ-equiv Q {S ⨂ G →ᵣ T} {S →ᵣ G →ᵣ T} (tens-curry-right {S} {G} {T}) (snd _ (tens-curry-equiv-right {S} {G} {T})))
-    (snd _ (tens-curry-equiv-right {Q} {S ⨂ G} {T}))
+  is-equiv-circ (postᵣ {Q} {S ⨂ G →ᵣ T} {S →ᵣ G →ᵣ T} (Tensor.curry-right {S} {G} {T})) (Tensor.curry-right {Q} {S ⨂ G} {T})
+    (postᵣ-equiv Q {S ⨂ G →ᵣ T} {S →ᵣ G →ᵣ T} (Tensor.curry-right {S} {G} {T}) (snd _ (Tensor.curry-equiv-right {S} {G} {T})))
+    (snd _ (Tensor.curry-equiv-right {Q} {S ⨂ G} {T}))
 
 -- the restriction along a map of the middle factor, curried
 cur-restr ∷ {Q S S' T ∷ U} (ι ∷ S' → S) → (Q →ᵣ S →ᵣ T) → (Q →ᵣ S' →ᵣ T)
@@ -152,7 +152,7 @@ is-segal-arrᵣ {A} sA a n b =
       (sA a n c) in
   let e3 : is-equiv (cur-restr {grid a} {simplex n} {spine n} {grid b →ᵣ simplex 1 →ᵣ A} ι) =
     cur-restr-equiv {grid a} {simplex n} {spine n} ι {grid b ⨂ simplex 1 →ᵣ A} {grid b →ᵣ simplex 1 →ᵣ A}
-      (tens-curry-right {grid b} {simplex 1} {A}) (snd _ (tens-curry-equiv-right {grid b} {simplex 1} {A})) e2 in
+      (Tensor.curry-right {grid b} {simplex 1} {A}) (snd _ (Tensor.curry-equiv-right {grid b} {simplex 1} {A})) e2 in
   let e4 : is-equiv (cur-restr {grid a} {simplex n} {spine n} {grid b →ᵣ arrᵣ A} ι) =
     cur-restr-equiv {grid a} {simplex n} {spine n} ι {grid b →ᵣ simplex 1 →ᵣ A} {grid b →ᵣ arrᵣ A}
       (postᵣ {grid b} {simplex 1 →ᵣ A} {𝕀 →ᵣ A} (λ φ . preᵣ {𝕀} {simplex 1} {A} φ Simplex1.of𝕀))

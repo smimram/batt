@@ -346,7 +346,7 @@ crisp-diag A a = a ⊗ a
 The tensor is associative and unital (with unit `⊤`) up to equivalence, but it
 is _not_ symmetric: `swap (x ⊗ y) = y ⊗ x` is rejected, the order of the bunch
 being recorded. Not every element of a tensor is a pure tensor either:
-`x ≡ tens-fst x ⊗ tens-snd x` cannot be proved.
+`x ≡ Tensor.fst x ⊗ Tensor.snd x` cannot be proved.
 
 ### Lax function types
 

@@ -80,7 +80,7 @@ cur-const {Q} {S} {T} k q s = k q
 
 -- restriction along τ, curried, is the weakening by E
 cur-complete-restr ∷ (a ∷ List ℕ) (b ∷ List ℕ) (X ∷ U) (g : grid a ⨂ grid b →ᵣ X) →
-  cur-const {grid a} {free-equiv} {grid b →ᵣ X} (tens-curry-right {grid a} {grid b} {X} g)
+  cur-const {grid a} {free-equiv} {grid b →ᵣ X} (Tensor.curry-right {grid a} {grid b} {X} g)
     ≡ cur2 {grid a} {free-equiv} {grid b} {X} (complete-restrᵣ a b X g)
 cur-complete-restr a b X g = refl
 
@@ -101,18 +101,18 @@ is-complete-arrᵣ {A} cA a b =
   -- grid c is grid b ⨂ simplex 1, judgmentally
   let e2 : is-equiv (cur-const {grid a} {free-equiv} {grid b ⨂ simplex 1 →ᵣ A}) =
     is-equiv-conj (complete-restrᵣ a c A) (cur-const {grid a} {free-equiv} {grid c →ᵣ A})
-      (tens-curry-right {grid a} {grid c} {A}) (cur2 {grid a} {free-equiv} {grid c} {A})
-      (cur-complete-restr a c A) (snd _ (tens-curry-equiv-right {grid a} {grid c} {A})) (is-equiv-cur2 {grid a} {free-equiv} {grid c} {A})
+      (Tensor.curry-right {grid a} {grid c} {A}) (cur2 {grid a} {free-equiv} {grid c} {A})
+      (cur-complete-restr a c A) (snd _ (Tensor.curry-equiv-right {grid a} {grid c} {A})) (is-equiv-cur2 {grid a} {free-equiv} {grid c} {A})
       (cA a c) in
   let e3 : is-equiv (cur-const {grid a} {free-equiv} {grid b →ᵣ simplex 1 →ᵣ A}) =
     cur-const-equiv {grid a} {free-equiv} {grid b ⨂ simplex 1 →ᵣ A} {grid b →ᵣ simplex 1 →ᵣ A}
-      (tens-curry-right {grid b} {simplex 1} {A}) (snd _ (tens-curry-equiv-right {grid b} {simplex 1} {A})) e2 in
+      (Tensor.curry-right {grid b} {simplex 1} {A}) (snd _ (Tensor.curry-equiv-right {grid b} {simplex 1} {A})) e2 in
   let e4 : is-equiv (cur-const {grid a} {free-equiv} {grid b →ᵣ arrᵣ A}) =
     cur-const-equiv {grid a} {free-equiv} {grid b →ᵣ simplex 1 →ᵣ A} {grid b →ᵣ arrᵣ A}
       (postᵣ {grid b} {simplex 1 →ᵣ A} {𝕀 →ᵣ A} (λ φ . preᵣ {𝕀} {simplex 1} {A} φ Simplex1.of𝕀))
       (postᵣ-equiv (grid b) {simplex 1 →ᵣ A} {𝕀 →ᵣ A} (λ φ . preᵣ {𝕀} {simplex 1} {A} φ Simplex1.of𝕀)
         (preᵣ-equiv 𝕀 (simplex 1) Simplex1.of𝕀 Simplex1.is-equiv-of𝕀 A)) e3 in
   is-equiv-conj' (complete-restrᵣ a b (arrᵣ A)) (cur-const {grid a} {free-equiv} {grid b →ᵣ arrᵣ A})
-    (tens-curry-right {grid a} {grid b} {arrᵣ A}) (cur2 {grid a} {free-equiv} {grid b} {arrᵣ A})
-    (cur-complete-restr a b (arrᵣ A)) (snd _ (tens-curry-equiv-right {grid a} {grid b} {arrᵣ A}))
+    (Tensor.curry-right {grid a} {grid b} {arrᵣ A}) (cur2 {grid a} {free-equiv} {grid b} {arrᵣ A})
+    (cur-complete-restr a b (arrᵣ A)) (snd _ (Tensor.curry-equiv-right {grid a} {grid b} {arrᵣ A}))
     (is-equiv-cur2 {grid a} {free-equiv} {grid b} {arrᵣ A}) e4

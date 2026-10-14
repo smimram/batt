@@ -19,16 +19,16 @@ susphom-counit X' =
   let x1 ∷ X = right X' in
   let leg-cyl ∷ hom' X' ⨂ 𝕀 → X = λ (f' ⊗ s) . oplax-oplax⁎⁎ {𝕀⁎⁎} f' s in
   let leg-bool ∷ Bool → X = Bool.rec x0 x1 in
-  let ho-legs ∷ (u : hom' X' ⨂ Bool) → leg-cyl (cylbnd-inclusion (hom' X') u) ≡ leg-bool (tens-snd u) =
-    λ (f' ⊗ b) . Bool.ind (λb. leg-cyl (cylbnd-inclusion (hom' X') (f' ⊗ b)) ≡ leg-bool (tens-snd (f' ⊗ b)))
+  let ho-legs ∷ (u : hom' X' ⨂ Bool) → leg-cyl (cylbnd-inclusion (hom' X') u) ≡ leg-bool (Tensor.snd u) =
+    λ (f' ⊗ b) . Bool.ind (λb. leg-cyl (cylbnd-inclusion (hom' X') (f' ⊗ b)) ≡ leg-bool (Tensor.snd (f' ⊗ b)))
       (oplax⁎⁎-left {𝕀⁎⁎} f') (oplax⁎⁎-right {𝕀⁎⁎} f') b
   in
-  let counit-map : susp (hom' X') → X = pushout-univ (cylbnd-inclusion (hom' X')) tens-snd X leg-cyl leg-bool ho-legs in
+  let counit-map : susp (hom' X') → X = pushout-univ (cylbnd-inclusion (hom' X')) Tensor.snd X leg-cyl leg-bool ho-legs in
   let counit-lcoh : counit-map (left-susp (hom' X')) ≡ x0 =
-    pushout-univr (cylbnd-inclusion (hom' X')) tens-snd X leg-cyl leg-bool ho-legs false
+    pushout-univr (cylbnd-inclusion (hom' X')) Tensor.snd X leg-cyl leg-bool ho-legs false
   in
   let counit-rcoh : counit-map (right-susp (hom' X')) ≡ x1 =
-    pushout-univr (cylbnd-inclusion (hom' X')) tens-snd X leg-cyl leg-bool ho-legs true
+    pushout-univr (cylbnd-inclusion (hom' X')) Tensor.snd X leg-cyl leg-bool ho-legs true
   in
   (counit-map, (counit-lcoh, counit-rcoh))
 
@@ -59,13 +59,13 @@ to-hom-from-susp {X} {Y'} f' x =
   -- let y1 ∷ Y = right Y' in
   -- let leg-cyl : X ⨂ 𝕀 → Y = λ (x ⊗ s) . oplax-oplax⁎⁎ {𝕀⁎⁎} (g x) s in
   -- let leg-bool : Bool → Y = Bool.rec y0 y1 in
-  -- let ho-legs : (u : X ⨂ Bool) → leg-cyl (cylbnd-inclusion X u) ≡ leg-bool (tens-snd u) =
-    -- λ (x ⊗ b) . Bool.ind (λb. leg-cyl (cylbnd-inclusion X (x ⊗ b)) ≡ leg-bool (tens-snd (x ⊗ b)))
+  -- let ho-legs : (u : X ⨂ Bool) → leg-cyl (cylbnd-inclusion X u) ≡ leg-bool (Tensor.snd u) =
+    -- λ (x ⊗ b) . Bool.ind (λb. leg-cyl (cylbnd-inclusion X (x ⊗ b)) ≡ leg-bool (Tensor.snd (x ⊗ b)))
       -- (oplax⁎⁎-left {𝕀⁎⁎} (g x)) (oplax⁎⁎-right {𝕀⁎⁎} (g x)) b
   -- in
-  -- let f : susp X → Y = pushout-univ (cylbnd-inclusion X) tens-snd Y leg-cyl leg-bool ho-legs in
-  -- let f0  : f (left-susp  X) ≡ y0 = pushout-univr (cylbnd-inclusion X) tens-snd Y leg-cyl leg-bool ho-legs false in
-  -- let f1 : f (right-susp X) ≡ y1 = pushout-univr (cylbnd-inclusion X) tens-snd Y leg-cyl leg-bool ho-legs true in 
+  -- let f : susp X → Y = pushout-univ (cylbnd-inclusion X) Tensor.snd Y leg-cyl leg-bool ho-legs in
+  -- let f0  : f (left-susp  X) ≡ y0 = pushout-univr (cylbnd-inclusion X) Tensor.snd Y leg-cyl leg-bool ho-legs false in
+  -- let f1 : f (right-susp X) ≡ y1 = pushout-univr (cylbnd-inclusion X) Tensor.snd Y leg-cyl leg-bool ho-legs true in 
   -- (f, (f0, f1))
 
 -- from-susp-to-hom-from-susp ∷ {X ∷ U} {Y' ∷ U⁎⁎} → (f' : map⁎⁎ (susp' X) Y') → ho⁎⁎ {susp' X} (from-susp-to-hom (to-hom-from-susp f')) f'

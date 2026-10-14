@@ -7,14 +7,14 @@ open import Stdlib
 
 --
 -- Thickening by arbitrary crisp types
--- Q ⊗ X ⊗ Q', bracketed to the right; tens-assoc-equiv gives the other bracketing.
+-- Q ⊗ X ⊗ Q', bracketed to the right; Tensor.assoc-equiv gives the other bracketing.
 --
 
 thicken ∷ (Q X Q' ∷ U) → U
 thicken Q X Q' = Q ⨂ (X ⨂ Q')
 
 thicken-map ∷ (Q ∷ U) {X Y ∷ U} (f ∷ X → Y) (Q' ∷ U) → thicken Q X Q' → thicken Q Y Q'
-thicken-map Q {X} {Y} f Q' = tens-map {Q} {Q} {X ⨂ Q'} {Y ⨂ Q'} id (tens-map {X} {Y} {Q'} {Q'} f id)
+thicken-map Q {X} {Y} f Q' = Tensor.map {Q} {Q} {X ⨂ Q'} {Y ⨂ Q'} id (Tensor.map {X} {Y} {Q'} {Q'} f id)
 
 --
 -- Thickened simplices and spines
@@ -52,7 +52,7 @@ cube-thick-spine→cube-thick-simplex p n q = thicken-map (gray-cube p) {spine n
 
 -- the unthickened case: □[] ⊗ Spₙ ⊗ □[] is Spₙ up to the unit laws of ⊗
 thicken-unit ∷ {X ∷ U} → thicken ⊤ X ⊤ → X
-thicken-unit {X} u = tens-unit-right {X} (tens-unit-left {X ⨂ ⊤} u)
+thicken-unit {X} u = Tensor.unit-right {X} (Tensor.unit-left {X ⨂ ⊤} u)
 
 thicken-counit ∷ {X ∷ U} → X → thicken ⊤ X ⊤
 thicken-counit x = tt ⊗ (x ⊗ tt)
@@ -62,8 +62,8 @@ thicken-unit-counit x = refl
 
 thicken-counit-unit ∷ {X ∷ U} (u : thicken ⊤ X ⊤) → thicken-counit {X} (thicken-unit {X} u) ≡ u
 thicken-counit-unit {X} u =
-  trans (cong (tens-counit-left {X ⨂ ⊤}) (tens-counit-unit-right {X} (tens-unit-left {X ⨂ ⊤} u)))
-    (tens-counit-unit-left {X ⨂ ⊤} u)
+  trans (cong (Tensor.counit-left {X ⨂ ⊤}) (Tensor.counit-unit-right {X} (Tensor.unit-left {X ⨂ ⊤} u)))
+    (Tensor.counit-unit-left {X ⨂ ⊤} u)
 
 thicken-unit-equiv ∷ {X ∷ U} → thicken ⊤ X ⊤ ≃ X
 thicken-unit-equiv {X} =
