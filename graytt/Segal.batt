@@ -29,8 +29,8 @@ thick-incl = thick-spine→thick-simplex
 segal-restr ∷ (a ∷ List ℕ) (n ∷ ℕ) (b ∷ List ℕ) (X : U) → (thick-simplex a n b → X) → (thick-spine a n b → X)
 segal-restr a n b X g = pre (thick-spine a n b) g (thick-incl a n b)
 
-segal-restr-flat ∷ (a ∷ List ℕ) (n ∷ ℕ) (b ∷ List ℕ) (X ∷ U) → ♭(thick-simplex a n b → X) → ♭(thick-spine a n b → X)
-segal-restr-flat a n b X = flat-map (segal-restr a n b X)
+segal-restr♭ ∷ (a ∷ List ℕ) (n ∷ ℕ) (b ∷ List ℕ) (X ∷ U) → ♭(thick-simplex a n b → X) → ♭(thick-spine a n b → X)
+segal-restr♭ a n b X = flat-map (segal-restr a n b X)
 
 segal-restrᵣ ∷ (a ∷ List ℕ) (n ∷ ℕ) (b ∷ List ℕ) (X ∷ U) → (thick-simplex a n b →ᵣ X) → (thick-spine a n b →ᵣ X)
 segal-restrᵣ a n b X g =
@@ -54,9 +54,9 @@ is-segal X = (a ∷ List ℕ) (n ∷ ℕ) (b ∷ List ℕ) →
   is-equiv {thick-simplex a n b → X} {thick-spine a n b → X} (segal-restr a n b X)
 
 -- ♭-Segalness (global locality): only the global maps out of the shapes are tested
-is-segal-flat ∷ (X ∷ U) → U
-is-segal-flat X = (a ∷ List ℕ) (n ∷ ℕ) (b ∷ List ℕ) →
-  is-equiv {♭(thick-simplex a n b → X)} {♭(thick-spine a n b → X)} (segal-restr-flat a n b X)
+is-segal♭ ∷ (X ∷ U) → U
+is-segal♭ X = (a ∷ List ℕ) (n ∷ ℕ) (b ∷ List ℕ) →
+  is-equiv {♭(thick-simplex a n b → X)} {♭(thick-spine a n b → X)} (segal-restr♭ a n b X)
 
 -- oplax Segalness: restriction of oplax maps out of the shapes is an equivalence
 is-segalᵣ ∷ (X ∷ U) → U

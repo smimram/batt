@@ -5,7 +5,7 @@
 -- out of the test shapes (see Segal.batt and Complete.batt):
 --
 --   internal : is-segal X      × is-complete X        any X
---   flat     : is-segal-flat X × is-complete♭ X   crisp X
+--   flat     : is-segal♭ X    × is-complete♭ X      crisp X
 --   oplax    : is-segalᵣ X    × is-completeᵣ X      crisp X
 --   lax      : is-segalₗ X    × is-completeₗ X      crisp X
 --
@@ -24,8 +24,8 @@ is-rezk ∷ (X : U) → U
 is-rezk X = is-segal X × is-complete X
 
 -- ♭-Rezk types
-is-rezk-flat ∷ (X ∷ U) → U
-is-rezk-flat X = is-segal-flat X × is-complete♭ X
+is-rezk♭ ∷ (X ∷ U) → U
+is-rezk♭ X = is-segal♭ X × is-complete♭ X
 
 -- oplax Rezk types
 is-rezkᵣ ∷ (X ∷ U) → U
