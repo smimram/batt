@@ -1,0 +1,71 @@
+--
+-- Globular 2-cells: the 2-cells between f g : hom x y are the homs from f to g in hom x y. This
+-- file is meant to be imported qualified (import Hom2), since it redefines hom.
+--
+
+-- (Complete has to be imported before Hom, whose id shadows the one of Stdlib)
+open import Complete
+open import Coslice-fibration
+open import Composition
+
+--
+-- Hom types of oplax-Segal types are oplax-Segal: hom x y is the pullback of y : 1 → A along the
+-- target of the coslice x/A
+--
+
+-- the pullback of y : 1 → A along the target of the coslice x/A
+coslice-pullback ∷ {A ∷ U} (x y ∷ A) → U
+coslice-pullback {A} x y = pullback {⊤} {coslice x} {A} (λ _ . y) (λ w . tgtᵣ (coslice-cell {A} {x} w))
+
+hom→coslice-pullback-aux ∷ {A ∷ U} (x y ∷ A) (f : arrᵣ A) → hom-boundary x y f → coslice-pullback {A} x y
+hom→coslice-pullback-aux x y f (p , q) = (tt , (f , p) , sym q)
+
+hom→coslice-pullback ∷ {A ∷ U} (x y ∷ A) → hom x y → coslice-pullback {A} x y
+hom→coslice-pullback {A} x y (f , pq) = hom→coslice-pullback-aux {A} x y f pq
+
+coslice-pullback→hom-aux ∷ {A ∷ U} (x y ∷ A) (w : coslice x) → y ≡ tgtᵣ (coslice-cell {A} {x} w) → hom x y
+coslice-pullback→hom-aux x y (f , p) q = (f , p , sym q)
+
+coslice-pullback→hom ∷ {A ∷ U} (x y ∷ A) → coslice-pullback {A} x y → hom x y
+coslice-pullback→hom {A} x y (t , r) =
+  coslice-pullback→hom-aux {A} x y (fst (λ w . y ≡ tgtᵣ (coslice-cell {A} {x} w)) r) (snd (λ w . y ≡ tgtᵣ (coslice-cell {A} {x} w)) r)
+
+hom→coslice-pullback-ret-aux ∷ {A ∷ U} (x y ∷ A) (f : arrᵣ A) (pq : hom-boundary x y f) →
+  coslice-pullback→hom {A} x y (hom→coslice-pullback {A} x y (f , pq)) ≡ (f , pq)
+hom→coslice-pullback-ret-aux x y f (p , q) = cong {f 𝕀1 ≡ y} {hom x y} (λ q' . (f , p , q')) (sym-sym q)
+
+hom→coslice-pullback-sec-aux ∷ {A ∷ U} (x y ∷ A) (w : coslice x) (q : y ≡ tgtᵣ (coslice-cell {A} {x} w)) →
+  hom→coslice-pullback {A} x y (coslice-pullback→hom {A} x y (tt , w , q)) ≡ (tt , w , q)
+hom→coslice-pullback-sec-aux x y (f , p) q = cong {y ≡ f 𝕀1} {coslice-pullback x y} (λ q' . (tt , (f , p) , q')) (sym-sym q)
+
+hom→coslice-pullback-sec-tt ∷ {A ∷ U} (x y ∷ A) (r : Σ (w : coslice x) . y ≡ tgtᵣ (coslice-cell {A} {x} w)) →
+  hom→coslice-pullback {A} x y (coslice-pullback→hom {A} x y (tt , r)) ≡ (tt , r)
+hom→coslice-pullback-sec-tt x y (w , q) = hom→coslice-pullback-sec-aux x y w q
+
+hom→coslice-pullback-sec ∷ {A ∷ U} (x y ∷ A) (t : ⊤) (r : Σ (w : coslice x) . y ≡ tgtᵣ (coslice-cell {A} {x} w)) →
+  hom→coslice-pullback {A} x y (coslice-pullback→hom {A} x y (t , r)) ≡ (t , r)
+hom→coslice-pullback-sec x y tt r = hom→coslice-pullback-sec-tt x y r
+
+is-equiv-hom→coslice-pullback ∷ {A ∷ U} (x y ∷ A) → is-equiv (hom→coslice-pullback {A} x y)
+is-equiv-hom→coslice-pullback {A} x y =
+  ((coslice-pullback→hom {A} x y , fun (t , r) → hom→coslice-pullback-sec {A} x y t r) ,
+   (coslice-pullback→hom {A} x y , fun (f , pq) → hom→coslice-pullback-ret-aux {A} x y f pq))
+
+is-segalᵣ-hom ∷ {A ∷ U} → is-segalᵣ A → (x y ∷ A) → is-segalᵣ (hom x y)
+is-segalᵣ-hom {A} sA x y =
+  is-segalᵣ-equiv {hom x y} {coslice-pullback {A} x y}
+    (hom→coslice-pullback {A} x y) (is-equiv-hom→coslice-pullback {A} x y)
+    (is-segalᵣ-pullback {⊤} {coslice x} {A} (λ _ . y) (λ w . tgtᵣ (coslice-cell {A} {x} w))
+      is-segalᵣ-unit (is-segalᵣ-coslice {A} sA x) sA)
+
+--
+-- Globular 2-cells
+--
+
+-- globular 2-cells: homs in the hom type (the endpoints have to be crisp for it to be crisp)
+hom ∷ {A ∷ U} {x y ∷ A} (f g : hom x y) → U
+hom {A} {x} {y} f g = hom {hom x y} f g
+
+-- horizontal composition of 2-cells, in an oplax-Segal type
+comp ∷ {A ∷ U} → is-segalᵣ A → {x y ∷ A} {f g h : Hom.hom x y} → hom f g → hom g h → hom f h
+comp {A} sA {x} {y} {f} {g} {h} α β = comp-homᵣ (Hom.hom x y) (is-segalᵣ-hom {A} sA x y) {f} {g} {h} α β
