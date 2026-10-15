@@ -2,7 +2,7 @@
 -- Binary sums, encoded as Σ (b : Bool) . (A if b = false, B if b = true).
 -- The family is defined with Bool.rec.
 -- The cartesian eliminators are primitive. The non-dependent oplax and lax eliminators,
--- with non-crisp branches, (A →ᵣ C) → (B →ᵣ C) → (sum A B →ᵣ C) and its lax counterpart, are derived
+-- with non-crisp branches, (A →ᵣ C) → (B →ᵣ C) → (A + B →ᵣ C) and its lax counterpart, are derived
 -- at the end of the file from the cartesian one. 
 --
 
@@ -13,43 +13,45 @@ open import Sigma
 sum ∷ Type → Type → Type
 sum A B = Σ (b : Bool) . Bool.rec A B b
 
-inl ∷ {A B : Type} → A → sum A B
+add = sum
+
+inl ∷ {A B : Type} → A → A + B
 inl a = (false , a)
 
-inr ∷ {A B : Type} → B → sum A B
+inr ∷ {A B : Type} → B → A + B
 inr b = (true , b)
 
 -- dependent eliminator; β holds judgmentally
-ind ∷ {A B : Type} (C : sum A B → Type) → ((a : A) → C (inl a)) → ((b : B) → C (inr b)) → (u : sum A B) → C u
+ind ∷ {A B : Type} (C : A + B → Type) → ((a : A) → C (inl a)) → ((b : B) → C (inr b)) → (u : A + B) → C u
 ind {A} {B} C l r (b , x) = Bool.ind (λ b . (x : Bool.rec A B b) → C (b , x)) l r b x
 
-rec ∷ {A B C : Type} → (A → C) → (B → C) → sum A B → C
+rec ∷ {A B C : Type} → (A → C) → (B → C) → A + B → C
 rec {A} {B} {C} l r = ind {A} {B} (λ _ . C) l r
 
 ---
 --- r/l sum eliminators, derived from ordinary recursion
 ---
 
--- the family sum A B → (G →ₗ C), with G = (A →ᵣ C) × (B →ᵣ C)
-recᵣ-family ∷ (A B C ∷ U) → sum A B → ((A →ᵣ C) × (B →ᵣ C)) →ₗ C
+-- the family A + B → (G →ₗ C), with G = (A →ᵣ C) × (B →ᵣ C)
+recᵣ-family ∷ (A B C ∷ U) → A + B → ((A →ᵣ C) × (B →ᵣ C)) →ₗ C
 recᵣ-family A B C = rec {A} {B} {((A →ᵣ C) × (B →ᵣ C)) →ₗ C}
   (λ a . λ w . Product.fst {A →ᵣ C} {B →ᵣ C} w a)
   (λ b . λ w . Product.snd {A →ᵣ C} {B →ᵣ C} w b)
 
 -- oplax eliminator
-recᵣ ∷ (A B C ∷ U) → (A →ᵣ C) → (B →ᵣ C) → (sum A B →ᵣ C)
+recᵣ ∷ (A B C ∷ U) → (A →ᵣ C) → (B →ᵣ C) → (A + B →ᵣ C)
 recᵣ A B C l r =
-  let E ∷ sum A B → ((A →ᵣ C) × (B →ᵣ C)) →ₗ C = recᵣ-family A B C in
+  let E ∷ A + B → ((A →ᵣ C) × (B →ᵣ C)) →ₗ C = recᵣ-family A B C in
   λ u . E u (l , r)
 
--- the family sum A B → (G →ᵣ C), with G = (A →ₗ C) × (B →ₗ C)
-recₗ-family ∷ (A B C ∷ U) → sum A B → ((A →ₗ C) × (B →ₗ C)) →ᵣ C
+-- the family A + B → (G →ᵣ C), with G = (A →ₗ C) × (B →ₗ C)
+recₗ-family ∷ (A B C ∷ U) → A + B → ((A →ₗ C) × (B →ₗ C)) →ᵣ C
 recₗ-family A B C = rec {A} {B} {((A →ₗ C) × (B →ₗ C)) →ᵣ C}
   (λ a . λ w . Product.fst {A →ₗ C} {B →ₗ C} w a)
   (λ b . λ w . Product.snd {A →ₗ C} {B →ₗ C} w b)
 
 -- lax eliminator
-recₗ ∷ (A B C ∷ U) → (A →ₗ C) → (B →ₗ C) → (sum A B →ₗ C)
+recₗ ∷ (A B C ∷ U) → (A →ₗ C) → (B →ₗ C) → (A + B →ₗ C)
 recₗ A B C l r =
-  let E ∷ sum A B → ((A →ₗ C) × (B →ₗ C)) →ᵣ C = recₗ-family A B C in
+  let E ∷ A + B → ((A →ₗ C) × (B →ₗ C)) →ᵣ C = recₗ-family A B C in
   λ u . E u (l , r)

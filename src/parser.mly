@@ -117,7 +117,7 @@ prod_term:
   | a=prod_term TENS b=prod_term { mk ~pos:$loc @@ Tens (a, b) }
   | a=prod_term TENSP b=prod_term { mk ~pos:$loc @@ TensPair (a, b) }
   | a=prod_term TIMES b=prod_term { mk ~pos:$loc @@ Sigma ("_", a, b) }
-  | a=prod_term PLUS b=prod_term { mk ~pos:$loc @@ apps (mk ~pos:$loc($2) @@ Var "sum") [a; b] }
+  | a=prod_term PLUS b=prod_term { mk ~pos:$loc @@ apps (mk ~pos:$loc($2) @@ Var "add") [a; b] }
   | t=prod_term IDEQ u=prod_term { mk ~pos:$loc @@ Eq (meta ~pos:$loc, t, u) }
   | t=prod_term IDEQ LACC a=term RACC u=prod_term %prec IDEQ { mk ~pos:$loc @@ Eq (a, t, u) }
   | t=prod_term op=INFIX0 u=prod_term { mk ~pos:$loc @@ apps (mk ~pos:$loc(op) @@ Var op) [t; u] }
