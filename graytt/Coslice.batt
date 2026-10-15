@@ -24,7 +24,7 @@ coslice-src {A} {a} s = snd {arrᵣ A} (λ f . srcᵣ f ≡ a) s
 
 -- evaluation at the target
 coslice-tgt ∷ {A ∷ U} {a : A} → coslice a → A
-coslice-tgt {A} {a} s = tgtᵣ (coslice-cell {A} {a} s)
+coslice-tgt s = tgtᵣ (coslice-cell s)
 
 -- the identity of a, as an object of the coslice
 coslice-id ∷ {A ∷ U} (a : A) → coslice a
