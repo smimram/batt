@@ -224,10 +224,10 @@ yoneda {A} a F sA sF cF yc =
 --
 
 -- the statement, for g : hom b a and a 1-cell f from a
-yon-hom-conn-cocart-stmt ∷ {A ∷ U} (rA : is-rezkᵣ A) (a b ∷ A) → hom {A} b a × coslice A a → U
+yon-hom-conn-cocart-stmt ∷ {A ∷ U} (rA : is-rezkᵣ A) (a b ∷ A) → hom {A} b a × coslice a → U
 yon-hom-conn-cocart-stmt {A} rA a b (g , fp) =
   let sA : is-segalᵣ A = rezk-segalᵣ {A} rA in
-  let k : coslice A a → U = fun (f , p) →
+  let k : coslice a → U = fun (f , p) →
     is-cocartesian {Σ (x : A) . hom-family {A} b x} {A} (is-segalᵣ-hom-family {A} sA b) sA (fst (hom-family {A} b))
       (hom-map {Σ (x : A) . hom-family {A} a x} {Σ (x : A) . hom-family {A} b x}
         (yon-total {A} a (hom-family {A} b) sA (is-segalᵣ-hom-family {A} sA b) (hom-family-covariant {A} rA b) g)
@@ -262,13 +262,13 @@ yon-hom-conn-cocart-simplex {A} rA a b σ γ₀ γ₁ =
     (htpyᵣ→path 𝕀 Eb H) (snd _ (hom-family-lift {A} sA b σ γ₀))
 
 -- Y sends every connection to a cocartesian 1-cell
-yon-hom-conn-cocart ∷ {A ∷ U} (rA : is-rezkᵣ A) (a b ∷ A) (z : hom {A} b a × coslice A a) → yon-hom-conn-cocart-stmt {A} rA a b z
+yon-hom-conn-cocart ∷ {A ∷ U} (rA : is-rezkᵣ A) (a b ∷ A) (z : hom {A} b a × coslice a) → yon-hom-conn-cocart-stmt {A} rA a b z
 yon-hom-conn-cocart {A} rA a b z =
   let R : (σ : simplex 2 →ᵣ A) → U = λ σ .
-    Σ (γ₀ : σ (Simplex2.edge₀₁ 𝕀0) ≡ b) . Σ (γ₁ : σ (Simplex2.edge₀₁ 𝕀1) ≡ a) . pair→hom-coslice {A} a b (edges-2 {A} σ) γ₀ γ₁ ≡ z in
+    Σ (γ₀ : σ (Simplex2.edge₀₁ 𝕀0) ≡ b) . Σ (γ₁ : σ (Simplex2.edge₀₁ 𝕀1) ≡ a) . pair→hom-coslice a b (edges-2 {A} σ) γ₀ γ₁ ≡ z in
   let k : (Σ (σ : simplex 2 →ᵣ A) . R σ) → yon-hom-conn-cocart-stmt {A} rA a b z = fun (σ , r) →
     let k2 : (r : R σ) → yon-hom-conn-cocart-stmt {A} rA a b z = fun (γ₀ , r2) →
-      let k3 : (r2 : Σ (γ₁ : σ (Simplex2.edge₀₁ 𝕀1) ≡ a) . pair→hom-coslice {A} a b (edges-2 {A} σ) γ₀ γ₁ ≡ z) →
+      let k3 : (r2 : Σ (γ₁ : σ (Simplex2.edge₀₁ 𝕀1) ≡ a) . pair→hom-coslice a b (edges-2 {A} σ) γ₀ γ₁ ≡ z) →
                yon-hom-conn-cocart-stmt {A} rA a b z = fun (γ₁ , E) →
         subst (yon-hom-conn-cocart-stmt {A} rA a b) E
           (yon-hom-conn-cocart-simplex {A} rA a b σ (trans refl γ₀) (trans refl γ₁)) in

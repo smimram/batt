@@ -35,25 +35,25 @@ hom-family ∷ {A ∷ U} (a ∷ A) → A → U
 hom-family {A} a x = hom {A} a x
 
 -- its total space is the coslice
-coslice→hom-family ∷ {A ∷ U} (a ∷ A) → coslice A a → Σ (x : A) . hom-family {A} a x
+coslice→hom-family ∷ {A ∷ U} (a ∷ A) → coslice a → Σ (x : A) . hom-family {A} a x
 coslice→hom-family {A} a w = (coslice-tgt {A} {a} w , coslice-cell {A} {a} w , coslice-src {A} {a} w , refl)
 
-hom-family→coslice ∷ {A ∷ U} (a ∷ A) → (Σ (x : A) . hom-family {A} a x) → coslice A a
-hom-family→coslice {A} a (x , h) = (hom-cell {A} {a} {x} h , hom-src {A} {a} {x} h)
+hom-family→coslice ∷ {A ∷ U} (a ∷ A) → (Σ (x : A) . hom-family {A} a x) → coslice a
+hom-family→coslice a (x , h) = (hom-cell {A} {a} {x} h , hom-src {A} {a} {x} h)
 
 is-equiv-coslice→hom-family ∷ {A ∷ U} (a ∷ A) → is-equiv (coslice→hom-family {A} a)
 is-equiv-coslice→hom-family {A} a =
-  let sec : (w : Σ (x : A) . hom-family {A} a x) → coslice→hom-family {A} a (hom-family→coslice {A} a w) ≡ w =
+  let sec : (w : Σ (x : A) . hom-family {A} a x) → coslice→hom-family {A} a (hom-family→coslice a w) ≡ w =
     fun (x , h) →
-      let k : (h : hom {A} a x) → coslice→hom-family {A} a (hom-family→coslice {A} a (x , h)) ≡ (x , h) =
+      let k : (h : hom {A} a x) → coslice→hom-family {A} a (hom-family→coslice a (x , h)) ≡ (x , h) =
         fun (f , r) →
-          let k2 : (r : (srcᵣ f ≡ a) × (tgtᵣ f ≡ x)) → coslice→hom-family {A} a (hom-family→coslice {A} a (x , f , r)) ≡ (x , f , r) =
+          let k2 : (r : (srcᵣ f ≡ a) × (tgtᵣ f ≡ x)) → coslice→hom-family {A} a (hom-family→coslice a (x , f , r)) ≡ (x , f , r) =
             fun (p , q) → homs-from-tgt-path {A} {a} f p {x} q in
           k2 r in
       k h in
-  let retr : (w : coslice A a) → hom-family→coslice {A} a (coslice→hom-family {A} a w) ≡ w =
+  let retr : (w : coslice a) → hom-family→coslice a (coslice→hom-family {A} a w) ≡ w =
     fun (f , p) → refl in
-  ((hom-family→coslice {A} a , sec) , (hom-family→coslice {A} a , retr))
+  ((hom-family→coslice a , sec) , (hom-family→coslice a , retr))
 
 -- an object (z , λ j . z , p , refl) of E, with p : z ≡ a, is the identity of a (by path induction
 -- on sym p, whose free endpoint is on the right)
@@ -92,7 +92,7 @@ hom-family-id-path-tot {A} a G φ {z} p =
 -- the total space of the hom family is oplax-Segal
 is-segalᵣ-hom-family ∷ {A ∷ U} (sA : is-segalᵣ A) (a ∷ A) → is-segalᵣ (Σ (x : A) . hom-family {A} a x)
 is-segalᵣ-hom-family {A} sA a =
-  is-segalᵣ-equiv-cod {coslice A a} {Σ (x : A) . hom-family {A} a x}
+  is-segalᵣ-equiv-cod {coslice a} {Σ (x : A) . hom-family {A} a x}
     (coslice→hom-family {A} a) (is-equiv-coslice→hom-family {A} a) (is-segalᵣ-coslice {A} sA a)
 
 -- hom families of oplax-Rezk types are covariant
@@ -100,7 +100,7 @@ hom-family-covariant ∷ {A ∷ U} (rA : is-rezkᵣ A) (a ∷ A) →
   is-covariant {A} (hom-family {A} a) (rezk-segalᵣ {A} rA) (is-segalᵣ-hom-family {A} (rezk-segalᵣ {A} rA) a)
 hom-family-covariant {A} rA a =
   let sA : is-segalᵣ A = rezk-segalᵣ {A} rA in
-  is-cocartesian-fibration-equiv {coslice A a} {Σ (x : A) . hom-family {A} a x} {A}
+  is-cocartesian-fibration-equiv {coslice a} {Σ (x : A) . hom-family {A} a x} {A}
     (is-segalᵣ-coslice {A} sA a) (is-segalᵣ-hom-family {A} sA a) sA
     (coslice→hom-family {A} a) (is-equiv-coslice→hom-family {A} a) (fst (hom-family {A} a))
     (coslice-fibration {A} rA a)
@@ -134,7 +134,7 @@ hom-family-conn {A} a f p = λ i . coslice→hom-family {A} a (conn {A} f i , p)
 hom-family-lift ∷ {A ∷ U} (sA : is-segalᵣ A) (a ∷ A) (σ : simplex 2 →ᵣ A) (γ : srcᵣ (lift-sq {A} σ 𝕀0) ≡ a) →
   cocart-cell {Σ (x : A) . hom-family {A} a x} {A} (is-segalᵣ-hom-family {A} sA a) sA (fst (hom-family {A} a))
 hom-family-lift {A} sA a σ γ =
-  cocart-cell-equiv {coslice A a} {Σ (x : A) . hom-family {A} a x} {A} (is-segalᵣ-coslice {A} sA a) (is-segalᵣ-hom-family {A} sA a) sA
+  cocart-cell-equiv {coslice a} {Σ (x : A) . hom-family {A} a x} {A} (is-segalᵣ-coslice {A} sA a) (is-segalᵣ-hom-family {A} sA a) sA
     (coslice→hom-family {A} a) (is-equiv-coslice→hom-family {A} a) (fst (hom-family {A} a)) (coslice-lift-sq {A} sA a σ γ)
 
 -- the connections are cocartesian: Γ̄_f is χ̄_σ for the degenerate 2-simplex σ = λ y . f y₂
@@ -179,7 +179,7 @@ hom-family-cocart-cell-ind ∷ {A ∷ U} (rA : is-rezkᵣ A) (a ∷ A)
          (fst (hom-family {A} a))) → P w
 hom-family-cocart-cell-ind {A} rA a P H w =
   let sA : is-segalᵣ A = rezk-segalᵣ {A} rA in
-  let S ∷ U = coslice A a in
+  let S ∷ U = coslice a in
   let E ∷ U = Σ (x : A) . hom-family {A} a x in
   let sS : is-segalᵣ S = is-segalᵣ-coslice {A} sA a in
   let sE : is-segalᵣ E = is-segalᵣ-hom-family {A} sA a in

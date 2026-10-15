@@ -218,11 +218,11 @@ pair→pair-from-subst {X} a {P'} refl p = refl
 
 -- a composable pair whose first and middle objects are identified with b and a, as a hom g : b → a
 -- and a 1-cell f from a (the paths are appended to the endpoint paths of g and to the source of f)
-pair→hom-coslice ∷ {X ∷ U} (a b : X) (P : pairs X) → fst (pair-from X) P ≡ b → pair-mid {X} P ≡ a → hom {X} b a × coslice X a
-pair→hom-coslice {X} a b (x , r) =
-  let k : (r : pair-from X x) → x ≡ b → pair-mid {X} (x , r) ≡ a → hom {X} b a × coslice X a = fun (y , r2) → λ γ₀ γ₁ .
-    let k2 : (r2 : Σ (z : X) . hom {X} x y × hom {X} y z) → hom {X} b a × coslice X a = fun (z , uv) →
-      let k3 : (uv : hom {X} x y × hom {X} y z) → hom {X} b a × coslice X a = fun (u , v) →
+pair→hom-coslice ∷ {X ∷ U} (a b : X) (P : pairs X) → fst (pair-from X) P ≡ b → pair-mid {X} P ≡ a → hom {X} b a × coslice a
+pair→hom-coslice a b (x , r) =
+  let k : (r : pair-from X x) → x ≡ b → pair-mid {X} (x , r) ≡ a → hom {X} b a × coslice a = fun (y , r2) → λ γ₀ γ₁ .
+    let k2 : (r2 : Σ (z : X) . hom {X} x y × hom {X} y z) → hom {X} b a × coslice a = fun (z , uv) →
+      let k3 : (uv : hom {X} x y × hom {X} y z) → hom {X} b a × coslice a = fun (u , v) →
         ((hom-cell {X} {x} {y} u , trans (hom-src {X} {x} {y} u) γ₀ , trans (hom-tgt {X} {x} {y} u) γ₁) ,
          (hom-cell {X} {y} {z} v , trans (hom-src {X} {y} {z} v) γ₁)) in
       k3 uv in
@@ -231,6 +231,6 @@ pair→hom-coslice {X} a b (x , r) =
 
 -- transporting the paths along a path of pairs
 pair→hom-coslice-subst ∷ {X ∷ U} (a b : X) {P' P : pairs X} (E : P' ≡ P) (γ₀ : fst (pair-from X) P ≡ b) (γ₁ : pair-mid {X} P ≡ a) →
-  pair→hom-coslice {X} a b P' (subst (λ Q . fst (pair-from X) Q ≡ b) (sym E) γ₀) (subst (λ Q . pair-mid {X} Q ≡ a) (sym E) γ₁)
-    ≡ pair→hom-coslice {X} a b P γ₀ γ₁
+  pair→hom-coslice a b P' (subst (λ Q . fst (pair-from X) Q ≡ b) (sym E) γ₀) (subst (λ Q . pair-mid {X} Q ≡ a) (sym E) γ₁)
+    ≡ pair→hom-coslice a b P γ₀ γ₁
 pair→hom-coslice-subst {X} a b {P'} refl γ₀ γ₁ = refl
