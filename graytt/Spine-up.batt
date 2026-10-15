@@ -28,27 +28,21 @@ open import Wedge
 --
 
 -- coordinates, with explicit implicit arguments
-cube-2-x1 ∷ cart-cube 2 → 𝕀
-cube-2-x1 c = Product.fst {𝕀} {cart-cube 1} c
-
 cube-2-tail ∷ cart-cube 2 → cart-cube 1
 cube-2-tail c = Product.snd {𝕀} {cart-cube 1} c
-
-cube-2-x2 ∷ cart-cube 2 → 𝕀
-cube-2-x2 c = Product.fst {𝕀} {⊤} (cube-2-tail c)
 
 -- the two propositions whose disjunction defines the spine
 spine2-on-edge-1 ∷ cart-cube 2 → U
 spine2-on-edge-1 c = cube-2-tail c ≡{cart-cube 1} origin 1
 
 spine2-on-edge-2 ∷ cart-cube 2 → U
-spine2-on-edge-2 c = (cube-2-x1 c ≡ 𝕀1) × is-in-spine 1 (cube-2-tail c)
+spine2-on-edge-2 c = (CCube2.fst c ≡ 𝕀1) × is-in-spine 1 (cube-2-tail c)
 
 is-prop-spine2-on-edge-1 ∷ (c : cart-cube 2) → is-prop (spine2-on-edge-1 c)
 is-prop-spine2-on-edge-1 c = is-set-cart-cube 1 (cube-2-tail c) (origin 1)
 
 is-prop-spine2-on-edge-2 ∷ (c : cart-cube 2) → is-prop (spine2-on-edge-2 c)
-is-prop-spine2-on-edge-2 c = is-prop-prod (is-set-𝕀 (cube-2-x1 c) 𝕀1) (is-prop-is-in-spine 1 (cube-2-tail c))
+is-prop-spine2-on-edge-2 c = is-prop-prod (is-set-𝕀 (CCube2.fst c) 𝕀1) (is-prop-is-in-spine 1 (cube-2-tail c))
 
 spine-is-union ∷ spine 2 ≡ union spine2-on-edge-1 spine2-on-edge-2
 spine-is-union = refl

@@ -40,7 +40,7 @@ simplex2-snd-on-edge-1 (c , w) = cong (Product.fst {𝕀} {⊤}) w
 
 -- on the second edge {x₁ = 1}: the first coordinate is 1, the second is the coordinate of the edge
 simplex2-fst-on-edge-2 ∷ (b : spine2-edge-2) → Simplex2.fst (spine→simplex 2 (spine2-edge-2-incl b)) ≡ 𝕀1
-simplex2-fst-on-edge-2 (c , w) = Product.fst {cube-2-x1 c ≡ 𝕀1} {is-in-spine 1 (cube-2-tail c)} w
+simplex2-fst-on-edge-2 (c , w) = Product.fst {CCube2.fst c ≡ 𝕀1} {is-in-spine 1 (cube-2-tail c)} w
 
 simplex2-snd-on-edge-2 ∷ (b : spine2-edge-2) → Simplex2.snd (spine→simplex 2 (spine2-edge-2-incl b)) ≡ spine2-edge-2→𝕀 b
 simplex2-snd-on-edge-2 (c , w) = refl

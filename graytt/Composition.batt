@@ -138,10 +138,10 @@ compᵣ-unique {X} s φ Ψ H =
 
 -- the first coordinate on the first edge, the second one on the second edge
 spine2-edge-1→𝕀 ∷ spine2-edge-1 → 𝕀
-spine2-edge-1→𝕀 (c , a) = cube-2-x1 c
+spine2-edge-1→𝕀 (c , a) = CCube2.fst c
 
 spine2-edge-2→𝕀 ∷ spine2-edge-2 → 𝕀
-spine2-edge-2→𝕀 (c , b) = cube-2-x2 c
+spine2-edge-2→𝕀 (c , b) = CCube2.snd c
 
 -- the oplax cocone formed by two consecutive homs
 homs→spine2-cocone ∷ {X ∷ U} {x y z : X} → hom x y → hom y z → spine2-coconeᵣ X
@@ -370,9 +370,8 @@ comp-simplex2 ∷ {X ∷ U} (s : is-segalᵣ X) (Ψ : simplex 2 →ᵣ X) →
   comp-homᵣ s (simplex2-hom₀₁ Ψ)
     (simplex2-hom₁₂ Ψ) ≡ simplex2-hom₀₂ Ψ
 comp-simplex2 s Ψ =
-  trans (fill-hom-unique s
-      (simplex2-hom₀₁ Ψ) (simplex2-hom₁₂ Ψ)
-           (Ψ , simplex2→cocone-edges Ψ))
+  trans
+    (fill-hom-unique s (simplex2-hom₀₁ Ψ) (simplex2-hom₁₂ Ψ) (Ψ , simplex2→cocone-edges Ψ))
     (fill-hom-simplex2 Ψ)
 
 -- the same with a path from the first vertex to any point, as source path of the first edge
