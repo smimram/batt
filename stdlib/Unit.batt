@@ -4,11 +4,14 @@
 
 t = ⊤
 
-unit-ind ∷ (A ∷ ⊤ → U) → A tt → (x : ⊤) → A x
-unit-ind A a tt = a
+ind ∷ (A ∷ ⊤ → U) → A tt → (x : ⊤) → A x
+ind A a tt = a
 
-unit-recₗ ∷ (A ∷ U) → A → ⊤ →ₗ A
-unit-recₗ A a tt = a
+recₗ ∷ {A ∷ U} → A → ⊤ →ₗ A
+recₗ a tt = a
+
+recᵣ ∷ {A ∷ U} → A → ⊤ →ᵣ A
+recᵣ a tt = a
 
 -- terminal arrow
 terminal ∷ (A : U) → A → ⊤
@@ -25,13 +28,13 @@ unit→-equiv ∷ {A ∷ U} → (⊤ → A) ≃ A
 unit→-equiv {A} = iso→equiv {⊤ → A} {A} (λ f . f tt) (λ a _ . a) (λ a . refl) (λ f . funext-nd (λ _ . f tt) f (λ tt . refl))
 
 terminal-equiv ∷ {A : U} → (A → ⊤) ≃ ⊤
-terminal-equiv {A} = iso→equiv {A → ⊤} {⊤} (λ _ . tt) (λ _ _ . tt) (λ tt . refl) (λ f . funext-nd (λ _ . tt) f (λ a . unit-ind (λ y . tt ≡ y) refl (f a)))
-
-terminal-equivᵣ ∷ {A ∷ U} → (A ⇁ ⊤) ≃ ⊤
-terminal-equivᵣ {A} = iso→equiv {A ⇁ ⊤} {⊤} (λ _ . tt) (λ _ _ . tt) (λ tt . refl) (λ f . snd _ (snd _ (funextᵣ A ⊤ (λ a . (tt , f a , unit-ind (λ y . tt ≡ y) refl (f a))))))
+terminal-equiv {A} = iso→equiv {A → ⊤} {⊤} (λ _ . tt) (λ _ _ . tt) (λ tt . refl) (λ f . funext-nd (λ _ . tt) f (λ a . ind (λ y . tt ≡ y) refl (f a)))
 
 terminal-equivₗ ∷ {A ∷ U} → (A →ₗ ⊤) ≃ ⊤
-terminal-equivₗ {A} = iso→equiv {A →ₗ ⊤} {⊤} (λ _ . tt) (λ _ _ . tt) (λ tt . refl) (λ f . snd _ (snd _ (funextₗ A ⊤ (λ a . (tt , f a , unit-ind (λ y . tt ≡ y) refl (f a))))))
+terminal-equivₗ {A} = iso→equiv {A →ₗ ⊤} {⊤} (λ _ . tt) (λ _ _ . tt) (λ tt . refl) (λ f . snd _ (snd _ (funextₗ A ⊤ (λ a . (tt , f a , ind (λ y . tt ≡ y) refl (f a))))))
+
+terminal-equivᵣ ∷ {A ∷ U} → (A →ᵣ ⊤) ≃ ⊤
+terminal-equivᵣ {A} = iso→equiv {A ⇁ ⊤} {⊤} (λ _ . tt) (λ _ _ . tt) (λ tt . refl) (λ f . snd _ (snd _ (funextᵣ A ⊤ (λ a . (tt , f a , ind (λ y . tt ≡ y) refl (f a))))))
 
 ---
 --- The unit type is a proposition

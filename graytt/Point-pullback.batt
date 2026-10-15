@@ -80,7 +80,7 @@ is-equiv-point-pullback→pullback {Y} {B} r b =
   let P ∷ U = pullback {⊤} {Y} {B} (λ _ . b) r in
   let sec : (z : P) → point-pullback→pullback {Y} {B} r b (pullback→point-pullback {Y} {B} r b z) ≡ z = fun (t , w) →
     let h : (t : ⊤) (w : Σ (y : Y) . b ≡ r y) → point-pullback→pullback {Y} {B} r b (pullback→point-pullback {Y} {B} r b (t , w)) ≡{P} (t , w) =
-      λ t . unit-ind (λ t' . (w : Σ (y : Y) . b ≡ r y) → point-pullback→pullback {Y} {B} r b (pullback→point-pullback {Y} {B} r b (t' , w)) ≡{P} (t' , w))
+      λ t . Unit.ind (λ t' . (w : Σ (y : Y) . b ≡ r y) → point-pullback→pullback {Y} {B} r b (pullback→point-pullback {Y} {B} r b (t' , w)) ≡{P} (t' , w))
         (fun (y , d) → refl) t in
     h t w in
   let ret : (w : point-pullback {Y} {B} r b) → pullback→point-pullback {Y} {B} r b (point-pullback→pullback {Y} {B} r b w) ≡ w =
