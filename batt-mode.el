@@ -5,9 +5,9 @@
    ("--.*" . 'font-lock-comment-face)
    ;; Definition names come before operators so that names containing
    ;; symbols (e.g. f→g) are highlighted as a whole.
-   ("^\\(abstract\\)[ \t]+\\([^ (=\n]+\\)" (1 font-lock-keyword-face) (2 'font-lock-function-name-face))
-   ("^\\(end\\)\\_>" 1 font-lock-keyword-face)
-   ("^\\([^ (=\n]+\\)" 1 'font-lock-function-name-face)
+   ("^[ \t]*\\(abstract\\)[ \t]+\\([^ (=\n]+\\)" (1 font-lock-keyword-face) (2 'font-lock-function-name-face))
+   ("^[ \t]*\\(end\\)\\_>" 1 font-lock-keyword-face)
+   ("^[ \t]*\\([^ \t(=\n]+\\)" 1 'font-lock-function-name-face)
    ("\\_<\\(let\\|in\\|fun\\|λ\\|open\\|import\\|abstract\\|record\\|end\\)\\_>\\|:\\|∷\\|=" . font-lock-keyword-face)
    ("\\_<\\(true\\|false\\|tt\\|refl\\|zero\\|succ\\|nil\\|cons\\|[0-9]+\\)\\_>" . font-lock-constant-face)
    ("\\<\\(Nat\\|ℕ\\)" 1 font-lock-builtin-face)
