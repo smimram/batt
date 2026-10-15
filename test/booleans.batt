@@ -1,36 +1,36 @@
--- identity on Bool
-idbool : Bool → Bool
+-- identity on bool
+idbool : bool → bool
 idbool x = x
 
-idbool' : Bool → Bool
+idbool' : bool → bool
 idbool' false = false
 idbool' true  = true
 
-idbool'IsId : (b : Bool) → idbool' b ≡ b
+idbool'IsId : (b : bool) → idbool' b ≡ b
 idbool'IsId false = refl
 idbool'IsId true = refl
 
 -- definitions by multiple clauses
-not : Bool → Bool
+not : bool → bool
 not false = true
 not true  = false
 
-and : Bool → Bool → Bool
+and : bool → bool → bool
 and false _ = false
 and true  b = b
 
-or : Bool → Bool → Bool
+or : bool → bool → bool
 or b false = b
 or _ true  = true
 
-xor : Bool → Bool → Bool
+xor : bool → bool → bool
 xor false x = x
 xor true  y = not y
 
-notnot : (b : Bool) → not (not b) ≡ b
+notnot : (b : bool) → not (not b) ≡ b
 notnot false = refl
 notnot true  = refl
 
-andfalse : (b : Bool) → and b false ≡ false
+andfalse : (b : bool) → and b false ≡ false
 andfalse false = refl
 andfalse true  = refl

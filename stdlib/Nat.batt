@@ -8,6 +8,8 @@ open import Equality
 open import Product
 open import Sigma
 
+t = ℕ
+
 -- Dependent eliminator
 ind ∷ (A : ℕ → U) → A zero → ((n : ℕ) → A n → A (succ n)) → (n : ℕ) → A n
 ind A z s zero = z

@@ -17,7 +17,6 @@ let rec token lexbuf =
   | Utf8 "⊥" | "\\bot" -> EMPTY
   | Utf8 "⊤" | "\\top" -> UNIT
   | "tt" -> TT
-  | "Bool" -> BOOL
   | "false" -> FALSE
   | "true" -> TRUE
   | Utf8 "∷" | "::" -> CCOLON

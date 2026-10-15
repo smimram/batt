@@ -2,6 +2,8 @@
 -- The unit type ⊤
 --
 
+t = ⊤
+
 unit-ind ∷ (A ∷ ⊤ → U) → A tt → (x : ⊤) → A x
 unit-ind A a tt = a
 

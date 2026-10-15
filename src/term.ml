@@ -7,7 +7,7 @@ type inductive_type = [`Empty | `Unit | `Bool | `Nat | `List]
 let string_of_inductive_type = function
   | `Empty -> "Empty"
   | `Unit -> "Unit"
-  | `Bool -> "Bool"
+  | `Bool -> "bool"
   | `Nat -> "Nat"
   | `List -> "List"
 

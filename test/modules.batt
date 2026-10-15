@@ -2,26 +2,26 @@ import Bool
 
 import Bool
 
-f : Bool → Bool → Bool
+f : bool → bool → bool
 f = Bool.or
 
 r = record
   n : ℕ
   n = 5
 
-  b : Bool
+  b : bool
   b = false
 end
 
 y : ℕ
 y = r.n
 
-z : Bool
+z : bool
 z = r.b
 
 open r
 
-b' : Bool
+b' : bool
 b' = b
 
 -- nested records and records referring to previous fields

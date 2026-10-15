@@ -1,9 +1,9 @@
 -- testing dependent types
 
-X : Bool → Type
-X _ = Bool
+X : bool → Type
+X _ = bool
 
-t : Bool
+t : bool
 t = true
 
 Y : X t

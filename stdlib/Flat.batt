@@ -63,11 +63,11 @@ crispify-unit tt = 𝄫tt
 is-section-crispify-unit ∷ (t : ⊤) → unflatten (crispify-unit t) ≡ t
 is-section-crispify-unit tt = refl
 
-crispify-bool ∷ Bool → ♭Bool
+crispify-bool ∷ bool → ♭bool
 crispify-bool false = 𝄫false
 crispify-bool true  = 𝄫true
 
-is-section-crispify-bool ∷ (b : Bool) → unflatten (crispify-bool b) ≡ b
+is-section-crispify-bool ∷ (b : bool) → unflatten (crispify-bool b) ≡ b
 is-section-crispify-bool = Bool.ind (λb. unflatten (crispify-bool b) ≡ b) refl refl
 
 ---

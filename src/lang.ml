@@ -1104,6 +1104,8 @@ let check_decls_toplevel decls =
       add "empty" type0 empty;
       let unit = V.IndType (`Unit, []) in
       add "unit" type0 unit;
+      let bool = V.IndType (`Bool, []) in
+      add "bool" type0 bool;
       (* The successor function (constructors are always fully applied, so we eta-expand). *)
       add "succ" (V.Pi (Explicit, Normal, IndType (`Nat, []), ("_", IndType (`Nat, []), []))) (V.eval [] @@ Abs (Explicit, "n", IndTerm (`Succ, [Var "n"])));
       (* Lists. *)

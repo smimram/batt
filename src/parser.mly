@@ -19,7 +19,7 @@ let meta ~pos = mk ~pos @@ Meta (`Fresh (Some pos))
 %token<int> INT
 %token EMPTY
 %token UNIT TT
-%token BOOL FALSE TRUE
+%token FALSE TRUE
 %token TO TOL TOR FUN DOT SIGMA TIMES PLUS TENS TENSP
 %token FLAT FLATTEN
 %token IDEQ REFL
@@ -76,7 +76,6 @@ atom:
   | EMPTY { mk ~pos:$loc @@ IndType (`Empty, []) }
   | UNIT { mk ~pos:$loc @@ IndType (`Unit, []) }
   | TT { mk ~pos:$loc @@ IndTerm (`Unit, []) }
-  | BOOL %prec below_DOT { mk ~pos:$loc @@ IndType (`Bool, []) }
   | FALSE { mk ~pos:$loc @@ IndTerm (`Bool false, []) }
   | TRUE { mk ~pos:$loc @@ IndTerm (`Bool true, []) }
   | IDENT { mk ~pos:$loc @@ Var $1 }
@@ -97,7 +96,6 @@ atom:
   | LANGLE t=term RANGLE { app ~pos:$loc (mk ~pos:$loc($1) @@ Var "type") t }
   | DBAR t=term DBAR { app ~pos:$loc (mk ~pos:$loc($1) @@ Var "trunc") t }
   | t=atom DOT x=IDENT { mk ~pos:$loc @@ RecordField (t, x) }
-  | BOOL DOT x=IDENT { mk ~pos:$loc @@ RecordField (mk ~pos:$loc($1) @@ Var "Bool", x) }
   | NAT DOT x=IDENT { mk ~pos:$loc @@ RecordField (mk ~pos:$loc($1) @@ Var "Nat", x) }
 
 prefix_term:

@@ -4,25 +4,27 @@
 -- Eliminators (ind, rec into U, REC into TYPE) and the usual operations.
 --
 
-ind ∷ (A : Bool → U) → A false → A true → (b : Bool) → A b
+t = bool
+
+ind ∷ (A : bool → U) → A false → A true → (b : bool) → A b
 ind A f t false = f
 ind A f t true  = t
 
-rec ∷ {A : U} → A → A → Bool → A
+rec ∷ {A : U} → A → A → bool → A
 rec = ind (λ _ . A)
 
-REC ∷ {A : TYPE} → A → A → Bool → A
+REC ∷ {A : TYPE} → A → A → bool → A
 REC f t false = f
 REC f t true  = t
 
-not ∷ Bool → Bool
+not ∷ bool → bool
 not false = true
 not true  = false
 
-and ∷ Bool → Bool → Bool
+and ∷ bool → bool → bool
 and false _ = false
 and true  b = b
 
-or ∷ Bool → Bool → Bool
+or ∷ bool → bool → bool
 or false b = b
 or true  b = b
