@@ -163,12 +163,12 @@ hom-family-lift-tri-edges {A} sA a σ γ = (refl , refl , refl)
 
 -- Γ̄_t ; χ̄_σ = Γ̄_{u ∘ t}
 hom-family-lift-comp ∷ {A ∷ U} (sA : is-segalᵣ A) (a ∷ A) (σ : simplex 2 →ᵣ A) (γ : srcᵣ (lift-sq {A} σ 𝕀0) ≡ a) →
-  comp-homᵣ (Σ (x : A) . hom-family {A} a x) (is-segalᵣ-hom-family {A} sA a)
+  comp-homᵣ (is-segalᵣ-hom-family {A} sA a)
     (cell-hom {Σ (x : A) . hom-family {A} a x} (hom-family-conn {A} a (hom-cell (simplex2-hom₀₁ {A} σ)) γ))
     (cell-hom {Σ (x : A) . hom-family {A} a x} (fst _ (hom-family-lift {A} sA a σ γ)))
   ≡ cell-hom {Σ (x : A) . hom-family {A} a x} (hom-family-conn {A} a (hom-cell (simplex2-hom₀₂ {A} σ)) γ)
 hom-family-lift-comp {A} sA a σ γ =
-  comp-simplex2 (Σ (x : A) . hom-family {A} a x) (is-segalᵣ-hom-family {A} sA a) (hom-family-lift-tri {A} a σ γ)
+  comp-simplex2 (is-segalᵣ-hom-family {A} sA a) (hom-family-lift-tri {A} a σ γ)
 
 -- every cocartesian 1-cell of E is some χ̄_σ, up to a path
 hom-family-cocart-cell-ind ∷ {A ∷ U} (rA : is-rezkᵣ A) (a ∷ A)
@@ -223,7 +223,7 @@ push-hom-family-stmt {A} rA a (b , r) =
   let k : (r : Σ (c : A) . hom {A} a b × hom {A} b c) → U = fun (c , tu) →
     let k2 : (tu : hom {A} a b × hom {A} b c) → U = fun (t , u) →
       push {A} (hom-family {A} a) sA (is-segalᵣ-hom-family {A} sA a) (hom-family-covariant {A} rA a) {b} {c} u t
-        ≡ comp-homᵣ A sA {a} {b} {c} t u in
+        ≡ comp-homᵣ sA {a} {b} {c} t u in
     k2 tu in
   k r
 
@@ -242,13 +242,13 @@ push-hom-family-simplex {A} rA a σ γ =
           ≡ (hom-cell {A} {σ (Simplex2.edge₀₂ 𝕀0)} {σ (Simplex2.edge₀₂ 𝕀1)} (simplex2-hom₀₂ {A} σ) , γ' , refl) =
     push-cocart {A} F sA (is-segalᵣ-hom-family {A} sA a) (hom-family-covariant {A} rA a)
       {σ (Simplex2.edge₁₂ 𝕀0)} {σ (Simplex2.edge₁₂ 𝕀1)} (simplex2-hom₁₂ {A} σ) t (hom-family-lift {A} sA a σ γ') refl in
-  trans p (sym (comp-simplex2-src A sA σ {a} γ'))
+  trans p (sym (comp-simplex2-src sA σ {a} γ'))
 
 -- pushforward in the hom family is postcomposition: u_! t = t ; u
 push-hom-family ∷ {A ∷ U} (rA : is-rezkᵣ A) (a ∷ A) {b c : A} (u : hom {A} b c) (t : hom {A} a b) →
   push {A} (hom-family {A} a) (rezk-segalᵣ {A} rA) (is-segalᵣ-hom-family {A} (rezk-segalᵣ {A} rA) a) (hom-family-covariant {A} rA a)
     {b} {c} u t
-    ≡ comp-homᵣ A (rezk-segalᵣ {A} rA) {a} {b} {c} t u
+    ≡ comp-homᵣ (rezk-segalᵣ {A} rA) {a} {b} {c} t u
 push-hom-family {A} rA a {b} {c} u t =
   let k : (Σ (σ : simplex 2 →ᵣ A) . Σ (γ : σ (Simplex2.edge₀₁ 𝕀0) ≡ a) . pair→pair-from {A} a (edges-2 {A} σ) γ ≡ (b , c , t , u)) →
           push-hom-family-stmt {A} rA a (b , c , t , u) = fun (σ , r) →

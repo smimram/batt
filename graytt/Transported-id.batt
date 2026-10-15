@@ -27,8 +27,8 @@ transported-id ∷ {B ∷ U} {b ∷ B} {x y : B} (p : b ≡ x) (q : b ≡ y) →
 transported-id {B} {b} {x} {y} p q = ((λ _ . b) , p , q)
 
 transported-id-comp ∷ {B ∷ U} (sB : is-segalᵣ B) {b ∷ B} {x : B} (p : b ≡ x) {y : B} (q : b ≡ y) {z : B} (r : b ≡ z) →
-  comp-homᵣ B sB {x} {y} {z} (transported-id {B} {b} {x} {y} p q) (transported-id {B} {b} {y} {z} q r) ≡ transported-id {B} {b} {x} {z} p r
-transported-id-comp {B} sB {b} refl refl refl = comp-simplex2 B sB (λ σ . b)
+  comp-homᵣ sB {x} {y} {z} (transported-id {B} {b} {x} {y} p q) (transported-id {B} {b} {y} {z} q r) ≡ transported-id {B} {b} {x} {z} p r
+transported-id-comp {B} sB {b} refl refl refl = comp-simplex2 sB (λ σ . b)
 
 is-iso-transported-id ∷ {B ∷ U} (sB : is-segalᵣ B) {b ∷ B} {x : B} (p : b ≡ x) {y : B} (q : b ≡ y) →
   is-iso {B} sB {x} {y} (transported-id {B} {b} {x} {y} p q)
@@ -59,9 +59,9 @@ hom-map-const {S} {B} b {w0} {w1} g =
 
 hom-map-const-comp-stmt ∷ (S B ∷ U) (b ∷ B) (sS : is-segalᵣ S) (sB : is-segalᵣ B) {x y z : S} (u : hom x y) (v : hom y z) → U
 hom-map-const-comp-stmt S B b sS sB {x} {y} {z} u v =
-  hom-map-const {S} {B} b {x} {z} (comp-homᵣ S sS {x} {y} {z} u v)
+  hom-map-const {S} {B} b {x} {z} (comp-homᵣ sS {x} {y} {z} u v)
   ≡ trans (hom-map-comp S B (λ _ . b) sS sB {x} {y} {z} u v)
-      (trans (cong2 {hom {B} b b} {hom {B} b b} {hom {B} b b} (λ m n . comp-homᵣ B sB {b} {b} {b} m n) (hom-map-const {S} {B} b {x} {y} u) (hom-map-const {S} {B} b {y} {z} v))
+      (trans (cong2 {hom {B} b b} {hom {B} b b} {hom {B} b b} (λ m n . comp-homᵣ sB {b} {b} {b} m n) (hom-map-const {S} {B} b {x} {y} u) (hom-map-const {S} {B} b {y} {z} v))
         (transported-id-comp {B} sB {b} {b} refl {b} refl {b} refl))
 
 hom-map-const-comp-simplex ∷ (S B ∷ U) (b ∷ B) (sS : is-segalᵣ S) (sB : is-segalᵣ B) (Ψ : simplex 2 →ᵣ S) →
@@ -70,14 +70,14 @@ hom-map-const-comp-simplex S B b sS sB Ψ =
   let x0 : S = Ψ (Simplex2.edge₀₁ 𝕀0) in
   let x2 : S = Ψ (Simplex2.edge₁₂ 𝕀1) in
   let hm : hom x0 x2 → hom {B} b b = hom-map {S} {B} (λ _ . b) {x0} {x2} in
-  let C : hom x0 x2 = comp-homᵣ S sS (simplex2-hom₀₁ {S} Ψ) (simplex2-hom₁₂ {S} Ψ) in
-  let csX : C ≡ simplex2-hom₀₂ {S} Ψ = comp-simplex2 S sS Ψ in
-  let cs0 : comp-homᵣ B sB {b} {b} {b} (Hom.id {B} b) (Hom.id {B} b) ≡ Hom.id {B} b = comp-simplex2 B sB (λ σ . b) in
+  let C : hom x0 x2 = comp-homᵣ sS (simplex2-hom₀₁ {S} Ψ) (simplex2-hom₁₂ {S} Ψ) in
+  let csX : C ≡ simplex2-hom₀₂ {S} Ψ = comp-simplex2 sS Ψ in
+  let cs0 : comp-homᵣ sB {b} {b} {b} (Hom.id {B} b) (Hom.id {B} b) ≡ Hom.id {B} b = comp-simplex2 sB (λ σ . b) in
   let E : hom-map-comp S B (λ _ . b) sS sB (simplex2-hom₀₁ {S} Ψ) (simplex2-hom₁₂ {S} Ψ) ≡ trans (cong hm csX) (sym cs0) =
     hom-map-comp-edges S B (λ _ . b) sS sB Ψ in
   trans (nat-to-point hm (hom-map-const {S} {B} b {x0} {x2}) csX)
     (trans (trans-sym-refl-cancel (cong hm csX) cs0)
-      (cong {hm C ≡ comp-homᵣ B sB {b} {b} {b} (Hom.id {B} b) (Hom.id {B} b)} {hm C ≡ Hom.id {B} b}
+      (cong {hm C ≡ comp-homᵣ sB {b} {b} {b} (Hom.id {B} b) (Hom.id {B} b)} {hm C ≡ Hom.id {B} b}
         (λ w . trans w (trans refl cs0)) (sym E)))
 
 hom-map-const-comp ∷ (S B ∷ U) (b ∷ B) (sS : is-segalᵣ S) (sB : is-segalᵣ B) {x y z : S} (u : hom x y) (v : hom y z) →
@@ -97,9 +97,9 @@ hom-map-null {S} {B} {b} refl {w0} {w1} g = hom-map-const {S} {B} b {w0} {w1} g
 -- the coherence for a map with a path to a constant map
 hom-map-null-comp ∷ {S B ∷ U} (sS : is-segalᵣ S) (sB : is-segalᵣ B) {b ∷ B} (f ∷ S → B) (G ∷ (λ _ . b) ≡{S → B} f)
   {x y z : S} (u : hom x y) (v : hom y z) →
-  hom-map-null {S} {B} {b} f G {x} {z} (comp-homᵣ S sS {x} {y} {z} u v)
+  hom-map-null {S} {B} {b} f G {x} {z} (comp-homᵣ sS {x} {y} {z} u v)
   ≡ trans (hom-map-comp S B f sS sB {x} {y} {z} u v)
-      (trans (cong2 {hom (f x) (f y)} {hom (f y) (f z)} {hom (f x) (f z)} (λ m n . comp-homᵣ B sB {f x} {f y} {f z} m n)
+      (trans (cong2 {hom (f x) (f y)} {hom (f y) (f z)} {hom (f x) (f z)} (λ m n . comp-homᵣ sB {f x} {f y} {f z} m n)
                (hom-map-null {S} {B} {b} f G {x} {y} u) (hom-map-null {S} {B} {b} f G {y} {z} v))
         (transported-id-comp {B} sB {b} {f x} (happly {S} {λ _ . B} G x) {f y} (happly {S} {λ _ . B} G y) {f z} (happly {S} {λ _ . B} G z)))
 hom-map-null-comp {S} {B} sS sB {b} refl {x} {y} {z} u v = hom-map-const-comp S B b sS sB {x} {y} {z} u v

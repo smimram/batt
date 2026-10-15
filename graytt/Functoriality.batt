@@ -6,7 +6,7 @@
 --
 --   fn u v : P (u ; v) ≡ P u ; P v
 --
--- where u ; v is comp-homᵣ X sX u v (composition in diagrammatic order). This commutation is
+-- where u ; v is comp-homᵣ sX u v (composition in diagrammatic order). This commutation is
 -- coherent with associativity (hom-map-comp-assoc).
 --
 -- Both statements are proved on simplices, then extended to all composable pairs and triples,
@@ -51,7 +51,7 @@ hom-map-comp-stmt ∷
   {x y z : X} (u : hom x y) (v : hom y z)
   → U
 hom-map-comp-stmt X A p sX sA {x} {y} {z} u v =
-  hom-map p (comp-homᵣ X sX u v) ≡ comp-homᵣ A sA (hom-map p u) (hom-map p v)
+  hom-map p (comp-homᵣ sX u v) ≡ comp-homᵣ sA (hom-map p u) (hom-map p v)
 
 -- the statement, as a family over composable pairs
 pair-stmt ∷ (X A ∷ U) (p : X → A) (sX : is-segalᵣ X) (sA : is-segalᵣ A) → pairs X → U
@@ -63,14 +63,14 @@ hom-map-comp-simplex ∷
   (Ψ : simplex 2 →ᵣ X)
   → pair-stmt X A p sX sA (edges-2 {X} Ψ)
 hom-map-comp-simplex X A p sX sA Ψ =
-  trans (cong (hom-map p {Ψ (Simplex2.edge₀₁ 𝕀0)} {Ψ (Simplex2.edge₁₂ 𝕀1)}) (comp-simplex2 X sX Ψ))
-    (sym (comp-simplex2 A sA (postᵣ {simplex 2} {X} {A} p Ψ)))
+  trans (cong (hom-map p {Ψ (Simplex2.edge₀₁ 𝕀0)} {Ψ (Simplex2.edge₁₂ 𝕀1)}) (comp-simplex2 sX Ψ))
+    (sym (comp-simplex2 sA (postᵣ {simplex 2} {X} {A} p Ψ)))
 
 -- for an arbitrary composable pair, by transport along the section of the edges
 hom-map-comp-def ∷
   (X A ∷ U) (p : X → A) (sX : is-segalᵣ X) (sA : is-segalᵣ A)
   {x y z : X} (u : hom x y) (v : hom y z)
-  → hom-map p (comp-homᵣ X sX u v) ≡ comp-homᵣ A sA (hom-map p u) (hom-map p v)
+  → hom-map p (comp-homᵣ sX u v) ≡ comp-homᵣ sA (hom-map p u) (hom-map p v)
 hom-map-comp-def X A p sX sA {x} {y} {z} u v =
   let s : section (edges-2 {X}) = is-equiv-sec (edges-2 {X}) (is-equiv-edges-2 X sX) in
   let r : pairs X = (x , y , z , u , v) in
@@ -81,7 +81,7 @@ hom-map-comp-def X A p sX sA {x} {y} {z} u v =
 hom-map-comp-freeze ∷
   (X A ∷ U) (p : X → A) (sX : is-segalᵣ X) (sA : is-segalᵣ A)
   {x y z : X} (u : hom x y) (v : hom y z)
-  → Σ (e : hom-map p (comp-homᵣ X sX u v) ≡ comp-homᵣ A sA (hom-map p u) (hom-map p v)) .
+  → Σ (e : hom-map p (comp-homᵣ sX u v) ≡ comp-homᵣ sA (hom-map p u) (hom-map p v)) .
       e ≡ hom-map-comp-def X A p sX sA {x} {y} {z} u v
 hom-map-comp-freeze X A p sX sA {x} {y} {z} u v = (hom-map-comp-def X A p sX sA {x} {y} {z} u v , refl)
 
@@ -89,7 +89,7 @@ hom-map-comp-freeze X A p sX sA {x} {y} {z} u v = (hom-map-comp-def X A p sX sA 
 hom-map-comp ∷
   (X A ∷ U) (p : X → A) (sX : is-segalᵣ X) (sA : is-segalᵣ A)
   {x y z : X} (u : hom x y) (v : hom y z)
-  → hom-map p (comp-homᵣ X sX u v) ≡ comp-homᵣ A sA (hom-map p u) (hom-map p v)
+  → hom-map p (comp-homᵣ sX u v) ≡ comp-homᵣ sA (hom-map p u) (hom-map p v)
 hom-map-comp X A p sX sA {x} {y} {z} u v = fst _ (hom-map-comp-freeze X A p sX sA {x} {y} {z} u v)
 
 -- on the edges of a 2-simplex, it is the commutation given by that 2-simplex
@@ -117,8 +117,8 @@ hom-map-comp-edges X A p sX sA Ψ =
 -- the image of a face path
 face-image ∷
   (X A ∷ U) (p ∷ X → A) (sX : is-segalᵣ X) (sA : is-segalᵣ A)
-  {x y z : X} (u : hom x y) (v : hom y z) {a : hom x z} (c : comp-homᵣ X sX u v ≡ a)
-  → comp-homᵣ A sA (hom-map p u) (hom-map p v) ≡ hom-map p a
+  {x y z : X} (u : hom x y) (v : hom y z) {a : hom x z} (c : comp-homᵣ sX u v ≡ a)
+  → comp-homᵣ sA (hom-map p u) (hom-map p v) ≡ hom-map p a
 face-image X A p sX sA {x} {y} {z} u v {a} c =
   trans (sym (hom-map-comp X A p sX sA u v)) (cong (hom-map p {x} {z}) c)
 
@@ -129,11 +129,11 @@ trans-solve {T} {x} {y} refl q refl = trans-sym-l q
 hom-map-comp-face ∷
   (X A ∷ U) (p ∷ X → A) (sX : is-segalᵣ X) (sA : is-segalᵣ A)
   (Ψ : simplex 2 →ᵣ X)
-  → face-image X A p sX sA (simplex2-hom₀₁ {X} Ψ) (simplex2-hom₁₂ {X} Ψ) (comp-simplex2 X sX Ψ)
-      ≡ comp-simplex2 A sA (postᵣ {simplex 2} {X} {A} p Ψ)
+  → face-image X A p sX sA (simplex2-hom₀₁ {X} Ψ) (simplex2-hom₁₂ {X} Ψ) (comp-simplex2 sX Ψ)
+      ≡ comp-simplex2 sA (postᵣ {simplex 2} {X} {A} p Ψ)
 hom-map-comp-face X A p sX sA Ψ =
-  trans-solve (comp-simplex2 A sA (postᵣ {simplex 2} {X} {A} p Ψ))
-    (cong (hom-map p {Ψ (Simplex2.edge₀₁ 𝕀0)} {Ψ (Simplex2.edge₁₂ 𝕀1)}) (comp-simplex2 X sX Ψ))
+  trans-solve (comp-simplex2 sA (postᵣ {simplex 2} {X} {A} p Ψ))
+    (cong (hom-map p {Ψ (Simplex2.edge₀₁ 𝕀0)} {Ψ (Simplex2.edge₁₂ 𝕀1)}) (comp-simplex2 sX Ψ))
     (sym (hom-map-comp-edges X A p sX sA Ψ))
 
 --
@@ -172,16 +172,16 @@ hom-map-comp-face X A p sX sA Ψ =
 hom-map-hexagon ∷
   (X A ∷ U) (p ∷ X → A) (sX : is-segalᵣ X) (sA : is-segalᵣ A)
   {x y z t : X} (u : hom x y) (v : hom y z) (w : hom z t)
-  (αX : comp-homᵣ X sX (comp-homᵣ X sX u v) w ≡ comp-homᵣ X sX u (comp-homᵣ X sX v w))
-  (αA : comp-homᵣ A sA (comp-homᵣ A sA (hom-map p u) (hom-map p v)) (hom-map p w)
-          ≡ comp-homᵣ A sA (hom-map p u) (comp-homᵣ A sA (hom-map p v) (hom-map p w)))
+  (αX : comp-homᵣ sX (comp-homᵣ sX u v) w ≡ comp-homᵣ sX u (comp-homᵣ sX v w))
+  (αA : comp-homᵣ sA (comp-homᵣ sA (hom-map p u) (hom-map p v)) (hom-map p w)
+          ≡ comp-homᵣ sA (hom-map p u) (comp-homᵣ sA (hom-map p v) (hom-map p w)))
   → U
 hom-map-hexagon X A p sX sA {x} {y} {z} {t} u v w αX αA =
   trans (cong (hom-map p {x} {t}) αX)
-    (trans (hom-map-comp X A p sX sA u (comp-homᵣ X sX v w))
-      (cong (λ m . comp-homᵣ A sA {p x} {p y} {p t} (hom-map p u) m) (hom-map-comp X A p sX sA v w)))
-  ≡ trans (hom-map-comp X A p sX sA (comp-homᵣ X sX u v) w)
-      (trans (cong (λ m . comp-homᵣ A sA {p x} {p z} {p t} m (hom-map p w)) (hom-map-comp X A p sX sA u v))
+    (trans (hom-map-comp X A p sX sA u (comp-homᵣ sX v w))
+      (cong (λ m . comp-homᵣ sA {p x} {p y} {p t} (hom-map p u) m) (hom-map-comp X A p sX sA v w)))
+  ≡ trans (hom-map-comp X A p sX sA (comp-homᵣ sX u v) w)
+      (trans (cong (λ m . comp-homᵣ sA {p x} {p z} {p t} m (hom-map p w)) (hom-map-comp X A p sX sA u v))
         αA)
 
 -- the path algebra of the degenerate tetrahedron
@@ -209,28 +209,28 @@ hom-map-tetrahedron ∷
   (X A ∷ U) (p ∷ X → A) (sX : is-segalᵣ X) (sA : is-segalᵣ A)
   {x y z t : X} (u : hom x y) (v : hom y z) (w : hom z t)
   -- the faces in X
-  {a : hom x z} (c3 : comp-homᵣ X sX u v ≡ a)
-  {b : hom y t} (c0 : comp-homᵣ X sX v w ≡ b)
-  {c : hom x t} (c2 : comp-homᵣ X sX u b ≡ c)
-  (c1 : comp-homᵣ X sX a w ≡ c)
+  {a : hom x z} (c3 : comp-homᵣ sX u v ≡ a)
+  {b : hom y t} (c0 : comp-homᵣ sX v w ≡ b)
+  {c : hom x t} (c2 : comp-homᵣ sX u b ≡ c)
+  (c1 : comp-homᵣ sX a w ≡ c)
   -- the faces in A are their images
-  {c3' : comp-homᵣ A sA (hom-map p u) (hom-map p v) ≡ hom-map p a} (e3 : face-image X A p sX sA u v c3 ≡ c3')
-  {c0' : comp-homᵣ A sA (hom-map p v) (hom-map p w) ≡ hom-map p b} (e0 : face-image X A p sX sA v w c0 ≡ c0')
-  {c1' : comp-homᵣ A sA (hom-map p a) (hom-map p w) ≡ hom-map p c} (e1 : face-image X A p sX sA a w c1 ≡ c1')
-  {c2' : comp-homᵣ A sA (hom-map p u) (hom-map p b) ≡ hom-map p c} (e2 : face-image X A p sX sA u b c2 ≡ c2')
+  {c3' : comp-homᵣ sA (hom-map p u) (hom-map p v) ≡ hom-map p a} (e3 : face-image X A p sX sA u v c3 ≡ c3')
+  {c0' : comp-homᵣ sA (hom-map p v) (hom-map p w) ≡ hom-map p b} (e0 : face-image X A p sX sA v w c0 ≡ c0')
+  {c1' : comp-homᵣ sA (hom-map p a) (hom-map p w) ≡ hom-map p c} (e1 : face-image X A p sX sA a w c1 ≡ c1')
+  {c2' : comp-homᵣ sA (hom-map p u) (hom-map p b) ≡ hom-map p c} (e2 : face-image X A p sX sA u b c2 ≡ c2')
   → hom-map-hexagon X A p sX sA u v w
       (assoc-of-faces X sX u v w {a} {b} {c} c3 c1 c2 c0)
       (assoc-of-faces A sA (hom-map p u) (hom-map p v) (hom-map p w) {hom-map p a} {hom-map p b} {hom-map p c} c3' c1' c2' c0')
 hom-map-tetrahedron X A p sX sA {x} {y} {z} {t} u v w refl refl refl c1 refl refl refl refl =
   tetra-alg
     (hom-map p {x} {t})
-    (λ m . comp-homᵣ A sA {p x} {p z} {p t} m (hom-map p w))
-    (λ m . comp-homᵣ A sA {p x} {p y} {p t} (hom-map p u) m)
+    (λ m . comp-homᵣ sA {p x} {p z} {p t} m (hom-map p w))
+    (λ m . comp-homᵣ sA {p x} {p y} {p t} (hom-map p u) m)
     (hom-map-comp X A p sX sA u v)
     (hom-map-comp X A p sX sA v w)
     c1
-    (hom-map-comp X A p sX sA (comp-homᵣ X sX u v) w)
-    (hom-map-comp X A p sX sA u (comp-homᵣ X sX v w))
+    (hom-map-comp X A p sX sA (comp-homᵣ sX u v) w)
+    (hom-map-comp X A p sX sA u (comp-homᵣ sX v w))
 
 -- the coherence, for a composable triple: the hexagon for the associators of X and A
 assoc-coh-stmt ∷
@@ -252,10 +252,10 @@ assoc-coh-simplex X A p sX sA Θ =
   let u : hom (Θ (Simplex3.edge₀₁ 𝕀0)) (Θ (Simplex3.edge₀₁ 𝕀1)) = simplex3-hom {X} Simplex3.edge₀₁ Θ in
   let v : hom (Θ (Simplex3.edge₁₂ 𝕀0)) (Θ (Simplex3.edge₁₂ 𝕀1)) = simplex3-hom {X} Simplex3.edge₁₂ Θ in
   let w : hom (Θ (Simplex3.edge₂₃ 𝕀0)) (Θ (Simplex3.edge₂₃ 𝕀1)) = simplex3-hom {X} Simplex3.edge₂₃ Θ in
-  let hexagon-for-αA : (comp-homᵣ A sA (comp-homᵣ A sA (hom-map p u) (hom-map p v)) (hom-map p w)
-                          ≡ comp-homᵣ A sA (hom-map p u) (comp-homᵣ A sA (hom-map p v) (hom-map p w))) → U =
+  let hexagon-for-αA : (comp-homᵣ sA (comp-homᵣ sA (hom-map p u) (hom-map p v)) (hom-map p w)
+                          ≡ comp-homᵣ sA (hom-map p u) (comp-homᵣ sA (hom-map p v) (hom-map p w))) → U =
     λ αA . hom-map-hexagon X A p sX sA u v w (assoc-simplex3-def X sX Θ) αA in
-  let hexagon-for-αX : (comp-homᵣ X sX (comp-homᵣ X sX u v) w ≡ comp-homᵣ X sX u (comp-homᵣ X sX v w)) → U =
+  let hexagon-for-αX : (comp-homᵣ sX (comp-homᵣ sX u v) w ≡ comp-homᵣ sX u (comp-homᵣ sX v w)) → U =
     λ αX . hom-map-hexagon X A p sX sA u v w αX (comp-homᵣ-assoc A sA (hom-map p u) (hom-map p v) (hom-map p w)) in
   -- the hexagon for the associators given by the faces of Θ and of p ∘ Θ
   let tetrahedron : hexagon-for-αA (assoc-simplex3-def A sA pΘ) =
@@ -316,10 +316,10 @@ hom-map-comp-circ-stmt ∷
   {x y z : X} (u : hom x y) (v : hom y z) → U
 hom-map-comp-circ-stmt X Y A ι q sX sY sA {x} {y} {z} u v =
   hom-map-comp X A (λ w . q (ι w)) sX sA {x} {y} {z} u v
-  ≡ trans (hom-map-circ {X} {Y} {A} ι q {x} {z} (comp-homᵣ X sX {x} {y} {z} u v))
+  ≡ trans (hom-map-circ {X} {Y} {A} ι q {x} {z} (comp-homᵣ sX {x} {y} {z} u v))
       (trans (cong (hom-map {Y} {A} q {ι x} {ι z}) (hom-map-comp X Y ι sX sY {x} {y} {z} u v))
         (trans (hom-map-comp Y A q sY sA {ι x} {ι y} {ι z} (hom-map {X} {Y} ι {x} {y} u) (hom-map {X} {Y} ι {y} {z} v))
-          (sym (cong2 (λ m n . comp-homᵣ A sA {q (ι x)} {q (ι y)} {q (ι z)} m n)
+          (sym (cong2 (λ m n . comp-homᵣ sA {q (ι x)} {q (ι y)} {q (ι z)} m n)
                  (hom-map-circ {X} {Y} {A} ι q {x} {y} u) (hom-map-circ {X} {Y} {A} ι q {y} {z} v)))))
 
 -- the path algebra on the edges of a 2-simplex
@@ -340,18 +340,18 @@ hom-map-comp-circ-simplex X Y A ι q sX sY sA Ψ =
   let I : hom x0 x2 → hom (ι x0) (ι x2) = hom-map {X} {Y} ι {x0} {x2} in
   let Q : hom (ι x0) (ι x2) → hom (q (ι x0)) (q (ι x2)) = hom-map {Y} {A} q {ι x0} {ι x2} in
   let qιΨ : simplex 2 →ᵣ A = postᵣ {simplex 2} {Y} {A} q ιΨ in
-  let C : hom x0 x2 = comp-homᵣ X sX (simplex2-hom₀₁ {X} Ψ) (simplex2-hom₁₂ {X} Ψ) in
-  let csX : C ≡ simplex2-hom₀₂ {X} Ψ = comp-simplex2 X sX Ψ in
-  let csY : comp-homᵣ Y sY (simplex2-hom₀₁ {Y} ιΨ) (simplex2-hom₁₂ {Y} ιΨ) ≡ simplex2-hom₀₂ {Y} ιΨ = comp-simplex2 Y sY ιΨ in
-  let csA : comp-homᵣ A sA (simplex2-hom₀₁ {A} qιΨ) (simplex2-hom₁₂ {A} qιΨ) ≡ simplex2-hom₀₂ {A} qιΨ = comp-simplex2 A sA qιΨ in
+  let C : hom x0 x2 = comp-homᵣ sX (simplex2-hom₀₁ {X} Ψ) (simplex2-hom₁₂ {X} Ψ) in
+  let csX : C ≡ simplex2-hom₀₂ {X} Ψ = comp-simplex2 sX Ψ in
+  let csY : comp-homᵣ sY (simplex2-hom₀₁ {Y} ιΨ) (simplex2-hom₁₂ {Y} ιΨ) ≡ simplex2-hom₀₂ {Y} ιΨ = comp-simplex2 sY ιΨ in
+  let csA : comp-homᵣ sA (simplex2-hom₀₁ {A} qιΨ) (simplex2-hom₁₂ {A} qιΨ) ≡ simplex2-hom₀₂ {A} qιΨ = comp-simplex2 sA qιΨ in
   let Eqι : hom-map-comp X A (λ w . q (ι w)) sX sA (simplex2-hom₀₁ {X} Ψ) (simplex2-hom₁₂ {X} Ψ) ≡ trans (cong P csX) (sym csA) =
     hom-map-comp-edges X A (λ w . q (ι w)) sX sA Ψ in
   let Eι : hom-map-comp X Y ι sX sY (simplex2-hom₀₁ {X} Ψ) (simplex2-hom₁₂ {X} Ψ) ≡ trans (cong I csX) (sym csY) =
     hom-map-comp-edges X Y ι sX sY Ψ in
   let Eq : hom-map-comp Y A q sY sA (simplex2-hom₀₁ {Y} ιΨ) (simplex2-hom₁₂ {Y} ιΨ) ≡ trans (cong Q csY) (sym csA) =
     hom-map-comp-edges Y A q sY sA ιΨ in
-  let TA : hom (q (ι x0)) (q (ι x2)) = comp-homᵣ A sA (simplex2-hom₀₁ {A} qιΨ) (simplex2-hom₁₂ {A} qιΨ) in
-  let CY : hom (ι x0) (ι x2) = comp-homᵣ Y sY (simplex2-hom₀₁ {Y} ιΨ) (simplex2-hom₁₂ {Y} ιΨ) in
+  let TA : hom (q (ι x0)) (q (ι x2)) = comp-homᵣ sA (simplex2-hom₀₁ {A} qιΨ) (simplex2-hom₁₂ {A} qιΨ) in
+  let CY : hom (ι x0) (ι x2) = comp-homᵣ sY (simplex2-hom₀₁ {Y} ιΨ) (simplex2-hom₁₂ {Y} ιΨ) in
   let e02A : hom (q (ι x0)) (q (ι x2)) = simplex2-hom₀₂ {A} qιΨ in
   let e02Y : hom (ι x0) (ι x2) = simplex2-hom₀₂ {Y} ιΨ in
   trans Eqι

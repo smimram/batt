@@ -68,4 +68,4 @@ hom {A} {x} {y} f g = hom {hom x y} f g
 
 -- horizontal composition of 2-cells, in an oplax-Segal type
 comp ∷ {A ∷ U} → is-segalᵣ A → {x y ∷ A} {f g h : Hom.hom x y} → hom f g → hom g h → hom f h
-comp {A} sA {x} {y} {f} {g} {h} α β = comp-homᵣ (Hom.hom x y) (is-segalᵣ-hom {A} sA x y) {f} {g} {h} α β
+comp {A} sA {x} {y} {f} {g} {h} α β = comp-homᵣ (is-segalᵣ-hom {A} sA x y) {f} {g} {h} α β

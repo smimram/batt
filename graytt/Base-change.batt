@@ -42,8 +42,8 @@ is-cocartesian-point-pullback-proj {Y} {B} sY sB r b sS {u} {v} γ s =
   let hG : (w : S) → b ≡ f w = happly {S} {λ _ . B} G in
   let ιγ : hom (ι u) (ι v) = hom-map {S} {Y} ι {u} {v} γ in
   let C : (w0 w1 : S) → hom (ι w0) (ι w1) → U = λ w0 w1 k . hom-map {Y} {B} r {ι w0} {ι w1} k ≡ point-pullback-id {Y} {B} r b w0 w1 in
-  let cY : hom (ι v) (ι s) → hom (ι u) (ι s) = λ k . comp-homᵣ Y sY {ι u} {ι v} {ι s} ιγ k in
-  let FB : hom (f u) (f v) → hom (f v) (f s) → hom (f u) (f s) = λ m n . comp-homᵣ B sB {f u} {f v} {f s} m n in
+  let cY : hom (ι v) (ι s) → hom (ι u) (ι s) = λ k . comp-homᵣ sY {ι u} {ι v} {ι s} ιγ k in
+  let FB : hom (f u) (f v) → hom (f v) (f s) → hom (f u) (f s) = λ m n . comp-homᵣ sB {f u} {f v} {f s} m n in
   let Ωus : hom u s → Σ (m : hom (ι u) (ι s)) . C u s m = point-pullback-hom→data {Y} {B} r b u s in
   let Ωvs : hom v s → Σ (k : hom (ι v) (ι s)) . C v s k = point-pullback-hom→data {Y} {B} r b v s in
   let Q : (Σ (m : hom (ι u) (ι s)) . C u s m) → U = λ mc . Σ (k : hom (ι v) (ι s)) . fst (C u s) mc ≡ cY k in
@@ -89,9 +89,9 @@ is-cocartesian-point-pullback-proj {Y} {B} sY sB r b sS {u} {v} γ s =
     is-equiv-htpy {C v s k} {C u s (cY k)} {φ' k} {φ k} (φφ' k) (eφ' k) in
   -- the gap map, up to these equivalences, is the map on fibres
   let ρcomp : (g : hom v s) →
-      subst (C u s) (hom-map-comp S Y ι sS sY {u} {v} {s} γ g) (point-pullback-hom-image {Y} {B} r b {u} {s} (comp-homᵣ S sS {u} {v} {s} γ g))
+      subst (C u s) (hom-map-comp S Y ι sS sY {u} {v} {s} γ g) (point-pullback-hom-image {Y} {B} r b {u} {s} (comp-homᵣ sS {u} {v} {s} γ g))
       ≡ φ (hom-map {S} {Y} ι {v} {s} g) (point-pullback-hom-image {Y} {B} r b {v} {s} g) = λ g .
-    let Cg : hom u s = comp-homᵣ S sS {u} {v} {s} γ g in
+    let Cg : hom u s = comp-homᵣ sS {u} {v} {s} γ g in
     let ιg : hom (ι v) (ι s) = hom-map {S} {Y} ι {v} {s} g in
     let hr : hom (ι u) (ι s) → hom (f u) (f s) = hom-map {Y} {B} r {ι u} {ι s} in
     let e : hom-map {S} {Y} ι {u} {s} Cg ≡ cY ιg = hom-map-comp S Y ι sS sY {u} {v} {s} γ g in

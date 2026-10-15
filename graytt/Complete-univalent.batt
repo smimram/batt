@@ -123,17 +123,17 @@ path→collapsed {X} s σ E e Q =
 
 -- a section, resp. a retraction, up to the path collapsing the composite
 sec-from-collapse ∷ {X ∷ U} (s : is-segalᵣ X) {x y : X} (f : hom x y) {z : X} (g : hom y z) (e : x ≡ z) →
-  comp-homᵣ X s {x} {y} {z} f g ≡ path→hom {X} s e → Σ (g' : hom y x) . comp-homᵣ X s {x} {y} {x} f g' ≡ Hom.id {X} x
+  comp-homᵣ s {x} {y} {z} f g ≡ path→hom {X} s e → Σ (g' : hom y x) . comp-homᵣ s {x} {y} {x} f g' ≡ Hom.id {X} x
 sec-from-collapse {X} s {x} {y} f {z} g e =
-  J x (λ z' e' . (g' : hom y z') → comp-homᵣ X s {x} {y} {z'} f g' ≡ path→hom {X} s e' →
-         Σ (g'' : hom y x) . comp-homᵣ X s {x} {y} {x} f g'' ≡ Hom.id {X} x)
+  J x (λ z' e' . (g' : hom y z') → comp-homᵣ s {x} {y} {z'} f g' ≡ path→hom {X} s e' →
+         Σ (g'' : hom y x) . comp-homᵣ s {x} {y} {x} f g'' ≡ Hom.id {X} x)
     (λ g' q . (g' , q)) e g
 
 retr-from-collapse ∷ {X ∷ U} (s : is-segalᵣ X) {w x : X} (h : hom w x) {y : X} (e : w ≡ y) (f : hom x y) →
-  comp-homᵣ X s {w} {x} {y} h f ≡ path→hom {X} s e → Σ (h' : hom y x) . comp-homᵣ X s {y} {x} {y} h' f ≡ Hom.id {X} y
+  comp-homᵣ s {w} {x} {y} h f ≡ path→hom {X} s e → Σ (h' : hom y x) . comp-homᵣ s {y} {x} {y} h' f ≡ Hom.id {X} y
 retr-from-collapse {X} s {w} {x} h {y} e =
-  J w (λ y' e' . (f' : hom x y') → comp-homᵣ X s {w} {x} {y'} h f' ≡ path→hom {X} s e' →
-         Σ (h' : hom y' x) . comp-homᵣ X s {y'} {x} {y'} h' f' ≡ Hom.id {X} y')
+  J w (λ y' e' . (f' : hom x y') → comp-homᵣ s {w} {x} {y'} h f' ≡ path→hom {X} s e' →
+         Σ (h' : hom y' x) . comp-homᵣ s {y'} {x} {y'} h' f' ≡ Hom.id {X} y')
     (λ f' q . (h , q)) e
 
 --
@@ -152,7 +152,7 @@ diagram→iso {X} s (σ , cs) =
       -- face 123: f ; σ₂₃ is the hom of a path, since σ₁₃ is collapsed
       let k13 : is-collapsedᵣ {X} (λ x . σ (edge₁₃ x)) →
                 Σ (g : hom (σ (Simplex3.edge₁₂ 𝕀1)) (σ (Simplex3.edge₁₂ 𝕀0))) .
-                  comp-homᵣ X s {σ (Simplex3.edge₁₂ 𝕀0)} {σ (Simplex3.edge₁₂ 𝕀1)} {σ (Simplex3.edge₁₂ 𝕀0)} f g ≡ Hom.id {X} (σ (Simplex3.edge₁₂ 𝕀0)) =
+                  comp-homᵣ s {σ (Simplex3.edge₁₂ 𝕀0)} {σ (Simplex3.edge₁₂ 𝕀1)} {σ (Simplex3.edge₁₂ 𝕀0)} f g ≡ Hom.id {X} (σ (Simplex3.edge₁₂ 𝕀0)) =
         fun (y , p) →
           let ep : Σ (e' : σ (Simplex3.edge₁₃ 𝕀0) ≡ σ (Simplex3.edge₁₃ 𝕀1)) . simplex3-hom {X} Simplex3.edge₁₃ σ ≡ path→hom {X} s e' =
             collapsed→path {X} s y {λ x . σ (edge₁₃ x)} p in
@@ -166,7 +166,7 @@ diagram→iso {X} s (σ , cs) =
       -- face 012: σ₀₁ ; f is the hom of a path, since σ₀₂ is collapsed
       let k02 : is-collapsedᵣ {X} (λ x . σ (edge₀₂ x)) →
                 Σ (h : hom (σ (Simplex3.edge₁₂ 𝕀1)) (σ (Simplex3.edge₁₂ 𝕀0))) .
-                  comp-homᵣ X s {σ (Simplex3.edge₁₂ 𝕀1)} {σ (Simplex3.edge₁₂ 𝕀0)} {σ (Simplex3.edge₁₂ 𝕀1)} h f ≡ Hom.id {X} (σ (Simplex3.edge₁₂ 𝕀1)) =
+                  comp-homᵣ s {σ (Simplex3.edge₁₂ 𝕀1)} {σ (Simplex3.edge₁₂ 𝕀0)} {σ (Simplex3.edge₁₂ 𝕀1)} h f ≡ Hom.id {X} (σ (Simplex3.edge₁₂ 𝕀1)) =
         fun (y , p) →
           let ep : Σ (e' : σ (Simplex3.edge₀₂ 𝕀0) ≡ σ (Simplex3.edge₀₂ 𝕀1)) . simplex3-hom {X} Simplex3.edge₀₂ σ ≡ path→hom {X} s e' =
             collapsed→path {X} s y {λ x . σ (edge₀₂ x)} p in
@@ -216,10 +216,10 @@ tri-mid {X} (a0 , r) =
 
 -- the composites of the first two and of the last two edges are homs of paths
 tri-collapsed₀₂ ∷ {X ∷ U} (s : is-segalᵣ X) → triples X → U
-tri-collapsed₀₂ {X} s = tri-family X (λ a0 a1 a2 a3 u v w . Σ (e : a0 ≡ a2) . comp-homᵣ X s {a0} {a1} {a2} u v ≡ path→hom {X} s e)
+tri-collapsed₀₂ {X} s = tri-family X (λ a0 a1 a2 a3 u v w . Σ (e : a0 ≡ a2) . comp-homᵣ s {a0} {a1} {a2} u v ≡ path→hom {X} s e)
 
 tri-collapsed₁₃ ∷ {X ∷ U} (s : is-segalᵣ X) → triples X → U
-tri-collapsed₁₃ {X} s = tri-family X (λ a0 a1 a2 a3 u v w . Σ (e : a1 ≡ a3) . comp-homᵣ X s {a1} {a2} {a3} v w ≡ path→hom {X} s e)
+tri-collapsed₁₃ {X} s = tri-family X (λ a0 a1 a2 a3 u v w . Σ (e : a1 ≡ a3) . comp-homᵣ s {a1} {a2} {a3} v w ≡ path→hom {X} s e)
 
 -- the Segal filler of the triple (g , f , g), for an inverse g of f
 iso-filler ∷ {X ∷ U} (s : is-segalᵣ X) {x y : X} (f : hom x y) (g : hom y x) → simplex 3 →ᵣ X
@@ -237,24 +237,24 @@ iso→diagram {X} s {x} {y} f (g , pq) =
   let σ : simplex 3 →ᵣ X = iso-filler {X} s {x} {y} f g in
   let P : edges-tri {X} σ ≡{triples X} (y , x , g , y , x , f , g) = iso-filler-edges {X} s {x} {y} f g in
   let d₀₂ : tri-collapsed₀₂ {X} s (edges-tri {X} σ) =
-    subst (tri-collapsed₀₂ {X} s) (sym P) (refl , Product.snd {comp-homᵣ X s {x} {y} {x} f g ≡ Hom.id {X} x} {comp-homᵣ X s {y} {x} {y} g f ≡ Hom.id {X} y} pq) in
+    subst (tri-collapsed₀₂ {X} s) (sym P) (refl , Product.snd {comp-homᵣ s {x} {y} {x} f g ≡ Hom.id {X} x} {comp-homᵣ s {y} {x} {y} g f ≡ Hom.id {X} y} pq) in
   let d₁₃ : tri-collapsed₁₃ {X} s (edges-tri {X} σ) =
-    subst (tri-collapsed₁₃ {X} s) (sym P) (refl , Product.fst {comp-homᵣ X s {x} {y} {x} f g ≡ Hom.id {X} x} {comp-homᵣ X s {y} {x} {y} g f ≡ Hom.id {X} y} pq) in
+    subst (tri-collapsed₁₃ {X} s) (sym P) (refl , Product.fst {comp-homᵣ s {x} {y} {x} f g ≡ Hom.id {X} x} {comp-homᵣ s {y} {x} {y} g f ≡ Hom.id {X} y} pq) in
   let e₀₂ : σ (Simplex3.edge₀₂ 𝕀0) ≡ σ (Simplex3.edge₀₂ 𝕀1) =
     fst {σ (Simplex3.edge₀₂ 𝕀0) ≡ σ (Simplex3.edge₀₂ 𝕀1)}
-      (λ e . comp-homᵣ X s (simplex3-hom {X} Simplex3.edge₀₁ σ) (simplex3-hom {X} Simplex3.edge₁₂ σ) ≡ path→hom {X} s e) d₀₂ in
+      (λ e . comp-homᵣ s (simplex3-hom {X} Simplex3.edge₀₁ σ) (simplex3-hom {X} Simplex3.edge₁₂ σ) ≡ path→hom {X} s e) d₀₂ in
   let e₁₃ : σ (Simplex3.edge₁₃ 𝕀0) ≡ σ (Simplex3.edge₁₃ 𝕀1) =
     fst {σ (Simplex3.edge₁₃ 𝕀0) ≡ σ (Simplex3.edge₁₃ 𝕀1)}
-      (λ e . comp-homᵣ X s (simplex3-hom {X} Simplex3.edge₁₂ σ) (simplex3-hom {X} Simplex3.edge₂₃ σ) ≡ path→hom {X} s e) d₁₃ in
+      (λ e . comp-homᵣ s (simplex3-hom {X} Simplex3.edge₁₂ σ) (simplex3-hom {X} Simplex3.edge₂₃ σ) ≡ path→hom {X} s e) d₁₃ in
   (σ ,
    path→collapsed {X} s σ Simplex3.edge₀₂ e₀₂
      (trans (sym (simplex3-face-path X s Simplex3.d₃ σ))
        (snd {σ (Simplex3.edge₀₂ 𝕀0) ≡ σ (Simplex3.edge₀₂ 𝕀1)}
-         (λ e . comp-homᵣ X s (simplex3-hom {X} Simplex3.edge₀₁ σ) (simplex3-hom {X} Simplex3.edge₁₂ σ) ≡ path→hom {X} s e) d₀₂)) ,
+         (λ e . comp-homᵣ s (simplex3-hom {X} Simplex3.edge₀₁ σ) (simplex3-hom {X} Simplex3.edge₁₂ σ) ≡ path→hom {X} s e) d₀₂)) ,
    path→collapsed {X} s σ Simplex3.edge₁₃ e₁₃
      (trans (sym (simplex3-face-path X s Simplex3.d₀ σ))
        (snd {σ (Simplex3.edge₁₃ 𝕀0) ≡ σ (Simplex3.edge₁₃ 𝕀1)}
-         (λ e . comp-homᵣ X s (simplex3-hom {X} Simplex3.edge₁₂ σ) (simplex3-hom {X} Simplex3.edge₂₃ σ) ≡ path→hom {X} s e) d₁₃)))
+         (λ e . comp-homᵣ s (simplex3-hom {X} Simplex3.edge₁₂ σ) (simplex3-hom {X} Simplex3.edge₂₃ σ) ≡ path→hom {X} s e) d₁₃)))
 
 -- its middle edge is f
 iso→diagram-hom ∷ {X ∷ U} (s : is-segalᵣ X) {x y : X} (f : hom x y) (i : is-iso {X} s {x} {y} f) →

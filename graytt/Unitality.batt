@@ -209,9 +209,9 @@ runit-fill X {x} {y} u =
 
 -- right unitality: the composite of u and id y is u
 comp-homᵣ-runit-cell ∷ (X ∷ U) (s : is-segalᵣ X) {x y : X} (u : hom x y) →
-  hom-cell {X} {x} {y} (comp-homᵣ X s {x} {y} {y} u (Hom.id {X} y)) ≡ hom-cell {X} {x} {y} u
+  hom-cell {X} {x} {y} (comp-homᵣ s {x} {y} {y} u (Hom.id {X} y)) ≡ hom-cell {X} {x} {y} u
 comp-homᵣ-runit-cell X s {x} {y} u =
-  compᵣ-unique X s (homs→spine2 X {x} {y} {y} u (Hom.id {X} y))
+  compᵣ-unique s (homs→spine2 X {x} {y} {y} u (Hom.id {X} y))
     (preᵣ {simplex 2} {𝕀} {X} (hom-cell {X} {x} {y} u) Simplex2.fst)
     (runit-fill X {x} {y} u)
 
@@ -277,9 +277,9 @@ lunit-fill X {x} {y} u =
 
 -- left unitality: the composite of id x and u is u
 comp-homᵣ-lunit-cell ∷ (X ∷ U) (s : is-segalᵣ X) {x y : X} (u : hom x y) →
-  hom-cell (comp-homᵣ X s (Hom.id x) u) ≡ hom-cell u
+  hom-cell (comp-homᵣ s (Hom.id x) u) ≡ hom-cell u
 comp-homᵣ-lunit-cell X s {x} {y} u =
-  compᵣ-unique X s (homs→spine2 X {x} {x} {y} (Hom.id {X} x) u)
+  compᵣ-unique s (homs→spine2 X {x} {x} {y} (Hom.id {X} x) u)
     (preᵣ {simplex 2} {𝕀} {X} (hom-cell {X} {x} {y} u) Simplex2.snd)
     (lunit-fill X {x} {y} u)
 
@@ -387,10 +387,10 @@ runit-tgt X {x} {y} f e0 e1 =
   trans (cong2 {f 𝕀1 ≡ f 𝕀1} {f 𝕀1 ≡ y} {f 𝕀1 ≡ y} (λ α β . trans α β) L1 L2) (trans-refl-l2 e1)
 
 -- right unitality on hom types: the composite of u and id y is u
-comp-homᵣ-runit ∷ (X ∷ U) (s : is-segalᵣ X) {x y : X} (u : hom x y) → comp-homᵣ X s {x} {y} {y} u (Hom.id {X} y) ≡ u
+comp-homᵣ-runit ∷ (X ∷ U) (s : is-segalᵣ X) {x y : X} (u : hom x y) → comp-homᵣ s {x} {y} {y} u (Hom.id {X} y) ≡ u
 comp-homᵣ-runit X s {x} {y} (f , e) =
-  let h : (e : (f 𝕀0 ≡ x) × (f 𝕀1 ≡ y)) → comp-homᵣ X s {x} {y} {y} (f , e) (Hom.id {X} y) ≡ (f , e) = fun (e0 , e1) →
-    trans (fill-hom-unique X s {x} {y} {y} (f , e0 , e1) (Hom.id {X} y) (runit-hom-fill X {x} {y} (f , e0 , e1)))
+  let h : (e : (f 𝕀0 ≡ x) × (f 𝕀1 ≡ y)) → comp-homᵣ s {x} {y} {y} (f , e) (Hom.id {X} y) ≡ (f , e) = fun (e0 , e1) →
+    trans (fill-hom-unique s {x} {y} {y} (f , e0 , e1) (Hom.id {X} y) (runit-hom-fill X {x} {y} (f , e0 , e1)))
       (cong {(f 𝕀0 ≡ x) × (f 𝕀1 ≡ y)} {hom x y} (λ w . (f , w))
         (cong2 {f 𝕀0 ≡ x} {f 𝕀1 ≡ y} {(f 𝕀0 ≡ x) × (f 𝕀1 ≡ y)} pair (runit-src X {x} {y} f e0 e1) (runit-tgt X {x} {y} f e0 e1)))
   in
@@ -467,10 +467,10 @@ lunit-tgt X {x} {y} f e0 e1 =
     (trans-refl-l2 e1)
 
 -- left unitality on hom types: the composite of id x and u is u
-comp-homᵣ-lunit ∷ (X ∷ U) (s : is-segalᵣ X) {x y : X} (u : hom x y) → comp-homᵣ X s {x} {x} {y} (Hom.id {X} x) u ≡ u
+comp-homᵣ-lunit ∷ (X ∷ U) (s : is-segalᵣ X) {x y : X} (u : hom x y) → comp-homᵣ s {x} {x} {y} (Hom.id {X} x) u ≡ u
 comp-homᵣ-lunit X s {x} {y} (f , e) =
-  let h : (e : (f 𝕀0 ≡ x) × (f 𝕀1 ≡ y)) → comp-homᵣ X s {x} {x} {y} (Hom.id {X} x) (f , e) ≡ (f , e) = fun (e0 , e1) →
-    trans (fill-hom-unique X s {x} {x} {y} (Hom.id {X} x) (f , e0 , e1) (lunit-hom-fill X {x} {y} (f , e0 , e1)))
+  let h : (e : (f 𝕀0 ≡ x) × (f 𝕀1 ≡ y)) → comp-homᵣ s {x} {x} {y} (Hom.id {X} x) (f , e) ≡ (f , e) = fun (e0 , e1) →
+    trans (fill-hom-unique s {x} {x} {y} (Hom.id {X} x) (f , e0 , e1) (lunit-hom-fill X {x} {y} (f , e0 , e1)))
       (cong {(f 𝕀0 ≡ x) × (f 𝕀1 ≡ y)} {hom x y} (λ w . (f , w))
         (cong2 {f 𝕀0 ≡ x} {f 𝕀1 ≡ y} {(f 𝕀0 ≡ x) × (f 𝕀1 ≡ y)} pair (lunit-src X {x} {y} f e0 e1) (lunit-tgt X {x} {y} f e0 e1)))
   in

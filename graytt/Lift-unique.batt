@@ -153,18 +153,18 @@ lift-unique-core {X} {A} sX sA p uX {x} {y} f c {y'} f' c' q =
   let e : p y ≡ p y' = fst {p y ≡ p y'} (λ e' . subst (λ b . hom (p x) b) e' pf ≡ pf') sp in
   let D : subst (λ b . hom (p x) b) e pf ≡ pf' = snd {p y ≡ p y'} (λ e' . subst (λ b . hom (p x) b) e' pf ≡ pf') sp in
   let ke : hom (p y) (p y') = path→hom {A} sA {p y} {p y'} e in
-  let D' : comp-homᵣ A sA {p x} {p y} {p y'} pf ke ≡ pf' = trans (sym (transport-hom-tgt {A} sA {p x} {p y} pf {p y'} e)) D in
+  let D' : comp-homᵣ sA {p x} {p y} {p y'} pf ke ≡ pf' = trans (sym (transport-hom-tgt {A} sA {p x} {p y} pf {p y'} e)) D in
   -- 1. the gap map of f at y' gives g with f ; g = f' and p g = path→hom e
   let G : hom y y' → cocart-pb {X} {A} sA p {x} {y} f y' = cocart-gap {X} {A} sX sA p {x} {y} f y' in
   let σ : section G = is-equiv-sec G (c y') in
   let π : cocart-pb {X} {A} sA p {x} {y} f y' = (f' , ke , sym D') in
   let g : hom y y' = section-map G σ π in
   let PG : G g ≡ π = snd _ σ π in
-  let fg : comp-homᵣ X sX {x} {y} {y'} f g ≡ f' = cong {cocart-pb {X} {A} sA p {x} {y} f y'} {hom x y'} (λ z . fst _ z) PG in
+  let fg : comp-homᵣ sX {x} {y} {y'} f g ≡ f' = cong {cocart-pb {X} {A} sA p {x} {y} f y'} {hom x y'} (λ z . fst _ z) PG in
   let pg : hom-map {X} {A} p {y} {y'} g ≡ ke =
     cong {cocart-pb {X} {A} sA p {x} {y} f y'} {hom (p y) (p y')} (λ z . fst _ (snd _ z)) PG in
   -- 2. g is cocartesian (cancellation) and lies over an isomorphism, hence is an isomorphism
-  let c-fg : is-cocartesian {X} {A} sX sA p {x} {y'} (comp-homᵣ X sX {x} {y} {y'} f g) =
+  let c-fg : is-cocartesian {X} {A} sX sA p {x} {y'} (comp-homᵣ sX {x} {y} {y'} f g) =
     subst {hom x y'} (λ h . is-cocartesian {X} {A} sX sA p {x} {y'} h) (sym fg) c' in
   let c-g : is-cocartesian {X} {A} sX sA p {y} {y'} g =
     snd _ (is-cocartesian-cancel {X} {A} sX sA p {x} {y} {y'} f g c) c-fg in
@@ -182,7 +182,7 @@ lift-unique-core {X} {A} sX sA p uX {x} {y} f c {y'} f' c' q =
     cong {iso {X} sX y y'} {hom y y'} (fst (λ h . is-biinv-hom {X} sX {y} {y'} h)) (snd _ τ gi) in
   let E : subst (λ z . hom x z) P f ≡ f' =
     trans (transport-hom-tgt {X} sX {x} {y} f {y'} P)
-      (trans (cong {hom y y'} {hom x y'} (λ k . comp-homᵣ X sX {x} {y} {y'} f k) hP) fg) in
+      (trans (cong {hom y y'} {hom x y'} (λ k . comp-homᵣ sX {x} {y} {y'} f k) hP) fg) in
   cocart-hom-join {X} {A} sX sA p {x} {y} f c {y'} P f' E c'
 
 -- fibrewise injectivity

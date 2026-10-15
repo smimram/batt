@@ -25,25 +25,25 @@ open import Iso
 
 is-biinv-hom ∷ {X ∷ U} (s : is-segalᵣ X) {x y : X} (f : hom x y) → U
 is-biinv-hom {X} s {x} {y} f =
-  (Σ (g : hom y x) . comp-homᵣ X s {x} {y} {x} f g ≡ Hom.id {X} x) ×
-  (Σ (h : hom y x) . comp-homᵣ X s {y} {x} {y} h f ≡ Hom.id {X} y)
+  (Σ (g : hom y x) . comp-homᵣ s {x} {y} {x} f g ≡ Hom.id {X} x) ×
+  (Σ (h : hom y x) . comp-homᵣ s {y} {x} {y} h f ≡ Hom.id {X} y)
 
 -- a section and a retraction agree: h = h ; (f ; g) = (h ; f) ; g = g
 biinv-sec-ret ∷ {X ∷ U} (s : is-segalᵣ X) {x y : X} (f : hom x y) (g h : hom y x) →
-  comp-homᵣ X s {x} {y} {x} f g ≡ Hom.id {X} x → comp-homᵣ X s {y} {x} {y} h f ≡ Hom.id {X} y → h ≡ g
+  comp-homᵣ s {x} {y} {x} f g ≡ Hom.id {X} x → comp-homᵣ s {y} {x} {y} h f ≡ Hom.id {X} y → h ≡ g
 biinv-sec-ret {X} s {x} {y} f g h p q =
   trans (sym (comp-homᵣ-runit X s {y} {x} h))
-    (trans (cong {hom x x} {hom y x} (λ k . comp-homᵣ X s {y} {x} {x} h k) (sym p))
+    (trans (cong {hom x x} {hom y x} (λ k . comp-homᵣ s {y} {x} {x} h k) (sym p))
       (trans (sym (comp-homᵣ-assoc X s {y} {x} {y} {x} h f g))
-        (trans (cong {hom y y} {hom y x} (λ k . comp-homᵣ X s {y} {y} {x} k g) q)
+        (trans (cong {hom y y} {hom y x} (λ k . comp-homᵣ s {y} {y} {x} k g) q)
           (comp-homᵣ-lunit X s {y} {x} g))))
 
 biinv→iso ∷ {X ∷ U} (s : is-segalᵣ X) {x y : X} (f : hom x y) → is-biinv-hom {X} s {x} {y} f → is-iso {X} s {x} {y} f
 biinv→iso {X} s {x} {y} f (gp , hq) =
-  let k : (gp : Σ (g : hom y x) . comp-homᵣ X s {x} {y} {x} f g ≡ Hom.id {X} x)
-          (hq : Σ (h : hom y x) . comp-homᵣ X s {y} {x} {y} h f ≡ Hom.id {X} y) → is-iso {X} s {x} {y} f =
+  let k : (gp : Σ (g : hom y x) . comp-homᵣ s {x} {y} {x} f g ≡ Hom.id {X} x)
+          (hq : Σ (h : hom y x) . comp-homᵣ s {y} {x} {y} h f ≡ Hom.id {X} y) → is-iso {X} s {x} {y} f =
     fun (g , p) (h , q) →
-      (g , p , trans (cong {hom y x} {hom y y} (λ k . comp-homᵣ X s {y} {x} {y} k f) (sym (biinv-sec-ret {X} s {x} {y} f g h p q))) q)
+      (g , p , trans (cong {hom y x} {hom y y} (λ k . comp-homᵣ s {y} {x} {y} k f) (sym (biinv-sec-ret {X} s {x} {y} f g h p q))) q)
   in
   k gp hq
 
@@ -57,8 +57,8 @@ is-contr-is-biinv-hom ∷ {X ∷ U} (s : is-segalᵣ X) {x y : X} (f : hom x y) 
 is-contr-is-biinv-hom {X} s {x} {y} f b =
   let i : is-iso {X} s {x} {y} f = biinv→iso {X} s {x} {y} f b in
   is-contr-prod
-    (is-contr-fib (λ g . comp-homᵣ X s {x} {y} {x} f g) (is-equiv-comp-iso-l {X} s {x} {y} f i x) (Hom.id {X} x))
-    (is-contr-fib (λ h . comp-homᵣ X s {y} {x} {y} h f) (is-equiv-comp-iso-r {X} s {x} {y} f i y) (Hom.id {X} y))
+    (is-contr-fib (λ g . comp-homᵣ s {x} {y} {x} f g) (is-equiv-comp-iso-l {X} s {x} {y} f i x) (Hom.id {X} x))
+    (is-contr-fib (λ h . comp-homᵣ s {y} {x} {y} h f) (is-equiv-comp-iso-r {X} s {x} {y} f i y) (Hom.id {X} y))
 
 is-prop-is-biinv-hom ∷ {X ∷ U} (s : is-segalᵣ X) {x y : X} (f : hom x y) → is-prop (is-biinv-hom {X} s {x} {y} f)
 is-prop-is-biinv-hom {X} s {x} {y} f b b' =
@@ -124,7 +124,7 @@ is-prop-fib-path→hom {X} s u {x} {y} k =
 
 -- transport of a hom along a path of its target is postcomposition with the path, as a hom
 transport-hom-tgt ∷ {X ∷ U} (s : is-segalᵣ X) {x y : X} (f : hom x y) {y' : X} (e : y ≡ y') →
-  subst (λ z . hom x z) e f ≡ comp-homᵣ X s {x} {y} {y'} f (path→hom {X} s {y} {y'} e)
+  subst (λ z . hom x z) e f ≡ comp-homᵣ s {x} {y} {y'} f (path→hom {X} s {y} {y'} e)
 transport-hom-tgt {X} s {x} {y} f {y'} e =
-  J y (λ z e' . subst (λ z' . hom x z') e' f ≡ comp-homᵣ X s {x} {y} {z} f (path→hom {X} s {y} {z} e'))
+  J y (λ z e' . subst (λ z' . hom x z') e' f ≡ comp-homᵣ s {x} {y} {z} f (path→hom {X} s {y} {z} e'))
     (sym (comp-homᵣ-runit X s {x} {y} f)) e

@@ -1,32 +1,9 @@
+--
+-- Formalizing results of the type developed by Brown and Mosa in _Double
+-- categories, 2-categories, thin structures and connections_: in presence of
+-- connections, double categories coincide with globular ones.
+--
+
+import Hom2
 open import Cube
-
--- Stub.
-
---
--- Defining the four sides of the Gray square
---
-
---  .---top-->.
---  ^  ^^     ^
--- left \\  right
---  |    \\   |
---  .-bottom->.
-
--- bottom side
-bottom : 𝕀 → gray-square
-bottom i = i ⊗ 𝕀0
-
--- top side
-top : 𝕀 → gray-square
-top i = i ⊗ 𝕀1
-
--- left side
-left : 𝕀 → gray-square
-left i = 𝕀0 ⊗ i
-
--- right side
-right : 𝕀 → gray-square
-right i = 𝕀1 ⊗ i
-
--- right-bottom composite
--- rb-comp : 𝕀 →
+open import Connection

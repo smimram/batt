@@ -167,7 +167,7 @@ yon-is-cocartesian-from-conn {A} rA a F sF cF u H =
       let YΓt : hom (Y (hom-family-conn {A} a t γ 𝕀0)) (Y (hom-family-conn {A} a t γ 𝕀1)) = hom-map {E} {X} Y Γt in
       let Yχ : hom (Y (χ 𝕀0)) (Y (χ 𝕀1)) = hom-map {E} {X} Y χh in
       -- Y Γ̄_t ; Y χ̄_σ = Y Γ̄_{u ∘ t}
-      let eq : comp-homᵣ X sF YΓt Yχ ≡ hom-map {E} {X} Y Γut =
+      let eq : comp-homᵣ sF YΓt Yχ ≡ hom-map {E} {X} Y Γut =
         trans (sym (hom-map-comp E X Y sE sF Γt χh))
           (cong (hom-map {E} {X} Y) (hom-family-lift-comp {A} sA a σ γ)) in
       snd _ (is-cocartesian-cancel {X} {A} sF sA (fst F) YΓt Yχ (H t γ))
@@ -256,7 +256,7 @@ yon-hom-conn-cocart-simplex {A} rA a b σ γ₀ γ₁ =
     (Y (Γ i) , χ i ,
      cong {hom {A} b (s i)} {Eb} (λ h . (s i , h))
        (trans (push-hom-family {A} rA b {a} {s i} (conn {A} s i , γ₁ , refl) g)
-         (comp-simplex2-paths A sA (λ y . σ ((Simplex2.fst y , Simplex2.fst y 𝕀∧ Simplex2.snd y 𝕀∧ i , tt) , (refl , tt)))
+         (comp-simplex2-paths sA (λ y . σ ((Simplex2.fst y , Simplex2.fst y 𝕀∧ Simplex2.snd y 𝕀∧ i , tt) , (refl , tt)))
            {b} γ₀ {a} γ₁))) in
   is-cocartesian-cell-path {Eb} {A} sEb sA (fst (hom-family {A} b)) {λ i . Y (Γ i)} {χ}
     (htpyᵣ→path 𝕀 Eb H) (snd _ (hom-family-lift {A} sA b σ γ₀))

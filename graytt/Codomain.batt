@@ -57,9 +57,9 @@ lift-tri-edges {A} σ = (refl , refl , refl)
 
 -- Γ_t ; χ_σ = Γ_{u ∘ t}
 lift-sq-comp ∷ {A ∷ U} (sA : is-segalᵣ A) (σ : simplex 2 →ᵣ A) →
-  comp-homᵣ (arrᵣ A) (is-segal-arrᵣ {A} sA) (conn-hom {A} (hom-cell (simplex2-hom₀₁ {A} σ))) (cell-hom {arrᵣ A} (lift-sq {A} σ))
+  comp-homᵣ (is-segal-arrᵣ {A} sA) (conn-hom {A} (hom-cell (simplex2-hom₀₁ {A} σ))) (cell-hom {arrᵣ A} (lift-sq {A} σ))
     ≡ conn-hom {A} (hom-cell (simplex2-hom₀₂ {A} σ))
-lift-sq-comp {A} sA σ = comp-simplex2 (arrᵣ A) (is-segal-arrᵣ {A} sA) (lift-tri {A} σ)
+lift-sq-comp {A} sA σ = comp-simplex2 (is-segal-arrᵣ {A} sA) (lift-tri {A} σ)
 
 lift-sq-cocart ∷ {A ∷ U} (sA : is-segalᵣ A) (σ : simplex 2 →ᵣ A) →
   is-cocartesian {arrᵣ A} {A} (is-segal-arrᵣ {A} sA) sA (tgtᵣ {A}) (cell-hom {arrᵣ A} (lift-sq {A} σ))
@@ -70,7 +70,7 @@ lift-sq-cocart {A} sA σ =
   let Γt : hom {arrᵣ A} (λ j . srcᵣ t) t = conn-hom {A} t in
   let χ : hom {arrᵣ A} t ut = cell-hom {arrᵣ A} (lift-sq {A} σ) in
   -- Γ_{u ∘ t} is cocartesian, hence so is Γ_t ; χ_σ
-  let c-comp : is-cocartesian {arrᵣ A} {A} sV sA (tgtᵣ {A}) {λ j . srcᵣ t} {ut} (comp-homᵣ (arrᵣ A) sV {λ j . srcᵣ t} {t} {ut} Γt χ) =
+  let c-comp : is-cocartesian {arrᵣ A} {A} sV sA (tgtᵣ {A}) {λ j . srcᵣ t} {ut} (comp-homᵣ sV {λ j . srcᵣ t} {t} {ut} Γt χ) =
     subst {hom {arrᵣ A} (λ j . srcᵣ t) ut} (λ h . is-cocartesian {arrᵣ A} {A} sV sA (tgtᵣ {A}) {λ j . srcᵣ t} {ut} h)
       (sym (lift-sq-comp {A} sA σ)) (fold-lemma {A} sA ut) in
   -- cancel the cocartesian Γ_t
