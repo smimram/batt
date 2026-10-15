@@ -10,18 +10,18 @@ postulate is-prop-trunc ∷ (X : U) → is-prop (‖ X ‖)
 prop-trunc ∷ U → HProp
 prop-trunc X = (‖ X ‖ , is-prop-trunc X)
 
-postulate unit ∷ (X : U) → X → ‖ X ‖
-postulate ind ∷ (X : U) (P : ‖ X ‖ → HProp) → ((x : X) → ⟨ P (unit X x) ⟩) → (u : ‖ X ‖) → ⟨ P u ⟩
-postulate ind-unit ∷ (X : U) (P : ‖ X ‖ → HProp) → (f : (x : X) → ⟨ P (unit X x) ⟩) → (x : X) → ind X P f (unit X x) ≡ f x
+postulate unit ∷ {X : U} → X → ‖ X ‖
+postulate ind ∷ {X : U} (P : ‖ X ‖ → HProp) → ((x : X) → ⟨ P (unit x) ⟩) → (u : ‖ X ‖) → ⟨ P u ⟩
+postulate ind-unit ∷ {X : U} (P : ‖ X ‖ → HProp) → (f : (x : X) → ⟨ P (unit x) ⟩) → (x : X) → ind P f (unit x) ≡ f x
 
-rec ∷ (X : U) (P : HProp) → (X → ⟨ P ⟩) → ‖ X ‖ → ⟨ P ⟩
-rec X P = ind X (λ_.P)
+rec ∷ {X : U} (P : HProp) → (X → ⟨ P ⟩) → ‖ X ‖ → ⟨ P ⟩
+rec P = ind (λ_.P)
 
-rec-unit ∷ (X : U) (P : HProp) (f : X → ⟨ P ⟩) (x : X) → rec X P f (unit X x) ≡ f x
-rec-unit X P = ind-unit X (λ_.P)
+rec-unit ∷ {X : U} (P : HProp) (f : X → ⟨ P ⟩) (x : X) → rec P f (unit x) ≡ f x
+rec-unit P = ind-unit (λ_.P)
 
-rec' ∷ (X Y : U) → is-prop Y → (X → Y) → (‖ X ‖ → Y)
-rec' X Y p = ind X (λ_.(Y,p))
+rec' ∷ {X Y : U} → is-prop Y → (X → Y) → (‖ X ‖ → Y)
+rec' {X} {Y} p = ind (λ_.(Y,p))
 
-rec-unit' ∷ (X Y : U) → (p : is-prop Y) → (f : X → Y) → (x : X) → rec' X Y p f (unit X x) ≡ f x
-rec-unit' X Y p = ind-unit X (λ_.(Y,p))
+rec-unit' ∷ {X Y : U} (p : is-prop Y) (f : X → Y) (x : X) → rec' p f (unit x) ≡ f x
+rec-unit' {X} {Y} p = ind-unit (λ_.(Y,p))

@@ -25,7 +25,7 @@ spine2→simplex2 (i , y) =
   let j : 𝕀 = fst _ y in
   let p : (j ≡ 𝕀0) ∨ (i ≡ 𝕀1) = snd _ y in
   -- geq i j is an identity type in the set 𝕀, hence a proposition: the truncation can be eliminated
-  (i , j , PropTrunc.rec' (sum (j ≡ 𝕀0) (i ≡ 𝕀1)) (i ≥ j) (is-set-𝕀 (i 𝕀∨ j) i)
+  (i , j , PropTrunc.rec' {sum (j ≡ 𝕀0) (i ≡ 𝕀1)} {i ≥ j} (is-set-𝕀 (i 𝕀∨ j) i)
     (Sum.rec {j ≡ 𝕀0} {i ≡ 𝕀1} {i ≥ j}
       (λ q . cong (λ k . i 𝕀∨ k) q)                      -- j ≡ 𝕀0 : i 𝕀∨ j ≡ i 𝕀∨ 𝕀0 = i
       (λ q . trans (cong (λ k . k 𝕀∨ j) q) (sym q)))     -- i ≡ 𝕀1 : i 𝕀∨ j ≡ 𝕀1 𝕀∨ j = 𝕀1 ≡ i
@@ -118,7 +118,7 @@ is-in-spine→is-sorted (succ n) x p =
   let x1 : 𝕀 = Product.fst x in
   let xs : cart-cube (succ n) = Product.snd x in
   let T : U = (x1 ≥ Product.fst xs) × is-sorted n xs in
-  PropTrunc.rec' (sum (xs ≡ origin (succ n)) ((x1 ≡ 𝕀1) × is-in-spine (succ n) xs)) T
+  PropTrunc.rec' {sum (xs ≡ origin (succ n)) ((x1 ≡ 𝕀1) × is-in-spine (succ n) xs)} {T}
     (is-prop-prod {x1 ≥ Product.fst xs} {is-sorted n xs} (is-prop-geq x1 (Product.fst xs)) (is-prop-is-sorted n xs))
     (Sum.rec {xs ≡ origin (succ n)} {(x1 ≡ 𝕀1) × is-in-spine (succ n) xs} {T}
       -- xs ≡ (0, …, 0) : x₁ ∨ 0 = x₁ judgmentally, and the origin is sorted
@@ -164,7 +164,7 @@ is-set-spine ∷ (n ∷ ℕ) → is-set (spine n)
 is-set-spine n = is-set-Σ-prop (is-in-spine n) (is-set-cart-cube n) (is-prop-is-in-spine n)
 
 spine1-pt ∷ (t : 𝕀) → is-in-spine 1 (t , tt)
-spine1-pt t = PropTrunc.unit (sum (tt ≡ origin 0) ((t ≡ 𝕀1) × is-in-spine 0 tt)) (inl {tt ≡ origin 0} {(t ≡ 𝕀1) × is-in-spine 0 tt} refl)
+spine1-pt t = PropTrunc.unit (inl {tt ≡ origin 0} {(t ≡ 𝕀1) × is-in-spine 0 tt} refl)
 
 -- simplices are sets
 is-set-simplex ∷ (n ∷ ℕ) → is-set (simplex (succ n))
@@ -222,18 +222,18 @@ Spine2 = record
   edge₀₁ ∷ 𝕀 → t
   edge₀₁ t =
     ((t , 𝕀0 , tt) ,
-     PropTrunc.unit (sum ((𝕀0 , tt) ≡{cart-cube 1} origin 1) ((t ≡ 𝕀1) × is-in-spine 1 (𝕀0 , tt)))
+     PropTrunc.unit
        (inl {(𝕀0 , tt) ≡{cart-cube 1} origin 1} {(t ≡ 𝕀1) × is-in-spine 1 (𝕀0 , tt)} refl))
 
   -- second edge of the spine, t ↦ (1, t)
   edge₁₂ ∷ 𝕀 → t
   edge₁₂ t =
     let p : is-in-spine 1 (t , tt) =
-      PropTrunc.unit (sum (tt ≡ origin 0) ((t ≡ 𝕀1) × is-in-spine 0 tt))
+      PropTrunc.unit
         (inl {tt ≡ origin 0} {(t ≡ 𝕀1) × is-in-spine 0 tt} refl)
     in
     ((𝕀1 , t , tt) ,
-     PropTrunc.unit (sum ((t , tt) ≡{cart-cube 1} origin 1) ((𝕀1 ≡ 𝕀1) × is-in-spine 1 (t , tt)))
+     PropTrunc.unit
        (inr {(t , tt) ≡{cart-cube 1} origin 1} {(𝕀1 ≡ 𝕀1) × is-in-spine 1 (t , tt)} (refl , p)))
 
   -- In the 2-spine, the target of the first edge coincides with the source of the second edge

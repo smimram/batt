@@ -60,10 +60,10 @@ union {X} A B = Σ (x : X) . or (A x) (B x)
 -- the witnesses of A x ∨ B x coming from each side, the canonical paths between witnesses,
 -- and the inclusion of a fibre into the union
 union-wl ∷ {X : U} (A B : X → U) (x : X) → A x → or (A x) (B x)
-union-wl {X} A B x p = PropTrunc.unit (sum (A x) (B x)) (inl {A x} {B x} p)
+union-wl {X} A B x p = PropTrunc.unit (inl {A x} {B x} p)
 
 union-wr ∷ {X : U} (A B : X → U) (x : X) → B x → or (A x) (B x)
-union-wr {X} A B x q = PropTrunc.unit (sum (A x) (B x)) (inr {A x} {B x} q)
+union-wr {X} A B x q = PropTrunc.unit (inr {A x} {B x} q)
 
 union-τ ∷ {X : U} (A B : X → U) (x : X) (w w' : or (A x) (B x)) → w ≡ w'
 union-τ {X} A B x w w' = prop-path (is-prop-trunc (sum (A x) (B x))) w w'
@@ -177,7 +177,7 @@ union-D-contr ∷ {X : U} (A B : X → U) (pA : (x : X) → is-prop (A x)) (pB :
   (a : (Σ (x : X) . A x) → Y) (b : (Σ (x : X) . B x) → Y) (c : (x : X) (p : A x) (q : B x) → a (x , p) ≡ b (x , q))
   (x : X) → or (A x) (B x) → is-contr (union-D A B Y a b c x)
 union-D-contr {X} A B pA pB Y a b c x w =
-  PropTrunc.rec' (sum (A x) (B x)) (is-contr (union-D A B Y a b c x)) (is-prop-is-contr (union-D A B Y a b c x))
+  PropTrunc.rec' (is-prop-is-contr (union-D A B Y a b c x))
     (Sum.rec {A x} {B x} {is-contr (union-D A B Y a b c x)} (union-D-contr-A A B pA Y a b c x) (union-D-contr-B A B pB Y a b c x)) w
 
 --
