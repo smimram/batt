@@ -7,7 +7,7 @@ open import PropTrunc
 open import Sum
 
 or ∷ Type → Type → Type
-or A B = ‖ sum A B ‖
+or A B = ‖ A + B ‖
 
 prop-or ∷ HProp → HProp → HProp
 prop-or (A,_) (B,_) = (or A B, is-prop-trunc _)

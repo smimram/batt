@@ -42,6 +42,7 @@ let rec token lexbuf =
   | Utf8 "∂" -> FUN
   | Utf8 "Σ" | "\\Sigma" -> SIGMA
   | Utf8 "×" | "\\times" -> TIMES
+  | "+" -> PLUS
   | Utf8 "⨂" | "\\bigotimes" -> TENS
   | Utf8 "⊗" | "\\otimes" -> TENSP
   | Utf8 "♭" | "\\flat" -> FLAT
