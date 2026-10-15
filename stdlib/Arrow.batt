@@ -2,7 +2,7 @@
 -- Arrows
 --
 -- The arrows of a type A are the maps 𝕀 → A (cartesian), 𝕀 →ₗ A (lax) and 𝕀 →ᵣ A (oplax),
--- with their sources and targets.
+-- with their sources and targets, and the squares (maps from 𝕀 × 𝕀 or 𝕀 ⨂ 𝕀) as arrows of arrows.
 --
 
 arr ∷ U → U
@@ -36,8 +36,56 @@ tgtᵣ f = f 𝕀1
 --- Conversion
 ---
 
+-- a cartesian map can be seen as a lax (resp. oplax) one
 arr→arrₗ ∷ {A B ∷ U} → (A → B) → (A →ₗ B)
 arr→arrₗ f a = f a
 
 arr→arrᵣ ∷ {A B ∷ U} → (A → B) → (A →ᵣ B)
 arr→arrᵣ f a = f a
+
+---
+--- Squares
+---
+
+-- The squares of a type A are the maps from the cartesian square 𝕀 × 𝕀 (cartesian), or from the
+-- Gray square 𝕀 ⨂ 𝕀 (lax and oplax)
+
+square ∷ (A ∷ U) → U
+square A = 𝕀 × 𝕀 → A
+
+squareₗ ∷ (A ∷ U) → U
+squareₗ A = 𝕀 ⨂ 𝕀 →ₗ A
+
+squareᵣ ∷ (A ∷ U) → U
+squareᵣ A = 𝕀 ⨂ 𝕀 →ᵣ A
+
+Square = record
+  t  = square
+  tₗ = squareₗ
+  tᵣ = squareᵣ
+
+  -- Currying: a square is an arrow of arrows. In the lax case, the argument of an inner lax
+  -- arrow goes to the left of the tensor (and to the right in the oplax case), so that the
+  -- coordinates are swapped.
+
+  -- cartesian squares, a square s corresponds to the arrow i ↦ (j ↦ s (i , j))
+  of-arr : {A ∷ U} → arr (arr A) → square A
+  of-arr f (i , j) = f i j
+
+  to-arr : {A ∷ U} → square A → arr (arr A)
+  to-arr s i j = s (i , j)
+
+  -- lax squares, a square s corresponds to the arrow i ↦ (j ↦ s (j ⊗ i))
+  of-arrₗ : {A ∷ U} → arrₗ (arrₗ A) → squareₗ A
+  of-arrₗ f (i ⊗ j) = f j i
+
+  to-arrₗ : {A ∷ U} → squareₗ A → arrₗ (arrₗ A)
+  to-arrₗ s i j = s (j ⊗ i)
+
+  -- oplax squares, a square s corresponds to the arrow i ↦ (j ↦ s (i ⊗ j))
+  of-arrᵣ : {A ∷ U} → arrᵣ (arrᵣ A) → squareᵣ A
+  of-arrᵣ f (i ⊗ j) = f i j
+
+  to-arrᵣ : {A ∷ U} → squareᵣ A → arrᵣ (arrᵣ A)
+  to-arrᵣ s i j = s (i ⊗ j)
+end
