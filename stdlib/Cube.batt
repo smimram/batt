@@ -201,6 +201,16 @@ Simplex1 = record
   is-equiv-of𝕀 = ((to𝕀 , of-to𝕀) , (to𝕀 , λ i . refl))
 end
 
+CCube2 = record
+  t = cart-cube 2
+
+  fst ∷ t → 𝕀
+  fst = Product.fst
+
+  snd ∷ t → 𝕀
+  snd x = Product.fst (Product.snd x)
+end
+
 Spine2 = record
   t = spine 2
 
