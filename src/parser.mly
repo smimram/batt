@@ -14,7 +14,7 @@ let binder_names ~pos t =
 let meta ~pos = mk ~pos @@ Meta (`Fresh (Some pos))
 %}
 
-%token COLON CCOLON EQ LPAR RPAR LRPAR LACC RACC LANGLE RANGLE COMMA LET IN POSTULATE ABSTRACT META HOLE N EOF
+%token COLON CCOLON EQ LPAR RPAR LRPAR LACC RACC LANGLE RANGLE DBAR COMMA LET IN POSTULATE ABSTRACT META HOLE N EOF
 %token TYPE LARGETYPE
 %token<int> INT
 %token EMPTY
@@ -31,6 +31,8 @@ let meta ~pos = mk ~pos @@ Meta (`Fresh (Some pos))
 %token OPEN RECORD END
 %token<string> IMPORT
 
+%nonassoc DBAR
+%nonassoc above_DBAR
 %nonassoc below_DOT
 %nonassoc DOT
 %nonassoc below_INT
@@ -92,6 +94,7 @@ atom:
   | LPAR t=term RPAR { t }
   | RECORD l=items END { mk ~pos:$loc @@ Record (`Recursive, record_fields (group_decls l)) }
   | LANGLE t=term RANGLE { app ~pos:$loc (mk ~pos:$loc($1) @@ Var "type") t }
+  | DBAR t=term DBAR { app ~pos:$loc (mk ~pos:$loc($1) @@ Var "trunc") t }
   | t=atom DOT x=IDENT { mk ~pos:$loc @@ RecordField (t, x) }
   | BOOL DOT x=IDENT { mk ~pos:$loc @@ RecordField (mk ~pos:$loc($1) @@ Var "Bool", x) }
   | NAT DOT x=IDENT { mk ~pos:$loc @@ RecordField (mk ~pos:$loc($1) @@ Var "Nat", x) }
@@ -108,7 +111,8 @@ app_term:
   | t=app_term LACC u=term RACC { app ~pos:$loc ~icit:Implicit t u }
 
 prod_term:
-  | app_term { $1 }
+  /* a DBAR after an application closes ‖ … ‖ instead of starting an argument, so ‖ … ‖ needs parentheses as an argument */
+  | app_term %prec above_DBAR { $1 }
   | a=prod_term TENS b=prod_term { mk ~pos:$loc @@ Tens (a, b) }
   | a=prod_term TENSP b=prod_term { mk ~pos:$loc @@ TensPair (a, b) }
   | a=prod_term TIMES b=prod_term { mk ~pos:$loc @@ Sigma ("_", a, b) }
