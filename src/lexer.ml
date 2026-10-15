@@ -53,7 +53,7 @@ let rec token lexbuf =
   | Utf8 "∘" | "\\circ" -> INFIX1 "circ"
   | Utf8 "∨" -> INFIX1 "or"
   | Utf8 "¬" -> IDENT "not"
-  | Utf8 "ℕ" | "Nat" -> NAT
+  | Utf8 "ℕ" -> NAT
   | "zero" -> ZERO
   | "succ" -> SUCC
   | "List" -> LIST

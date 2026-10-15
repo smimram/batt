@@ -33,8 +33,6 @@ let meta ~pos = mk ~pos @@ Meta (`Fresh (Some pos))
 
 %nonassoc DBAR
 %nonassoc above_DBAR
-%nonassoc below_DOT
-%nonassoc DOT
 %nonassoc below_INT
 %nonassoc INT
 %nonassoc INFIX0
@@ -82,7 +80,7 @@ atom:
   | REFL { mk ~pos:$loc @@ Refl (meta ~pos:$loc) }
   | HOLE { mk ~pos:$loc @@ Hole $loc }
   | META { meta ~pos:$loc }
-  | NAT %prec below_DOT { mk ~pos:$loc @@ IndType (`Nat, []) }
+  | NAT { mk ~pos:$loc @@ IndType (`Nat, []) }
   | ZERO { mk ~pos:$loc @@ IndTerm (`Zero, []) }
   | n=INT { nat ~pos:$loc n }
   | SUCC { mk ~pos:$loc @@ Var "succ" }
@@ -96,7 +94,6 @@ atom:
   | LANGLE t=term RANGLE { app ~pos:$loc (mk ~pos:$loc($1) @@ Var "type") t }
   | DBAR t=term DBAR { app ~pos:$loc (mk ~pos:$loc($1) @@ Var "trunc") t }
   | t=atom DOT x=IDENT { mk ~pos:$loc @@ RecordField (t, x) }
-  | NAT DOT x=IDENT { mk ~pos:$loc @@ RecordField (mk ~pos:$loc($1) @@ Var "Nat", x) }
 
 prefix_term:
   | atom { $1 }

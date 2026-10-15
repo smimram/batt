@@ -8,7 +8,7 @@ let string_of_inductive_type = function
   | `Empty -> "Empty"
   | `Unit -> "Unit"
   | `Bool -> "bool"
-  | `Nat -> "Nat"
+  | `Nat -> "nat"
   | `List -> "List"
 
 (** Basic inductive terms. *)

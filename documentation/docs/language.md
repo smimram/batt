@@ -54,7 +54,7 @@ Most symbols have an ASCII or LaTeX-like alternative:
 | `≡` | `\equiv` | identity type |
 | `⊥` | `\bot` | empty type |
 | `⊤` | `\top` | unit type |
-| `ℕ` | `Nat` | natural numbers |
+| `ℕ` | `nat` | natural numbers |
 | `𝕀`, `𝕀0`, `𝕀1`, `𝕀∨`, `𝕀∧` | `II`, `II0`, `II1`, `IIv`, `IIw` | interval |
 
 A few infix symbols are notations for ordinary identifiers, which must be
