@@ -134,6 +134,11 @@ spine→simplex ∷ (n ∷ ℕ) → spine n → simplex n
 spine→simplex zero x = tt
 spine→simplex (succ n) (x , p) = (x , is-in-spine→is-sorted n x p)
 
+-- the inclusion of the simplex into the cube
+simplex→cube ∷ (n ∷ ℕ) → simplex n → cart-cube n
+simplex→cube zero x = tt
+simplex→cube (succ n) (x , p) = x
+
 -- two points of a simplex with the same coordinates are equal (sortedness is a proposition)
 sorted-path ∷ (n ∷ ℕ) (x ∷ cart-cube (succ n)) (p q ∷ is-sorted n x) → (x , p) ≡{simplex (succ n)} (x , q)
 sorted-path n x p q =
@@ -236,6 +241,8 @@ Simplex2 = record
   --
 
   t = simplex 2
+
+  to-cube2 = simplex→cube 2
 
   -- the first and second edges of the 2-simplex, t ↦ (t, 0) and t ↦ (1, t)
   edge₀₁ ∷ 𝕀 → t
