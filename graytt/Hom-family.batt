@@ -194,7 +194,7 @@ hom-family-cocart-cell-ind {A} rA a P H w =
   let HD : (d : D) → P (Φ (coslice-lift {A} sA a d)) = fun (w0 , r) →
     let k : (w0 : S) (r : Σ (u : arrᵣ A) . coslice-tgt {A} {a} w0 ≡ srcᵣ u) → P (Φ (coslice-lift {A} sA a (w0 , r))) =
       fun (y , δ) r →
-        let d : pullback {arrᵣ A} {arrᵣ A} {A} (ev₁ {A}) (λ u . srcᵣ u) = (y , r) in
+        let d : pullback {arrᵣ A} {arrᵣ A} {A} (tgtᵣ {A}) (λ u . srcᵣ u) = (y , r) in
         H (lift-simplex {A} sA d)
           (trans (cong (λ d' . srcᵣ (fst {arrᵣ A} (λ y' . Σ (u : arrᵣ A) . tgtᵣ y' ≡ srcᵣ u) d')) (codomain-lift-over {A} sA d)) δ) in
     k w0 r in

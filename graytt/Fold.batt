@@ -5,8 +5,8 @@
 -- and comes with the two evaluations ev₀ = srcᵣ, ev₁ = tgtᵣ : (𝕀 →ᵣ C) → C. For an arrow t of C,
 -- the connection and coconnection squares (Connection.batt) are arrows of 𝕀 →ᵣ C:
 --
---   Γ_t  : id (t 0) → t      lying over t along ev₁       (fold-conn-over-ev₁)
---   Γ'_t : t → id (t 1)      lying over t along ev₀       (fold-coconn-over-ev₀)
+--   Γ_t  : id (t 0) → t      lying over t along ev₁       (fold-conn-over-tgt)
+--   Γ'_t : t → id (t 1)      lying over t along ev₀       (fold-coconn-over-src)
 --
 -- (squares are read horizontally: the first variable i is the arrow of 𝕀 →ᵣ C, the second j the
 -- arrow of C).
@@ -33,33 +33,18 @@ open import Fibration
 open import Connection
 
 --
--- The arrow type and its evaluations
---
-
--- evaluation at the source and at the target, as crisp maps (the projections of the fibrations)
-ev₀ ∷ {C ∷ U} → arrᵣ C → C
-ev₀ {C} = srcᵣ {C}
-
-ev₁ ∷ {C ∷ U} → arrᵣ C → C
-ev₁ {C} = tgtᵣ {C}
-
--- the arrow type of an oplax-Segal type is oplax-Segal
-arr-segalᵣ ∷ {C ∷ U} → is-segalᵣ C → is-segalᵣ (arrᵣ C)
-arr-segalᵣ {C} sC = is-segal-arrᵣ {C} sC
-
---
 -- The (co)connection lies over the arrow itself, judgmentally
 --
 
 -- along ev₁, Γ_t is t : λ i . t (i ∧ 1) ≡ t
-fold-conn-over-ev₁ ∷ {C ∷ U} (t : arrᵣ C) →
-  hom-map {arrᵣ C} {C} (ev₁ {C}) {λ j . srcᵣ t} {t} (conn-hom {C} t) ≡ cell-hom {C} t
-fold-conn-over-ev₁ {C} t = refl
+fold-conn-over-tgt ∷ {C ∷ U} (t : arrᵣ C) →
+  hom-map {arrᵣ C} {C} (tgtᵣ {C}) {λ j . srcᵣ t} {t} (conn-hom {C} t) ≡ cell-hom {C} t
+fold-conn-over-tgt {C} t = refl
 
 -- along ev₀, Γ'_t is t : λ i . t (i ∨ 0) ≡ t
-fold-coconn-over-ev₀ ∷ {C ∷ U} (t : arrᵣ C) →
-  hom-map {arrᵣ C} {C} (ev₀ {C}) {t} {λ j . tgtᵣ t} (coconn-hom {C} t) ≡ cell-hom {C} t
-fold-coconn-over-ev₀ {C} t = refl
+fold-coconn-over-src ∷ {C ∷ U} (t : arrᵣ C) →
+  hom-map {arrᵣ C} {C} (srcᵣ {C}) {t} {λ j . tgtᵣ t} (coconn-hom {C} t) ≡ cell-hom {C} t
+fold-coconn-over-src {C} t = refl
 
 --
 -- Statements
@@ -68,22 +53,22 @@ fold-coconn-over-ev₀ {C} t = refl
 -- Γ_t is ev₁-cocartesian
 fold-stmt ∷ {C ∷ U} (sC : is-segalᵣ C) (t : arrᵣ C) → U
 fold-stmt {C} sC t =
-  is-cocartesian {arrᵣ C} {C} (arr-segalᵣ {C} sC) sC (ev₁ {C}) {λ j . srcᵣ t} {t} (conn-hom {C} t)
+  is-cocartesian {arrᵣ C} {C} (is-segal-arrᵣ {C} sC) sC (tgtᵣ {C}) {λ j . srcᵣ t} {t} (conn-hom {C} t)
 
 -- Γ'_t is ev₀-cartesian
 dual-fold-stmt ∷ {C ∷ U} (sC : is-segalᵣ C) (t : arrᵣ C) → U
 dual-fold-stmt {C} sC t =
-  is-cartesian {arrᵣ C} {C} (arr-segalᵣ {C} sC) sC (ev₀ {C}) {t} {λ j . tgtᵣ t} (coconn-hom {C} t)
+  is-cartesian {arrᵣ C} {C} (is-segal-arrᵣ {C} sC) sC (srcᵣ {C}) {t} {λ j . tgtᵣ t} (coconn-hom {C} t)
 
 -- both statements are propositions, so postulating them adds no structure
 is-prop-fold-stmt ∷ {C ∷ U} (sC : is-segalᵣ C) (t : arrᵣ C) → is-prop (fold-stmt {C} sC t)
 is-prop-fold-stmt {C} sC t =
-  is-prop-is-cocartesian {arrᵣ C} {C} (arr-segalᵣ {C} sC) sC (ev₁ {C}) {λ j . srcᵣ t} {t} (conn-hom {C} t)
+  is-prop-is-cocartesian {arrᵣ C} {C} (is-segal-arrᵣ {C} sC) sC (tgtᵣ {C}) {λ j . srcᵣ t} {t} (conn-hom {C} t)
 
 is-prop-dual-fold-stmt ∷ {C ∷ U} (sC : is-segalᵣ C) (t : arrᵣ C) → is-prop (dual-fold-stmt {C} sC t)
 is-prop-dual-fold-stmt {C} sC t =
-  is-prop-Π (λ x' . is-equiv (cart-gap {arrᵣ C} {C} (arr-segalᵣ {C} sC) sC (ev₀ {C}) {t} {λ j . tgtᵣ t} (coconn-hom {C} t) x'))
-    (λ x' . is-prop-is-equiv (cart-gap {arrᵣ C} {C} (arr-segalᵣ {C} sC) sC (ev₀ {C}) {t} {λ j . tgtᵣ t} (coconn-hom {C} t) x'))
+  is-prop-Π (λ x' . is-equiv (cart-gap {arrᵣ C} {C} (is-segal-arrᵣ {C} sC) sC (srcᵣ {C}) {t} {λ j . tgtᵣ t} (coconn-hom {C} t) x'))
+    (λ x' . is-prop-is-equiv (cart-gap {arrᵣ C} {C} (is-segal-arrᵣ {C} sC) sC (srcᵣ {C}) {t} {λ j . tgtᵣ t} (coconn-hom {C} t) x'))
 
 --
 -- Postulates
