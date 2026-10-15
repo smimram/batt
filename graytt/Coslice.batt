@@ -12,20 +12,20 @@
 open import Stdlib
 
 coslice ∷ (A ∷ U) (a : A) → U
-coslice A a = Σ (f : 𝕀 →ᵣ A) . f 𝕀0 ≡ a
+coslice A a = Σ (f : arrᵣ A) . srcᵣ f ≡ a
 
 -- the underlying 1-cell
-coslice-cell ∷ {A ∷ U} {a : A} → coslice A a → (𝕀 →ᵣ A)
-coslice-cell {A} {a} s = fst {𝕀 →ᵣ A} (λ f . f 𝕀0 ≡ a) s
+coslice-cell ∷ {A ∷ U} {a : A} → coslice A a → (arrᵣ A)
+coslice-cell {A} {a} s = fst {𝕀 →ᵣ A} (λ f . srcᵣ f ≡ a) s
 
 -- its source is a
-coslice-src ∷ {A ∷ U} {a : A} (s : coslice A a) → coslice-cell {A} {a} s 𝕀0 ≡ a
-coslice-src {A} {a} s = snd {𝕀 →ᵣ A} (λ f . f 𝕀0 ≡ a) s
+coslice-src ∷ {A ∷ U} {a : A} (s : coslice A a) → srcᵣ (coslice-cell {A} {a} s) ≡ a
+coslice-src {A} {a} s = snd {arrᵣ A} (λ f . srcᵣ f ≡ a) s
 
 -- evaluation at the target
 coslice-tgt ∷ {A ∷ U} {a : A} → coslice A a → A
-coslice-tgt {A} {a} s = coslice-cell {A} {a} s 𝕀1
+coslice-tgt {A} {a} s = tgtᵣ (coslice-cell {A} {a} s)
 
 -- the identity of a, as an object of the coslice
 coslice-id ∷ {A ∷ U} (a : A) → coslice A a
-coslice-id {A} a = ((λ t . a) , refl)
+coslice-id a = ((λ t . a) , refl)
