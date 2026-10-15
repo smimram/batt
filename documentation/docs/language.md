@@ -495,7 +495,7 @@ The `stdlib` directory contains, among others:
 | `Equality.batt` | `J`, `sym`, `trans`, `cong`, `subst`, `transport`, … |
 | `Bool.batt`, `Nat.batt`, `List.batt` | operations and properties of base types |
 | `Sum.batt`, `Product.batt`, `Unit.batt`, `Empty.batt` | type formers |
-| `Contr.batt`, `Prop.batt`, `Set.batt`, `Trunc.batt` | homotopy levels |
+| `Contr.batt`, `Prop.batt`, `Set.batt`, `PropTrunc.batt` | homotopy levels |
 | `Equivalence.batt`, `Funext.batt`, `Univalence.batt` | equivalences, `_≃_` |
 | `Pullback.batt`, `Pushout.batt`, `Cocone.batt` | (co)limits |
 | `Tensor.batt` | properties of `⨂`, currying for lax arrows |

@@ -157,7 +157,7 @@ is-set-cart-cube (succ n) = is-set-prod {𝕀} {cart-cube n} is-set-𝕀 rec
 -- Being in a spine is a proposition
 is-prop-is-in-spine ∷ (n ∷ ℕ) (x : cart-cube n) → is-prop (is-in-spine n x)
 is-prop-is-in-spine zero x = is-prop-unit
-is-prop-is-in-spine (succ n) x = is-prop-type-prop-trunc _
+is-prop-is-in-spine (succ n) x = is-prop-trunc _
 
 -- The n-spine is a set
 is-set-spine ∷ (n ∷ ℕ) → is-set (spine n)

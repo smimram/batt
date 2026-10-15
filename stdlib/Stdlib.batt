@@ -12,7 +12,7 @@ open import Function
 open import Equality
 open import Contr
 open import Prop
-open import Trunc
+open import PropTrunc
 open import Set
 import Tensor
 open import Flat

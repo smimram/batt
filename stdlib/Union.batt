@@ -47,7 +47,7 @@ open import Product
 open import Prop
 open import Contr
 open import Equivalence
-open import Trunc
+open import PropTrunc
 open import Sum
 open import Logic
 open import Funext
@@ -66,7 +66,7 @@ union-wr ∷ {X : U} (A B : X → U) (x : X) → B x → or (A x) (B x)
 union-wr {X} A B x q = unit-prop-trunc (sum (A x) (B x)) (inr {A x} {B x} q)
 
 union-τ ∷ {X : U} (A B : X → U) (x : X) (w w' : or (A x) (B x)) → w ≡ w'
-union-τ {X} A B x w w' = prop-path (is-prop-type-prop-trunc (sum (A x) (B x))) w w'
+union-τ {X} A B x w w' = prop-path (is-prop-trunc (sum (A x) (B x))) w w'
 
 union-ι ∷ {X : U} (A B : X → U) (x : X) → or (A x) (B x) → union A B
 union-ι {X} A B x w = (x , w)
@@ -345,7 +345,7 @@ union-ret-z {X} A B Y k x w =
    ((λ q . cong k (cong (union-ι A B x) (union-τ A B x w (union-wr A B x q)))) ,
     λ p q .
       trans (cong {w ≡ union-wr A B x q} {k (x , w) ≡ k (x , union-wr A B x q)} (λ t . cong k (cong (union-ι A B x) t))
-              (prop-path (is-prop→is-set (is-prop-type-prop-trunc (sum (A x) (B x))) w (union-wr A B x q))
+              (prop-path (is-prop→is-set (is-prop-trunc (sum (A x) (B x))) w (union-wr A B x q))
                 (union-τ A B x w (union-wr A B x q))
                 (trans (union-τ A B x w (union-wl A B x p)) (union-τ A B x (union-wl A B x p) (union-wr A B x q)))))
         (trans (cong {union-ι A B x w ≡ union-ι A B x (union-wr A B x q)} {k (x , w) ≡ k (x , union-wr A B x q)} (λ e . cong k e)
