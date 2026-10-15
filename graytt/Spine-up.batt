@@ -213,9 +213,6 @@ spine2-cocone-path-maps = wedge-coconeᵣ-path-maps spine2-edge-1-end spine2-edg
 --
 
 -- coordinates
-cube-3-x1 ∷ cart-cube 3 → 𝕀
-cube-3-x1 c = Product.fst {𝕀} {cart-cube 2} c
-
 cube-3-tail ∷ cart-cube 3 → cart-cube 2
 cube-3-tail c = Product.snd {𝕀} {cart-cube 2} c
 
@@ -223,13 +220,13 @@ spine3-on-edge-1 ∷ cart-cube 3 → U
 spine3-on-edge-1 c = cube-3-tail c ≡{cart-cube 2} origin 2
 
 spine3-on-tail ∷ cart-cube 3 → U
-spine3-on-tail c = (cube-3-x1 c ≡ 𝕀1) × is-in-spine 2 (cube-3-tail c)
+spine3-on-tail c = (CCube3.fst c ≡ 𝕀1) × is-in-spine 2 (cube-3-tail c)
 
 is-prop-spine3-on-edge-1 ∷ (c : cart-cube 3) → is-prop (spine3-on-edge-1 c)
 is-prop-spine3-on-edge-1 c = is-set-cart-cube 2 (cube-3-tail c) (origin 2)
 
 is-prop-spine3-on-tail ∷ (c : cart-cube 3) → is-prop (spine3-on-tail c)
-is-prop-spine3-on-tail c = is-prop-prod (is-set-𝕀 (cube-3-x1 c) 𝕀1) (is-prop-is-in-spine 2 (cube-3-tail c))
+is-prop-spine3-on-tail c = is-prop-prod (is-set-𝕀 (CCube3.fst c) 𝕀1) (is-prop-is-in-spine 2 (cube-3-tail c))
 
 spine3-is-union ∷ spine 3 ≡ union spine3-on-edge-1 spine3-on-tail
 spine3-is-union = refl
@@ -252,7 +249,7 @@ spine2→spine3-tail ∷ spine 2 → spine3-tail
 spine2→spine3-tail (xs , w) = ((𝕀1 , xs) , (refl , w))
 
 spine3-tail→spine2 ∷ spine3-tail → spine 2
-spine3-tail→spine2 (c , w) = (cube-3-tail c , Product.snd {cube-3-x1 c ≡ 𝕀1} {is-in-spine 2 (cube-3-tail c)} w)
+spine3-tail→spine2 (c , w) = (cube-3-tail c , Product.snd {CCube3.fst c ≡ 𝕀1} {is-in-spine 2 (cube-3-tail c)} w)
 
 -- the vertex (1 , 0 , 0), on each piece; on the second one it is the vertex 0 of the 2-spine
 spine3-edge-1-end ∷ spine3-edge-1

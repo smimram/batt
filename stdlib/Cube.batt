@@ -277,6 +277,19 @@ Simplex2 = record
   geq y = Product.fst (Sigma.snd (is-sorted 1) y)
 end
 
+CCube3 = record
+  t = cart-cube 3
+
+  fst ∷ t → 𝕀
+  fst = Product.fst
+
+  snd ∷ t → 𝕀
+  snd x = Product.fst (Product.snd x)
+
+  thd ∷ t → 𝕀
+  thd x = Product.fst (Product.snd (Product.snd x))
+end
+
 Simplex3 = record
   --
   -- Faces and edges of the 3-simplex (coordinates x₁ ≥ x₂ ≥ x₃; vertices 0 = (0,0,0),

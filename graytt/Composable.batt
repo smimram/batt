@@ -155,7 +155,7 @@ spine3-tail-pair-proj {X} Φ =
 
 -- every composable triple is the triple of edges of an oplax cocone on the 3-spine
 spine3-edge-1→𝕀 ∷ spine3-edge-1 → 𝕀
-spine3-edge-1→𝕀 (c , a) = cube-3-x1 c
+spine3-edge-1→𝕀 (c , a) = CCube3.fst c
 
 tri-section ∷ (X ∷ U) {x y z t : X} (u : hom x y) (v : hom y z) (w : hom z t) → spine3-coconeᵣ X
 tri-section X {x} {y} {z} {t} u v w =
