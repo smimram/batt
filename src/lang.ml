@@ -576,6 +576,8 @@ let rec check k env ctx (t:term) (a:value) : term =
   (* Printf.printf "      %s\n%!" (Context.to_string k ctx); *)
   let t0 = t in
   let pos = T.Position.find_opt t in
+  (* The elaborated term inherits the position of the original one. *)
+  T.Position.transfer t0 @@
   match t, V.force a with
   | Abs (i, x, t), Pi (i', c, a, b) when i = i' ->
     let xv = V.var k in
@@ -817,6 +819,7 @@ and infer k env ctx (t:term) : term * value =
   (* Printf.printf "ctx: %s\n%!" (Context.to_string k ctx); *)
   let t0 = t in
   (* let cenv, benv = ctx in *)
+  let (t : term), (a : value) =
   match t with
   | Type n -> Type n, Type (n + 1)
   | IndType (`List, [a]) ->
@@ -1007,6 +1010,9 @@ and infer k env ctx (t:term) : term * value =
     let j = check k env ctx j I in
     Iw (i, j), I
   | _ -> error ~t "cannot infer type"
+  in
+  (* The elaborated term inherits the position of the original one. *)
+  T.Position.transfer t0 t, a
 
 and check_decls k env ctx (decls:T.decls) =
   let tm = ref [] in

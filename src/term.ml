@@ -105,6 +105,16 @@ module Position = struct
   let (cache : Pos.t E.t) = E.create 100
   let register t pos = E.add cache t pos
   let find_opt t = E.find_opt cache t
+
+  (** Give [u] the position of [t], unless it already has one, and return [u]. *)
+  let transfer t u =
+    (
+      match find_opt t with
+      | Some pos when find_opt u = None -> register u pos
+      | _ -> ()
+    );
+    u
+
   let to_string_comma t =
     match find_opt t with
     | Some pos -> Pos.to_string pos ^ ", "
