@@ -360,3 +360,59 @@ ret k = funext-nd (ext (restr k)) k (ret-pw k)
 
 union-up ∷ {X : U} (A B : subtype X) (Y : U) → is-equiv (restr {X} {A} {B} {Y})
 union-up A B Y = ((ext , sec) , (ext , ret))
+
+--
+-- The universal property of union over a point
+--
+-- If the intersection is contractible, with centre i0, then a cocone is determined by its two maps
+-- and the single path f (fst i0) ≡ g (snd i0) at the centre: the union is a pushout over a point.
+--
+
+-- Cocones over a point of the intersection
+pt-cocone ∷ {X : U} (A B : subtype X) (Y : U) → ⟨ intersection A B ⟩ → U
+pt-cocone A B Y i = Σ (f : ⟨ A ⟩ → Y) . Σ (g : ⟨ B ⟩ → Y) . f (fst i) ≡ g (snd i)
+
+-- Evaluation of the glue at a point
+ev-pt ∷ {X : U} {A B : subtype X} {Y : U} (i : ⟨ intersection A B ⟩) → cocone A B Y → pt-cocone A B Y i
+ev-pt i (f , r) =
+  let k : (r : Σ (g : ⟨ B ⟩ → Y) . (c : ⟨ intersection A B ⟩) → f (fst c) ≡ g (snd c)) → pt-cocone A B Y i =
+    fun (g , h) → (f , g , h i) in
+  k r
+
+-- The inverse: spread the glue at the centre along the contraction
+pt-inv ∷ {X : U} {A B : subtype X} {Y : U} (c : is-contr ⟨ intersection A B ⟩) →
+  pt-cocone A B Y (center _ c) → cocone A B Y
+pt-inv c (f , r) =
+  let k : (r : Σ (g : ⟨ B ⟩ → Y) . f (fst (center _ c)) ≡ g (snd (center _ c))) → cocone A B Y =
+    fun (g , e) → (f , g , λ t . subst {⟨ intersection A B ⟩} (λ t . f (fst t) ≡ g (snd t)) (is-contr-eq c (center _ c) t) e) in
+  k r
+
+pt-sec ∷ {X : U} {A B : subtype X} {Y : U} (c : is-contr ⟨ intersection A B ⟩)
+  (d : pt-cocone A B Y (center _ c)) → ev-pt (center _ c) (pt-inv c d) ≡ d
+pt-sec c (f , r) =
+  let i0 : ⟨ intersection A B ⟩ = center _ c in
+  let k : (r : Σ (g : ⟨ B ⟩ → Y) . f (fst i0) ≡ g (snd i0)) → ev-pt i0 (pt-inv c (f , r)) ≡ (f , r) =
+    fun (g , e) →
+      cong {f (fst i0) ≡ g (snd i0)} {pt-cocone A B Y i0} (λ z . (f , g , z))
+        (cong {i0 ≡ i0} (λ π . subst {⟨ intersection A B ⟩} (λ t . f (fst t) ≡ g (snd t)) π e) (is-contr-eq-refl c i0)) in
+  k r
+
+pt-ret ∷ {X : U} {A B : subtype X} {Y : U} (c : is-contr ⟨ intersection A B ⟩)
+  (d : cocone A B Y) → pt-inv c (ev-pt (center _ c) d) ≡ d
+pt-ret c (f , r) =
+  let i0 : ⟨ intersection A B ⟩ = center _ c in
+  let k : (r : Σ (g : ⟨ B ⟩ → Y) . (t : ⟨ intersection A B ⟩) → f (fst t) ≡ g (snd t)) → pt-inv c (ev-pt i0 (f , r)) ≡ (f , r) =
+    fun (g , h) →
+      let P : ⟨ intersection A B ⟩ → U = λ t . f (fst t) ≡ g (snd t) in
+      cong {(t : ⟨ intersection A B ⟩) → P t} {cocone A B Y} (λ z . (f , g , z))
+        (funext P (λ t . subst P (is-contr-eq c i0 t) (h i0)) h (λ t . subst-section P h (is-contr-eq c i0 t))) in
+  k r
+
+-- With a contractible intersection, cocones on the union are cocones over the centre
+is-equiv-ev-pt ∷ {X : U} {A B : subtype X} {Y : U} (c : is-contr ⟨ intersection A B ⟩) →
+  is-equiv (ev-pt {X} {A} {B} {Y} (center _ c))
+is-equiv-ev-pt c = ((pt-inv c , pt-sec c) , (pt-inv c , pt-ret c))
+
+-- The universal property of a union with a contractible intersection, as a pushout over a point
+pt-up ∷ {X : U} (A B : subtype X) (Y : U) (c : is-contr ⟨ intersection A B ⟩) → is-equiv (ev-pt (center _ c) ∘ restr)
+pt-up A B Y c = is-equiv-circ (ev-pt (center _ c)) restr (is-equiv-ev-pt c) (union-up A B Y)
