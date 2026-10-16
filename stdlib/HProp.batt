@@ -1,5 +1,8 @@
 open import Prop
 open import PropTrunc
 
+and ∷ hProp → hProp → hProp
+and (A , pA) (B , pB) = (A × B , is-prop-prod pA pB)
+
 or ∷ hProp → hProp → hProp
 or A B = (PropTrunc.or ⟨ A ⟩ ⟨ B ⟩ , is-prop-trunc _)
