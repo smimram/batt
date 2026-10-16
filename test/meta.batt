@@ -4,5 +4,6 @@ id A x = x
 id' : (A : U) -> A -> A
 id' A x = id _ x
 
-b : bool
-b = _
+-- The following produces an unsolved meta
+-- b : bool
+-- b = _
