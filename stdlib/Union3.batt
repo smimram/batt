@@ -87,5 +87,112 @@ cocone {X} A B Y =
 restr ∷ {X : U} {A B : subtype X} {Y : U} → (⟨ union A B ⟩ → Y) → cocone A B Y
 restr f = (f ∘ inl , f ∘ inr , λ c . cong f (glue c))
 
--- union-up ∷ {X : U} {A B : X → U} (pA : (x : X) → is-prop (A x)) (pB : (x : X) → is-prop (B x)) (Y : U) → is-equiv (union-restr A B Y)
--- union-up {X} A B pA pB Y = ((union-ext A B pA pB Y , union-sec A B pA pB Y) , (union-ext A B pA pB Y , union-ret A B pA pB Y))
+--
+-- The descent family of a cocone (f , g , h) at x: the candidate values for a map extending the
+-- cocone, in the sense of the principle of unique choice (see the references above)
+--
+
+D-base ∷ {X : U} {A : subtype X} {Y : U} (f : ⟨ A ⟩ → Y) (x : X) → U
+D-base {X} {A} {Y} f x = Σ (y : Y) . (a : x ∈ A) → y ≡ f (x , a)
+
+D-fib ∷ {X : U} {A B : subtype X} {Y : U} (f : ⟨ A ⟩ → Y) (g : ⟨ B ⟩ → Y)
+  (h : (c : ⟨ intersection A B ⟩) → f (fst c) ≡ g (snd c)) (x : X) → D-base {X} {A} {Y} f x → U
+D-fib {X} {A} {B} {Y} f g h x (y , α) =
+  Σ (β : (b : x ∈ B) → y ≡ g (x , b)) . (a : x ∈ A) (b : x ∈ B) → β b ≡ trans (α a) (h (x , (a , b)))
+
+D ∷ {X : U} {A B : subtype X} {Y : U} (f : ⟨ A ⟩ → Y) (g : ⟨ B ⟩ → Y)
+  (h : (c : ⟨ intersection A B ⟩) → f (fst c) ≡ g (snd c)) (x : X) → U
+D {X} {A} {B} {Y} f g h x = Σ (u : D-base {X} {A} {Y} f x) . D-fib {X} {A} {B} {Y} f g h x u
+
+-- The descent family with the roles of the two pieces exchanged (the B-path first)
+D'-base ∷ {X : U} {B : subtype X} {Y : U} (g : ⟨ B ⟩ → Y) (x : X) → U
+D'-base {X} {B} {Y} g x = Σ (y : Y) . (b : x ∈ B) → y ≡ g (x , b)
+
+D'-fib ∷ {X : U} {A B : subtype X} {Y : U} (f : ⟨ A ⟩ → Y) (g : ⟨ B ⟩ → Y)
+  (h : (c : ⟨ intersection A B ⟩) → f (fst c) ≡ g (snd c)) (x : X) → D'-base {X} {B} {Y} g x → U
+D'-fib {X} {A} {B} {Y} f g h x (y , β) =
+  Σ (α : (a : x ∈ A) → y ≡ f (x , a)) . (a : x ∈ A) (b : x ∈ B) → β b ≡ trans (α a) (h (x , (a , b)))
+
+--
+-- The descent family is contractible wherever x belongs to the union
+--
+
+-- If x ∈ A: contract the value with its A-path, then each B-path is determined
+D-contr-A ∷ {X : U} {A B : subtype X} {Y : U} (f : ⟨ A ⟩ → Y) (g : ⟨ B ⟩ → Y)
+  (h : (c : ⟨ intersection A B ⟩) → f (fst c) ≡ g (snd c)) (x : X) → x ∈ A → is-contr (D {X} {A} {B} {Y} f g h x)
+D-contr-A {X} {A} {B} {Y} f g h x a0 =
+  let κ : (a : x ∈ A) → a0 ≡ a = λ a . prop-path (is-prop-type (A x)) a0 a in
+  let base : is-contr (D-base {X} {A} {Y} f x) =
+    contr-Π-in-Σ {Y} {x ∈ A} (λ y a . y ≡ f (x , a)) a0 κ (is-contr-sing' (f (x , a0))) in
+  let fib : (u : D-base {X} {A} {Y} f x) → is-contr (D-fib {X} {A} {B} {Y} f g h x u) = λ (y , α) .
+    let V : U = (b : x ∈ B) → Σ (βb : y ≡ g (x , b)) . (a : x ∈ A) → βb ≡ trans (α a) (h (x , (a , b))) in
+    let F : U = D-fib {X} {A} {B} {Y} f g h x (y , α) in
+    let s : F → V = λ (β , γ) . λ b . (β b , λ a . γ a b) in
+    let r : V → F = λ v .
+      ((λ b . Sigma.fst {y ≡ g (x , b)} (λ βb . (a : x ∈ A) → βb ≡ trans (α a) (h (x , (a , b)))) (v b)) ,
+       (λ a b . Sigma.snd {y ≡ g (x , b)} (λ βb . (a : x ∈ A) → βb ≡ trans (α a) (h (x , (a , b)))) (v b) a)) in
+    let rs : (w : F) → r (s w) ≡ w = λ (β , γ) . refl in
+    is-contr-retract s (r , rs)
+      (is-contr-Π (λ b . Σ (βb : y ≡ g (x , b)) . (a : x ∈ A) → βb ≡ trans (α a) (h (x , (a , b))))
+        (λ b . contr-Π-in-Σ {y ≡ g (x , b)} {x ∈ A} (λ βb a . βb ≡ trans (α a) (h (x , (a , b)))) a0 κ
+          (is-contr-sing' (trans (α a0) (h (x , (a0 , b)))))))
+  in
+  is-contr-Σ (D-fib {X} {A} {B} {Y} f g h x) base fib
+
+-- If x ∈ B: contract the value with its B-path, then each A-path is determined
+D-contr-B ∷ {X : U} {A B : subtype X} {Y : U} (f : ⟨ A ⟩ → Y) (g : ⟨ B ⟩ → Y)
+  (h : (c : ⟨ intersection A B ⟩) → f (fst c) ≡ g (snd c)) (x : X) → x ∈ B → is-contr (D {X} {A} {B} {Y} f g h x)
+D-contr-B {X} {A} {B} {Y} f g h x b0 =
+  let κ : (b : x ∈ B) → b0 ≡ b = λ b . prop-path (is-prop-type (B x)) b0 b in
+  let D0 : U = D {X} {A} {B} {Y} f g h x in
+  let D1 : U = Σ (v : D'-base {X} {B} {Y} g x) . D'-fib {X} {A} {B} {Y} f g h x v in
+  let s : D0 → D1 = λ (u , w) .
+    let k : (u : D-base {X} {A} {Y} f x) → D-fib {X} {A} {B} {Y} f g h x u → D1 =
+      fun (y , α) (β , γ) → ((y , β) , (α , γ)) in k u w in
+  let r : D1 → D0 = λ (v , w) .
+    let k : (v : D'-base {X} {B} {Y} g x) → D'-fib {X} {A} {B} {Y} f g h x v → D0 =
+      fun (y , β) (α , γ) → ((y , α) , (β , γ)) in k v w in
+  let rs : (z : D0) → r (s z) ≡ z = λ (u , w) .
+    let k : (u : D-base {X} {A} {Y} f x) (w : D-fib {X} {A} {B} {Y} f g h x u) → r (s (u , w)) ≡ (u , w) =
+      fun (y , α) (β , γ) → refl in k u w in
+  let base : is-contr (D'-base {X} {B} {Y} g x) =
+    contr-Π-in-Σ {Y} {x ∈ B} (λ y b . y ≡ g (x , b)) b0 κ (is-contr-sing' (g (x , b0))) in
+  let fib : (v : D'-base {X} {B} {Y} g x) → is-contr (D'-fib {X} {A} {B} {Y} f g h x v) = λ (y , β) .
+    let V : U = (a : x ∈ A) → Σ (αa : y ≡ f (x , a)) . (b : x ∈ B) → β b ≡ trans αa (h (x , (a , b))) in
+    let F : U = D'-fib {X} {A} {B} {Y} f g h x (y , β) in
+    let s' : F → V = λ (α , γ) . λ a . (α a , λ b . γ a b) in
+    let r' : V → F = λ v .
+      ((λ a . Sigma.fst {y ≡ f (x , a)} (λ αa . (b : x ∈ B) → β b ≡ trans αa (h (x , (a , b)))) (v a)) ,
+       (λ a b . Sigma.snd {y ≡ f (x , a)} (λ αa . (b : x ∈ B) → β b ≡ trans αa (h (x , (a , b)))) (v a) b)) in
+    let rs' : (w : F) → r' (s' w) ≡ w = λ (α , γ) . refl in
+    is-contr-retract s' (r' , rs')
+      (is-contr-Π (λ a . Σ (αa : y ≡ f (x , a)) . (b : x ∈ B) → β b ≡ trans αa (h (x , (a , b))))
+        (λ a . contr-Π-in-Σ {y ≡ f (x , a)} {x ∈ B} (λ αa b . β b ≡ trans αa (h (x , (a , b)))) b0 κ
+          (trans-contr (h (x , (a , b0))) (β b0))))
+  in
+  is-contr-retract s (r , rs) (is-contr-Σ (D'-fib {X} {A} {B} {Y} f g h x) base fib)
+
+D-contr ∷ {X : U} {A B : subtype X} {Y : U} (f : ⟨ A ⟩ → Y) (g : ⟨ B ⟩ → Y)
+  (h : (c : ⟨ intersection A B ⟩) → f (fst c) ≡ g (snd c)) (x : X) → x ∈ union A B → is-contr (D {X} {A} {B} {Y} f g h x)
+D-contr {X} {A} {B} {Y} f g h x w =
+  PropTrunc.rec' (is-prop-is-contr (D {X} {A} {B} {Y} f g h x))
+    (Sum.rec {x ∈ A} {x ∈ B} {is-contr (D {X} {A} {B} {Y} f g h x)}
+      (D-contr-A {X} {A} {B} {Y} f g h x) (D-contr-B {X} {A} {B} {Y} f g h x)) w
+
+-- The value of a point of the descent family
+D-y ∷ {X : U} {A B : subtype X} {Y : U} (f : ⟨ A ⟩ → Y) (g : ⟨ B ⟩ → Y)
+  (h : (c : ⟨ intersection A B ⟩) → f (fst c) ≡ g (snd c)) (x : X) → D {X} {A} {B} {Y} f g h x → Y
+D-y {X} {A} {B} {Y} f g h x (u , w) = Sigma.fst (λ y . (a : x ∈ A) → y ≡ f (x , a)) u
+
+--
+-- Extension from the cocone: the value of the center of the descent family
+--
+
+ext ∷ {X : U} {A B : subtype X} {Y : U} → cocone A B Y → (⟨ union A B ⟩ → Y)
+ext {X} {A} {B} {Y} (f , r) (x , w) =
+  let k : (r : Σ (g : ⟨ B ⟩ → Y) . (c : ⟨ intersection A B ⟩) → f (fst c) ≡ g (snd c)) → Y =
+    fun (g , h) → D-y {X} {A} {B} {Y} f g h x (center (D {X} {A} {B} {Y} f g h x) (D-contr {X} {A} {B} {Y} f g h x w)) in
+  k r
+
+-- union-up ∷ {X : U} (A B : subtype X) (Y : U) → is-equiv (union-restr A B Y)
+-- union-up = ?
