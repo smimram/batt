@@ -199,9 +199,14 @@ module Unification = struct
     (* TODO: better data structure *)
     deferred := !deferred @ [pos,k,t,u]
 
+  (** Whether a metavariable spine contains an unsolved metavariable, which prevents it from being a pattern for now. *)
+  let flex_spine s =
+    List.exists (fun t -> match V.force t with Meta _ -> true | _ -> false) s
+
   let solvable ((_,_,t,u) : t) =
     match V.force t, V.force u with
     | Meta (m, _), Meta (m', _) -> m.id = m'.id
+    | Meta (_, s), _ | _, Meta (_, s) -> not (flex_spine s)
     | _ -> true
 
   let has_solvable () =
@@ -500,6 +505,8 @@ let unify ~pos k (t:value) (u:value) =
       unify k j j'
     | Meta _, _ | _, Meta _ when not solve -> raise Unification
     | Meta _, Meta _ -> Unification.defer pos k t u
+    (* The spine is not a pattern because of a metavariable, which might be solved later on (e.g. ?A ?x against A x, with ?A and ?x determined by the expected type): postpone. *)
+    | Meta (_, l), _ | _, Meta (_, l) when Unification.flex_spine l -> Unification.defer pos k t u
     | Meta (m, l), t -> solve_meta k m l t
     | t, Meta (m, l) -> solve_meta k m l t
     (* eta-expansion (needs to be after meta-variables, otherwise the spine might contain a pair and not be a pattern *)
@@ -541,7 +548,7 @@ let finalize_unify () =
       |> List.map (fun (pos,k,t,u) -> Printf.sprintf "- %s: %s vs %s" (Pos.opt_to_string pos) (V.to_string k t) (V.to_string k u))
       |> String.concat "\n"
     in
-    warning "\n%d unsolved unification problems:\n%s\n" (List.length !Unification.deferred) pb
+    failwith @@ Printf.sprintf "%d unsolved unification problems:\n%s" (List.length !Unification.deferred) pb
 
 let unify_base = unify
 
