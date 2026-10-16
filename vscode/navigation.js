@@ -28,7 +28,7 @@ const LITERALS = [
   ['♭', 'KW'], ['\\flat', 'KW'], ['𝄫', 'KW'], ['\\fflat', 'KW'],
   ['≡', 'KW'], ['\\equiv', 'KW'],
   // infix sugar: the operator stands for the named identifier
-  ['≃', 'OP', '_≃_'], ['\\simeq', 'OP', '_≃_'], ['≤', 'OP', 'leq'], ['≥', 'OP', 'geq'],
+  ['≃', 'OP', '_≃_'], ['\\simeq', 'OP', '_≃_'], ['≤', 'OP', 'leq'], ['≥', 'OP', 'geq'], ['∈', 'OP', 'belongs'], ['\\in', 'OP', 'belongs'],
   ['∘', 'OP', 'circ'], ['\\circ', 'OP', 'circ'], ['∨', 'OP', 'or'], ['¬', 'OP', 'not'],
   ['ℕ', 'KW'], ['Nat', 'KW'], ['zero', 'KW'], ['succ', 'KW'],
   ['nil', 'KW'], ['cons', 'KW'],

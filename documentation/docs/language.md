@@ -64,6 +64,7 @@ defined (usually by the standard library) before they are used:
 |----------|------------|--------|
 | `A ≃ B` | `_≃_ A B` | non-associative |
 | `x ≤ y`, `x ≥ y` | `leq x y`, `geq x y` | non-associative |
+| `x ∈ A` | `belongs x A` | non-associative |
 | `g ∘ f` | `circ g f` | left-associative |
 | `x ∨ y` | `or x y` | left-associative |
 | `¬ A` | `not A` | prefix |
@@ -472,7 +473,7 @@ From loosest to tightest:
 1. `t , u` (pairs, right-associative)
 2. `λ`, `let`, `Σ`, dependent function types, `→`, `→ₗ`, `→ᵣ` (arrows are
    right-associative)
-3. `≃`, `≤`, `≥` (non-associative)
+3. `≃`, `≤`, `≥`, `∈` (non-associative)
 4. `≡` (non-associative)
 5. `×` (right-associative)
 6. `⊗` (right-associative)
