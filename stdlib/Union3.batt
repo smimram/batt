@@ -63,20 +63,29 @@ inl {X} {A} {B} (x , a) = pt {X} {union A B} (or-l a)
 inr ∷ {X : U} {A B : subtype X} → ⟨ B ⟩ → ⟨ union A B ⟩
 inr {X} {A} {B} (x , b) = pt {X} {union A B} (or-r b)
 
+intersection ∷ {X : U} → subtype X → subtype X → subtype X
+intersection A B x = HProp.and (A x) (B x)
+
+fst ∷ {X : U} {A B : subtype X} → ⟨ intersection A B ⟩ → ⟨ A ⟩
+fst {X} {A} {B} (x , ab) = pt {X} {A} (Product.fst ab)
+
+snd ∷ {X : U} {A B : subtype X} → ⟨ intersection A B ⟩ → ⟨ B ⟩
+snd {X} {A} {B} (x , ab) = pt {X} {B} (Product.snd ab)
+
 -- The two pieces agree on the intersection
 glue ∷ {X : U} {A B : subtype X} {x : X} → (a : x ∈ A) (b : x ∈ B) →
        inl {X} {A} {B} (x , a) ≡ inr {X} {A} {B} (x , b)
 glue {X} {A} {B} {x} a b = cong (pt {X} {union A B} {x}) (prop-path (is-prop-trunc _) (or-l a) (or-r b))
 
--- Cocones: two maps that agree on the intersection
-cocone ∷ {X : U} (A B : subtype X) (Y : U) → U
-cocone {X} A B Y =
-  Σ (f : {x : X} → x ∈ A → Y) .
-  Σ (g : {x : X} → x ∈ B → Y) .
-  {x : X} (a : x ∈ A) (b : x ∈ B) → f a ≡ g b
+-- -- Cocones: two maps that agree on the intersection
+-- cocone ∷ {X : U} (A B : subtype X) (Y : U) → U
+-- cocone {X} A B Y =
+  -- Σ (f : ⟨ A ⟩ → Y) .
+  -- Σ (g : ⟨ B ⟩ → Y) .
+  -- {x : X} (a : x ∈ A) (b : x ∈ B) → f a ≡ g b
 
 -- -- Restriction to the cocone
--- restr ∷ {X : U} {A B : subtype X} {Y : U} → (union A B → Y) → cocone A B Y
+-- restr ∷ {X : U} {A B : subtype X} {Y : U} → (⟨ union A B ⟩ → Y) → cocone A B Y
 -- restr {X} {A} {B} {Y} f = (f ∘ inl , f ∘ inr , λ a b . cong f (glue a b))
 
 -- union-up ∷ {X : U} {A B : X → U} (pA : (x : X) → is-prop (A x)) (pB : (x : X) → is-prop (B x)) (Y : U) → is-equiv (union-restr A B Y)
