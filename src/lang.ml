@@ -203,11 +203,18 @@ module Unification = struct
   let flex_spine s =
     List.exists (fun t -> match V.force t with Meta _ -> true | _ -> false) s
 
+  (** Whether a value is an eliminator blocked by an unsolved metavariable (e.g. [fst (?A x)]). *)
+  let blocked t =
+    match V.force t with
+    | Pair_ind (_, l) | Tens_ind (_, l) | Flat_ind (_, l) | IndType_ind (_, _, l) -> (match List.rev l with Meta _ :: _ -> true | _ -> false)
+    | J (_, l) -> (match List.rev l with _ :: Meta _ :: _ -> true | _ -> false)
+    | _ -> false
+
   let solvable ((_,_,t,u) : t) =
     match V.force t, V.force u with
     | Meta (m, _), Meta (m', _) -> m.id = m'.id
     | Meta (_, s), _ | _, Meta (_, s) -> not (flex_spine s)
-    | _ -> true
+    | t, u -> not (blocked t || blocked u)
 
   let has_solvable () =
     List.exists solvable !deferred
@@ -405,11 +412,11 @@ let unify ~pos k (t:value) (u:value) =
               if !Common.show_debug then debug "UNFOLD %s\n" g.name;
               unify ~solve k (unfold t) (unfold u)
         )
+    (* Metavariables are solved with folded definitions. *)
+    | (Meta _ as t), u | t, (Meta _ as u) -> unify_whnf ~flex ~solve k t u
     | Def _, _ | _, Def _ when flex ->
       if !Common.show_debug then debug "FLEX %s VS %s\n" (V.to_string k t) (V.to_string k u);
       raise Unification
-    (* Metavariables are solved with folded definitions. *)
-    | (Meta _ as t), u | t, (Meta _ as u) -> unify_whnf ~flex ~solve k t u
     (* Unfold the most recent definition first, since it might unfold to the other one. *)
     | (Def (g, _, _) as t), (Def (g', _, _) as u) ->
       if g.id > g'.id then unify ~solve k (unfold t) u else unify ~solve k t (unfold u)
@@ -525,11 +532,13 @@ let unify ~pos k (t:value) (u:value) =
       let y = V.var (k+1) in
       let p = V.TensPair (x,y) in
       unify (k+2) (V.app t p) (V.app u p)
+    (* The eliminator might compute once the metavariable is solved: postpone. *)
+    | t, u when solve && not flex && (Unification.blocked t || Unification.blocked u) -> Unification.defer pos k t u
     | t, u ->
       if !Common.show_debug then debug "CLASH %s VS %s \n%!" (V.to_string k t) (V.to_string k u);
       raise Unification
   in
-  Unification.defer pos k t u;
+  unify k t u;
   while Unification.has_solvable () do
     let _pos, k, t, u = Unification.pop () in
     unify k t u
@@ -789,7 +798,8 @@ let rec check k env ctx (t:term) (a:value) : term =
   | Hole pos, a ->
     important "\nHOLE %s : %s IN\n%s\n%!" (Pos.to_string pos) (string_of_value k env a) (Context.to_string ~multiline:true ~crisp:false ~vars:(names k env) k ctx);
     Hole pos
-  | t, a ->
+  | t, _ ->
+    (* The expected type [a] is not forced, so that definitions are unfolded only when needed by unification. *)
     let t0 = t in
     let t, a' = infer k env ctx t in
     (

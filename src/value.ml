@@ -254,13 +254,29 @@ and force t =
   match t with
   | Meta (m, s) when m.value <> None -> force @@ app_spine (Option.get m.value) s
   | Def (_, _, v) -> force (Lazy.force v)
-  | _ -> t
+  | t -> Option.fold ~none:t ~some:force (unblock t)
 
 (** Unfold solved metavariables, but not definitions. *)
 and force_meta t =
   match t with
   | Meta (m, s) when m.value <> None -> force_meta @@ app_spine (Option.get m.value) s
-  | _ -> t
+  | t -> Option.fold ~none:t ~some:force_meta (unblock t)
+
+(** Recompute an eliminator whose main argument is a metavariable which has been solved (e.g. [fst (?A x)] once [?A] is solved). *)
+and unblock t =
+  let elim e l n =
+    let l = List.rev l in
+    match List.nth_opt l n with
+    | Some (Meta (m, _) as u) when m.value <> None -> Some (apps e (List.mapi (fun i v -> if i = n then force_meta u else v) l))
+    | _ -> None
+  in
+  match t with
+  | Pair_ind (c, l) -> elim (Pair_ind (c, [])) l 0
+  | Tens_ind (c, l) -> elim (Tens_ind (c, [])) l 0
+  | Flat_ind (c, l) -> elim (Flat_ind (c, [])) l 0
+  | IndType_ind (i, a, l) -> elim (IndType_ind (i, a, [])) l 0
+  | J (r, l) -> elim (J (r, [])) l 1
+  | _ -> None
 
 (** Put an interval value in canonical conjunctive normal form: a meet of joins
     of atoms, with atoms sorted and deduplicated in each join, and absorbed
