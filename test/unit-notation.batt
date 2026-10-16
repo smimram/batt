@@ -1,0 +1,8 @@
+open import PropTrunc
+
+-- | t | is notation for unit t
+f : (A : Type) (a : A) → | a | ≡ unit a
+f A a = refl
+
+g : (A B : Type) (h : A → B) (a : A) → | h a | ≡ unit (h a)
+g A B h a = refl

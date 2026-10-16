@@ -1,0 +1,8 @@
+open import Sum
+
+-- A + B is notation for sum A B, binding less tightly than ×
+f : (A B C : Type) → A × B + C ≡ sum (A × B) C
+f A B C = refl
+
+g : (A B C : Type) → A + B + C ≡ sum A (sum B C)
+g A B C = refl

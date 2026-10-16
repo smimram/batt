@@ -31,6 +31,7 @@ let rec token lexbuf =
   | Utf8 "⟨" -> LANGLE
   | Utf8 "⟩" -> RANGLE
   | Utf8 "‖" -> DBAR
+  | "|" -> BAR
   | "," -> COMMA
   | "." -> DOT
   | Utf8 "→" | "->" | "\\to" -> TO
