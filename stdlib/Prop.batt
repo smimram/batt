@@ -39,4 +39,4 @@ hProp ∷ TYPE
 hProp = Σ (A : U) . is-prop A
 
 type ∷ hProp → U
-type (A, p) = A
+type (A , p) = A
