@@ -52,29 +52,30 @@ open import Sum
 open import Funext
 open import Sigma
 
--- the union and its two pieces
+-- The union and its two pieces
 union ∷ {X : U} (A B : X → U) → U
 union {X} A B = Σ (x : X) . (A x) ∨ (B x)
 
 pt ∷ {X : U} {A B : X → U} {x : X} → (A x) ∨ (B x) → union A B
 pt {X} {A} {B} {x} u = (x , u)
 
-inl ∷ {X : U} {A B : X → U} → (Σ (x : X) . A x) → union A B
-inl (x , a) = pt (or-l a)
+inl ∷ {X : U} {A B : X → U} {x : X} → A x → union A B
+inl a = pt (or-l a)
 
-inr ∷ {X : U} {A B : X → U} → (Σ (x : X) . B x) → union A B
-inr (x , b) = pt (or-r b)
+inr ∷ {X : U} {A B : X → U} {x : X} → B x → union A B
+inr b = pt (or-r b)
 
--- -- cocones: two maps that agree on the intersection
--- cocone ∷ {X : U} (A B : X → U) (Y : U) → U
--- cocone {X} A B Y =
-  -- Σ (f : (Σ (x : X) . A x) → Y) .
-  -- Σ (g : (Σ (x : X) . B x) → Y) .
-  -- (x : X) (a : A x) (b : B x) → f (x , a) ≡ g (x , b)
+-- The two pieces agree on the intersection
+glue ∷ {X : U} {A B : X → U} {x : X} (a : A x) (b : B x) → inl a ≡ inr b
+glue {X} {A} {B} {x} a b = cong (pt {X} {A} {B} {x}) (prop-path (is-prop-trunc _) (or-l a) (or-r b))
 
--- -- the two pieces agree on the intersection
--- glue ∷ {X : U} {A B : X → U} {x : X} (a : A x) (b : B x) → inl a ≡ inr b
--- glue {X} {A} {B} {x} a b = cong (pt {X} {A} {B} {x}) (prop-path (is-prop-trunc _) (or-l a) (or-r b))
+-- Cocones: two maps that agree on the intersection
+cocone ∷ {X : U} (A B : X → U) (Y : U) → U
+cocone {X} A B Y =
+  Σ (f : {x : X} → A x → Y) .
+  Σ (g : {x : X} → B x → Y) .
+  {x : X} (a : A x) (b : B x) → f a ≡ g b
 
--- restr ∷ {X : U} {A B : X → U} {Y : U} → (union A B → Y) → cocone A B Y
--- restr {X} {A} {B} {Y} k = ((λ u . k (inl u)) , (λ v . k (inr A B v)) , λ x a b . cong k (glue a b))
+-- Restriction to the cocone
+restr ∷ {X : U} {A B : X → U} {Y : U} → (union A B → Y) → cocone A B Y
+restr {X} {A} {B} {Y} f = (f ∘ inl , f ∘ inr , λ a b . cong f (glue a b))
