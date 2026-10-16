@@ -5,18 +5,18 @@
 open import Prop
 open import HProp
 
--- a subtype of a type
+-- A subtype of a type
 subtype ∷ (X : U) → TYPE
 subtype X = X → hProp
 
--- whether an element belongs to a subtype
+-- Whether an element belongs to a subtype
 belongs ∷ {X : U} → X → subtype X → U
 belongs x A = ⟨ A x ⟩
 
--- collection of elements of a subtype
+-- Collection of elements of a subtype
 type ∷ {X : U} → subtype X → U
 type A = Σ (x : X) . x ∈ A
 
--- a point in a subtype
+-- A point in a subtype
 pt ∷ {X : U} {A : subtype X} {x : X} → x ∈ A → ⟨ A ⟩
 pt {X} {A} {x} a = (x , a)
