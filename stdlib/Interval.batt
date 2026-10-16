@@ -6,7 +6,6 @@
 
 open import Set
 open import Empty
-open import Logic
 open import Product
 open import Sigma
 

@@ -1,0 +1,11 @@
+--
+-- Subtypes
+--
+
+open import Prop
+
+subtype ∷ (X : U) → TYPE
+subtype X = X → HProp
+
+union ∷ {X : U} → subtype X → subtype X → subtype X
+union A B x = HProp.or (A x) (B x)

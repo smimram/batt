@@ -1,0 +1,4 @@
+open import Prop
+
+or ∷ hProp → hProp → hProp
+or A B = (PropTrunc.or ⟨ A ⟩ ⟨ B ⟩ , is-prop-trunc _)

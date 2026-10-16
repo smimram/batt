@@ -49,13 +49,12 @@ open import Contr
 open import Equivalence
 open import PropTrunc
 open import Sum
-open import Logic
 open import Funext
 open import Sigma
 
 -- the union and its two pieces
 union ∷ {X : U} (A B : X → U) → U
-union {X} A B = Σ (x : X) . or (A x) (B x)
+union {X} A B = Σ (x : X) . (A x) ∨ (B x)
 
 -- the witnesses of A x ∨ B x coming from each side, the canonical paths between witnesses,
 -- and the inclusion of a fibre into the union

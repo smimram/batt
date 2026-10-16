@@ -10,6 +10,7 @@ open import Interval
 open import Unit
 open import Sigma
 open import Equivalence
+open import PropTrunc
 
 -- The 2-simplex (a filled triangle)
 simplex2 ∷ Type

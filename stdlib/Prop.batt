@@ -7,12 +7,6 @@ open import Contr
 is-prop ∷ U → U
 is-prop A = (a b : A) → is-contr (a ≡ b)
 
-HProp ∷ TYPE
-HProp = Σ (A : U) . is-prop A
-
-type ∷ HProp → U
-type (A, p) = A
-
 open import Equality
 
 is-contr→is-prop ∷ {A : U} → is-contr A → is-prop A
@@ -36,3 +30,13 @@ prop-path {A} pA x y = center (x ≡ y) (pA x y)
 is-prop-retract ∷ {A B : U} (s : A → B) (r : B → A) → ((x : A) → r (s x) ≡ x) → is-prop B → is-prop A
 is-prop-retract {A} {B} s r rs pB =
   prop-from-paths (λ x y . trans (sym (rs x)) (trans (cong r (prop-path pB (s x) (s y))) (rs y)))
+
+---
+--- hProp (definition, the rest is in HProp)
+---
+
+hProp ∷ TYPE
+hProp = Σ (A : U) . is-prop A
+
+type ∷ hProp → U
+type (A, p) = A
