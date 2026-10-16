@@ -193,5 +193,170 @@ ext (f , r) (x , w) =
     fun (g , h) → D-y f g h x (center (D f g h x) (D-contr f g h x w)) in
   k r
 
--- union-up ∷ {X : U} (A B : subtype X) (Y : U) → is-equiv (union-restr A B Y)
--- union-up = ?
+--
+-- The center of the descent family, and the paths and coherence of its points
+--
+
+Z ∷ {X : U} {A B : subtype X} {Y : U} (f : ⟨ A ⟩ → Y) (g : ⟨ B ⟩ → Y)
+  (h : (c : ⟨ intersection A B ⟩) → f (fst c) ≡ g (snd c)) (x : X) → x ∈ union A B → D f g h x
+Z f g h x w = center (D f g h x) (D-contr f g h x w)
+
+D-α ∷ {X : U} {A B : subtype X} {Y : U} (f : ⟨ A ⟩ → Y) (g : ⟨ B ⟩ → Y)
+  (h : (c : ⟨ intersection A B ⟩) → f (fst c) ≡ g (snd c)) (x : X) (z : D f g h x) (a : x ∈ A) →
+  D-y f g h x z ≡ f (x , a)
+D-α f g h x (u , w) = Sigma.snd (λ y . (a : x ∈ A) → y ≡ f (x , a)) u
+
+D-β ∷ {X : U} {A B : subtype X} {Y : U} (f : ⟨ A ⟩ → Y) (g : ⟨ B ⟩ → Y)
+  (h : (c : ⟨ intersection A B ⟩) → f (fst c) ≡ g (snd c)) (x : X) (z : D f g h x) (b : x ∈ B) →
+  D-y f g h x z ≡ g (x , b)
+D-β f g h x (u , w) =
+  let k : (u : D-base f x) (w : D-fib f g h x u) (b : x ∈ B) → D-y f g h x (u , w) ≡ g (x , b) =
+    fun (y , α) (β , γ) → β in
+  k u w
+
+D-γ ∷ {X : U} {A B : subtype X} {Y : U} (f : ⟨ A ⟩ → Y) (g : ⟨ B ⟩ → Y)
+  (h : (c : ⟨ intersection A B ⟩) → f (fst c) ≡ g (snd c)) (x : X) (z : D f g h x) (a : x ∈ A) (b : x ∈ B) →
+  D-β f g h x z b ≡ trans (D-α f g h x z a) (h (x , (a , b)))
+D-γ f g h x (u , w) =
+  let k : (u : D-base f x) (w : D-fib f g h x u) (a : x ∈ A) (b : x ∈ B) →
+      D-β f g h x (u , w) b ≡ trans (D-α f g h x (u , w) a) (h (x , (a , b))) =
+    fun (y , α) (β , γ) → γ in
+  k u w
+
+-- A path in the descent family moves the B-path along the value
+D-β-path ∷ {X : U} {A B : subtype X} {Y : U} (f : ⟨ A ⟩ → Y) (g : ⟨ B ⟩ → Y)
+  (h : (c : ⟨ intersection A B ⟩) → f (fst c) ≡ g (snd c)) (x : X) (z z' : D f g h x) (ζ : z ≡ z') (b : x ∈ B) →
+  trans (cong (D-y f g h x) ζ) (D-β f g h x z' b) ≡ D-β f g h x z b
+D-β-path f g h x z z' ζ b =
+  J z (λ z' ζ . trans (cong (D-y f g h x) ζ) (D-β f g h x z' b) ≡ D-β f g h x z b)
+    (trans-refl-l (D-β f g h x z b)) ζ
+
+--
+-- Paths between cocones
+--
+
+cocone-path-J ∷ {X : U} {A B : subtype X} {Y : U}
+  (f : ⟨ A ⟩ → Y) (g : ⟨ B ⟩ → Y) (h : (c : ⟨ intersection A B ⟩) → f (fst c) ≡ g (snd c))
+  (f' : ⟨ A ⟩ → Y) (Pf : f ≡ f') (g' : ⟨ B ⟩ → Y) (Pg : g ≡ g')
+  (h' : (c : ⟨ intersection A B ⟩) → f' (fst c) ≡ g' (snd c)) →
+  ((c : ⟨ intersection A B ⟩) → trans (h c) (happly Pg (snd c)) ≡ trans (happly Pf (fst c)) (h' c)) →
+  (f , g , h) ≡{cocone A B Y} (f' , g' , h')
+cocone-path-J f g h f' Pf =
+  J f
+    (λ f' Pf . (g' : ⟨ B ⟩ → Y) (Pg : g ≡ g') (h' : (c : ⟨ intersection A B ⟩) → f' (fst c) ≡ g' (snd c)) →
+      ((c : ⟨ intersection A B ⟩) → trans (h c) (happly Pg (snd c)) ≡ trans (happly Pf (fst c)) (h' c)) →
+      (f , g , h) ≡{cocone A B Y} (f' , g' , h'))
+    (λ g' Pg . J g
+      (λ g' Pg . (h' : (c : ⟨ intersection A B ⟩) → f (fst c) ≡ g' (snd c)) →
+        ((c : ⟨ intersection A B ⟩) → trans (h c) (happly Pg (snd c)) ≡ trans (happly {⟨ A ⟩} {λ _ . Y} {f} refl (fst c)) (h' c)) →
+        (f , g , h) ≡{cocone A B Y} (f , g' , h'))
+      (λ h' θ .
+        cong {(c : ⟨ intersection A B ⟩) → f (fst c) ≡ g (snd c)} {cocone A B Y} (λ k . (f , g , k))
+          (funext {⟨ intersection A B ⟩} (λ c . f (fst c) ≡ g (snd c)) h h' (λ c . trans (θ c) (trans-refl-l (h' c)))))
+      Pg)
+    Pf
+
+-- A path of cocones from homotopies of the two maps and a coherence on the intersection
+cocone-path ∷ {X : U} {A B : subtype X} {Y : U}
+  (f : ⟨ A ⟩ → Y) (g : ⟨ B ⟩ → Y) (h : (c : ⟨ intersection A B ⟩) → f (fst c) ≡ g (snd c))
+  (f' : ⟨ A ⟩ → Y) (g' : ⟨ B ⟩ → Y) (h' : (c : ⟨ intersection A B ⟩) → f' (fst c) ≡ g' (snd c))
+  (α : (p : ⟨ A ⟩) → f p ≡ f' p) (β : (q : ⟨ B ⟩) → g q ≡ g' q) →
+  ((c : ⟨ intersection A B ⟩) → trans (h c) (β (snd c)) ≡ trans (α (fst c)) (h' c)) →
+  (f , g , h) ≡{cocone A B Y} (f' , g' , h')
+cocone-path f g h f' g' h' α β θ =
+  let Pf : f ≡ f' = funext-htpy f f' α in
+  let Pg : g ≡ g' = funext-htpy g g' β in
+  let eα : (p : ⟨ A ⟩) → happly Pf p ≡ α p = λ p . happly (happly-funext-htpy f f' α) p in
+  let eβ : (q : ⟨ B ⟩) → happly Pg q ≡ β q = λ q . happly (happly-funext-htpy g g' β) q in
+  cocone-path-J f g h f' Pf g' Pg h'
+    (λ c .
+      trans (cong {g (snd c) ≡ g' (snd c)} (λ e . trans (h c) e) (eβ (snd c)))
+        (trans (θ c)
+          (sym (cong {f (fst c) ≡ f' (fst c)} (λ e . trans e (h' c)) (eα (fst c))))))
+
+--
+-- First round trip: the restriction of the extension of a cocone is the cocone
+--
+
+sec-α ∷ {X : U} {A B : subtype X} {Y : U} (f : ⟨ A ⟩ → Y) (g : ⟨ B ⟩ → Y)
+  (h : (c : ⟨ intersection A B ⟩) → f (fst c) ≡ g (snd c)) (x : X) (a : x ∈ A) →
+  ext (f , g , h) (inl (x , a)) ≡ f (x , a)
+sec-α f g h x a = D-α f g h x (Z f g h x (or-l a)) a
+
+sec-β ∷ {X : U} {A B : subtype X} {Y : U} (f : ⟨ A ⟩ → Y) (g : ⟨ B ⟩ → Y)
+  (h : (c : ⟨ intersection A B ⟩) → f (fst c) ≡ g (snd c)) (x : X) (b : x ∈ B) →
+  ext (f , g , h) (inr (x , b)) ≡ g (x , b)
+sec-β f g h x b = D-β f g h x (Z f g h x (or-r b)) b
+
+-- The extension sends the glue to h: the centres at (x , or-l a) and (x , or-r b) are related by a
+-- path in the descent family, which moves the B-path along the value; conclude by the coherence
+-- of the first centre
+sec-θ ∷ {X : U} {A B : subtype X} {Y : U} (f : ⟨ A ⟩ → Y) (g : ⟨ B ⟩ → Y)
+  (h : (c : ⟨ intersection A B ⟩) → f (fst c) ≡ g (snd c)) (x : X) (a : x ∈ A) (b : x ∈ B) →
+  trans (cong (ext (f , g , h)) (glue {X} {A} {B} (x , (a , b)))) (sec-β f g h x b) ≡ trans (sec-α f g h x a) (h (x , (a , b)))
+sec-θ f g h x a b =
+  let e : ⟨ union A B ⟩ → Y = ext (f , g , h) in
+  let ι : x ∈ union A B → ⟨ union A B ⟩ = pt in
+  let ζ : x ∈ union A B → D f g h x = Z f g h x in
+  let τ : or-l a ≡{x ∈ union A B} or-r b = prop-path (is-prop-trunc _) (or-l a) (or-r b) in
+  trans
+    (cong {e (ι (or-l a)) ≡ e (ι (or-r b))} (λ q . trans q (sec-β f g h x b))
+      (trans (sym (cong-comp e ι τ))
+             (cong-comp (D-y f g h x) ζ τ)))
+    (trans (D-β-path f g h x (ζ (or-l a)) (ζ (or-r b)) (cong ζ τ) b)
+           (D-γ f g h x (ζ (or-l a)) a b))
+
+sec ∷ {X : U} {A B : subtype X} {Y : U} (c : cocone A B Y) → restr (ext c) ≡ c
+sec (f , r) =
+  let k : (r : Σ (g : ⟨ B ⟩ → Y) . (c : ⟨ intersection A B ⟩) → f (fst c) ≡ g (snd c)) → restr (ext (f , r)) ≡ (f , r) =
+    fun (g , h) →
+      cocone-path (ext (f , g , h) ∘ inl) (ext (f , g , h) ∘ inr) (λ c . cong (ext (f , g , h)) (glue c))
+        f g h
+        (λ (x , a) . sec-α f g h x a)
+        (λ (x , b) . sec-β f g h x b)
+        (λ (x , ab) .
+          let l : (ab : x ∈ intersection A B) →
+              trans (cong (ext (f , g , h)) (glue (x , ab))) (sec-β f g h x (Product.snd ab))
+                ≡ trans (sec-α f g h x (Product.fst ab)) (h (x , ab)) =
+            fun (a , b) → sec-θ f g h x a b in
+          l ab)
+  in
+  k r
+
+--
+-- Second round trip: the extension of the restriction of a map is the map
+--
+
+-- k gives a point of the descent family of its restriction: all paths live in one fibre of the
+-- union, which is a proposition, so the coherence holds
+ret-z ∷ {X : U} {A B : subtype X} {Y : U} (k : ⟨ union A B ⟩ → Y) (x : X) (w : x ∈ union A B) →
+  D (k ∘ inl) (k ∘ inr) (λ c . cong k (glue c)) x
+ret-z k x w =
+  let ι : x ∈ union A B → ⟨ union A B ⟩ = pt in
+  let τ : (w w' : x ∈ union A B) → w ≡ w' = λ w w' . prop-path (is-prop-trunc _) w w' in
+  ((k (x , w) , λ a . cong k (cong ι (τ w (or-l a)))) ,
+   ((λ b . cong k (cong ι (τ w (or-r b)))) ,
+    λ a b .
+      trans (cong {w ≡ or-r b} (λ t . cong k (cong ι t))
+              (prop-path (is-prop→is-set (is-prop-trunc _) w (or-r b))
+                (τ w (or-r b)) (trans (τ w (or-l a)) (τ (or-l a) (or-r b)))))
+        (trans (cong {ι w ≡ ι (or-r b)} (λ e . cong k e)
+                 (cong-trans ι (τ w (or-l a)) (τ (or-l a) (or-r b))))
+          (cong-trans k (cong ι (τ w (or-l a))) (cong ι (τ (or-l a) (or-r b)))))))
+
+ret-pw ∷ {X : U} {A B : subtype X} {Y : U} (k : ⟨ union A B ⟩ → Y) (z : ⟨ union A B ⟩) → ext (restr k) z ≡ k z
+ret-pw k (x , w) =
+  let f : ⟨ A ⟩ → Y = k ∘ inl in
+  let g : ⟨ B ⟩ → Y = k ∘ inr in
+  let h : (c : ⟨ intersection A B ⟩) → f (fst c) ≡ g (snd c) = λ c . cong k (glue c) in
+  cong (D-y f g h x) (is-contr-eq (D-contr f g h x w) (Z f g h x w) (ret-z k x w))
+
+ret ∷ {X : U} {A B : subtype X} {Y : U} (k : ⟨ union A B ⟩ → Y) → ext (restr k) ≡ k
+ret k = funext-nd (ext (restr k)) k (ret-pw k)
+
+--
+-- The universal property of the union
+--
+
+union-up ∷ {X : U} (A B : subtype X) (Y : U) → is-equiv (restr {X} {A} {B} {Y})
+union-up A B Y = ((ext , sec) , (ext , ret))
