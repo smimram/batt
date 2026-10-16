@@ -3,9 +3,10 @@
 --
 
 open import Prop
+open import HProp
 
 subtype ∷ (X : U) → TYPE
-subtype X = X → HProp
+subtype X = X → hProp
 
 union ∷ {X : U} → subtype X → subtype X → subtype X
 union A B x = HProp.or (A x) (B x)
