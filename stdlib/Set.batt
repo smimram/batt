@@ -12,11 +12,14 @@ open import Prop
 is-set ∷ U → U
 is-set A = (x y : A) → is-prop (x ≡ y)
 
-HSet ∷ TYPE
-HSet = Σ (A : U) . is-set A
+hSet ∷ TYPE
+hSet = Σ (A : U) . is-set A
 
-type-HSet ∷ HSet → U
-type-HSet (A, p) = A
+-- Operations on hSets
+HSet = record
+  type ∷ hSet → U
+  type (A, p) = A
+end
 
 ---
 --- Subtypes and products of sets
