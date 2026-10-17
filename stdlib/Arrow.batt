@@ -88,4 +88,21 @@ Square = record
 
   to-arrᵣ : {A ∷ U} → squareᵣ A → arrᵣ (arrᵣ A)
   to-arrᵣ s i j = s (i ⊗ j)
+
+  -- sides of oplax squares, the horizontal direction being the first variable and the vertical
+  -- one the second (going up)
+  leftᵣ : {A ∷ U} → squareᵣ A → arrᵣ A
+  leftᵣ s i = s (𝕀0 ⊗ i)
+
+  rightᵣ : {A ∷ U} → squareᵣ A → arrᵣ A
+  rightᵣ s i = s (𝕀1 ⊗ i)
+
+  downᵣ : {A ∷ U} → squareᵣ A → arrᵣ A
+  downᵣ s i = s (i ⊗ 𝕀0)
+
+  upᵣ : {A ∷ U} → squareᵣ A → arrᵣ A
+  upᵣ s i = s (i ⊗ 𝕀1)
+
+  -- boundedᵣ : {A ∷ U} → subtype A
+  -- boundedᵣ = ?
 end
