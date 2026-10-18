@@ -19,26 +19,26 @@ open import Stdlib
 open import Spine
 
 -- the thickened spine inclusion ι_{𝐚,𝐛} : Sp_{n,𝐚,𝐛} → Δⁿ_{𝐚,𝐛}
-thick-incl ∷ (a ∷ List ℕ) (n ∷ ℕ) (b ∷ List ℕ) → thick-spine a n b → thick-simplex a n b
+thick-incl ∷ (a ∷ list ℕ) (n ∷ ℕ) (b ∷ list ℕ) → thick-spine a n b → thick-simplex a n b
 thick-incl = thick-spine→thick-simplex
 
 --
 -- Restriction along ι, for each kind of arrow
 --
 
-segal-restr ∷ (a ∷ List ℕ) (n ∷ ℕ) (b ∷ List ℕ) (X : U) → (thick-simplex a n b → X) → (thick-spine a n b → X)
+segal-restr ∷ (a ∷ list ℕ) (n ∷ ℕ) (b ∷ list ℕ) (X : U) → (thick-simplex a n b → X) → (thick-spine a n b → X)
 segal-restr a n b X g = pre (thick-spine a n b) g (thick-incl a n b)
 
-segal-restr♭ ∷ (a ∷ List ℕ) (n ∷ ℕ) (b ∷ List ℕ) (X ∷ U) → ♭(thick-simplex a n b → X) → ♭(thick-spine a n b → X)
+segal-restr♭ ∷ (a ∷ list ℕ) (n ∷ ℕ) (b ∷ list ℕ) (X ∷ U) → ♭(thick-simplex a n b → X) → ♭(thick-spine a n b → X)
 segal-restr♭ a n b X = flat-map (segal-restr a n b X)
 
-segal-restrᵣ ∷ (a ∷ List ℕ) (n ∷ ℕ) (b ∷ List ℕ) (X ∷ U) → (thick-simplex a n b →ᵣ X) → (thick-spine a n b →ᵣ X)
+segal-restrᵣ ∷ (a ∷ list ℕ) (n ∷ ℕ) (b ∷ list ℕ) (X ∷ U) → (thick-simplex a n b →ᵣ X) → (thick-spine a n b →ᵣ X)
 segal-restrᵣ a n b X g =
   -- a crisp name for ι, so that the oplax application shares no free variable with its function
   let ι ∷ thick-spine a n b → thick-simplex a n b = thick-incl a n b in
   preᵣ {thick-spine a n b} g ι
 
-segal-restrₗ ∷ (a ∷ List ℕ) (n ∷ ℕ) (b ∷ List ℕ) (X ∷ U) → (thick-simplex a n b →ₗ X) → (thick-spine a n b →ₗ X)
+segal-restrₗ ∷ (a ∷ list ℕ) (n ∷ ℕ) (b ∷ list ℕ) (X ∷ U) → (thick-simplex a n b →ₗ X) → (thick-spine a n b →ₗ X)
 segal-restrₗ a n b X g =
   -- a crisp name for ι, so that the lax application shares no free variable with its function
   let ι ∷ thick-spine a n b → thick-simplex a n b = thick-incl a n b in
@@ -50,22 +50,22 @@ segal-restrₗ a n b X g =
 
 -- internal Segalness: X is local, as a type, against every thickened spine inclusion
 is-segal ∷ (X : U) → U
-is-segal X = (a ∷ List ℕ) (n ∷ ℕ) (b ∷ List ℕ) →
+is-segal X = (a ∷ list ℕ) (n ∷ ℕ) (b ∷ list ℕ) →
   is-equiv {thick-simplex a n b → X} {thick-spine a n b → X} (segal-restr a n b X)
 
 -- ♭-Segalness (global locality): only the global maps out of the shapes are tested
 is-segal♭ ∷ (X ∷ U) → U
-is-segal♭ X = (a ∷ List ℕ) (n ∷ ℕ) (b ∷ List ℕ) →
+is-segal♭ X = (a ∷ list ℕ) (n ∷ ℕ) (b ∷ list ℕ) →
   is-equiv {♭(thick-simplex a n b → X)} {♭(thick-spine a n b → X)} (segal-restr♭ a n b X)
 
 -- oplax Segalness: restriction of oplax maps out of the shapes is an equivalence
 is-segalᵣ ∷ (X ∷ U) → U
-is-segalᵣ X = (a ∷ List ℕ) (n ∷ ℕ) (b ∷ List ℕ) →
+is-segalᵣ X = (a ∷ list ℕ) (n ∷ ℕ) (b ∷ list ℕ) →
   is-equiv {thick-simplex a n b →ᵣ X} {thick-spine a n b →ᵣ X} (segal-restrᵣ a n b X)
 
 -- lax Segalness: restriction of lax maps out of the shapes is an equivalence
 is-segalₗ ∷ (X ∷ U) → U
-is-segalₗ X = (a ∷ List ℕ) (n ∷ ℕ) (b ∷ List ℕ) →
+is-segalₗ X = (a ∷ list ℕ) (n ∷ ℕ) (b ∷ list ℕ) →
   is-equiv {thick-simplex a n b →ₗ X} {thick-spine a n b →ₗ X} (segal-restrₗ a n b X)
 
 --
@@ -120,7 +120,7 @@ is-equiv-cur2 {Q} {S} {G} {T} =
 cur-restr ∷ {Q S S' T ∷ U} (ι ∷ S' → S) → (Q →ᵣ S →ᵣ T) → (Q →ᵣ S' →ᵣ T)
 cur-restr {Q} {S} {S'} {T} ι k q s = k q (ι s)
 
-cur-segal-restr ∷ (a ∷ List ℕ) (n ∷ ℕ) (b ∷ List ℕ) (X ∷ U) (f : thick-simplex a n b →ᵣ X) →
+cur-segal-restr ∷ (a ∷ list ℕ) (n ∷ ℕ) (b ∷ list ℕ) (X ∷ U) (f : thick-simplex a n b →ᵣ X) →
   cur2 {grid a} {spine n} {grid b} {X} (segal-restrᵣ a n b X f)
     ≡ cur-restr {grid a} {simplex n} {spine n} {grid b →ᵣ X} (spine→simplex n) (cur2 {grid a} {simplex n} {grid b} {X} f)
 cur-segal-restr a n b X f = refl
@@ -142,7 +142,7 @@ cur-restr-equiv {Q} {S} {S'} ι {T} {T'} h eh e =
 
 is-segal-arrᵣ ∷ {A ∷ U} → is-segalᵣ A → is-segalᵣ (arrᵣ A)
 is-segal-arrᵣ {A} sA a n b =
-  let c ∷ List ℕ = cons 1 b in
+  let c ∷ list ℕ = cons 1 b in
   let ι ∷ spine n → simplex n = spine→simplex n in
   -- grid c is grid b ⨂ simplex 1, judgmentally
   let e2 : is-equiv (cur-restr {grid a} {simplex n} {spine n} {grid b ⨂ simplex 1 →ᵣ A} ι) =

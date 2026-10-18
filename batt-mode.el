@@ -10,8 +10,8 @@
    ("^[ \t]*\\([^ \t(=\n]+\\)" 1 'font-lock-function-name-face)
    ("\\_<\\(let\\|in\\|fun\\|λ\\|open\\|import\\|abstract\\|record\\|end\\)\\_>\\|:\\|∷\\|=" . font-lock-keyword-face)
    ("\\_<\\(true\\|false\\|tt\\|refl\\|zero\\|succ\\|nil\\|cons\\|[0-9]+\\)\\_>" . font-lock-constant-face)
-   ("\\<\\(Nat\\|ℕ\\)" 1 font-lock-builtin-face)
-   ("\\\\\\(bigotimes\\|otimes\\|Sigma\\|times\\|fflat\\|flat\\|equiv\\|simeq\\|circ\\|top\\|bot\\|tol\\|tor\\|to\\)\\|\\_<\\(U\\|Type\\|TYPE\\|List\\|Bool\\|Unit\\|Empty\\|II[01vw]?\\)\\_>\\|𝕀[01∨∧]?\\|->l\\|->r\\|->\\|→ₗ\\|→ᵣ\\|⇀\\|⇁\\|→\\|⨂\\|⊗\\|@\\|≡\\|≃\\|∘\\|Σ\\|×\\|⊥\\|⊤\\|♭\\|𝄫" . font-lock-builtin-face)
+   ("\\<\\(ℕ\\)" 1 font-lock-builtin-face)
+   ("\\\\\\(bigotimes\\|otimes\\|Sigma\\|times\\|fflat\\|flat\\|equiv\\|simeq\\|circ\\|top\\|bot\\|tol\\|tor\\|to\\)\\|\\_<\\(U\\|Type\\|TYPE\\|nat\\|list\\|Bool\\|Unit\\|Empty\\|II[01vw]?\\)\\_>\\|𝕀[01∨∧]?\\|->l\\|->r\\|->\\|→ₗ\\|→ᵣ\\|⇀\\|⇁\\|→\\|⨂\\|⊗\\|@\\|≡\\|≃\\|∘\\|Σ\\|×\\|⊥\\|⊤\\|♭\\|𝄫" . font-lock-builtin-face)
   )
 )
 

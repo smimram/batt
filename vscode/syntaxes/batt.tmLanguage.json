@@ -67,7 +67,7 @@
           }
         },
         {
-          "match": "(?:in|postulate|abstract|record|end|fun|ℕ-ind|Nat-ind|List-ind)(?![A-Za-z0-9'_\\-→⁻ₗᵣ≡Α-ΡΣ-Ωα-κμ-ω]|𝕀)",
+          "match": "(?:in|postulate|abstract|record|end|fun|ℕ-ind|List-ind)(?![A-Za-z0-9'_\\-→⁻ₗᵣ≡Α-ΡΣ-Ωα-κμ-ω]|𝕀)",
           "name": "keyword.other.batt"
         },
         {
@@ -115,8 +115,8 @@
     "builtins": {
       "patterns": [
         {
-          "comment": "universes and builtin type names (bool, unit, empty, TYPE are bound identifiers, not keywords)",
-          "match": "(?:Type|U|TYPE|bool|unit|empty|II|Nat|List)(?![A-Za-z0-9'_\\-→⁻ₗᵣ≡Α-ΡΣ-Ωα-κμ-ω]|𝕀)",
+          "comment": "universes and builtin type names (bool, nat, list, unit, empty, TYPE are bound identifiers, not keywords)",
+          "match": "(?:Type|U|TYPE|bool|unit|empty|II|nat|list)(?![A-Za-z0-9'_\\-→⁻ₗᵣ≡Α-ΡΣ-Ωα-κμ-ω]|𝕀)",
           "name": "support.type.batt"
         },
         {

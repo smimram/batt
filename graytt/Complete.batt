@@ -24,19 +24,19 @@ open import Segal
 -- Restriction along τ, for each kind of arrow
 --
 
-complete-restr ∷ (a ∷ List ℕ) (b ∷ List ℕ) (X : U) → (grid a ⨂ grid b → X) → (thick-free-equiv a b → X)
+complete-restr ∷ (a ∷ list ℕ) (b ∷ list ℕ) (X : U) → (grid a ⨂ grid b → X) → (thick-free-equiv a b → X)
 complete-restr a b X g = pre (thick-free-equiv a b) g (thick-τ a b)
 
-complete-restr♭ ∷ (a ∷ List ℕ) (b ∷ List ℕ) (X ∷ U) → ♭(grid a ⨂ grid b → X) → ♭(thick-free-equiv a b → X)
+complete-restr♭ ∷ (a ∷ list ℕ) (b ∷ list ℕ) (X ∷ U) → ♭(grid a ⨂ grid b → X) → ♭(thick-free-equiv a b → X)
 complete-restr♭ a b X = flat-map (complete-restr a b X)
 
-complete-restrᵣ ∷ (a ∷ List ℕ) (b ∷ List ℕ) (X ∷ U) → (grid a ⨂ grid b →ᵣ X) → (thick-free-equiv a b →ᵣ X)
+complete-restrᵣ ∷ (a ∷ list ℕ) (b ∷ list ℕ) (X ∷ U) → (grid a ⨂ grid b →ᵣ X) → (thick-free-equiv a b →ᵣ X)
 complete-restrᵣ a b X g =
   -- a crisp name for τ, so that the oplax application shares no free variable with its function
   let t ∷ thick-free-equiv a b → grid a ⨂ grid b = thick-τ a b in
   preᵣ {thick-free-equiv a b} g t
 
-complete-restrₗ ∷ (a ∷ List ℕ) (b ∷ List ℕ) (X ∷ U) → (grid a ⨂ grid b →ₗ X) → (thick-free-equiv a b →ₗ X)
+complete-restrₗ ∷ (a ∷ list ℕ) (b ∷ list ℕ) (X ∷ U) → (grid a ⨂ grid b →ₗ X) → (thick-free-equiv a b →ₗ X)
 complete-restrₗ a b X g =
   -- a crisp name for τ, so that the lax application shares no free variable with its function
   let t ∷ thick-free-equiv a b → grid a ⨂ grid b = thick-τ a b in
@@ -48,22 +48,22 @@ complete-restrₗ a b X g =
 
 -- internal completeness: X is local, as a type, against every thickened τ
 is-complete ∷ (X : U) → U
-is-complete X = (a ∷ List ℕ) (b ∷ List ℕ) →
+is-complete X = (a ∷ list ℕ) (b ∷ list ℕ) →
   is-equiv {grid a ⨂ grid b → X} {thick-free-equiv a b → X} (complete-restr a b X)
 
 -- ♭-completeness (global locality): only the global maps out of the shapes are tested
 is-complete♭ ∷ (X ∷ U) → U
-is-complete♭ X = (a ∷ List ℕ) (b ∷ List ℕ) →
+is-complete♭ X = (a ∷ list ℕ) (b ∷ list ℕ) →
   is-equiv {♭(grid a ⨂ grid b → X)} {♭(thick-free-equiv a b → X)} (complete-restr♭ a b X)
 
 -- oplax completeness: restriction of oplax maps out of the shapes is an equivalence
 is-completeᵣ ∷ (X ∷ U) → U
-is-completeᵣ X = (a ∷ List ℕ) (b ∷ List ℕ) →
+is-completeᵣ X = (a ∷ list ℕ) (b ∷ list ℕ) →
   is-equiv {grid a ⨂ grid b →ᵣ X} {thick-free-equiv a b →ᵣ X} (complete-restrᵣ a b X)
 
 -- lax completeness: restriction of lax maps out of the shapes is an equivalence
 is-completeₗ ∷ (X ∷ U) → U
-is-completeₗ X = (a ∷ List ℕ) (b ∷ List ℕ) →
+is-completeₗ X = (a ∷ list ℕ) (b ∷ list ℕ) →
   is-equiv {grid a ⨂ grid b →ₗ X} {thick-free-equiv a b →ₗ X} (complete-restrₗ a b X)
 
 --
@@ -79,7 +79,7 @@ cur-const ∷ {Q S T ∷ U} → (Q →ᵣ T) → (Q →ᵣ S →ᵣ T)
 cur-const {Q} {S} {T} k q s = k q
 
 -- restriction along τ, curried, is the weakening by E
-cur-complete-restr ∷ (a ∷ List ℕ) (b ∷ List ℕ) (X ∷ U) (g : grid a ⨂ grid b →ᵣ X) →
+cur-complete-restr ∷ (a ∷ list ℕ) (b ∷ list ℕ) (X ∷ U) (g : grid a ⨂ grid b →ᵣ X) →
   cur-const {grid a} {free-equiv} {grid b →ᵣ X} (Tensor.curry-right {grid a} {grid b} {X} g)
     ≡ cur2 {grid a} {free-equiv} {grid b} {X} (complete-restrᵣ a b X g)
 cur-complete-restr a b X g = refl
@@ -97,7 +97,7 @@ cur-const-equiv {Q} {S} {T} {T'} h eh e =
 
 is-complete-arrᵣ ∷ {A ∷ U} → is-completeᵣ A → is-completeᵣ (arrᵣ A)
 is-complete-arrᵣ {A} cA a b =
-  let c ∷ List ℕ = cons 1 b in
+  let c ∷ list ℕ = cons 1 b in
   -- grid c is grid b ⨂ simplex 1, judgmentally
   let e2 : is-equiv (cur-const {grid a} {free-equiv} {grid b ⨂ simplex 1 →ᵣ A}) =
     is-equiv-conj (complete-restrᵣ a c A) (cur-const {grid a} {free-equiv} {grid c →ᵣ A})

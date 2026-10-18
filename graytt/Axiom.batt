@@ -15,12 +15,12 @@
 open import Stdlib
 
 -- postcomposition with f on the global points of a grid
-objectwise-post ∷ {X Y ∷ U} (f ∷ X → Y) (a ∷ List ℕ) → ♭(grid a → X) → ♭(grid a → Y)
+objectwise-post ∷ {X Y ∷ U} (f ∷ X → Y) (a ∷ list ℕ) → ♭(grid a → X) → ♭(grid a → Y)
 objectwise-post {X} {Y} f a = flat-map {grid a → X} {grid a → Y} (post {grid a} {X} {Y} f)
 
 -- f is an objectwise equivalence
 is-objectwise-equiv ∷ {X Y ∷ U} (f ∷ X → Y) → U
-is-objectwise-equiv {X} {Y} f = (a ∷ List ℕ) → is-equiv (objectwise-post {X} {Y} f a)
+is-objectwise-equiv {X} {Y} f = (a ∷ list ℕ) → is-equiv (objectwise-post {X} {Y} f a)
 
 -- postulate: equivalences are objectwise
 postulate objectwise-equiv ∷ {X Y ∷ U} (f ∷ X → Y) → is-objectwise-equiv {X} {Y} f → is-equiv f

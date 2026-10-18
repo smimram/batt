@@ -236,15 +236,15 @@ The following types are built in.
 | `⊤` (`unit`) | `tt` | `tt` |
 | `bool` | `false`, `true` | `false`, `true` |
 | `ℕ` | `zero` (or `0`), `succ`, numerals `1`, `2`, … | `zero`, `0`, `(succ n)` |
-| `List A` | `nil`, `cons` | `nil`, `(cons x l)` |
+| `list A` | `nil`, `cons` | `nil`, `(cons x l)` |
 
-`succ : ℕ → ℕ` and `cons : {A : Type} → A → List A → List A` are ordinary
+`succ : ℕ → ℕ` and `cons : {A : Type} → A → list A → list A` are ordinary
 functions, so they can be partially applied (`cong succ p`, `map (cons x) l`).
-`List` is a keyword and must always be applied to a type.
+`list : U → U` is an ordinary builtin (like `bool`), so it does not clash with the `List` module.
 
-### Recursion on ℕ and List
+### Recursion on ℕ and lists
 
-Functions out of `ℕ` and `List A` are defined by clauses, but the function's own
+Functions out of `ℕ` and `list A` are defined by clauses, but the function's own
 name is not in scope in its body: recursion is _structural_ only, through the
 reserved variable `rec`. In the clause for `(succ n)` (resp. `(cons x l)`),
 `rec` is the result of the recursive call on `n` (resp. `l`), abstracted over the
@@ -261,7 +261,7 @@ add' ∷ ℕ → ℕ → ℕ
 add' m zero = m
 add' m (succ n) = succ rec
 
-append ∷ {A : Type} → List A → List A → List A
+append ∷ {A : Type} → list A → list A → list A
 append nil m = m
 append (cons x l) m = cons x (rec m)
 ```
@@ -269,7 +269,7 @@ append (cons x l) m = cons x (rec m)
 The same applies to proofs by induction:
 
 ```
-append-nil ∷ {A : Type} → (l : List A) → append l nil ≡ l
+append-nil ∷ {A : Type} → (l : list A) → append l nil ≡ l
 append-nil nil = refl
 append-nil (cons x l) = cong (cons x) rec
 ```
@@ -448,7 +448,7 @@ patterns are:
 | `tt` | `⊤` |
 | `false`, `true` | `bool` |
 | `zero`, `0`, `(succ n)` | `ℕ` |
-| `nil`, `(cons x l)` | `List A` |
+| `nil`, `(cons x l)` | `list A` |
 | `(x , y)` | `Σ`, `×` |
 | `(x ⊗ y)` | `⨂` |
 | `𝄫x` | `♭` |
@@ -480,7 +480,7 @@ From loosest to tightest:
 7. `⨂` (right-associative)
 8. `∘`, `∨` (left-associative)
 9. `𝕀∨`, `𝕀∧` (left-associative)
-10. application, `List A`
+10. application
 11. `♭`, `𝄫` (prefix)
 12. `t.x` (record field / module access)
 
