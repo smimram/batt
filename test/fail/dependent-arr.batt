@@ -1,0 +1,3 @@
+-- The codomain of a dependent oplax arrow depends on the argument
+bad ∷ (A ∷ U) (a ∷ A) → (x : A) →ᵣ x ≡ a
+bad A a x = refl

@@ -123,8 +123,10 @@ prod_term:
 
 fun_term:
   | prod_term { $1 }
-  | a=prod_term s=arrow b=fun_term { match s with None -> mk ~pos:$loc @@ Pi (Explicit, Normal, "_", a, b) | Some s -> mk ~pos:$loc @@ Arr (s, a, b) }
-  | abs=nonempty_list(binder_group) TO b=fun_term { pis ~pos:$loc abs b }
+  | a=prod_term TO b=fun_term { mk ~pos:$loc @@ Pi (Explicit, Normal, "_", a, b) }
+  | a=prod_term s=arrowlr b=fun_term { mk ~pos:$loc @@ Arr (s, "_", a, b) }
+  | a=nonempty_list(binder_group) TO b=fun_term { pis ~pos:$loc a b }
+  | a=nonempty_list(binder_group) s=arrowlr b=fun_term { arrs ~pos:$loc s a b }
   | SIGMA LPAR x=IDENT COLON a=term RPAR DOT b=fun_term { mk ~pos:$loc @@ Sigma (x, a, b) }
   | FUN x=nonempty_list(pattern) to_dot t=fun_term { abss_pattern ~pos:$loc x t }
   | LET x=IDENT c=ccolon a=term EQ t=term IN u=fun_term { mk ~pos:$loc @@ Let (c, x, a, t, u) }
@@ -158,10 +160,9 @@ binder_group:
   | LPAR t=term c=ccolon a=term RPAR { Explicit,c,binder_names ~pos:$loc(t) t,a }
   | LACC x=nonempty_list(IDENT) c=ccolon a=term RACC { Implicit,c,x,a }
 
-arrow:
-  | TO  { None }
-  | TOL { Some Left }
-  | TOR { Some Right }
+arrowlr:
+  | TOL { Left }
+  | TOR { Right }
 
 ccolon:
   | COLON { Normal }
