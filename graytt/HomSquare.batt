@@ -1,0 +1,30 @@
+open import Stdlib
+open import Hom
+open import Segal
+open import Composition
+open import Functoriality
+
+--
+-- Squares
+--
+
+open Square
+
+-- The oplax squares with given left, right, bottom and top sides.
+square : {A ∷ U} (l r b t : arrᵣ A) → U
+square {A} l r b t = Σ (x : squareᵣ A) . (leftᵣ x ≡ l) × (rightᵣ x ≡ r) × (bottomᵣ x ≡ b) × (topᵣ x ≡ t)
+
+-- A hom l r in arrᵣ A (between vertical sides) is an oplax square from l to r: its bottom and
+-- top sides are the images of the hom by srcᵣ and tgtᵣ.
+of-hom : {A ∷ U} {l r : arrᵣ A} (u : hom l r) → square l r (hom-cell (hom-map srcᵣ u)) (hom-cell (hom-map tgtᵣ u))
+of-hom {A} {l} {r} u = (of-arrᵣ (hom-cell u) , hom-src u , hom-tgt u , refl , refl)
+
+-- Horizontal composition of squares (as homs in arrᵣ A): the bottom and top of the composite are
+-- the composites of the bottoms and tops.
+comph : {A ∷ U} (sA : is-segalᵣ A) {l m r : arrᵣ A} (u : hom l m) (v : hom m r) →
+  square l r (hom-cell (comp-homᵣ sA (hom-map srcᵣ u) (hom-map srcᵣ v))) (hom-cell (comp-homᵣ sA (hom-map tgtᵣ u) (hom-map tgtᵣ v)))
+comph {A} sA {l} {m} {r} u v =
+  let w : hom l r = comp-homᵣ (is-segal-arrᵣ sA) u v in
+  (of-arrᵣ (hom-cell w) , hom-src w , hom-tgt w ,
+   cong {hom (srcᵣ {A} l) (srcᵣ {A} r)} {arrᵣ A} (hom-cell {A} {srcᵣ {A} l} {srcᵣ {A} r}) (hom-map-comp (arrᵣ A) A srcᵣ (is-segal-arrᵣ sA) sA u v) ,
+   cong {hom (tgtᵣ {A} l) (tgtᵣ {A} r)} {arrᵣ A} (hom-cell {A} {tgtᵣ {A} l} {tgtᵣ {A} r}) (hom-map-comp (arrᵣ A) A tgtᵣ (is-segal-arrᵣ sA) sA u v))

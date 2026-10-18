@@ -102,15 +102,3 @@ subst-hom-tgt {X} {a} f p refl = refl
 homs-from-tgt-path ∷ {X ∷ U} {a : X} (f : arrᵣ X) (p : srcᵣ f ≡ a) {x : X} (q : tgtᵣ f ≡ x) →
   (tgtᵣ f , f , p , refl) ≡{Σ (y : X) . hom {X} a y} (x , f , p , q)
 homs-from-tgt-path {X} {a} f p refl = refl
-
---
--- Squares
---
-
-Square = record
-  open Square
-
-  -- the oplax squares with given left, right, bottom and top sides
-  withinᵣ : {A ∷ U} (l r b t : arrᵣ A) → subtype (squareᵣ A)
-  withinᵣ l r b t x = prop-trunc ((leftᵣ x ≡ l) × (rightᵣ x ≡ r) × (bottomᵣ x ≡ b) × (topᵣ x ≡ t))
-end
