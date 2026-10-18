@@ -109,9 +109,10 @@ homs-from-tgt-path {X} {a} f p refl = refl
 -- Squares
 --
 
--- Square = record
-  -- open import Square
+Square = record
+  open Square
 
-  -- withinᵣ : {A ∷ U} (l r b t : arrᵣ A)  → subtype (squareᵣ A)
-  -- withinᵣ x = ?
--- end
+  -- the oplax squares with given left, right, bottom and top sides
+  withinᵣ : {A ∷ U} (l r b t : arrᵣ A) → subtype (squareᵣ A)
+  withinᵣ l r b t x = prop-trunc ((leftᵣ x ≡ l) × (rightᵣ x ≡ r) × (bottomᵣ x ≡ b) × (topᵣ x ≡ t))
+end
