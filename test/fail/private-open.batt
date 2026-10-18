@@ -1,0 +1,4 @@
+open import QualifiersLib
+
+s : ℕ
+s = secret

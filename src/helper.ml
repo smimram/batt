@@ -146,6 +146,7 @@ let record_fields (decls : decls) =
   List.map
     (function
       | Def (x, q, _, _) when List.mem Abstract q -> failwith @@ Printf.sprintf "abstract field %s not supported in records" x
+      | Def (x, q, _, _) when List.mem Private q || List.mem Local q -> failwith @@ Printf.sprintf "private or local field %s not supported in records" x
       | Def (x, _, None, t) -> x, t
       | Def (x, q, Some a, t) -> x, Let (crispness_of_qualifiers q, x, a, t, Var x)
       | Open _ -> failwith "open not supported in records"

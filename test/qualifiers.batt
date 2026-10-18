@@ -1,0 +1,19 @@
+open import QualifiersLib
+
+-- local declarations are accessible through qualified names
+h : ℕ
+h = QualifiersLib.helper
+
+h' : h ≡ 4
+h' = refl
+
+-- public declarations are opened
+p : public ≡ 5
+p = refl
+
+-- names of local and private declarations are free
+helper : bool
+helper = true
+
+secret : bool
+secret = false

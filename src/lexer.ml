@@ -72,6 +72,8 @@ let rec token lexbuf =
   | "in" -> IN
   | "postulate" -> POSTULATE
   | "abstract" -> ABSTRACT
+  | "private" -> PRIVATE
+  | "local" -> LOCAL
   | "open" -> OPEN
   | "record" -> records := None :: !records; RECORD
   | "end" -> (match !records with _::l -> records := l | [] -> ()); END

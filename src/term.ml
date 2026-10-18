@@ -41,6 +41,8 @@ let string_of_opaque = function
 type qualifier =
   | Abstract (** the definition does not reduce *)
   | Crisp (** the declaration is crisp *)
+  | Private (** the declaration is not exported in the record of the module *)
+  | Local (** the declaration is not brought in scope when opening the record of the module (but can still be accessed as a field) *)
 [@@deriving show]
 
 type crispness = Normal | Crisp
@@ -84,7 +86,7 @@ type t =
   | Hole of Pos.t
   | Meta of [`Fresh of Pos.t option | `Generated of int] (** metavariable with given internal identifier *)
   | Import of string (** import a module *)
-  | RecordType of (string * crispness * t) list
+  | RecordType of (string * qualifier list * t) list (** record type, the fields come with the qualifiers of their declaration *)
   | Record of [`Recursive | `NonRecursive] * (string * t) list
   | RecordField of t * string
   | I | I0 | I1 | Iv of t * t | Iw of t * t
@@ -277,7 +279,7 @@ let rec to_string ?(vars=[]) ?(ren=[]) t =
   | Import m -> "import " ^ m
   | Record _ -> "record"
   | RecordType l ->
-    let l = String.concat "; " @@ List.map (fun (x,c,a) -> x ^ " " ^ crispy_colon c ^ " " ^ to_string a) l in
+    let l = String.concat "; " @@ List.map (fun (x,q,a) -> x ^ " " ^ crispy_colon (crispness_of_qualifiers q) ^ " " ^ to_string a) l in
     Printf.sprintf "{ %s }" l
   | RecordField (t,x) -> Printf.sprintf "%s.%s" (to_string t) x
   | I -> "𝕀"

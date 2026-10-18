@@ -14,7 +14,7 @@ let binder_names ~pos t =
 let meta ~pos = mk ~pos @@ Meta (`Fresh (Some pos))
 %}
 
-%token COLON CCOLON EQ LPAR RPAR LRPAR LACC RACC LANGLE RANGLE DBAR BAR COMMA LET IN POSTULATE ABSTRACT META HOLE N EOF
+%token COLON CCOLON EQ LPAR RPAR LRPAR LACC RACC LANGLE RANGLE DBAR BAR COMMA LET IN POSTULATE ABSTRACT PRIVATE LOCAL META HOLE N EOF
 %token TYPE LARGETYPE
 %token<int> INT
 %token EMPTY
@@ -152,6 +152,8 @@ pattern:
 
 qualifier:
   | ABSTRACT { Abstract }
+  | PRIVATE { Private }
+  | LOCAL { Local }
 
 identm:
   | IDENT { $1 }

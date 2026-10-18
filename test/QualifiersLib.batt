@@ -1,0 +1,11 @@
+-- Module used by qualifiers.batt (and failing tests) to test private and local declarations.
+
+private secret : ℕ
+secret = 3
+
+local helper : ℕ
+helper = succ secret
+
+-- a public declaration may use private and local ones
+public : ℕ
+public = succ helper

@@ -1075,7 +1075,8 @@ and check_decls k env ctx (decls:T.decls) =
       tm := (x,t) :: !tm;
       env := (x, V.eval !env t) :: !env;
       ctx := Context.ext ~crispness:c !ctx x a;
-      ty := (x,c,a) :: !ty
+      (* Private declarations are kept in the record (later fields might refer to them) but not in its type, so that they cannot be accessed. *)
+      if not (List.mem T.Private q) then ty := (x,q,a) :: !ty
     | Open t ->
       let t0 = t in
       let t, a = infer k !env !ctx t in
@@ -1096,9 +1097,10 @@ and check_decls k env ctx (decls:T.decls) =
             )
         | _ -> fun _ -> false
       in
-      let l = List.filter (fun (x,_,_) -> not (already_bound x)) l in
+      (* Local fields are not brought in scope. *)
+      let l = List.filter (fun (x,q,_) -> not (List.mem T.Local q) && not (already_bound x)) l in
       let pos = T.Position.find_opt t0 in
-      List.iter (fun (x,c,_) -> decls := (Def (x,T.qualifiers_of_crispness c,None,T.mk ?pos @@ RecordField(t0, x)) :: !decls)) (List.rev l)
+      List.iter (fun (x,q,_) -> decls := (Def (x,T.qualifiers_of_crispness (T.crispness_of_qualifiers q),None,T.mk ?pos @@ RecordField(t0, x)) :: !decls)) (List.rev l)
   done;
   let tm = List.rev !tm in
   let ty = List.rev !ty in
