@@ -127,7 +127,7 @@ fun_term:
   | abs=nonempty_list(binder_group) TO b=fun_term { pis ~pos:$loc abs b }
   | SIGMA LPAR x=IDENT COLON a=term RPAR DOT b=fun_term { mk ~pos:$loc @@ Sigma (x, a, b) }
   | FUN x=nonempty_list(pattern) to_dot t=fun_term { abss_pattern ~pos:$loc x t }
-  | LET x=IDENT c=ccolon a=term EQ t=term IN u=fun_term { mk ~pos:$loc @@ Let (c, x, a, t, u) }
+  | LET x=IDENT c=ccolon a=term EQ t=term IN u=fun_term { mk ~pos:$loc @@ Let (qualifiers_of_crispness c, x, a, t, u) }
   /* | LET x=pattern EQ t=term IN u=term { app (abs_pattern x u) t } */
 
 term:

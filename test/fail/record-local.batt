@@ -1,0 +1,9 @@
+r = record
+  local helper : ℕ
+  helper = 4
+end
+
+open r
+
+h : ℕ
+h = helper

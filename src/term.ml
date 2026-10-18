@@ -72,7 +72,7 @@ type t =
   | J of t
   | Var of var
   | Var' of int (** a variable given de Bruijn index *) (* TODO: it would be much better to have preterms (strings) and terms (de Bruijn) *)
-  | Let of crispness * string * t * t * t
+  | Let of qualifier list * string * t * t * t (** local definition, with the qualifiers of the declaration *)
   | Opaque of abstract option (** an opaque constant ([None] for a fresh postulate) *)
   | Global of string * int (** a global definition, unfolded on demand, with its name (only used for printing) and its identifier *)
   | Hole of Pos.t
@@ -275,7 +275,7 @@ let rec to_string ?(vars=[]) ?(ren=[]) t =
   | Var x -> Option.value ~default:x @@ List.assoc_opt x ren
   | Var' n when 0 <= n && n < List.length vars && not !Common.de_bruijn -> List.nth vars n
   | Var' n -> Printf.sprintf "x-%d" n
-  | Let (c,x,a,t,u) -> let x, u = bind x u in Printf.sprintf "let %s %s %s = %s in %s" x (colon c) (to_string a) (to_string t) u
+  | Let (q,x,a,t,u) -> let x, u = bind x u in Printf.sprintf "let %s %s %s = %s in %s" x (colon (crispness_of_qualifiers q)) (to_string a) (to_string t) u
   | Opaque n -> (match n with Some n -> string_of_opaque n | None -> "postulate")
   | Global (x, _) -> x
   | Hole _ -> "?"

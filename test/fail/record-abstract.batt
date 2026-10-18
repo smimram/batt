@@ -1,0 +1,7 @@
+r = record
+  abstract two : ℕ
+  two = 2
+end
+
+test : r.two ≡ 2
+test = refl

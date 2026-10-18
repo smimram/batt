@@ -67,7 +67,7 @@ let rec compile_clauses ~pos rows =
              match p with
              | `Bool b' -> if b = b' then Some (l, t) else None
              | `Var (Explicit, "_") -> Some (l, t)
-             | `Var (Explicit, x) -> Some (l, mk ~pos @@ Let (Crisp, x, IndType (`Bool, []), IndTerm (`Bool b, []), t))
+             | `Var (Explicit, x) -> Some (l, mk ~pos @@ Let ([Crisp], x, IndType (`Bool, []), IndTerm (`Bool b, []), t))
              | _ -> error "unsupported pattern in boolean matching"
           ) (List.combine heads rows)
       in
@@ -86,11 +86,11 @@ let rec compile_clauses ~pos rows =
              | `Nat (Some x) ->
                if zero then None
                else if x = n || x = "_" then Some (l, t)
-               else Some (l, mk ~pos @@ Let (Normal, x, IndType (`Nat, []), Var n, t))
+               else Some (l, mk ~pos @@ Let ([], x, IndType (`Nat, []), Var n, t))
              | `Var (Explicit, "_") -> Some (l, t)
              | `Var (Explicit, x) ->
                let v = if zero then IndTerm (`Zero, []) else IndTerm (`Succ, [Var n]) in
-               Some (l, mk ~pos @@ Let (Normal, x, IndType (`Nat, []), v, t))
+               Some (l, mk ~pos @@ Let ([], x, IndType (`Nat, []), v, t))
              | _ -> error "unsupported pattern in natural number matching"
           ) (List.combine heads rows)
       in
@@ -105,7 +105,7 @@ let rec compile_clauses ~pos rows =
       in
       let x = name fst "_x" in
       let tl = name snd "_l" in
-      let alias y z t = if y = z || y = "_" then t else mk ~pos @@ Let (Normal, y, Meta (`Fresh None), Var z, t) in
+      let alias y z t = if y = z || y = "_" then t else mk ~pos @@ Let ([], y, Meta (`Fresh None), Var z, t) in
       let branch nil =
         List.filter_map
           (fun (p, (l, t)) ->
@@ -115,7 +115,7 @@ let rec compile_clauses ~pos rows =
              | `Var (Explicit, "_") -> Some (l, t)
              | `Var (Explicit, y) ->
                let v = if nil then IndTerm (`Nil, []) else IndTerm (`Cons, [Var x; Var tl]) in
-               Some (l, mk ~pos @@ Let (Normal, y, IndType (`List, [Meta (`Fresh None)]), v, t))
+               Some (l, mk ~pos @@ Let ([], y, IndType (`List, [Meta (`Fresh None)]), v, t))
              | _ -> error "unsupported pattern in list matching"
           ) (List.combine heads rows)
       in
@@ -145,10 +145,8 @@ and pattern = [`Var of icit * string | `Unit | `Pair of string * string | `Tens 
 let record_fields (decls : decls) =
   List.map
     (function
-      | Def (x, q, _, _) when List.mem Abstract q -> failwith @@ Printf.sprintf "abstract field %s not supported in records" x
-      | Def (x, q, _, _) when List.mem Private q || List.mem Local q -> failwith @@ Printf.sprintf "private or local field %s not supported in records" x
       | Def (x, _, None, t) -> x, t
-      | Def (x, q, Some a, t) -> x, Let (crispness_of_qualifiers q, x, a, t, Var x)
+      | Def (x, q, Some a, t) -> x, Let (q, x, a, t, Var x)
       | Open _ -> failwith "open not supported in records"
     ) decls
 

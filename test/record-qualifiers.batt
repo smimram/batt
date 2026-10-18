@@ -1,0 +1,41 @@
+-- Qualified fields in records (see also qualifiers.batt for modules).
+
+r = record
+  private secret : ℕ
+  secret = 3
+
+  local helper : ℕ
+  helper = succ secret
+
+  -- a qualifier on its own line
+  abstract
+  two : ℕ
+  two = 2
+
+  -- a public field may use private and local ones
+  public : ℕ
+  public = succ helper
+end
+
+-- local fields are accessible through qualified names
+h : r.helper ≡ 4
+h = refl
+
+p : r.public ≡ 5
+p = refl
+
+t : ℕ
+t = r.two
+
+open r
+
+-- public fields are opened
+p' : public ≡ 5
+p' = refl
+
+-- names of local and private fields are free
+helper : bool
+helper = true
+
+secret : bool
+secret = false
