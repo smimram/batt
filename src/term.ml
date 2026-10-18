@@ -48,14 +48,6 @@ type qualifier =
 type crispness = Normal | Crisp
 [@@deriving show]
 
-(** Crispness of a declaration with given qualifiers. *)
-let crispness_of_qualifiers q : crispness = if List.mem (Crisp : qualifier) q then Crisp else Normal
-
-(** Qualifiers corresponding to a crispness. *)
-let qualifiers_of_crispness : crispness -> qualifier list = function
-  | Normal -> []
-  | Crisp -> [Crisp]
-
 (** A term. *)
 type t =
   | Type of int (** universe level *)
@@ -115,6 +107,14 @@ let rec apps t = function
 let rec app_spine ?icit t = function
   | u::uu -> app ?icit (app_spine t uu) u
   | [] -> t
+
+(** Crispness of a declaration with given qualifiers. *)
+let crispness_of_qualifiers q : crispness = if List.mem (Crisp : qualifier) q then Crisp else Normal
+
+(** Qualifiers corresponding to a crispness. *)
+let qualifiers_of_crispness : crispness -> qualifier list = function
+  | Normal -> []
+  | Crisp -> [Crisp]
 
 module Position = struct
   module E = Ephemeron.K1.Make(struct type nonrec t = t let equal = (==) let hash = Hashtbl.hash end)
@@ -187,6 +187,12 @@ end
 let crispy_colon = function
   | Normal -> ":"
   | Crisp -> "∷"
+
+let string_of_qualifier = function
+  | Abstract -> "abstract"
+  | Private -> "private"
+  | Local -> "local"
+  | Crisp -> "crisp"
 
 module StringSet = Set.Make(String)
 

@@ -1043,8 +1043,13 @@ and check_decls k env ctx (decls:T.decls) =
     match decl with
     | T.Def (x,q,a,t) ->
       let c = T.crispness_of_qualifiers q in
-      let abstract = List.mem T.Abstract q in
-      Common.print "\n%sDECL  %s = %s%s\n%!" (if abstract then "ABSTRACT " else "") x (T.to_string t) (match a with Some a -> " " ^ T.crispy_colon c ^ " " ^ T.to_string a | None -> "");
+      let qs =
+        q
+        |> List.filter (fun (q : T.qualifier) -> q <> T.Crisp)
+        |> List.map T.string_of_qualifier
+        |> String.concat " "
+      in
+      Common.print "\nDECL %s %s = %s%s\n%!" x qs (T.to_string t) (match a with Some a -> " " ^ T.crispy_colon c ^ " " ^ T.to_string a | None -> "");
       let t, a =
         match a with
         | Some a ->
@@ -1056,7 +1061,7 @@ and check_decls k env ctx (decls:T.decls) =
           infer k !env (Context.crisp ~crispness:c !ctx) t
       in
       let t =
-        if abstract then
+        if List.mem T.Abstract q then
           (
             (* The definition is elaborated to a fresh opaque constant so that it does not reduce, including when imported from another module. *)
             incr V.abstract;
