@@ -1,13 +1,20 @@
+--
+-- The type hProp of propositions
+--
+-- Projection of the proof of propositionality, conjunction and disjunction.
+--
+
 open import Prop
 open import PropTrunc
 
--- the proof that an hProp is a proposition
+-- The proof that an hProp is a proposition
 is-prop-type ∷ (A : hProp) → is-prop ⟨ A ⟩
 is-prop-type (A , p) = p
 
--- not defined by matching on A and B, so that ⟨ and A B ⟩ reduces to ⟨ A ⟩ × ⟨ B ⟩ for neutral A, B
+-- Conjunction
 and ∷ hProp → hProp → hProp
 and A B = (⟨ A ⟩ × ⟨ B ⟩ , is-prop-prod (is-prop-type A) (is-prop-type B))
 
+-- Disjunction
 or ∷ hProp → hProp → hProp
 or A B = (PropTrunc.or ⟨ A ⟩ ⟨ B ⟩ , is-prop-trunc _)
