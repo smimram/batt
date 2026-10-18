@@ -151,6 +151,8 @@ pattern:
   | LPAR CONS x=identm l=identm RPAR { `List (Some (x, l)) }
 
 qualifier:
+  | q=qualifier_kw option(N) { q }
+qualifier_kw:
   | ABSTRACT { Abstract }
   | PRIVATE { Private }
   | LOCAL { Local }
