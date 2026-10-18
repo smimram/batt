@@ -97,12 +97,9 @@ Square = record
   rightᵣ : {A ∷ U} → squareᵣ A → arrᵣ A
   rightᵣ s i = s (𝕀1 ⊗ i)
 
-  downᵣ : {A ∷ U} → squareᵣ A → arrᵣ A
-  downᵣ s i = s (i ⊗ 𝕀0)
+  bottomᵣ : {A ∷ U} → squareᵣ A → arrᵣ A
+  bottomᵣ s i = s (i ⊗ 𝕀0)
 
-  upᵣ : {A ∷ U} → squareᵣ A → arrᵣ A
-  upᵣ s i = s (i ⊗ 𝕀1)
-
-  -- boundedᵣ : {A ∷ U} → subtype A
-  -- boundedᵣ = ?
+  topᵣ : {A ∷ U} → squareᵣ A → arrᵣ A
+  topᵣ s i = s (i ⊗ 𝕀1)
 end
