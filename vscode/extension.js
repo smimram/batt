@@ -542,7 +542,7 @@ function messageHtml(text) {
 // whole before being classified. The printer writes Bool / Unit / Empty for the
 // builtin types, and `_` for anonymous binders (not metas, which print as ?n).
 const TOKEN_RE = /(𝕀∨|𝕀∧)|(_≃_|(?:[A-Za-z]|𝕀)(?:[A-Za-z0-9'_\-→⁻ₗᵣ]|𝕀)*)|(→ₗ|→ᵣ|⇀|⇁|→)|(⊗|⨂|×|Σ|♭|𝄫|≡|≃|∘|¬|∷)|(λ)|(\?\d*)|(\d+)/gu;
-const KEYWORDS = new Set(['let', 'in', 'fun', 'postulate', 'abstract', 'import', 'open', 'record', 'end']);
+const KEYWORDS = new Set(['let', 'in', 'fun', 'postulate', 'abstract', 'private', 'local', 'import', 'open', 'record', 'end']);
 const TYPES = new Set(['Type', 'TYPE', 'U', 'Bool', 'Unit', 'Empty', 'bool', 'unit', 'empty', '𝕀']);
 const CONSTANTS = new Set(['tt', 'true', 'false', 'refl', '𝕀0', '𝕀1']);
 // names the checker always puts in the crisp context
@@ -1149,7 +1149,7 @@ function escapeRegExp(t) {
 
 // 1-based line of the signature of the `occurrence`-th top-level definition `name`
 function findDeclLine(text, name, occurrence) {
-  const signature = new RegExp(`^(?:abstract\\s+)?${escapeRegExp(name)}\\s*(∷|::|:)(\\s|$)`);
+  const signature = new RegExp(`^(?:(?:abstract|private|local)\\s+)*${escapeRegExp(name)}\\s*(∷|::|:)(\\s|$)`);
   const lines = text.split('\n');
   let seen = 0;
   for (let i = 0; i < lines.length; i++) {
@@ -1178,7 +1178,7 @@ function locateErrors(model, text) {
 function replaceBodyWithHole(text, name, occurrence) {
   const lines = text.split('\n');
   const n = escapeRegExp(name);
-  const signature = new RegExp(`^(?:abstract\\s+)?${n}\\s*(∷|::|:)(\\s|$)`);
+  const signature = new RegExp(`^(?:(?:abstract|private|local)\\s+)*${n}\\s*(∷|::|:)(\\s|$)`);
   const clause = new RegExp(`^${n}(\\s|=|$)`);
   let seen = 0;
   let sig = -1;
