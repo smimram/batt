@@ -90,7 +90,7 @@ atom:
   | I0 { mk ~pos:$loc @@ I0 }
   | I1 { mk ~pos:$loc @@ I1 }
   | LPAR t=term RPAR { t }
-  | RECORD l=items END { mk ~pos:$loc @@ Record (`Recursive, record_fields (group_decls l)) }
+  | RECORD l=items END { mk ~pos:$loc @@ RecordDecls (group_decls l) }
   | LANGLE t=term RANGLE { app ~pos:$loc (mk ~pos:$loc($1) @@ Var "type") t }
   | DBAR t=term DBAR { app ~pos:$loc (mk ~pos:$loc($1) @@ Var "trunc") t }
   | BAR t=term BAR { app ~pos:$loc (mk ~pos:$loc($1) @@ Var "unit") t }

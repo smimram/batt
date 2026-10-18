@@ -1,0 +1,33 @@
+-- Opening records within records.
+
+A = record
+  b : bool
+  b = true
+
+  local l : bool
+  l = false
+end
+
+B = record
+  a : bool
+  a = false
+
+  open A
+
+  b' : bool
+  b' = b
+
+  -- local fields are not opened but can be accessed
+  l' : bool
+  l' = A.l
+end
+
+p : B.b' ≡ true
+p = refl
+
+-- opened fields are re-exported
+q : B.b ≡ true
+q = refl
+
+r : B.l' ≡ false
+r = refl

@@ -164,6 +164,7 @@ let rec eval (env:environment) : Term.t -> t = function
   | Meta (`Fresh _) -> assert false
   | Meta (`Generated id) -> Meta (Meta.get id, [])
   | Import _ -> assert false
+  | RecordDecls _ -> assert false
   | Record (`NonRecursive, l) ->
     Record (List.map (fun (x,t) -> x, eval env t) l)
   | Record (`Recursive, l) ->
