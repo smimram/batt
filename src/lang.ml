@@ -994,17 +994,14 @@ and infer k env ctx (t:term) : term * value =
         if List.mem_assoc m tm then error ~t "module %s contains a field %s, this is expected to cause problems" m m;
         T.Record (`Recursive, tm), V.RecordType ty
     )
-  | Record (`Recursive, l) ->
+  | RecordDecls decls ->
+    (* Fields are crisp, as in modules. *)
     let decls =
       List.map
-        (fun (x,t) ->
-           match t with
-           | T.Let (q, y, a, t, Var y') when x = y && y = y' ->
-             (* A typed field, see Helper.record_fields: we recover its declaration. Fields are crisp, as untyped ones. *)
-             let q = if List.mem (T.Crisp : T.qualifier) q then q else Crisp :: q in
-             T.Def (x, q, Some a, t)
-           | _ -> T.Def (x, [Crisp], None, t)
-        ) l
+        (function
+          | T.Def (x, q, a, t) when not (List.mem (T.Crisp : T.qualifier) q) -> T.Def (x, Crisp :: q, a, t)
+          | d -> d
+        ) decls
     in
     let _,tm,ty = check_decls k env ctx decls in
     T.Record (`Recursive, tm), V.RecordType ty

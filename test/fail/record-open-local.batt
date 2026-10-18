@@ -1,0 +1,13 @@
+-- Local fields are not brought in scope when opening a record within a record.
+
+A = record
+  local l : bool
+  l = false
+end
+
+B = record
+  open A
+
+  l' : bool
+  l' = l
+end

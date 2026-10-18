@@ -80,6 +80,7 @@ type t =
   | Import of string (** import a module *)
   | RecordType of (string * qualifier list * t) list (** record type, the fields come with the qualifiers of their declaration *)
   | Record of [`Recursive | `NonRecursive] * (string * t) list
+  | RecordDecls of decls (** record given by declarations, as written in the source (elaborated to a recursive [Record]) *)
   | RecordField of t * string
   | I | I0 | I1 | Iv of t * t | Iw of t * t
 
@@ -177,7 +178,7 @@ module FV = struct
     | Hole _ -> empty
     | Meta _ -> empty
     | Import _ -> assert false
-    | Record _ -> failwith "TODO"
+    | Record _ | RecordDecls _ -> failwith "TODO"
     | RecordType l -> List.fold_left (fun fv (_x, _c, a) -> union fv (term a)) empty l
     | RecordField (t, _x) -> term t
     | I | I0 | I1 -> empty
@@ -283,7 +284,7 @@ let rec to_string ?(vars=[]) ?(ren=[]) t =
 
   | Meta (`Generated n) -> Printf.sprintf "?%d" n
   | Import m -> "import " ^ m
-  | Record _ -> "record"
+  | Record _ | RecordDecls _ -> "record"
   | RecordType l ->
     let l = String.concat "; " @@ List.map (fun (x,q,a) -> x ^ " " ^ crispy_colon (crispness_of_qualifiers q) ^ " " ^ to_string a) l in
     Printf.sprintf "{ %s }" l
