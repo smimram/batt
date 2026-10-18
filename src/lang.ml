@@ -1055,7 +1055,7 @@ and check_decls k env ctx (decls:T.decls) =
         |> List.map T.string_of_qualifier
         |> String.concat " "
       in
-      Common.print "\nDECL %s %s = %s%s\n%!" x qs (T.to_string t) (match a with Some a -> " " ^ T.crispy_colon c ^ " " ^ T.to_string a | None -> "");
+      Common.print "\nDECL %s %s = %s%s\n%!" qs x (T.to_string t) (match a with Some a -> " " ^ T.crispy_colon c ^ " " ^ T.to_string a | None -> "");
       let t, a =
         match a with
         | Some a ->
