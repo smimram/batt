@@ -37,8 +37,22 @@ let string_of_opaque = function
   | `Postulate n -> "postulate" ^ string_of_int n
   | `Abstract (x, _) -> x
 
+(** Qualifiers of a declaration. *)
+type qualifier =
+  | Abstract (** the definition does not reduce *)
+  | Crisp (** the declaration is crisp *)
+[@@deriving show]
+
 type crispness = Normal | Crisp
 [@@deriving show]
+
+(** Crispness of a declaration with given qualifiers. *)
+let crispness_of_qualifiers q : crispness = if List.mem (Crisp : qualifier) q then Crisp else Normal
+
+(** Qualifiers corresponding to a crispness. *)
+let qualifiers_of_crispness : crispness -> qualifier list = function
+  | Normal -> []
+  | Crisp -> [Crisp]
 
 (** A term. *)
 type t =
@@ -77,7 +91,7 @@ type t =
 
 (** A declaration. *)
 and decl =
-  | Def of (string * crispness * bool * t option * t) (** a definition, the boolean indicates whether it is abstract (does not reduce) *)
+  | Def of (string * qualifier list * t option * t) (** a definition with its qualifiers, its type (if specified) and its body *)
   | Open of t
 
 (** A list of declarations. *)

@@ -135,7 +135,7 @@ let rec compile_clauses ~pos rows =
 
 (** A toplevel item, before grouping clauses. *)
 type item =
-  | Sig of Pos.t * bool * string * crispness * t (** type signature, the boolean indicates whether the definition is abstract *)
+  | Sig of Pos.t * qualifier list * string * t (** type signature with the qualifiers of the definition *)
   | Clause of Pos.t * string * pattern list * t (** defining clause *)
   | Decls of decls (** other declarations *)
 
@@ -145,9 +145,9 @@ and pattern = [`Var of icit * string | `Unit | `Pair of string * string | `Tens 
 let record_fields (decls : decls) =
   List.map
     (function
-      | Def (x, _, false, None, t) -> x, t
-      | Def (x, c, false, Some a, t) -> x, Let (c, x, a, t, Var x)
-      | Def (x, _, true, _, _) -> failwith @@ Printf.sprintf "abstract field %s not supported in records" x
+      | Def (x, q, _, _) when List.mem Abstract q -> failwith @@ Printf.sprintf "abstract field %s not supported in records" x
+      | Def (x, _, None, t) -> x, t
+      | Def (x, q, Some a, t) -> x, Let (crispness_of_qualifiers q, x, a, t, Var x)
       | Open _ -> failwith "open not supported in records"
     ) decls
 
@@ -172,8 +172,8 @@ let rec group_decls items =
   | Clause (_, x, _, _) :: _ ->
     (* Definition without type: its type is inferred. *)
     let _, t, items = clauses x items in
-    Def (x, Crisp, false, None, Lazy.force t) :: group_decls items
-  | Sig (pos, abstract, x, c, a) :: items ->
+    Def (x, [Crisp], None, Lazy.force t) :: group_decls items
+  | Sig (pos, q, x, a) :: items ->
     let cl, t, items = clauses x items in
     (
       match cl, items with
@@ -181,4 +181,4 @@ let rec group_decls items =
       | [], _ -> failwith @@ Printf.sprintf "%s: missing definition for %s" (Pos.to_string pos) x
       | _ -> ()
     );
-    Def (x, c, abstract, Some a, Lazy.force t) :: group_decls items
+    Def (x, q, Some a, Lazy.force t) :: group_decls items

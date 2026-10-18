@@ -989,7 +989,7 @@ and infer k env ctx (t:term) : term * value =
         T.Record (`Recursive, tm), V.RecordType ty
     )
   | Record (`Recursive, l) ->
-    let decls = List.map (fun (x,t) -> T.Def (x, Crisp, false, None, t)) l in
+    let decls = List.map (fun (x,t) -> T.Def (x, [Crisp], None, t)) l in
     let _,tm,ty = check_decls k env ctx decls in
     T.Record (`Recursive, tm), V.RecordType ty
   | Let (c, x, a, t, u) ->
@@ -1041,7 +1041,9 @@ and check_decls k env ctx (decls:T.decls) =
     let decl = List.hd !decls in
     decls := List.tl !decls;
     match decl with
-    | T.Def (x,c,abstract,a,t) ->
+    | T.Def (x,q,a,t) ->
+      let c = T.crispness_of_qualifiers q in
+      let abstract = List.mem T.Abstract q in
       Common.print "\n%sDECL  %s = %s%s\n%!" (if abstract then "ABSTRACT " else "") x (T.to_string t) (match a with Some a -> " " ^ T.crispy_colon c ^ " " ^ T.to_string a | None -> "");
       let t, a =
         match a with
@@ -1096,7 +1098,7 @@ and check_decls k env ctx (decls:T.decls) =
       in
       let l = List.filter (fun (x,_,_) -> not (already_bound x)) l in
       let pos = T.Position.find_opt t0 in
-      List.iter (fun (x,c,_) -> decls := (Def (x,c,false,None,T.mk ?pos @@ RecordField(t0, x)) :: !decls)) (List.rev l)
+      List.iter (fun (x,c,_) -> decls := (Def (x,T.qualifiers_of_crispness c,None,T.mk ?pos @@ RecordField(t0, x)) :: !decls)) (List.rev l)
   done;
   let tm = List.rev !tm in
   let ty = List.rev !ty in
