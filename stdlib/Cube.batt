@@ -82,7 +82,7 @@ simplex (succ n) = Σ (x : cart-cube (succ n)) . is-sorted n x
 -- to the left, with a leading unit: grid [a₂, a₁, a₀] = ((⊤ ⊗ Δ^{a₀}) ⊗ Δ^{a₁}) ⊗ Δ^{a₂}, and
 -- grid nil = ⊤ is the unit of ⊗. Extending a grid by one factor is thus cons, judgmentally:
 -- grid (cons m b) = grid b ⊗ Δᵐ.
-grid ∷ (a ∷ List ℕ) → Type
+grid ∷ (a ∷ list ℕ) → Type
 grid nil = ⊤
 grid (cons m a) = rec ⨂ simplex m
 

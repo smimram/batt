@@ -9,7 +9,7 @@ let string_of_inductive_type = function
   | `Unit -> "Unit"
   | `Bool -> "bool"
   | `Nat -> "nat"
-  | `List -> "List"
+  | `List -> "list"
 
 (** Basic inductive terms. *)
 type inductive_term = [`Unit | `Bool of bool | `Zero | `Succ | `Nil | `Cons]

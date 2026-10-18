@@ -65,10 +65,10 @@ free-equiv₁₃-cst = pushout-eq {simplex 1} {⊤} {free-equiv₀₂} (λ _ . t
 -- which is □[𝐚] ⊗ τ ⊗ □[𝐛] followed by the unit law 1 ⊗ □[𝐛] ≃ □[𝐛], i.e. id ⊗ tens-snd.
 --
 
-thick-free-equiv ∷ (a ∷ List ℕ) (b ∷ List ℕ) → U
+thick-free-equiv ∷ (a ∷ list ℕ) (b ∷ list ℕ) → U
 thick-free-equiv a b = thicken (grid a) free-equiv (grid b)
 
-thick-τ ∷ (a ∷ List ℕ) (b ∷ List ℕ) → thick-free-equiv a b → grid a ⨂ grid b
+thick-τ ∷ (a ∷ list ℕ) (b ∷ list ℕ) → thick-free-equiv a b → grid a ⨂ grid b
 thick-τ a b = Tensor.map {grid a} {grid a} {free-equiv ⨂ grid b} {grid b} id (Tensor.snd {free-equiv} {grid b})
 
 -- Gray-cube thickenings 𝕀^{⊗p} ⊗ E ⊗ 𝕀^{⊗q}, as for spines

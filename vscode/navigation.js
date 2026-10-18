@@ -32,7 +32,7 @@ const LITERALS = [
   // infix sugar: the operator stands for the named identifier
   ['≃', 'OP', '_≃_'], ['\\simeq', 'OP', '_≃_'], ['≤', 'OP', 'leq'], ['≥', 'OP', 'geq'], ['∈', 'OP', 'belongs'], ['\\in', 'OP', 'belongs'],
   ['∘', 'OP', 'circ'], ['\\circ', 'OP', 'circ'], ['∨', 'OP', 'or'], ['¬', 'OP', 'not'],
-  ['ℕ', 'KW'], ['Nat', 'KW'], ['zero', 'KW'], ['succ', 'KW'],
+  ['ℕ', 'KW'], ['zero', 'KW'], ['succ', 'KW'],
   ['nil', 'KW'], ['cons', 'KW'],
   ['𝕀0', 'KW'], ['II0', 'KW'], ['𝕀1', 'KW'], ['II1', 'KW'], ['𝕀∨', 'KW'], ['IIv', 'KW'],
   ['𝕀∧', 'KW'], ['IIw', 'KW'], ['𝕀', 'KW'], ['II', 'KW'],

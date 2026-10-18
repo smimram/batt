@@ -26,13 +26,13 @@ thicken-map Q {X} {Y} f Q' = Tensor.map {Q} {Q} {X ⨂ Q'} {Y ⨂ Q'} id (Tensor
 -- with 𝐚 and 𝐛 lists (see stdlib/Cube.batt for the order of the factors).
 --
 
-thick-simplex ∷ (a ∷ List ℕ) (n ∷ ℕ) (b ∷ List ℕ) → U
+thick-simplex ∷ (a ∷ list ℕ) (n ∷ ℕ) (b ∷ list ℕ) → U
 thick-simplex a n b = thicken (grid a) (simplex n) (grid b)
 
-thick-spine ∷ (a ∷ List ℕ) (n ∷ ℕ) (b ∷ List ℕ) → U
+thick-spine ∷ (a ∷ list ℕ) (n ∷ ℕ) (b ∷ list ℕ) → U
 thick-spine a n b = thicken (grid a) (spine n) (grid b)
 
-thick-spine→thick-simplex ∷ (a ∷ List ℕ) (n ∷ ℕ) (b ∷ List ℕ) → thick-spine a n b → thick-simplex a n b
+thick-spine→thick-simplex ∷ (a ∷ list ℕ) (n ∷ ℕ) (b ∷ list ℕ) → thick-spine a n b → thick-simplex a n b
 thick-spine→thick-simplex a n b = thicken-map (grid a) {spine n} {simplex n} (spine→simplex n) (grid b)
 
 --

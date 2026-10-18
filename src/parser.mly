@@ -25,7 +25,7 @@ let meta ~pos = mk ~pos @@ Meta (`Fresh (Some pos))
 %token IDEQ REFL
 %token<string> INFIX0 INFIX1
 %token NAT ZERO SUCC
-%token LIST NIL CONS
+%token NIL CONS
 %token I I0 I1 Iv Iw
 %token<string> IDENT
 %token OPEN RECORD END
@@ -104,7 +104,6 @@ prefix_term:
 app_term:
   | prefix_term { $1 }
   | t=app_term u=prefix_term { app ~pos:$loc t u }
-  | LIST a=prefix_term { mk ~pos:$loc @@ IndType (`List, [a]) }
   | t=app_term LACC u=term RACC { app ~pos:$loc ~icit:Implicit t u }
 
 prod_term:
