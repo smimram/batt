@@ -281,7 +281,7 @@ point-pullback-hom-image-cell {Y} {B} r b {w0} {w1} (c , es) =
 point-pullback-hom→split ∷ {Y B ∷ U} (r ∷ Y → B) (b ∷ B) (w0 w1 : point-pullback {Y} {B} r b) → hom w0 w1 → point-pullback-hom-split {Y} {B} r b w0 w1
 point-pullback-hom→split {Y} {B} r b w0 w1 g = point-pullback-hom-data→split {Y} {B} r b w0 w1 (point-pullback-hom→data {Y} {B} r b w0 w1 g)
 
-point-pullback-homs→split ∷ {Y B ∷ U} (r ∷ Y → B) (b ∷ B) → homs-total (point-pullback {Y} {B} r b) → point-pullback-homs-split {Y} {B} r b
+point-pullback-homs→split ∷ {Y B ∷ U} (r ∷ Y → B) (b ∷ B) → Homs.total (point-pullback {Y} {B} r b) → point-pullback-homs-split {Y} {B} r b
 point-pullback-homs→split {Y} {B} r b =
   tot {point-pullback {Y} {B} r b} {λ w0 . Σ (w1 : point-pullback {Y} {B} r b) . hom w0 w1}
       {λ w0 . Σ (w1 : point-pullback {Y} {B} r b) . point-pullback-hom-split {Y} {B} r b w0 w1}
@@ -289,14 +289,14 @@ point-pullback-homs→split {Y} {B} r b =
               (λ w1 . point-pullback-hom→split {Y} {B} r b w0 w1))
 
 -- both ways to path-cones agree
-point-pullback-homs→split-cone ∷ {Y B ∷ U} (r ∷ Y → B) (b ∷ B) (w : homs-total (point-pullback {Y} {B} r b)) →
-  arr→path-cone {Y} {B} r b (homs-total→arr {point-pullback {Y} {B} r b} w)
+point-pullback-homs→split-cone ∷ {Y B ∷ U} (r ∷ Y → B) (b ∷ B) (w : Homs.total (point-pullback {Y} {B} r b)) →
+  arr→path-cone {Y} {B} r b (Homs.to-arr {point-pullback {Y} {B} r b} w)
     ≡ homs-split→path-cone {Y} {B} r b (point-pullback-homs→split {Y} {B} r b w)
 point-pullback-homs→split-cone {Y} {B} r b (w0 , z) =
   let S ∷ U = point-pullback {Y} {B} r b in
   let ι ∷ S → Y = point-pullback-proj {Y} {B} r b in
   let h : (z : Σ (w1 : S) . hom w0 w1) →
-          arr→path-cone {Y} {B} r b (homs-total→arr {S} (w0 , z)) ≡ homs-split→path-cone {Y} {B} r b (point-pullback-homs→split {Y} {B} r b (w0 , z)) =
+          arr→path-cone {Y} {B} r b (Homs.to-arr {S} (w0 , z)) ≡ homs-split→path-cone {Y} {B} r b (point-pullback-homs→split {Y} {B} r b (w0 , z)) =
     fun (w1 , g) →
       let cellB : hom {B} (r (ι w0)) (r (ι w1)) → arrᵣ B = fst (hom-boundary {B} (r (ι w0)) (r (ι w1))) in
       let q : hom-map {Y} {B} r (hom-map {S} {Y} ι {w0} {w1} g) ≡ point-pullback-id-pts {Y} {B} r b w0 w1 =
@@ -328,17 +328,17 @@ is-equiv-point-pullback-homs→split ∷ {Y B ∷ U} (r ∷ Y → B) (b ∷ B) �
 is-equiv-point-pullback-homs→split {Y} {B} r b =
   let S ∷ U = point-pullback {Y} {B} r b in
   is-equiv-cancel-l (homs-split→path-cone {Y} {B} r b) (point-pullback-homs→split {Y} {B} r b) (is-equiv-homs-split→path-cone {Y} {B} r b)
-    (is-equiv-htpy {homs-total S} {point-pullback-path-cone {Y} {B} r b}
-      {λ w . arr→path-cone {Y} {B} r b (homs-total→arr {S} w)} {λ w . homs-split→path-cone {Y} {B} r b (point-pullback-homs→split {Y} {B} r b w)}
+    (is-equiv-htpy {Homs.total S} {point-pullback-path-cone {Y} {B} r b}
+      {λ w . arr→path-cone {Y} {B} r b (Homs.to-arr {S} w)} {λ w . homs-split→path-cone {Y} {B} r b (point-pullback-homs→split {Y} {B} r b w)}
       (point-pullback-homs→split-cone {Y} {B} r b)
-      (is-equiv-circ (arr→path-cone {Y} {B} r b) (homs-total→arr {S}) (is-equiv-arr→path-cone {Y} {B} r b) (is-equiv-homs-total→arr {S})))
+      (is-equiv-circ (arr→path-cone {Y} {B} r b) (Homs.to-arr {S}) (is-equiv-arr→path-cone {Y} {B} r b) (Homs.is-equiv-to-arr {S})))
 
 -- homs of S are homs of Y whose image is the transported identity
 --
 -- Proof, from the oplax universal property of pullbacks. Totalised over the
 -- endpoints:
 --
---   - homs of S with free endpoints are arrows of S (homs-total→arr, Hom.batt), which are
+--   - homs of S with free endpoints are arrows of S (Homs.to-arr, Hom.batt), which are
 --     path-cones (arr→path-cone, Point-pullback.batt);
 --   - the target, split into the path of cells and a transport of the boundary
 --     (point-pullback-hom-data→split), is also path-cones (homs-split→path-cone, by path induction);

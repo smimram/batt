@@ -30,29 +30,29 @@ open import Univalent
 --
 
 -- isomorphisms with free endpoints
-iso-total-biinv ∷ {X ∷ U} (s : is-segalᵣ X) → homs-total X → U
-iso-total-biinv {X} s w = is-biinv-hom {X} s {homs-src {X} w} {homs-tgt {X} w} (homs-hom {X} w)
+iso-total-biinv ∷ {X ∷ U} (s : is-segalᵣ X) → Homs.total X → U
+iso-total-biinv {X} s w = is-biinv-hom {X} s {Homs.src {X} w} {Homs.tgt {X} w} (Homs.to-hom {X} w)
 
 iso-total ∷ (X ∷ U) (s : is-segalᵣ X) → U
-iso-total X s = Σ (w : homs-total X) . iso-total-biinv {X} s w
+iso-total X s = Σ (w : Homs.total X) . iso-total-biinv {X} s w
 
 iso-total-src ∷ {X ∷ U} (s : is-segalᵣ X) → iso-total X s → X
-iso-total-src {X} s t = homs-src {X} (fst {homs-total X} (iso-total-biinv {X} s) t)
+iso-total-src {X} s t = Homs.src {X} (fst {Homs.total X} (iso-total-biinv {X} s) t)
 
 -- the identities
 iso-refl ∷ {X ∷ U} (s : is-segalᵣ X) → X → iso-total X s
 iso-refl {X} s x = ((x , x , Hom.id {X} x) , iso→biinv {X} s {x} {x} (Hom.id {X} x) (is-iso-id {X} s x))
 
 -- two isomorphisms are equal when their homs (with endpoints) are
-iso-total-path ∷ {X ∷ U} (s : is-segalᵣ X) {w w' : homs-total X} (P : w ≡ w') (b : iso-total-biinv {X} s w) (b' : iso-total-biinv {X} s w') →
+iso-total-path ∷ {X ∷ U} (s : is-segalᵣ X) {w w' : Homs.total X} (P : w ≡ w') (b : iso-total-biinv {X} s w) (b' : iso-total-biinv {X} s w') →
   (w , b) ≡{iso-total X s} (w' , b')
 iso-total-path {X} s P b b' =
-  subtype-path {homs-total X} (iso-total-biinv {X} s)
-    (λ w . is-prop-is-biinv-hom {X} s {homs-src {X} w} {homs-tgt {X} w} (homs-hom {X} w)) P b b'
+  subtype-path {Homs.total X} (iso-total-biinv {X} s)
+    (λ w . is-prop-is-biinv-hom {X} s {Homs.src {X} w} {Homs.tgt {X} w} (Homs.to-hom {X} w)) P b b'
 
 -- η for isomorphisms
 iso-total-eta ∷ {X ∷ U} (s : is-segalᵣ X) (t : iso-total X s) →
-  (fst {homs-total X} (iso-total-biinv {X} s) t , snd {homs-total X} (iso-total-biinv {X} s) t) ≡{iso-total X s} t
+  (fst {Homs.total X} (iso-total-biinv {X} s) t , snd {Homs.total X} (iso-total-biinv {X} s) t) ≡{iso-total X s} t
 iso-total-eta {X} s (w , b) = refl
 
 --
@@ -75,8 +75,8 @@ iso-out→fib {X} s x (y , i) =
 fib→iso-out ∷ {X ∷ U} (s : is-segalᵣ X) (x : X) → fib (iso-total-src {X} s) x → Σ (y : X) . iso {X} s x y
 fib→iso-out {X} s x (t , e) =
   subst (λ x' . Σ (y : X) . iso {X} s x' y) e
-    (homs-tgt {X} (fst {homs-total X} (iso-total-biinv {X} s) t) ,
-     homs-hom {X} (fst {homs-total X} (iso-total-biinv {X} s) t) , snd {homs-total X} (iso-total-biinv {X} s) t)
+    (Homs.tgt {X} (fst {Homs.total X} (iso-total-biinv {X} s) t) ,
+     Homs.to-hom {X} (fst {Homs.total X} (iso-total-biinv {X} s) t) , snd {Homs.total X} (iso-total-biinv {X} s) t)
 
 iso-out→fib-retr ∷ {X ∷ U} (s : is-segalᵣ X) (x : X) (z : Σ (y : X) . iso {X} s x y) →
   fib→iso-out {X} s x (iso-out→fib {X} s x z) ≡ z
@@ -141,7 +141,7 @@ retr-from-collapse {X} s {w} {x} h {y} e =
 --
 
 -- the vertices 1 and 2 of Δ³, and the middle edge
-diagram-hom ∷ {X ∷ U} → free-equiv-diagramᵣ X → homs-total X
+diagram-hom ∷ {X ∷ U} → free-equiv-diagramᵣ X → Homs.total X
 diagram-hom {X} (σ , cs) = (σ (Simplex3.edge₁₂ 𝕀0) , σ (Simplex3.edge₁₂ 𝕀1) , simplex3-hom {X} Simplex3.edge₁₂ σ)
 
 diagram→iso ∷ {X ∷ U} (s : is-segalᵣ X) → free-equiv-diagramᵣ X → iso-total X s
@@ -181,10 +181,10 @@ diagram→iso {X} s (σ , cs) =
 
 -- its underlying hom is the middle edge
 diagram→iso-hom ∷ {X ∷ U} (s : is-segalᵣ X) (δ : free-equiv-diagramᵣ X) →
-  fst {homs-total X} (iso-total-biinv {X} s) (diagram→iso {X} s δ) ≡ diagram-hom {X} δ
+  fst {Homs.total X} (iso-total-biinv {X} s) (diagram→iso {X} s δ) ≡ diagram-hom {X} δ
 diagram→iso-hom {X} s (σ , cs) =
   let k : (cs : is-collapsedᵣ {X} (λ x . σ (edge₀₂ x)) × is-collapsedᵣ {X} (λ x . σ (edge₁₃ x))) →
-          fst {homs-total X} (iso-total-biinv {X} s) (diagram→iso {X} s (σ , cs)) ≡ diagram-hom {X} (σ , cs) =
+          fst {Homs.total X} (iso-total-biinv {X} s) (diagram→iso {X} s (σ , cs)) ≡ diagram-hom {X} (σ , cs) =
     fun (c₀₂ , c₁₃) → refl in
   k cs
 
@@ -198,18 +198,18 @@ thick-free-equiv→iso-const ∷ {X ∷ U} (s : is-segalᵣ X) (g : grid nil ⨂
 thick-free-equiv→iso-const {X} s g =
   let x : X = g (tt ⊗ tt) in
   iso-total-path {X} s {(x , x , Hom.id {X} x)} {(x , x , Hom.id {X} x)} refl
-    (snd {homs-total X} (iso-total-biinv {X} s) (thick-free-equiv→iso {X} s (complete-restrᵣ nil nil X g)))
-    (snd {homs-total X} (iso-total-biinv {X} s) (iso-refl {X} s x))
+    (snd {Homs.total X} (iso-total-biinv {X} s) (thick-free-equiv→iso {X} s (complete-restrᵣ nil nil X g)))
+    (snd {Homs.total X} (iso-total-biinv {X} s) (iso-refl {X} s x))
 
 --
 -- Ψ: an oplax diagram of shape E from an isomorphism
 --
 
 -- the middle hom of a triple
-tri-mid ∷ {X ∷ U} → triples X → homs-total X
+tri-mid ∷ {X ∷ U} → triples X → Homs.total X
 tri-mid {X} (a0 , r) =
-  let k : (a1 : X) (r1 : hom a0 a1 × pair-from X a1) → homs-total X = fun a1 (u , c) →
-    let k2 : (a2 : X) (c2 : Σ (a3 : X) . hom a1 a2 × hom a2 a3) → homs-total X = fun a2 (a3 , vw) →
+  let k : (a1 : X) (r1 : hom a0 a1 × pair-from X a1) → Homs.total X = fun a1 (u , c) →
+    let k2 : (a2 : X) (c2 : Σ (a3 : X) . hom a1 a2 × hom a2 a3) → Homs.total X = fun a2 (a3 , vw) →
       (a1 , a2 , Product.fst {hom a1 a2} {hom a2 a3} vw) in
     k2 (fst {X} (λ a2 . Σ (a3 : X) . hom a1 a2 × hom a2 a3) c) (snd {X} (λ a2 . Σ (a3 : X) . hom a1 a2 × hom a2 a3) c) in
   k (fst {X} (λ a1 . hom a0 a1 × pair-from X a1) r) (snd {X} (λ a1 . hom a0 a1 × pair-from X a1) r)
@@ -258,14 +258,14 @@ iso→diagram {X} s {x} {y} f (g , pq) =
 
 -- its middle edge is f
 iso→diagram-hom ∷ {X ∷ U} (s : is-segalᵣ X) {x y : X} (f : hom x y) (i : is-iso {X} s {x} {y} f) →
-  diagram-hom {X} (iso→diagram {X} s {x} {y} f i) ≡{homs-total X} (x , y , f)
+  diagram-hom {X} (iso→diagram {X} s {x} {y} f i) ≡{Homs.total X} (x , y , f)
 iso→diagram-hom {X} s {x} {y} f (g , pq) = cong (tri-mid {X}) (iso-filler-edges {X} s {x} {y} f g)
 
 -- Ψ: the oplax map out of E, by the oplax universal property of E
 iso→thick-free-equiv ∷ {X ∷ U} (s : is-segalᵣ X) → iso-total X s → (thick-free-equiv nil nil →ᵣ X)
 iso→thick-free-equiv {X} s (w , b) =
   let δ : free-equiv-diagramᵣ X =
-    iso→diagram {X} s {homs-src {X} w} {homs-tgt {X} w} (homs-hom {X} w) (biinv→iso {X} s {homs-src {X} w} {homs-tgt {X} w} (homs-hom {X} w) b) in
+    iso→diagram {X} s {Homs.src {X} w} {Homs.tgt {X} w} (Homs.to-hom {X} w) (biinv→iso {X} s {Homs.src {X} w} {Homs.tgt {X} w} (Homs.to-hom {X} w) b) in
   let h : free-equiv →ᵣ X = section-map (free-equiv-restrᵣ X) (is-equiv-sec (free-equiv-restrᵣ X) (free-equiv-oplax-up X)) δ in
   preᵣ {thick-free-equiv nil nil} {free-equiv} {X} h (thicken-unit {free-equiv})
 
@@ -273,16 +273,16 @@ iso→thick-free-equiv {X} s (w , b) =
 thick-free-equiv→iso→thick ∷ {X ∷ U} (s : is-segalᵣ X) (t : iso-total X s) →
   thick-free-equiv→iso {X} s (iso→thick-free-equiv {X} s t) ≡ t
 thick-free-equiv→iso→thick {X} s (w , b) =
-  let i : is-iso {X} s {homs-src {X} w} {homs-tgt {X} w} (homs-hom {X} w) = biinv→iso {X} s {homs-src {X} w} {homs-tgt {X} w} (homs-hom {X} w) b in
-  let δ : free-equiv-diagramᵣ X = iso→diagram {X} s {homs-src {X} w} {homs-tgt {X} w} (homs-hom {X} w) i in
+  let i : is-iso {X} s {Homs.src {X} w} {Homs.tgt {X} w} (Homs.to-hom {X} w) = biinv→iso {X} s {Homs.src {X} w} {Homs.tgt {X} w} (Homs.to-hom {X} w) b in
+  let δ : free-equiv-diagramᵣ X = iso→diagram {X} s {Homs.src {X} w} {Homs.tgt {X} w} (Homs.to-hom {X} w) i in
   let sec : section (free-equiv-restrᵣ X) = is-equiv-sec (free-equiv-restrᵣ X) (free-equiv-oplax-up X) in
   let h : free-equiv →ᵣ X = section-map (free-equiv-restrᵣ X) sec δ in
   let pδ : free-equiv-restrᵣ X h ≡ δ = snd (is-section (free-equiv-restrᵣ X)) sec δ in
   trans (cong (diagram→iso {X} s) pδ)
     (trans (sym (iso-total-eta {X} s (diagram→iso {X} s δ))) (iso-total-path {X} s
       (trans (diagram→iso-hom {X} s δ)
-        (trans (iso→diagram-hom {X} s {homs-src {X} w} {homs-tgt {X} w} (homs-hom {X} w) i) (homs-eta {X} w)))
-      (snd {homs-total X} (iso-total-biinv {X} s) (diagram→iso {X} s δ)) b))
+        (trans (iso→diagram-hom {X} s {Homs.src {X} w} {Homs.tgt {X} w} (Homs.to-hom {X} w) i) (Homs.eta {X} w)))
+      (snd {Homs.total X} (iso-total-biinv {X} s) (diagram→iso {X} s δ)) b))
 
 --
 -- Oplax completeness implies univalence
