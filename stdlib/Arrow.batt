@@ -102,4 +102,17 @@ Square = record
 
   topᵣ : {A ∷ U} → squareᵣ A → arrᵣ A
   topᵣ s i = s (i ⊗ 𝕀1)
+
+  -- corners of oplax squares
+  bottom-leftᵣ : {A ∷ U} → squareᵣ A → A
+  bottom-leftᵣ s = s (𝕀0 ⊗ 𝕀0)
+
+  bottom-rightᵣ : {A ∷ U} → squareᵣ A → A
+  bottom-rightᵣ s = s (𝕀1 ⊗ 𝕀0)
+
+  top-leftᵣ : {A ∷ U} → squareᵣ A → A
+  top-leftᵣ s = s (𝕀0 ⊗ 𝕀1)
+
+  top-rightᵣ : {A ∷ U} → squareᵣ A → A
+  top-rightᵣ s = s (𝕀1 ⊗ 𝕀1)
 end
