@@ -10,24 +10,148 @@ open import Functoriality
 
 open Square
 
--- The oplax squares with given left, right, bottom and top sides.
-square : {A ∷ U} (l r b t : arrᵣ A) → U
-square {A} l r b t = Σ (x : squareᵣ A) . (leftᵣ x ≡ l) × (rightᵣ x ≡ r) × (bottomᵣ x ≡ b) × (topᵣ x ≡ t)
+--
+-- Moving the endpoints of homs
+--
+
+-- a hom with its endpoints moved along paths
+hom-move : {X ∷ U} {a b : X} (u : hom a b) {a' b' : X} → a ≡ a' → b ≡ b' → hom a' b'
+hom-move u p q = (hom-cell u , trans (hom-src u) p , trans (hom-tgt u) q)
+
+-- composition commutes with moving endpoints
+hom-move-comp : {X ∷ U} (s : is-segalᵣ X) {a b c : X} (u : hom a b) (v : hom b c)
+  {a' : X} (p : a ≡ a') {b' : X} (r : b ≡ b') {c' : X} (q : c ≡ c') →
+  hom-move (comp-homᵣ s u v) p q ≡ comp-homᵣ s (hom-move u p r) (hom-move v r q)
+hom-move-comp {X} s {a} {b} {c} u v refl refl refl =
+  trans (hom-eta {X} {a} {c} (comp-homᵣ s u v))
+    (sym (cong2 (comp-homᵣ s) (hom-eta {X} {a} {b} u) (hom-eta {X} {b} {c} v)))
+
+-- an arrow as a hom between its endpoints
+arr-hom : {A ∷ U} (f : arrᵣ A) → hom (srcᵣ f) (tgtᵣ f)
+arr-hom f = (f , refl , refl)
+
+-- paths between the endpoint paths give a path of homs
+hom-path : {A ∷ U} (t : arrᵣ A) {a b : A} {p p' : srcᵣ t ≡ a} {q q' : tgtᵣ t ≡ b} →
+  p ≡ p' → q ≡ q' → (t , p , q) ≡{hom a b} (t , p' , q')
+hom-path {A} t {a} {b} P Q = cong2 {srcᵣ t ≡ a} {tgtᵣ t ≡ b} {hom a b} (λ p0 p1 . (t , p0 , p1)) P Q
+
+-- a path of arrows gives a path of homs
+arr-hom-move : {A ∷ U} (t : arrᵣ A) {k : arrᵣ A} (p : t ≡ k) {a c : A} (q0 : srcᵣ k ≡ a) (q1 : tgtᵣ k ≡ c) →
+  (t , trans (cong srcᵣ p) q0 , trans (cong tgtᵣ p) q1) ≡{hom a c} (k , q0 , q1)
+arr-hom-move {A} t refl q0 q1 = hom-path t (trans-refl-l q0) (trans-refl-l q1)
+
+-- the endpoint paths of homs related by a path
+hom-path-src : {A ∷ U} {a b : A} {u v : hom a b} (E : u ≡ v) →
+  trans (cong srcᵣ (cong (hom-cell {A}) E)) (hom-src v) ≡ hom-src u
+hom-path-src {A} {a} {b} {u} refl = trans-refl-l (hom-src u)
+
+hom-path-tgt : {A ∷ U} {a b : A} {u v : hom a b} (E : u ≡ v) →
+  trans (cong tgtᵣ (cong (hom-cell {A}) E)) (hom-tgt v) ≡ hom-tgt u
+hom-path-tgt {A} {a} {b} {u} refl = trans-refl-l (hom-tgt u)
+
+-- postcomposing with homotopic maps gives the same hom
+post-htpy-hom : {S A ∷ U} (F G : S → A) (h : (s : S) → F s ≡ G s) (Φ : 𝕀 →ᵣ S) →
+  (postᵣ F Φ , h (Φ 𝕀0) , h (Φ 𝕀1)) ≡{hom (G (Φ 𝕀0)) (G (Φ 𝕀1))} arr-hom (postᵣ G Φ)
+post-htpy-hom {S} {A} F G h Φ =
+  -- by contractibility of the maps t from S to the singletons at F
+  let T : U = (s : S) → Σ (y : A) . F s ≡ y in
+  let Q : T → U = λ t . (postᵣ F Φ , snd _ (t (Φ 𝕀0)) , snd _ (t (Φ 𝕀1))) ≡{hom (fst _ (t (Φ 𝕀0))) (fst _ (t (Φ 𝕀1)))} arr-hom (postᵣ (λ s . fst _ (t s)) Φ) in
+  let t0 : T = λ s . (F s , refl) in
+  let t : T = λ s . (G s , h s) in
+  let c : is-contr T = is-contr-Π (λ s . Σ (y : A) . F s ≡ y) (λ s . is-contr-sing (F s)) in
+  J t0 (λ t' _ . Q t') refl (is-contr-eq c t0 t)
+
+--
+-- Squares with given sides
+--
+
+-- the sides of a square, as homs between its corners
+left-hom : {A ∷ U} (x : squareᵣ A) → hom (bottom-leftᵣ x) (top-leftᵣ x)
+left-hom x = (leftᵣ x , refl , refl)
+
+right-hom : {A ∷ U} (x : squareᵣ A) → hom (bottom-rightᵣ x) (top-rightᵣ x)
+right-hom x = (rightᵣ x , refl , refl)
+
+bottom-hom : {A ∷ U} (x : squareᵣ A) → hom (bottom-leftᵣ x) (bottom-rightᵣ x)
+bottom-hom x = (bottomᵣ x , refl , refl)
+
+top-hom : {A ∷ U} (x : squareᵣ A) → hom (top-leftᵣ x) (top-rightᵣ x)
+top-hom x = (topᵣ x , refl , refl)
+
+-- The oplax squares with given left, right, bottom and top sides: the corners of the square are
+-- identified with the given ones, and its sides with the given homs (along those identifications).
+square : {A ∷ U} {a b c d : A} (f1 : hom a c) (f2 : hom b d) (g : hom a b) (h : hom c d) → U
+square {A} {a} {b} {c} {d} f1 f2 g h =
+  Σ (x : squareᵣ A) .
+  Σ (pa : bottom-leftᵣ x ≡ a) . Σ (pb : bottom-rightᵣ x ≡ b) .
+  Σ (pc : top-leftᵣ x ≡ c) . Σ (pd : top-rightᵣ x ≡ d) .
+    ((leftᵣ x , pa , pc) ≡{hom a c} f1) × ((rightᵣ x , pb , pd) ≡{hom b d} f2) ×
+    ((bottomᵣ x , pa , pb) ≡{hom a b} g) × ((topᵣ x , pc , pd) ≡{hom c d} h)
 
 -- A hom l r in arrᵣ A (between vertical sides) is an oplax square from l to r: its bottom and
 -- top sides are the images of the hom by srcᵣ and tgtᵣ.
-of-hom : {A ∷ U} {l r : arrᵣ A} (u : hom l r) → square l r (hom-cell (hom-map srcᵣ u)) (hom-cell (hom-map tgtᵣ u))
-of-hom {A} {l} {r} u = (of-arrᵣ (hom-cell u) , hom-src u , hom-tgt u , refl , refl)
+of-hom : {A ∷ U} {l r : arrᵣ A} (u : hom l r) → square (arr-hom l) (arr-hom r) (hom-map srcᵣ u) (hom-map tgtᵣ u)
+of-hom {A} {l} {r} u =
+  (of-arrᵣ (hom-cell u) ,
+   cong srcᵣ (hom-src u) , cong srcᵣ (hom-tgt u) , cong tgtᵣ (hom-src u) , cong tgtᵣ (hom-tgt u) ,
+   arr-hom-move (srcᵣ (hom-cell u)) (hom-src u) refl refl ,
+   arr-hom-move (tgtᵣ (hom-cell u)) (hom-tgt u) refl refl ,
+   refl , refl)
 
--- Horizontal composition of squares (as homs in arrᵣ A): the bottom and top of the composite are
--- the composites of the bottoms and tops.
-comph : {A ∷ U} (sA : is-segalᵣ A) {l m r : arrᵣ A} (u : hom l m) (v : hom m r) →
-  square l r (hom-cell (comp-homᵣ sA (hom-map srcᵣ u) (hom-map srcᵣ v))) (hom-cell (comp-homᵣ sA (hom-map tgtᵣ u) (hom-map tgtᵣ v)))
-comph {A} sA {l} {m} {r} u v =
-  let w : hom l r = comp-homᵣ (is-segal-arrᵣ sA) u v in
-  (of-arrᵣ (hom-cell w) , hom-src w , hom-tgt w ,
-   cong (hom-cell {A}) (hom-map-comp (arrᵣ A) A srcᵣ (is-segal-arrᵣ sA) sA u v) ,
-   cong (hom-cell {A}) (hom-map-comp (arrᵣ A) A tgtᵣ (is-segal-arrᵣ sA) sA u v))
+-- Horizontal composition of squares: the composite of the squares as homs in arrᵣ A (along the
+-- path between their common sides), whose bottom and top are the composites of the bottoms and tops.
+comph : {A ∷ U} (sA : is-segalᵣ A) {a b e c d f : A}
+  {f1 : hom a c} {f2 : hom b d} {f3 : hom e f} {g : hom a b} {g' : hom b e} {h : hom c d} {h' : hom d f} →
+  square f1 f2 g h → square f2 f3 g' h' → square f1 f3 (comp-homᵣ sA g g') (comp-homᵣ sA h h')
+comph {A} sA {a} {b} {e} {c} {d} {f} {f1} {f2} {f3} {g} {g'} {h} {h'} σ τ =
+  let x : squareᵣ A = fst _ σ in
+  let pa : bottom-leftᵣ x ≡ a = fst _ (snd _ σ) in
+  let pb : bottom-rightᵣ x ≡ b = fst _ (snd _ (snd _ σ)) in
+  let pc : top-leftᵣ x ≡ c = fst _ (snd _ (snd _ (snd _ σ))) in
+  let pd : top-rightᵣ x ≡ d = fst _ (snd _ (snd _ (snd _ (snd _ σ)))) in
+  let rσ : ((leftᵣ x , pa , pc) ≡{hom a c} f1) × ((rightᵣ x , pb , pd) ≡{hom b d} f2) ×
+           ((bottomᵣ x , pa , pb) ≡{hom a b} g) × ((topᵣ x , pc , pd) ≡{hom c d} h) =
+    snd _ (snd _ (snd _ (snd _ (snd _ σ)))) in
+  let e1 : (leftᵣ x , pa , pc) ≡{hom a c} f1 = Product.fst rσ in
+  let e2 : (rightᵣ x , pb , pd) ≡{hom b d} f2 = Product.fst (Product.snd rσ) in
+  let e3 : (bottomᵣ x , pa , pb) ≡{hom a b} g = Product.fst (Product.snd (Product.snd rσ)) in
+  let e4 : (topᵣ x , pc , pd) ≡{hom c d} h = Product.snd (Product.snd (Product.snd rσ)) in
+  let y : squareᵣ A = fst _ τ in
+  let qb : bottom-leftᵣ y ≡ b = fst _ (snd _ τ) in
+  let qe : bottom-rightᵣ y ≡ e = fst _ (snd _ (snd _ τ)) in
+  let qd : top-leftᵣ y ≡ d = fst _ (snd _ (snd _ (snd _ τ))) in
+  let qf : top-rightᵣ y ≡ f = fst _ (snd _ (snd _ (snd _ (snd _ τ)))) in
+  let rτ : ((leftᵣ y , qb , qd) ≡{hom b d} f2) × ((rightᵣ y , qe , qf) ≡{hom e f} f3) ×
+           ((bottomᵣ y , qb , qe) ≡{hom b e} g') × ((topᵣ y , qd , qf) ≡{hom d f} h') =
+    snd _ (snd _ (snd _ (snd _ (snd _ τ)))) in
+  let e2' : (leftᵣ y , qb , qd) ≡{hom b d} f2 = Product.fst rτ in
+  let e5 : (rightᵣ y , qe , qf) ≡{hom e f} f3 = Product.fst (Product.snd rτ) in
+  let e3' : (bottomᵣ y , qb , qe) ≡{hom b e} g' = Product.fst (Product.snd (Product.snd rτ)) in
+  let e6 : (topᵣ y , qd , qf) ≡{hom d f} h' = Product.snd (Product.snd (Product.snd rτ)) in
+  let E : (rightᵣ x , pb , pd) ≡{hom b d} (leftᵣ y , qb , qd) = trans e2 (sym e2') in
+  let p : rightᵣ x ≡ leftᵣ y = cong (hom-cell {A}) E in
+  let sA' : is-segalᵣ (arrᵣ A) = is-segal-arrᵣ sA in
+  let u : hom (leftᵣ x) (leftᵣ y) = (to-arrᵣ x , refl , p) in
+  let v : hom (leftᵣ y) (rightᵣ y) = (to-arrᵣ y , refl , refl) in
+  let w : hom (leftᵣ x) (rightᵣ y) = comp-homᵣ sA' u v in
+  -- the bottom and top sides of the two squares
+  let gu : hom-move (hom-map srcᵣ u) pa qb ≡ g =
+    trans (hom-path (bottomᵣ x) (trans-refl-l pa) (hom-path-src E)) e3 in
+  let gv : hom-move (hom-map srcᵣ v) qb qe ≡ g' =
+    trans (hom-path (bottomᵣ y) (trans-refl-l qb) (trans-refl-l qe)) e3' in
+  let hu : hom-move (hom-map tgtᵣ u) pc qd ≡ h =
+    trans (hom-path (topᵣ x) (trans-refl-l pc) (hom-path-tgt E)) e4 in
+  let hv : hom-move (hom-map tgtᵣ v) qd qf ≡ h' =
+    trans (hom-path (topᵣ y) (trans-refl-l qd) (trans-refl-l qf)) e6 in
+  (of-arrᵣ (hom-cell w) ,
+   trans (cong srcᵣ (hom-src w)) pa , trans (cong srcᵣ (hom-tgt w)) qe ,
+   trans (cong tgtᵣ (hom-src w)) pc , trans (cong tgtᵣ (hom-tgt w)) qf ,
+   trans (arr-hom-move (srcᵣ (hom-cell w)) (hom-src w) pa pc) e1 ,
+   trans (arr-hom-move (tgtᵣ (hom-cell w)) (hom-tgt w) qe qf) e5 ,
+   trans (cong {hom (bottom-leftᵣ x) (bottom-rightᵣ y)} (λ k . hom-move k pa qe) (hom-map-comp (arrᵣ A) A srcᵣ sA' sA u v))
+     (trans (hom-move-comp sA (hom-map srcᵣ u) (hom-map srcᵣ v) pa qb qe) (cong2 (comp-homᵣ sA) gu gv)) ,
+   trans (cong {hom (top-leftᵣ x) (top-rightᵣ y)} (λ k . hom-move k pc qf) (hom-map-comp (arrᵣ A) A tgtᵣ sA' sA u v))
+     (trans (hom-move-comp sA (hom-map tgtᵣ u) (hom-map tgtᵣ v) pc qd qf) (cong2 (comp-homᵣ sA) hu hv)))
 
 -- Vertical composition of squares. Oplax squares cannot be curried in the vertical direction, so
 -- a vertically composable pair of squares is given as an oplax family Φ : 𝕀 →ᵣ Sp₂ →ᵣ A of
@@ -35,14 +159,12 @@ comph {A} sA {l} {m} {r} u v =
 -- the composite is pointwise composition: its left and right sides are the composites of the
 -- left and right sides.
 compv : {A ∷ U} (sA : is-segalᵣ A) (Φ : 𝕀 →ᵣ spine 2 →ᵣ A) →
-  square (compᵣ sA (Φ 𝕀0)) (compᵣ sA (Φ 𝕀1))
-    (postᵣ {𝕀} {spine 2 →ᵣ A} (λ φ . fst-cell φ 𝕀0) Φ) (postᵣ {𝕀} {spine 2 →ᵣ A} (λ φ . snd-cell φ 𝕀1) Φ)
+  square (compᵣ sA (Φ 𝕀0) , compᵣ-src sA (Φ 𝕀0) , compᵣ-tgt sA (Φ 𝕀0))
+    (compᵣ sA (Φ 𝕀1) , compᵣ-src sA (Φ 𝕀1) , compᵣ-tgt sA (Φ 𝕀1))
+    (arr-hom (postᵣ {𝕀} {spine 2 →ᵣ A} (λ φ . fst-cell φ 𝕀0) Φ)) (arr-hom (postᵣ {𝕀} {spine 2 →ᵣ A} (λ φ . snd-cell φ 𝕀1) Φ))
 compv {A} sA Φ =
-  let c : 𝕀 →ᵣ arrᵣ A = postᵣ (compᵣ sA) Φ in
-  let pb : (λ φ . compᵣ sA φ 𝕀0) ≡{(spine 2 →ᵣ A) → A} (λ φ . fst-cell φ 𝕀0) =
-    funext-nd (λ φ . compᵣ sA φ 𝕀0) (λ φ . fst-cell φ 𝕀0) (compᵣ-src sA) in
-  let pt : (λ φ . compᵣ sA φ 𝕀1) ≡{(spine 2 →ᵣ A) → A} (λ φ . snd-cell φ 𝕀1) =
-    funext-nd (λ φ . compᵣ sA φ 𝕀1) (λ φ . snd-cell φ 𝕀1) (compᵣ-tgt sA) in
-  (of-arrᵣ c , refl , refl ,
-   cong {(spine 2 →ᵣ A) → A} (λ h . postᵣ h Φ) pb ,
-   cong {(spine 2 →ᵣ A) → A} (λ h . postᵣ h Φ) pt)
+  (of-arrᵣ (postᵣ (compᵣ sA) Φ) ,
+   compᵣ-src sA (Φ 𝕀0) , compᵣ-src sA (Φ 𝕀1) , compᵣ-tgt sA (Φ 𝕀0) , compᵣ-tgt sA (Φ 𝕀1) ,
+   refl , refl ,
+   post-htpy-hom (λ φ . compᵣ sA φ 𝕀0) (λ φ . fst-cell φ 𝕀0) (compᵣ-src sA) Φ ,
+   post-htpy-hom (λ φ . compᵣ sA φ 𝕀1) (λ φ . snd-cell φ 𝕀1) (compᵣ-tgt sA) Φ)
