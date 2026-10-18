@@ -59,7 +59,7 @@ items:
 
 item:
   | x=IDENT c=ccolon a=term { Sig ($loc, qualifiers_of_crispness c, x, a) }
-  | ABSTRACT x=IDENT c=ccolon a=term { Sig ($loc, Abstract :: qualifiers_of_crispness c, x, a) }
+  | q=nonempty_list(qualifier) x=IDENT c=ccolon a=term { Sig ($loc, qualifiers_of_crispness c @ q, x, a) }
   | y=IDENT args=list(pattern) EQ t=term { Clause ($loc, y, args, t) }
   | y=IDENT args=list(pattern) LRPAR { Clause ($loc, y, args, mk ~pos:$loc($3) (IndType_ind (`Empty, []))) }
   | POSTULATE x=IDENT c=ccolon a=term { Decls [Def (x, qualifiers_of_crispness c, Some a, mk ~pos:$loc @@ Opaque None)] }
@@ -149,6 +149,9 @@ pattern:
   | LPAR SUCC x=identm RPAR { `Nat (Some x) }
   | NIL { `List None }
   | LPAR CONS x=identm l=identm RPAR { `List (Some (x, l)) }
+
+qualifier:
+  | ABSTRACT { Abstract }
 
 identm:
   | IDENT { $1 }
