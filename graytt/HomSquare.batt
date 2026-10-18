@@ -26,8 +26,8 @@ comph : {A ∷ U} (sA : is-segalᵣ A) {l m r : arrᵣ A} (u : hom l m) (v : hom
 comph {A} sA {l} {m} {r} u v =
   let w : hom l r = comp-homᵣ (is-segal-arrᵣ sA) u v in
   (of-arrᵣ (hom-cell w) , hom-src w , hom-tgt w ,
-   cong {hom (srcᵣ {A} l) (srcᵣ {A} r)} {arrᵣ A} (hom-cell {A} {srcᵣ {A} l} {srcᵣ {A} r}) (hom-map-comp (arrᵣ A) A srcᵣ (is-segal-arrᵣ sA) sA u v) ,
-   cong {hom (tgtᵣ {A} l) (tgtᵣ {A} r)} {arrᵣ A} (hom-cell {A} {tgtᵣ {A} l} {tgtᵣ {A} r}) (hom-map-comp (arrᵣ A) A tgtᵣ (is-segal-arrᵣ sA) sA u v))
+   cong (hom-cell {A}) (hom-map-comp (arrᵣ A) A srcᵣ (is-segal-arrᵣ sA) sA u v) ,
+   cong (hom-cell {A}) (hom-map-comp (arrᵣ A) A tgtᵣ (is-segal-arrᵣ sA) sA u v))
 
 -- Vertical composition of squares. Oplax squares cannot be curried in the vertical direction, so
 -- a vertically composable pair of squares is given as an oplax family Φ : 𝕀 →ᵣ Sp₂ →ᵣ A of
@@ -36,13 +36,13 @@ comph {A} sA {l} {m} {r} u v =
 -- left and right sides.
 compv : {A ∷ U} (sA : is-segalᵣ A) (Φ : 𝕀 →ᵣ spine 2 →ᵣ A) →
   square (compᵣ sA (Φ 𝕀0)) (compᵣ sA (Φ 𝕀1))
-    (postᵣ {𝕀} {spine 2 →ᵣ A} {A} (λ φ . fst-cell φ 𝕀0) Φ) (postᵣ {𝕀} {spine 2 →ᵣ A} {A} (λ φ . snd-cell φ 𝕀1) Φ)
+    (postᵣ {𝕀} {spine 2 →ᵣ A} (λ φ . fst-cell φ 𝕀0) Φ) (postᵣ {𝕀} {spine 2 →ᵣ A} (λ φ . snd-cell φ 𝕀1) Φ)
 compv {A} sA Φ =
-  let c : 𝕀 →ᵣ arrᵣ A = postᵣ {𝕀} {spine 2 →ᵣ A} {arrᵣ A} (compᵣ sA) Φ in
+  let c : 𝕀 →ᵣ arrᵣ A = postᵣ (compᵣ sA) Φ in
   let pb : (λ φ . compᵣ sA φ 𝕀0) ≡{(spine 2 →ᵣ A) → A} (λ φ . fst-cell φ 𝕀0) =
     funext-nd (λ φ . compᵣ sA φ 𝕀0) (λ φ . fst-cell φ 𝕀0) (compᵣ-src sA) in
   let pt : (λ φ . compᵣ sA φ 𝕀1) ≡{(spine 2 →ᵣ A) → A} (λ φ . snd-cell φ 𝕀1) =
     funext-nd (λ φ . compᵣ sA φ 𝕀1) (λ φ . snd-cell φ 𝕀1) (compᵣ-tgt sA) in
   (of-arrᵣ c , refl , refl ,
-   cong {(spine 2 →ᵣ A) → A} {arrᵣ A} (λ h . postᵣ {𝕀} {spine 2 →ᵣ A} {A} h Φ) pb ,
-   cong {(spine 2 →ᵣ A) → A} {arrᵣ A} (λ h . postᵣ {𝕀} {spine 2 →ᵣ A} {A} h Φ) pt)
+   cong {(spine 2 →ᵣ A) → A} (λ h . postᵣ h Φ) pb ,
+   cong {(spine 2 →ᵣ A) → A} (λ h . postᵣ h Φ) pt)
