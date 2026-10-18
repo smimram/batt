@@ -4,6 +4,6 @@
 -- connections, double categories coincide with globular ones.
 --
 
-import Hom2
+open import Interval
 open import Cube
 open import Connection

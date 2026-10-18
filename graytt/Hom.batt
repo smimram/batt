@@ -91,7 +91,6 @@ arr→homs-total-retr {X} (x , r) =
 is-equiv-homs-total→arr ∷ {X ∷ U} → is-equiv (homs-total→arr {X})
 is-equiv-homs-total→arr {X} = ((arr→homs-total {X} , λ f . refl) , (arr→homs-total {X} , arr→homs-total-retr {X}))
 
-
 --
 -- Moving the target of a hom along its target path
 --
@@ -105,3 +104,14 @@ subst-hom-tgt {X} {a} f p refl = refl
 homs-from-tgt-path ∷ {X ∷ U} {a : X} (f : arrᵣ X) (p : srcᵣ f ≡ a) {x : X} (q : tgtᵣ f ≡ x) →
   (tgtᵣ f , f , p , refl) ≡{Σ (y : X) . hom {X} a y} (x , f , p , q)
 homs-from-tgt-path {X} {a} f p refl = refl
+
+--
+-- Squares
+--
+
+-- Square = record
+  -- open import Square
+
+  -- withinᵣ : {A ∷ U} (l r b t : arrᵣ A)  → subtype (squareᵣ A)
+  -- withinᵣ x = ?
+-- end
