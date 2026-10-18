@@ -1105,7 +1105,8 @@ and check_decls k env ctx (decls:T.decls) =
       (* Local fields are not brought in scope. *)
       let l = List.filter (fun (x,q,_) -> not (List.mem T.Local q) && not (already_bound x)) l in
       let pos = T.Position.find_opt t0 in
-      List.iter (fun (x,q,_) -> decls := (Def (x,T.qualifiers_of_crispness (T.crispness_of_qualifiers q),None,T.mk ?pos @@ RecordField(t0, x)) :: !decls)) (List.rev l)
+      (* The opened fields are aliases for the fields of the record: they only inherit their crispness (in particular, an abstract field must not produce a fresh opaque constant). *)
+      List.iter (fun (x,q,_) -> decls := (Def (x,List.filter (( = ) (T.Crisp : T.qualifier)) q,None,T.mk ?pos @@ RecordField(t0, x)) :: !decls)) (List.rev l)
   done;
   let tm = List.rev !tm in
   let ty = List.rev !ty in
