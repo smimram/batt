@@ -3,6 +3,8 @@ open import Hom
 open import Segal
 open import Composition
 open import Functoriality
+open import Simplex-edges
+open import Pullback-up
 
 --
 -- Squares
@@ -78,15 +80,18 @@ bottom-hom x = (bottomᵣ x , refl , refl)
 top-hom : {A ∷ U} (x : squareᵣ A) → hom (top-leftᵣ x) (top-rightᵣ x)
 top-hom x = (topᵣ x , refl , refl)
 
--- The oplax squares with given left, right, bottom and top sides: the corners of the square are
+-- The oplax square x has left, right, bottom and top sides f1, f2, g and h: its corners are
 -- identified with the given ones, and its sides with the given homs (along those identifications).
-square : {A ∷ U} {a b c d : A} (f1 : hom a c) (f2 : hom b d) (g : hom a b) (h : hom c d) → U
-square {A} {a} {b} {c} {d} f1 f2 g h =
-  Σ (x : squareᵣ A) .
+square-at : {A ∷ U} (x : squareᵣ A) {a b c d : A} (f1 : hom a c) (f2 : hom b d) (g : hom a b) (h : hom c d) → U
+square-at {A} x {a} {b} {c} {d} f1 f2 g h =
   Σ (pa : bottom-leftᵣ x ≡ a) . Σ (pb : bottom-rightᵣ x ≡ b) .
   Σ (pc : top-leftᵣ x ≡ c) . Σ (pd : top-rightᵣ x ≡ d) .
     ((leftᵣ x , pa , pc) ≡{hom a c} f1) × ((rightᵣ x , pb , pd) ≡{hom b d} f2) ×
     ((bottomᵣ x , pa , pb) ≡{hom a b} g) × ((topᵣ x , pc , pd) ≡{hom c d} h)
+
+-- The oplax squares with given left, right, bottom and top sides.
+square : {A ∷ U} {a b c d : A} (f1 : hom a c) (f2 : hom b d) (g : hom a b) (h : hom c d) → U
+square {A} f1 f2 g h = Σ (x : squareᵣ A) . square-at x f1 f2 g h
 
 -- A hom l r in arrᵣ A (between vertical sides) is an oplax square from l to r: its bottom and
 -- top sides are the images of the hom by srcᵣ and tgtᵣ.
@@ -153,18 +158,181 @@ comph {A} sA {a} {b} {e} {c} {d} {f} {f1} {f2} {f3} {g} {g'} {h} {h'} σ τ =
    trans (cong {hom (top-leftᵣ x) (top-rightᵣ y)} (λ k . hom-move k pc qf) (hom-map-comp (arrᵣ A) A tgtᵣ sA' sA u v))
      (trans (hom-move-comp sA (hom-map tgtᵣ u) (hom-map tgtᵣ v) pc qd qf) (cong2 (comp-homᵣ sA) hu hv)))
 
--- Vertical composition of squares. Oplax squares cannot be curried in the vertical direction, so
--- a vertically composable pair of squares is given as an oplax family Φ : 𝕀 →ᵣ Sp₂ →ᵣ A of
--- composable pairs (the lower square is postᵣ fst-cell Φ, the upper one postᵣ snd-cell Φ), and
--- the composite is pointwise composition: its left and right sides are the composites of the
--- left and right sides.
-compv : {A ∷ U} (sA : is-segalᵣ A) (Φ : 𝕀 →ᵣ spine 2 →ᵣ A) →
-  square (compᵣ sA (Φ 𝕀0) , compᵣ-src sA (Φ 𝕀0) , compᵣ-tgt sA (Φ 𝕀0))
-    (compᵣ sA (Φ 𝕀1) , compᵣ-src sA (Φ 𝕀1) , compᵣ-tgt sA (Φ 𝕀1))
-    (arr-hom (postᵣ {𝕀} {spine 2 →ᵣ A} (λ φ . fst-cell φ 𝕀0) Φ)) (arr-hom (postᵣ {𝕀} {spine 2 →ᵣ A} (λ φ . snd-cell φ 𝕀1) Φ))
-compv {A} sA Φ =
-  (of-arrᵣ (postᵣ (compᵣ sA) Φ) ,
-   compᵣ-src sA (Φ 𝕀0) , compᵣ-src sA (Φ 𝕀1) , compᵣ-tgt sA (Φ 𝕀0) , compᵣ-tgt sA (Φ 𝕀1) ,
-   refl , refl ,
-   post-htpy-hom (λ φ . compᵣ sA φ 𝕀0) (λ φ . fst-cell φ 𝕀0) (compᵣ-src sA) Φ ,
-   post-htpy-hom (λ φ . compᵣ sA φ 𝕀1) (λ φ . snd-cell φ 𝕀1) (compᵣ-tgt sA) Φ)
+--
+-- Vertical composition
+--
+-- Oplax squares only curry with the horizontal variable outside (to-arrᵣ), so vertical
+-- composition is pointwise in the horizontal variable: it composes an oplax family
+-- Ψ : 𝕀 →ᵣ cell-pairs A of composable pairs. Two squares glued along a path between the top of the
+-- lower one and the bottom of the upper one form an oplax cone over tgtᵣ and srcᵣ, and such cones
+-- are families of composable pairs by the oplax universal property of pullbacks
+-- (pullback-oplax-up). We thus prove the statement for families, where the gluing is
+-- judgmental, and extend it to all cones (cone-ind).
+--
+
+-- the components of a composable pair of cells
+cp-fst : {A ∷ U} → cell-pairs A → arrᵣ A
+cp-fst c = fst _ c
+
+cp-snd : {A ∷ U} → cell-pairs A → arrᵣ A
+cp-snd c = fst _ (snd _ c)
+
+cp-glue : {A ∷ U} (c : cell-pairs A) → tgtᵣ (cp-fst c) ≡ srcᵣ (cp-snd c)
+cp-glue c = snd _ (snd _ c)
+
+-- the composite of a composable pair of cells
+comp-cells : {A ∷ U} (sA : is-segalᵣ A) (c : cell-pairs A) → hom (srcᵣ (cp-fst c)) (tgtᵣ (cp-snd c))
+comp-cells sA c = comp-homᵣ sA (cp-fst c , refl , cp-glue c) (cp-snd c , refl , refl)
+
+-- oplax cones over tgtᵣ and srcᵣ: a lower and an upper square, glued along a homotopy
+cone : (A ∷ U) → U
+cone A = pullback-coneᵣ 𝕀 {arrᵣ A} {arrᵣ A} {A} tgtᵣ srcᵣ
+
+cone-lower : {A ∷ U} → cone A → squareᵣ A
+cone-lower {A} κ = of-arrᵣ (pullback-coneᵣ-fst 𝕀 {arrᵣ A} {arrᵣ A} {A} tgtᵣ srcᵣ κ)
+
+cone-upper : {A ∷ U} → cone A → squareᵣ A
+cone-upper {A} κ = of-arrᵣ (pullback-coneᵣ-snd 𝕀 {arrᵣ A} {arrᵣ A} {A} tgtᵣ srcᵣ κ)
+
+cone-htpy : {A ∷ U} → cone A → 𝕀 →ᵣ path A
+cone-htpy {A} κ = pullback-coneᵣ-htpy 𝕀 {arrᵣ A} {arrᵣ A} {A} tgtᵣ srcᵣ κ
+
+cone-src : {A ∷ U} (κ : cone A) → postᵣ {𝕀} {path A} {A} path-src (cone-htpy κ) ≡ topᵣ (cone-lower κ)
+cone-src {A} κ = Product.fst (snd (pullback-coneᵣ-paths 𝕀 {arrᵣ A} {arrᵣ A} {A} tgtᵣ srcᵣ) κ)
+
+cone-tgt : {A ∷ U} (κ : cone A) → postᵣ {𝕀} {path A} {A} path-tgt (cone-htpy κ) ≡ bottomᵣ (cone-upper κ)
+cone-tgt {A} κ = Product.snd (snd (pullback-coneᵣ-paths 𝕀 {arrᵣ A} {arrᵣ A} {A} tgtᵣ srcᵣ) κ)
+
+-- the gluing path of a cone at a crisp point
+cone-glue : {A ∷ U} (κ : cone A) (i ∷ 𝕀) → topᵣ (cone-lower κ) i ≡ bottomᵣ (cone-upper κ) i
+cone-glue κ i = trans (sym (happlyᵣ (cone-src κ) i)) (trans (path-eq (cone-htpy κ i)) (happlyᵣ (cone-tgt κ) i))
+
+-- cone induction: cones are families of composable pairs
+cone-ind : {A ∷ U} (Q : cone A → U) → ((Ψ : 𝕀 →ᵣ cell-pairs A) → Q (pullback→coneᵣ 𝕀 {arrᵣ A} {arrᵣ A} {A} tgtᵣ srcᵣ Ψ)) →
+  (κ : cone A) → Q κ
+cone-ind {A} Q q κ =
+  let f : (𝕀 →ᵣ cell-pairs A) → cone A = pullback→coneᵣ 𝕀 {arrᵣ A} {arrᵣ A} {A} tgtᵣ srcᵣ in
+  let s : section f = is-equiv-sec f (pullback-oplax-up 𝕀 {arrᵣ A} {arrᵣ A} {A} tgtᵣ srcᵣ) in
+  subst Q (snd _ s κ) (q (section-map f s κ))
+
+-- the components of a square with given sides
+sq-pa : {A ∷ U} {x : squareᵣ A} {a b c d : A} {f1 : hom a c} {f2 : hom b d} {g : hom a b} {h : hom c d} →
+  square-at x f1 f2 g h → bottom-leftᵣ x ≡ a
+sq-pa σ = fst _ σ
+
+sq-pb : {A ∷ U} {x : squareᵣ A} {a b c d : A} {f1 : hom a c} {f2 : hom b d} {g : hom a b} {h : hom c d} →
+  square-at x f1 f2 g h → bottom-rightᵣ x ≡ b
+sq-pb σ = fst _ (snd _ σ)
+
+sq-pc : {A ∷ U} {x : squareᵣ A} {a b c d : A} {f1 : hom a c} {f2 : hom b d} {g : hom a b} {h : hom c d} →
+  square-at x f1 f2 g h → top-leftᵣ x ≡ c
+sq-pc σ = fst _ (snd _ (snd _ σ))
+
+sq-pd : {A ∷ U} {x : squareᵣ A} {a b c d : A} {f1 : hom a c} {f2 : hom b d} {g : hom a b} {h : hom c d} →
+  square-at x f1 f2 g h → top-rightᵣ x ≡ d
+sq-pd σ = fst _ (snd _ (snd _ (snd _ σ)))
+
+sq-left : {A ∷ U} {x : squareᵣ A} {a b c d : A} {f1 : hom a c} {f2 : hom b d} {g : hom a b} {h : hom c d} →
+  (σ : square-at x f1 f2 g h) → (leftᵣ x , sq-pa σ , sq-pc σ) ≡{hom a c} f1
+sq-left σ = Product.fst (snd _ (snd _ (snd _ (snd _ σ))))
+
+sq-right : {A ∷ U} {x : squareᵣ A} {a b c d : A} {f1 : hom a c} {f2 : hom b d} {g : hom a b} {h : hom c d} →
+  (σ : square-at x f1 f2 g h) → (rightᵣ x , sq-pb σ , sq-pd σ) ≡{hom b d} f2
+sq-right σ = Product.fst (Product.snd (snd _ (snd _ (snd _ (snd _ σ)))))
+
+sq-bottom : {A ∷ U} {x : squareᵣ A} {a b c d : A} {f1 : hom a c} {f2 : hom b d} {g : hom a b} {h : hom c d} →
+  (σ : square-at x f1 f2 g h) → (bottomᵣ x , sq-pa σ , sq-pb σ) ≡{hom a b} g
+sq-bottom σ = Product.fst (Product.snd (Product.snd (snd _ (snd _ (snd _ (snd _ σ))))))
+
+sq-top : {A ∷ U} {x : squareᵣ A} {a b c d : A} {f1 : hom a c} {f2 : hom b d} {g : hom a b} {h : hom c d} →
+  (σ : square-at x f1 f2 g h) → (topᵣ x , sq-pc σ , sq-pd σ) ≡{hom c d} h
+sq-top σ = Product.snd (Product.snd (Product.snd (snd _ (snd _ (snd _ (snd _ σ))))))
+
+-- vertical composition for the squares of a cone, whose corners agree with the gluing paths
+compv-stmt : {A ∷ U} (sA : is-segalᵣ A) → cone A → U
+compv-stmt {A} sA κ =
+  {a b c d e f : A} {f1 : hom a c} {f2 : hom b d} {f1' : hom c e} {f2' : hom d f} {g : hom a b} {h : hom c d} {h' : hom e f} →
+  (σ : square-at (cone-lower κ) f1 f2 g h) (τ : square-at (cone-upper κ) f1' f2' h h') →
+  trans (cone-glue κ 𝕀0) (sq-pa τ) ≡ sq-pc σ → trans (cone-glue κ 𝕀1) (sq-pb τ) ≡ sq-pd σ →
+  square (comp-homᵣ sA f1 f1') (comp-homᵣ sA f2 f2') g h'
+
+-- for a family of composable pairs: the pointwise composite
+compv-fam : {A ∷ U} (sA : is-segalᵣ A) (Ψ : 𝕀 →ᵣ cell-pairs A) → compv-stmt sA (pullback→coneᵣ 𝕀 {arrᵣ A} {arrᵣ A} {A} tgtᵣ srcᵣ Ψ)
+compv-fam {A} sA Ψ {a} {b} {c} {d} {e} {f} {f1} {f2} {f1'} {f2'} {g} {h} {h'} σ τ gl0 gl1 =
+  let x : squareᵣ A = cone-lower (pullback→coneᵣ 𝕀 {arrᵣ A} {arrᵣ A} {A} tgtᵣ srcᵣ Ψ) in
+  let y : squareᵣ A = cone-upper (pullback→coneᵣ 𝕀 {arrᵣ A} {arrᵣ A} {A} tgtᵣ srcᵣ Ψ) in
+  let pa : bottom-leftᵣ x ≡ a = sq-pa σ in
+  let pb : bottom-rightᵣ x ≡ b = sq-pb σ in
+  let pc : top-leftᵣ x ≡ c = sq-pc σ in
+  let pd : top-rightᵣ x ≡ d = sq-pd σ in
+  let qc : bottom-leftᵣ y ≡ c = sq-pa τ in
+  let qd : bottom-rightᵣ y ≡ d = sq-pb τ in
+  let qe : top-leftᵣ y ≡ e = sq-pc τ in
+  let qf : top-rightᵣ y ≡ f = sq-pd τ in
+  -- the composable pairs on the left and on the right, and their composites
+  let u0 : hom (bottom-leftᵣ x) (bottom-leftᵣ y) = (cp-fst (Ψ 𝕀0) , refl , cp-glue (Ψ 𝕀0)) in
+  let v0 : hom (bottom-leftᵣ y) (top-leftᵣ y) = (cp-snd (Ψ 𝕀0) , refl , refl) in
+  let u1 : hom (bottom-rightᵣ x) (bottom-rightᵣ y) = (cp-fst (Ψ 𝕀1) , refl , cp-glue (Ψ 𝕀1)) in
+  let v1 : hom (bottom-rightᵣ y) (top-rightᵣ y) = (cp-snd (Ψ 𝕀1) , refl , refl) in
+  let C0 : hom (bottom-leftᵣ x) (top-leftᵣ y) = comp-cells sA (Ψ 𝕀0) in
+  let C1 : hom (bottom-rightᵣ x) (top-rightᵣ y) = comp-cells sA (Ψ 𝕀1) in
+  -- the gluing conditions, for the judgmental gluing paths of Ψ
+  let G0 : trans (cp-glue (Ψ 𝕀0)) qc ≡ pc =
+    trans (cong {top-leftᵣ x ≡ bottom-leftᵣ y} (λ p . trans p qc) (sym (trans-refl-l (cp-glue (Ψ 𝕀0))))) gl0 in
+  let G1 : trans (cp-glue (Ψ 𝕀1)) qd ≡ pd =
+    trans (cong {top-rightᵣ x ≡ bottom-rightᵣ y} (λ p . trans p qd) (sym (trans-refl-l (cp-glue (Ψ 𝕀1))))) gl1 in
+  (of-arrᵣ (postᵣ (λ c . hom-cell (comp-cells sA c)) Ψ) ,
+   trans (hom-src C0) pa , trans (hom-src C1) pb , trans (hom-tgt C0) qe , trans (hom-tgt C1) qf ,
+   trans (hom-move-comp sA u0 v0 pa qc qe)
+     (cong2 (comp-homᵣ sA)
+       (trans (hom-path (leftᵣ x) (trans-refl-l pa) G0) (sq-left σ))
+       (trans (hom-path (leftᵣ y) (trans-refl-l qc) (trans-refl-l qe)) (sq-left τ))) ,
+   trans (hom-move-comp sA u1 v1 pb qd qf)
+     (cong2 (comp-homᵣ sA)
+       (trans (hom-path (rightᵣ x) (trans-refl-l pb) G1) (sq-right σ))
+       (trans (hom-path (rightᵣ y) (trans-refl-l qd) (trans-refl-l qf)) (sq-right τ))) ,
+   trans (cong {hom (bottom-leftᵣ x) (bottom-rightᵣ x)} (λ k . hom-move k pa pb)
+            (post-htpy-hom (λ c . hom-cell (comp-cells sA c) 𝕀0) (λ c . cp-fst c 𝕀0) (λ c . hom-src (comp-cells sA c)) Ψ))
+     (trans (hom-path (bottomᵣ x) (trans-refl-l pa) (trans-refl-l pb)) (sq-bottom σ)) ,
+   trans (cong {hom (top-leftᵣ y) (top-rightᵣ y)} (λ k . hom-move k qe qf)
+            (post-htpy-hom (λ c . hom-cell (comp-cells sA c) 𝕀1) (λ c . cp-snd c 𝕀1) (λ c . hom-tgt (comp-cells sA c)) Ψ))
+     (trans (hom-path (topᵣ y) (trans-refl-l qe) (trans-refl-l qf)) (sq-top τ)))
+
+-- for every cone, by cone induction
+compv-cone : {A ∷ U} (sA : is-segalᵣ A) (κ : cone A) → compv-stmt sA κ
+compv-cone {A} sA κ = cone-ind (compv-stmt sA) (compv-fam sA) κ
+
+-- the homotopy of a path between arrows, and its endpoints
+arr-htpy : {A ∷ U} {f k : arrᵣ A} → f ≡ k → 𝕀 →ᵣ path A
+arr-htpy {A} {f} {k} P = Funext.happlyᵣ 𝕀 A (f , k , P)
+
+arr-htpy-src : {A ∷ U} (f : arrᵣ A) {k : arrᵣ A} (P : f ≡ k) → postᵣ {𝕀} {path A} {A} path-src (arr-htpy P) ≡ f
+arr-htpy-src f refl = refl
+
+arr-htpy-tgt : {A ∷ U} (f : arrᵣ A) {k : arrᵣ A} (P : f ≡ k) → postᵣ {𝕀} {path A} {A} path-tgt (arr-htpy P) ≡ k
+arr-htpy-tgt f refl = refl
+
+-- the gluing path of the homotopy at a crisp point is the evaluation of the path
+arr-htpy-glue : {A ∷ U} (f : arrᵣ A) {k : arrᵣ A} (P : f ≡ k) (i ∷ 𝕀) →
+  trans (sym (happlyᵣ (arr-htpy-src f P) i)) (trans (path-eq (arr-htpy P i)) (happlyᵣ (arr-htpy-tgt f P) i)) ≡ happlyᵣ P i
+arr-htpy-glue f refl i = refl
+
+-- the cone of two squares glued along a path
+cone-of : {A ∷ U} (x y : squareᵣ A) → topᵣ x ≡ bottomᵣ y → cone A
+cone-of x y P = ((to-arrᵣ x , to-arrᵣ y , arr-htpy P) , arr-htpy-src (topᵣ x) P , arr-htpy-tgt (topᵣ x) P)
+
+-- Vertical composition of squares: the pointwise composite of the composable pairs formed by the
+-- two squares, whose left and right sides are the composites of the left and right sides.
+compv : {A ∷ U} (sA : is-segalᵣ A) {a b c d e f : A}
+  {f1 : hom a c} {f2 : hom b d} {f1' : hom c e} {f2' : hom d f} {g : hom a b} {h : hom c d} {h' : hom e f} →
+  square f1 f2 g h → square f1' f2' h h' → square (comp-homᵣ sA f1 f1') (comp-homᵣ sA f2 f2') g h'
+compv {A} sA {a} {b} {c} {d} {e} {f} {f1} {f2} {f1'} {f2'} {g} {h} {h'} σ τ =
+  let x : squareᵣ A = fst _ σ in
+  let y : squareᵣ A = fst _ τ in
+  let σ' : square-at x f1 f2 g h = snd _ σ in
+  let τ' : square-at y f1' f2' h h' = snd _ τ in
+  let E : (topᵣ x , sq-pc σ' , sq-pd σ') ≡{hom c d} (bottomᵣ y , sq-pa τ' , sq-pb τ') = trans (sq-top σ') (sym (sq-bottom τ')) in
+  let P : topᵣ x ≡ bottomᵣ y = cong (hom-cell {A}) E in
+  compv-cone sA (cone-of x y P) σ' τ'
+    (trans (cong {top-leftᵣ x ≡ bottom-leftᵣ y} (λ p . trans p (sq-pa τ')) (arr-htpy-glue (topᵣ x) P 𝕀0)) (hom-path-src E))
+    (trans (cong {top-rightᵣ x ≡ bottom-rightᵣ y} (λ p . trans p (sq-pb τ')) (arr-htpy-glue (topᵣ x) P 𝕀1)) (hom-path-tgt E))
