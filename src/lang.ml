@@ -960,7 +960,7 @@ and infer k env ctx (t:term) : term * value =
     in
     (* The de Bruijn index of x in env (not a level!). *)
     let k = aux 0 env in
-    let a = match Context.assoc_opt x ctx with Some a -> a | None -> error ~t "variable %s is in the context but not in the typing environment (crispness issue?)" x in
+    let a = match Context.assoc_opt x ctx with Some a -> a | None -> error ~t "variable %s is not crisp and cannot be used here (e.g. in a crisp definition, such as one without a type)" x in
     (
       (* Global definitions are referred to directly, which avoids looking them up in the environment during evaluation. *)
       match snd (List.nth env k) with
@@ -995,14 +995,6 @@ and infer k env ctx (t:term) : term * value =
         T.Record (`Recursive, tm), V.RecordType ty
     )
   | RecordDecls decls ->
-    (* Fields are crisp, as in modules. *)
-    let decls =
-      List.map
-        (function
-          | T.Def (x, q, a, t) when not (List.mem (T.Crisp : T.qualifier) q) -> T.Def (x, Crisp :: q, a, t)
-          | d -> d
-        ) decls
-    in
     let _,tm,ty = check_decls k env ctx decls in
     T.Record (`Recursive, tm), V.RecordType ty
   | Let (q, x, a, t, u) ->
