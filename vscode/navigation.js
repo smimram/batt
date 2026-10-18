@@ -4,7 +4,9 @@
 // checker: a tokenizer mirroring src/lexer.ml, top-level items split on unindented
 // lines, a scope analysis of local binders, and top-level names followed through
 // `import M` / `open import M` / `open M` (a module exports its own definitions and,
-// transitively, the fields of the modules it opens), as in `check_decls`.
+// transitively, the fields of the modules it opens), as in `check_decls`. Private
+// definitions are not exported, local ones are only accessible as `M.x` (not by
+// opening `M`).
 
 const fs = require('fs');
 const path = require('path');
@@ -35,7 +37,8 @@ const LITERALS = [
   ['𝕀0', 'KW'], ['II0', 'KW'], ['𝕀1', 'KW'], ['II1', 'KW'], ['𝕀∨', 'KW'], ['IIv', 'KW'],
   ['𝕀∧', 'KW'], ['IIw', 'KW'], ['𝕀', 'KW'], ['II', 'KW'],
   ['_', 'KW'], ['refl', 'KW'], ['let', 'LET'], ['in', 'IN'],
-  ['postulate', 'POSTULATE'], ['open', 'OPEN'], ['record', 'KW'], ['end', 'KW']
+  ['postulate', 'POSTULATE'], ['open', 'OPEN'], ['record', 'KW'], ['end', 'KW'],
+  ['abstract', 'QUAL'], ['private', 'QUAL'], ['local', 'QUAL']
 ];
 
 const isGreek = (c) => (c >= 0x391 && c <= 0x3A1) || (c >= 0x3A3 && c <= 0x3A9)
@@ -169,14 +172,29 @@ function parseModule(text, file) {
   }
 
   let current;   // definition whose clauses are being read
+  let pending;   // item made of qualifiers only, which apply to the signature on the next line
   for (const item of items) {
     const t = (k) => tokens[item.start + k];
     item.firstLine = t(0).line;
     item.lastLine = tokens[item.end - 1].line;
+    if (tokens.slice(item.start, item.end).every((tok) => tok.type === 'QUAL')) {
+      pending = item;
+      continue;
+    }
+    // qualifiers of a signature (abstract, private, local)
+    let q = 0;
+    while (t(q) && t(q).type === 'QUAL') {
+      q++;
+    }
+    const qualifiers = (pending ? tokens.slice(pending.start, pending.end) : []).concat(tokens.slice(item.start, item.start + q));
     if (t(0).type === 'POSTULATE' && t(1) && t(1).type === 'IDENT' && isColon(t(2))) {
       item.def = current = newDef(tokens, file, lines, item, item.start + 1, 'postulate');
-    } else if (t(0).type === 'IDENT' && isColon(t(1))) {
-      item.def = current = newDef(tokens, file, lines, item, item.start, 'definition');
+    } else if (t(q) && t(q).type === 'IDENT' && isColon(t(q + 1))) {
+      if (pending) {
+        item.firstLine = pending.firstLine;
+      }
+      item.def = current = newDef(tokens, file, lines, item, item.start + q, 'definition');
+      item.def.qualifiers = new Set(qualifiers.map((tok) => tok.text));
     } else if (t(0).type === 'IDENT') {
       // a clause: continues the definition above, or defines the name on its own
       if (current && current.name === t(0).text) {
@@ -198,6 +216,7 @@ function parseModule(text, file) {
     } else {
       current = undefined;
     }
+    pending = undefined;
   }
   return { file, text, lines, tokens, items };
 }
@@ -208,7 +227,7 @@ function newDef(tokens, file, lines, item, nameIndex, kind) {
   while (docLine > 0 && /^--/.test(lines[docLine - 1])) {
     docLine--;
   }
-  return { kind, file, name: tokens[nameIndex].text, nameIndex, docLine, firstLine: item.firstLine, sigLastLine: item.lastLine, lastLine: item.lastLine };
+  return { kind, file, name: tokens[nameIndex].text, nameIndex, docLine, firstLine: item.firstLine, sigLastLine: item.lastLine, lastLine: item.lastLine, qualifiers: new Set() };
 }
 
 // Local binders of an item: clause patterns, λ-patterns, (x y : A) / {x ∷ A}
@@ -315,11 +334,12 @@ class Resolver {
   }
 
   // What `name` denotes at item `itemIndex` (inclusive) of `mod`, looking backwards
-  // through the definitions and the opened modules.
-  lookupAt(mod, itemIndex, name) {
+  // through the definitions and the opened modules. The definitions of `mod` for
+  // which `hidden` holds are skipped.
+  lookupAt(mod, itemIndex, name, hidden = () => false) {
     for (let k = itemIndex; k >= 0; k--) {
       const item = mod.items[k];
-      if (item.def && item.def.name === name) {
+      if (item.def && item.def.name === name && !hidden(item.def)) {
         return { kind: 'def', mod, def: item.def };
       }
       if (item.opens) {
@@ -327,7 +347,7 @@ class Resolver {
           ? this.findModule(item.opens.module)
           : this.moduleOf(this.qualified(mod, k, item.opens.qualified));
         if (target) {
-          const found = this.lookupExport(target, name);
+          const found = this.lookupExport(target, name, true);
           if (found) {
             return found;
           }
@@ -341,14 +361,17 @@ class Resolver {
     return undefined;
   }
 
-  lookupExport(file, name) {
-    const key = `${file}\0${name}`;
+  // What `name` denotes as a field of the module `file`: private definitions are not
+  // exported, and local ones are not brought in scope when the module is `opened`.
+  lookupExport(file, name, opened = false) {
+    const key = `${file}\0${name}\0${opened}`;
     if (this.memo.has(key)) {
       return this.memo.get(key);
     }
     this.memo.set(key, undefined);   // guards against import cycles
     const mod = this.module(file);
-    const found = mod ? this.lookupAt(mod, mod.items.length - 1, name) : undefined;
+    const hidden = (def) => def.qualifiers.has('private') || (opened && def.qualifiers.has('local'));
+    const found = mod ? this.lookupAt(mod, mod.items.length - 1, name, hidden) : undefined;
     this.memo.set(key, found);
     return found;
   }
@@ -434,7 +457,7 @@ class Resolver {
       // an imported module is checked in its importer's scope, so a module may use names
       // it does not import itself (e.g. Path.batt): fall back to the standard library
       const stdlib = this.findModule('Stdlib');
-      found = stdlib && stdlib !== file ? this.lookupExport(stdlib, tok.text) : undefined;
+      found = stdlib && stdlib !== file ? this.lookupExport(stdlib, tok.text, true) : undefined;
     }
     return found && { origin, target: this.target(found) };
   }

@@ -37,6 +37,14 @@ let string_of_opaque = function
   | `Postulate n -> "postulate" ^ string_of_int n
   | `Abstract (x, _) -> x
 
+(** Qualifiers of a declaration. *)
+type qualifier =
+  | Abstract (** the definition does not reduce *)
+  | Crisp (** the declaration is crisp *)
+  | Private (** the declaration is not exported in the record of the module *)
+  | Local (** the declaration is not brought in scope when opening the record of the module (but can still be accessed as a field) *)
+[@@deriving show]
+
 type crispness = Normal | Crisp
 [@@deriving show]
 
@@ -64,20 +72,20 @@ type t =
   | J of t
   | Var of var
   | Var' of int (** a variable given de Bruijn index *) (* TODO: it would be much better to have preterms (strings) and terms (de Bruijn) *)
-  | Let of crispness * string * t * t * t
+  | Let of qualifier list * string * t * t * t (** local definition, with the qualifiers of the declaration *)
   | Opaque of abstract option (** an opaque constant ([None] for a fresh postulate) *)
   | Global of string * int (** a global definition, unfolded on demand, with its name (only used for printing) and its identifier *)
   | Hole of Pos.t
   | Meta of [`Fresh of Pos.t option | `Generated of int] (** metavariable with given internal identifier *)
   | Import of string (** import a module *)
-  | RecordType of (string * crispness * t) list
+  | RecordType of (string * qualifier list * t) list (** record type, the fields come with the qualifiers of their declaration *)
   | Record of [`Recursive | `NonRecursive] * (string * t) list
   | RecordField of t * string
   | I | I0 | I1 | Iv of t * t | Iw of t * t
 
 (** A declaration. *)
 and decl =
-  | Def of (string * crispness * bool * t option * t) (** a definition, the boolean indicates whether it is abstract (does not reduce) *)
+  | Def of (string * qualifier list * t option * t) (** a definition with its qualifiers, its type (if specified) and its body *)
   | Open of t
 
 (** A list of declarations. *)
@@ -99,6 +107,14 @@ let rec apps t = function
 let rec app_spine ?icit t = function
   | u::uu -> app ?icit (app_spine t uu) u
   | [] -> t
+
+(** Crispness of a declaration with given qualifiers. *)
+let crispness_of_qualifiers q : crispness = if List.mem (Crisp : qualifier) q then Crisp else Normal
+
+(** Qualifiers corresponding to a crispness. *)
+let qualifiers_of_crispness : crispness -> qualifier list = function
+  | Normal -> []
+  | Crisp -> [Crisp]
 
 module Position = struct
   module E = Ephemeron.K1.Make(struct type nonrec t = t let equal = (==) let hash = Hashtbl.hash end)
@@ -171,6 +187,12 @@ end
 let crispy_colon = function
   | Normal -> ":"
   | Crisp -> "∷"
+
+let string_of_qualifier = function
+  | Abstract -> "abstract"
+  | Private -> "private"
+  | Local -> "local"
+  | Crisp -> "crisp"
 
 module StringSet = Set.Make(String)
 
@@ -253,7 +275,7 @@ let rec to_string ?(vars=[]) ?(ren=[]) t =
   | Var x -> Option.value ~default:x @@ List.assoc_opt x ren
   | Var' n when 0 <= n && n < List.length vars && not !Common.de_bruijn -> List.nth vars n
   | Var' n -> Printf.sprintf "x-%d" n
-  | Let (c,x,a,t,u) -> let x, u = bind x u in Printf.sprintf "let %s %s %s = %s in %s" x (colon c) (to_string a) (to_string t) u
+  | Let (q,x,a,t,u) -> let x, u = bind x u in Printf.sprintf "let %s %s %s = %s in %s" x (colon (crispness_of_qualifiers q)) (to_string a) (to_string t) u
   | Opaque n -> (match n with Some n -> string_of_opaque n | None -> "postulate")
   | Global (x, _) -> x
   | Hole _ -> "?"
@@ -263,7 +285,7 @@ let rec to_string ?(vars=[]) ?(ren=[]) t =
   | Import m -> "import " ^ m
   | Record _ -> "record"
   | RecordType l ->
-    let l = String.concat "; " @@ List.map (fun (x,c,a) -> x ^ " " ^ crispy_colon c ^ " " ^ to_string a) l in
+    let l = String.concat "; " @@ List.map (fun (x,q,a) -> x ^ " " ^ crispy_colon (crispness_of_qualifiers q) ^ " " ^ to_string a) l in
     Printf.sprintf "{ %s }" l
   | RecordField (t,x) -> Printf.sprintf "%s.%s" (to_string t) x
   | I -> "𝕀"

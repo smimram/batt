@@ -1,0 +1,7 @@
+r = record
+  private secret : ℕ
+  secret = 3
+end
+
+s : ℕ
+s = r.secret

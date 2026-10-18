@@ -14,7 +14,7 @@ let binder_names ~pos t =
 let meta ~pos = mk ~pos @@ Meta (`Fresh (Some pos))
 %}
 
-%token COLON CCOLON EQ LPAR RPAR LRPAR LACC RACC LANGLE RANGLE DBAR BAR COMMA LET IN POSTULATE ABSTRACT META HOLE N EOF
+%token COLON CCOLON EQ LPAR RPAR LRPAR LACC RACC LANGLE RANGLE DBAR BAR COMMA LET IN POSTULATE ABSTRACT PRIVATE LOCAL META HOLE N EOF
 %token TYPE LARGETYPE
 %token<int> INT
 %token EMPTY
@@ -58,13 +58,13 @@ items:
   | item N items { $1::$3 }
 
 item:
-  | x=IDENT c=ccolon a=term { Sig ($loc, false, x, c, a) }
-  | ABSTRACT x=IDENT c=ccolon a=term { Sig ($loc, true, x, c, a) }
+  | x=IDENT c=ccolon a=term { Sig ($loc, qualifiers_of_crispness c, x, a) }
+  | q=nonempty_list(qualifier) x=IDENT c=ccolon a=term { Sig ($loc, qualifiers_of_crispness c @ q, x, a) }
   | y=IDENT args=list(pattern) EQ t=term { Clause ($loc, y, args, t) }
   | y=IDENT args=list(pattern) LRPAR { Clause ($loc, y, args, mk ~pos:$loc($3) (IndType_ind (`Empty, []))) }
-  | POSTULATE x=IDENT c=ccolon a=term { Decls [Def (x, c, false, Some a, mk ~pos:$loc @@ Opaque None)] }
-  | m=IMPORT { Decls [Def (m, Crisp, false, None, mk ~pos:$loc @@ Import m)] }
-  | OPEN m=IMPORT { Decls [Def (m, Crisp, false, None, mk ~pos:$loc(m) @@ Import m); Open (mk ~pos:$loc(m) @@ Var m)] }
+  | POSTULATE x=IDENT c=ccolon a=term { Decls [Def (x, qualifiers_of_crispness c, Some a, mk ~pos:$loc @@ Opaque None)] }
+  | m=IMPORT { Decls [Def (m, [Crisp], None, mk ~pos:$loc @@ Import m)] }
+  | OPEN m=IMPORT { Decls [Def (m, [Crisp], None, mk ~pos:$loc(m) @@ Import m); Open (mk ~pos:$loc(m) @@ Var m)] }
   | OPEN t=term { Decls [Open t] }
 
 atom:
@@ -126,7 +126,7 @@ fun_term:
   | abs=nonempty_list(binder_group) TO b=fun_term { pis ~pos:$loc abs b }
   | SIGMA LPAR x=IDENT COLON a=term RPAR DOT b=fun_term { mk ~pos:$loc @@ Sigma (x, a, b) }
   | FUN x=nonempty_list(pattern) to_dot t=fun_term { abss_pattern ~pos:$loc x t }
-  | LET x=IDENT c=ccolon a=term EQ t=term IN u=fun_term { mk ~pos:$loc @@ Let (c, x, a, t, u) }
+  | LET x=IDENT c=ccolon a=term EQ t=term IN u=fun_term { mk ~pos:$loc @@ Let (qualifiers_of_crispness c, x, a, t, u) }
   /* | LET x=pattern EQ t=term IN u=term { app (abs_pattern x u) t } */
 
 term:
@@ -148,6 +148,13 @@ pattern:
   | LPAR SUCC x=identm RPAR { `Nat (Some x) }
   | NIL { `List None }
   | LPAR CONS x=identm l=identm RPAR { `List (Some (x, l)) }
+
+qualifier:
+  | q=qualifier_kw option(N) { q }
+qualifier_kw:
+  | ABSTRACT { Abstract }
+  | PRIVATE { Private }
+  | LOCAL { Local }
 
 identm:
   | IDENT { $1 }

@@ -585,6 +585,11 @@ let fresh_meta ?pos env =
 (** Modules currently being imported, most recent first (used to detect cyclic imports). *)
 let importing = ref ([] : string list)
 
+(** Crispness of a let with given qualifiers (other qualifiers only make sense for declarations). *)
+let let_crispness ~t q =
+  if List.exists (fun q -> q <> (T.Crisp : T.qualifier)) q then error ~t "qualifier not supported in let";
+  T.crispness_of_qualifiers q
+
 (** Check that term has given type and elaborate it. Here, [k] is the current level (the number of bound variables, which is the length of [env] minus the number of definitions), values use de Bruijn levels and the elaborated terms use de Bruijn indices in [env]. *)
 let rec check k env ctx (t:term) (a:value) : term =
   if !Common.show_debug then debug "CHECK %s : %s\n%!" (string_of_term env t) (string_of_value k env a);
@@ -610,14 +615,15 @@ let rec check k env ctx (t:term) (a:value) : term =
     let ctx = Context.ext_tens ctx s x a in
     let t = check k env ctx t b in
     Abs (i, x, t)
-  | Let (c, x, a, t, u), b ->
+  | Let (q, x, a, t, u), b ->
+    let c = let_crispness ~t:t0 q in
     let a, _level = check_type k env (Context.crisp ~crispness:c ctx) a in
     let av = V.eval env a in
     let t = check k env (Context.crisp ~crispness:c ctx) t av in
     let env = (x, V.eval env t)::env in
     let ctx = Context.ext ~crispness:c ctx x av in
     let u = check k env ctx u b in
-    Let (c, x, a, t, u)
+    Let (q, x, a, t, u)
   | Pair (t, u), Sigma (a, b) ->
     let t = check k env ctx t a in
     let u =
@@ -989,17 +995,28 @@ and infer k env ctx (t:term) : term * value =
         T.Record (`Recursive, tm), V.RecordType ty
     )
   | Record (`Recursive, l) ->
-    let decls = List.map (fun (x,t) -> T.Def (x, Crisp, false, None, t)) l in
+    let decls =
+      List.map
+        (fun (x,t) ->
+           match t with
+           | T.Let (q, y, a, t, Var y') when x = y && y = y' ->
+             (* A typed field, see Helper.record_fields: we recover its declaration. Fields are crisp, as untyped ones. *)
+             let q = if List.mem (T.Crisp : T.qualifier) q then q else Crisp :: q in
+             T.Def (x, q, Some a, t)
+           | _ -> T.Def (x, [Crisp], None, t)
+        ) l
+    in
     let _,tm,ty = check_decls k env ctx decls in
     T.Record (`Recursive, tm), V.RecordType ty
-  | Let (c, x, a, t, u) ->
+  | Let (q, x, a, t, u) ->
+    let c = let_crispness ~t:t0 q in
     let a, _level = check_type k env (Context.crisp ~crispness:c ctx) a in
     let av = V.eval env a in
     let t = check k env (Context.crisp ~crispness:c ctx) t av in
     let env = (x, V.eval env t)::env in
     let ctx = Context.ext ~crispness:c ctx x av in
     let u, b = infer k env ctx u in
-    Let (c, x, a, t, u), b
+    Let (q, x, a, t, u), b
   | RecordField (t, x) ->
     let t0 = t in
     let t, a = infer k env ctx t in
@@ -1041,8 +1058,15 @@ and check_decls k env ctx (decls:T.decls) =
     let decl = List.hd !decls in
     decls := List.tl !decls;
     match decl with
-    | T.Def (x,c,abstract,a,t) ->
-      Common.print "\n%sDECL  %s = %s%s\n%!" (if abstract then "ABSTRACT " else "") x (T.to_string t) (match a with Some a -> " " ^ T.crispy_colon c ^ " " ^ T.to_string a | None -> "");
+    | T.Def (x,q,a,t) ->
+      let c = T.crispness_of_qualifiers q in
+      let qs =
+        q
+        |> List.filter (fun (q : T.qualifier) -> q <> T.Crisp)
+        |> List.map T.string_of_qualifier
+        |> String.concat " "
+      in
+      Common.print "\nDECL %s %s = %s%s\n%!" x qs (T.to_string t) (match a with Some a -> " " ^ T.crispy_colon c ^ " " ^ T.to_string a | None -> "");
       let t, a =
         match a with
         | Some a ->
@@ -1054,7 +1078,7 @@ and check_decls k env ctx (decls:T.decls) =
           infer k !env (Context.crisp ~crispness:c !ctx) t
       in
       let t =
-        if abstract then
+        if List.mem T.Abstract q then
           (
             (* The definition is elaborated to a fresh opaque constant so that it does not reduce, including when imported from another module. *)
             incr V.abstract;
@@ -1073,7 +1097,8 @@ and check_decls k env ctx (decls:T.decls) =
       tm := (x,t) :: !tm;
       env := (x, V.eval !env t) :: !env;
       ctx := Context.ext ~crispness:c !ctx x a;
-      ty := (x,c,a) :: !ty
+      (* Private declarations are kept in the record (later fields might refer to them) but not in its type, so that they cannot be accessed. *)
+      if not (List.mem T.Private q) then ty := (x,q,a) :: !ty
     | Open t ->
       let t0 = t in
       let t, a = infer k !env !ctx t in
@@ -1094,9 +1119,11 @@ and check_decls k env ctx (decls:T.decls) =
             )
         | _ -> fun _ -> false
       in
-      let l = List.filter (fun (x,_,_) -> not (already_bound x)) l in
+      (* Local fields are not brought in scope. *)
+      let l = List.filter (fun (x,q,_) -> not (List.mem T.Local q) && not (already_bound x)) l in
       let pos = T.Position.find_opt t0 in
-      List.iter (fun (x,c,_) -> decls := (Def (x,c,false,None,T.mk ?pos @@ RecordField(t0, x)) :: !decls)) (List.rev l)
+      (* The opened fields are aliases for the fields of the record: they only inherit their crispness (in particular, an abstract field must not produce a fresh opaque constant). *)
+      List.iter (fun (x,q,_) -> decls := (Def (x,List.filter (( = ) (T.Crisp : T.qualifier)) q,None,T.mk ?pos @@ RecordField(t0, x)) :: !decls)) (List.rev l)
   done;
   let tm = List.rev !tm in
   let ty = List.rev !ty in

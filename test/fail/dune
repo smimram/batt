@@ -1,5 +1,5 @@
 (rule
  (alias runtest)
- (deps (glob_files *.batt))
+ (deps (glob_files *.batt) ../QualifiersLib.batt)
  (action (run ./check))
 )

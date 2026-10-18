@@ -140,6 +140,24 @@ g = bool-not
 A file is checked only once, even if imported several times, and cyclic imports
 are rejected.
 
+### Private and local definitions
+
+```
+private secret : ℕ
+secret = 3
+
+local helper : ℕ
+helper = succ secret
+```
+
+A `private` definition can only be used in its own module: it is not a field of
+the module. A `local` definition is a field of the module, so that it can be
+accessed as `Foo.helper`, but it is not brought into scope when the module is
+opened. Qualifiers can be combined (e.g. `private abstract f : A`), may be put
+on their own line(s) just before the signature, and are only
+allowed before a type signature, in modules as well as in `record … end` (where
+`private` and `local` apply to the record instead of the module).
+
 ## Terms
 
 ### Universes

@@ -1,0 +1,4 @@
+import QualifiersLib
+
+s : ℕ
+s = QualifiersLib.secret

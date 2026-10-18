@@ -40,7 +40,7 @@ type t =
   | Hole of (Pos.t [@opaque]) * spine
   | Opaque of Term.abstract * spine
   | Def of (global [@opaque]) * spine * (t Lazy.t [@opaque]) (** a global definition applied to a spine, along with its unfolding (computed on demand) *)
-  | RecordType of (string * crispness * t) list
+  | RecordType of (string * Term.qualifier list * t) list
   | Record of (string * t) list
   | RecordField of string * spine
   | I | I0 | I1 | Iv of t * t | Iw of t * t

@@ -67,7 +67,7 @@ let rec compile_clauses ~pos rows =
              match p with
              | `Bool b' -> if b = b' then Some (l, t) else None
              | `Var (Explicit, "_") -> Some (l, t)
-             | `Var (Explicit, x) -> Some (l, mk ~pos @@ Let (Crisp, x, IndType (`Bool, []), IndTerm (`Bool b, []), t))
+             | `Var (Explicit, x) -> Some (l, mk ~pos @@ Let ([Crisp], x, IndType (`Bool, []), IndTerm (`Bool b, []), t))
              | _ -> error "unsupported pattern in boolean matching"
           ) (List.combine heads rows)
       in
@@ -86,11 +86,11 @@ let rec compile_clauses ~pos rows =
              | `Nat (Some x) ->
                if zero then None
                else if x = n || x = "_" then Some (l, t)
-               else Some (l, mk ~pos @@ Let (Normal, x, IndType (`Nat, []), Var n, t))
+               else Some (l, mk ~pos @@ Let ([], x, IndType (`Nat, []), Var n, t))
              | `Var (Explicit, "_") -> Some (l, t)
              | `Var (Explicit, x) ->
                let v = if zero then IndTerm (`Zero, []) else IndTerm (`Succ, [Var n]) in
-               Some (l, mk ~pos @@ Let (Normal, x, IndType (`Nat, []), v, t))
+               Some (l, mk ~pos @@ Let ([], x, IndType (`Nat, []), v, t))
              | _ -> error "unsupported pattern in natural number matching"
           ) (List.combine heads rows)
       in
@@ -105,7 +105,7 @@ let rec compile_clauses ~pos rows =
       in
       let x = name fst "_x" in
       let tl = name snd "_l" in
-      let alias y z t = if y = z || y = "_" then t else mk ~pos @@ Let (Normal, y, Meta (`Fresh None), Var z, t) in
+      let alias y z t = if y = z || y = "_" then t else mk ~pos @@ Let ([], y, Meta (`Fresh None), Var z, t) in
       let branch nil =
         List.filter_map
           (fun (p, (l, t)) ->
@@ -115,7 +115,7 @@ let rec compile_clauses ~pos rows =
              | `Var (Explicit, "_") -> Some (l, t)
              | `Var (Explicit, y) ->
                let v = if nil then IndTerm (`Nil, []) else IndTerm (`Cons, [Var x; Var tl]) in
-               Some (l, mk ~pos @@ Let (Normal, y, IndType (`List, [Meta (`Fresh None)]), v, t))
+               Some (l, mk ~pos @@ Let ([], y, IndType (`List, [Meta (`Fresh None)]), v, t))
              | _ -> error "unsupported pattern in list matching"
           ) (List.combine heads rows)
       in
@@ -135,7 +135,7 @@ let rec compile_clauses ~pos rows =
 
 (** A toplevel item, before grouping clauses. *)
 type item =
-  | Sig of Pos.t * bool * string * crispness * t (** type signature, the boolean indicates whether the definition is abstract *)
+  | Sig of Pos.t * qualifier list * string * t (** type signature with the qualifiers of the definition *)
   | Clause of Pos.t * string * pattern list * t (** defining clause *)
   | Decls of decls (** other declarations *)
 
@@ -145,9 +145,8 @@ and pattern = [`Var of icit * string | `Unit | `Pair of string * string | `Tens 
 let record_fields (decls : decls) =
   List.map
     (function
-      | Def (x, _, false, None, t) -> x, t
-      | Def (x, c, false, Some a, t) -> x, Let (c, x, a, t, Var x)
-      | Def (x, _, true, _, _) -> failwith @@ Printf.sprintf "abstract field %s not supported in records" x
+      | Def (x, _, None, t) -> x, t
+      | Def (x, q, Some a, t) -> x, Let (q, x, a, t, Var x)
       | Open _ -> failwith "open not supported in records"
     ) decls
 
@@ -172,8 +171,8 @@ let rec group_decls items =
   | Clause (_, x, _, _) :: _ ->
     (* Definition without type: its type is inferred. *)
     let _, t, items = clauses x items in
-    Def (x, Crisp, false, None, Lazy.force t) :: group_decls items
-  | Sig (pos, abstract, x, c, a) :: items ->
+    Def (x, [Crisp], None, Lazy.force t) :: group_decls items
+  | Sig (pos, q, x, a) :: items ->
     let cl, t, items = clauses x items in
     (
       match cl, items with
@@ -181,4 +180,4 @@ let rec group_decls items =
       | [], _ -> failwith @@ Printf.sprintf "%s: missing definition for %s" (Pos.to_string pos) x
       | _ -> ()
     );
-    Def (x, c, abstract, Some a, Lazy.force t) :: group_decls items
+    Def (x, q, Some a, Lazy.force t) :: group_decls items
