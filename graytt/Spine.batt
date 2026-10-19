@@ -57,9 +57,11 @@ thicken-unit {X} u = Tensor.unit-right {X} (Tensor.unit-left {X ⨂ ⊤} u)
 thicken-counit ∷ {X ∷ U} → X → thicken ⊤ X ⊤
 thicken-counit x = tt ⊗ (x ⊗ tt)
 
+private
 thicken-unit-counit ∷ {X ∷ U} (x : X) → thicken-unit {X} (thicken-counit {X} x) ≡ x
 thicken-unit-counit x = refl
 
+private
 thicken-counit-unit ∷ {X ∷ U} (u : thicken ⊤ X ⊤) → thicken-counit {X} (thicken-unit {X} u) ≡ u
 thicken-counit-unit {X} u =
   trans (cong (Tensor.counit-left {X ⨂ ⊤}) (Tensor.counit-unit-right {X} (Tensor.unit-left {X ⨂ ⊤} u)))

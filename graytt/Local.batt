@@ -55,12 +55,14 @@ is-localᵣ-unit {S} {T} ι =
 --
 
 -- restriction of the data of an oplax cone
+private
 pullback-coneᵣ-data-restr ∷ {S T ∷ U} (ι ∷ S → T) (A B C ∷ U) → pullback-coneᵣ-data T A B C → pullback-coneᵣ-data S A B C
 pullback-coneᵣ-data-restr {S} {T} ι A B C x =
   (restrᵣ {S} {T} ι A (Product.fst x) , restrᵣ {S} {T} ι B (Product.fst (Product.snd x)) ,
    restrᵣ {S} {T} ι (path C) (Product.snd (Product.snd x)))
 
 -- it is the product of the three restrictions
+private
 pullback-coneᵣ-data-restr-prod ∷ {S T ∷ U} (ι ∷ S → T) (A B C ∷ U) (x : pullback-coneᵣ-data T A B C) →
   prod-map (restrᵣ {S} {T} ι A) (prod-map (restrᵣ {S} {T} ι B) (restrᵣ {S} {T} ι (path C))) x
     ≡ pullback-coneᵣ-data-restr {S} {T} ι A B C x
@@ -71,6 +73,7 @@ pullback-coneᵣ-data-restr-prod {S} {T} ι A B C (u , r) =
     fun (v , H) → refl in
   k r
 
+private
 is-equiv-pullback-coneᵣ-data-restr ∷ {S T ∷ U} (ι ∷ S → T) {A B C ∷ U} →
   is-localᵣ {S} {T} ι A → is-localᵣ {S} {T} ι B → is-localᵣ {S} {T} ι C → is-equiv (pullback-coneᵣ-data-restr {S} {T} ι A B C)
 is-equiv-pullback-coneᵣ-data-restr {S} {T} ι {A} {B} {C} lA lB lC =
@@ -82,12 +85,14 @@ is-equiv-pullback-coneᵣ-data-restr {S} {T} ι {A} {B} {C} lA lB lC =
       (is-equiv-prod-map (restrᵣ {S} {T} ι B) (restrᵣ {S} {T} ι (path C)) lB (is-localᵣ-path {S} {T} ι {C} lC)))
 
 -- restriction of the endpoint paths of an oplax cone: the action of the restriction into C on paths
+private
 pullback-coneᵣ-paths-restr ∷ {S T ∷ U} (ι ∷ S → T) {A B C ∷ U} (g ∷ A → C) (h ∷ B → C) (x : pullback-coneᵣ-data T A B C) →
   pullback-coneᵣ-paths T {A} {B} {C} g h x → pullback-coneᵣ-paths S {A} {B} {C} g h (pullback-coneᵣ-data-restr {S} {T} ι A B C x)
 pullback-coneᵣ-paths-restr {S} {T} ι {A} {B} {C} g h x =
   prod-map (cong (restrᵣ {S} {T} ι C) {postᵣ {T} {path C} {C} (path-src {C}) (Product.snd (Product.snd x))} {postᵣ {T} {A} {C} g (Product.fst x)})
     (cong (restrᵣ {S} {T} ι C) {postᵣ {T} {path C} {C} (path-tgt {C}) (Product.snd (Product.snd x))} {postᵣ {T} {B} {C} h (Product.fst (Product.snd x))})
 
+private
 is-equiv-pullback-coneᵣ-paths-restr ∷ {S T ∷ U} (ι ∷ S → T) {A B C ∷ U} (g ∷ A → C) (h ∷ B → C) →
   is-localᵣ {S} {T} ι C → (x : pullback-coneᵣ-data T A B C) → is-equiv (pullback-coneᵣ-paths-restr {S} {T} ι {A} {B} {C} g h x)
 is-equiv-pullback-coneᵣ-paths-restr {S} {T} ι {A} {B} {C} g h lC x =
@@ -98,6 +103,7 @@ is-equiv-pullback-coneᵣ-paths-restr {S} {T} ι {A} {B} {C} g h lC x =
     (ap-equiv (restrᵣ {S} {T} ι C) lC (postᵣ {T} {path C} {C} (path-tgt {C}) (Product.snd (Product.snd x))) (postᵣ {T} {B} {C} h (Product.fst (Product.snd x))))
 
 -- restriction of oplax cones
+private
 pullback-coneᵣ-restr ∷ {S T ∷ U} (ι ∷ S → T) {A B C ∷ U} (g ∷ A → C) (h ∷ B → C) →
   pullback-coneᵣ T {A} {B} {C} g h → pullback-coneᵣ S {A} {B} {C} g h
 pullback-coneᵣ-restr {S} {T} ι {A} {B} {C} g h w =
@@ -106,6 +112,7 @@ pullback-coneᵣ-restr {S} {T} ι {A} {B} {C} g h w =
          {λ x . pullback-coneᵣ-paths S {A} {B} {C} g h (pullback-coneᵣ-data-restr {S} {T} ι A B C x)}
       (pullback-coneᵣ-paths-restr {S} {T} ι {A} {B} {C} g h) w)
 
+private
 is-equiv-pullback-coneᵣ-restr ∷ {S T ∷ U} (ι ∷ S → T) {A B C ∷ U} (g ∷ A → C) (h ∷ B → C) →
   is-localᵣ {S} {T} ι A → is-localᵣ {S} {T} ι B → is-localᵣ {S} {T} ι C → is-equiv (pullback-coneᵣ-restr {S} {T} ι {A} {B} {C} g h)
 is-equiv-pullback-coneᵣ-restr {S} {T} ι {A} {B} {C} g h lA lB lC =
@@ -121,6 +128,7 @@ is-equiv-pullback-coneᵣ-restr {S} {T} ι {A} {B} {C} g h lA lB lC =
       (pullback-coneᵣ-paths-restr {S} {T} ι {A} {B} {C} g h) (is-equiv-pullback-coneᵣ-paths-restr {S} {T} ι {A} {B} {C} g h lC))
 
 -- the comparison with oplax cones commutes with restriction, judgmentally
+private
 pullback→coneᵣ-restr ∷ {S T ∷ U} (ι ∷ S → T) {A B C ∷ U} (g ∷ A → C) (h ∷ B → C) (φ : T →ᵣ pullback {A} {B} {C} g h) →
   pullback-coneᵣ-restr {S} {T} ι {A} {B} {C} g h (pullback→coneᵣ T {A} {B} {C} g h φ)
     ≡ pullback→coneᵣ S {A} {B} {C} g h (restrᵣ {S} {T} ι (pullback {A} {B} {C} g h) φ)

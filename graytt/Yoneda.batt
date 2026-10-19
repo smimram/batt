@@ -45,6 +45,7 @@ yon ∷ {A ∷ U} (a ∷ A) (F ∷ A → U) (sA : is-segalᵣ A) (sF : is-segal�
 yon {A} a F sA sF cF u x f = push {A} F sA sF cF {a} {x} f u
 
 -- evid ∘ yon is the identity
+private
 evid-yon ∷ {A ∷ U} (a ∷ A) (F ∷ A → U) (sA : is-segalᵣ A) (sF : is-segalᵣ (Σ (x : A) . F x)) (cF : is-covariant {A} F sA sF)
   (u : F a) → evid {A} a F (yon {A} a F sA sF cF u) ≡ u
 evid-yon {A} a F sA sF cF u = push-id {A} F sA sF cF {a} u
@@ -62,6 +63,7 @@ evid-yon {A} a F sA sF cF u = push-id {A} F sA sF cF {a} u
 --
 
 -- f_! (φ a id_a) = φ x f
+private
 cocart-map-push-id ∷ {A ∷ U} (sA : is-segalᵣ A) (a ∷ A) (G ∷ A → U) (sG : is-segalᵣ (Σ (x : A) . G x))
   (cG : is-covariant {A} G sA sG) (φ : (x : A) → hom-family {A} a x → G x)
   (cφ : is-cocartesian-map {A} (hom-family {A} a) G sA (is-segalᵣ-hom-family {A} sA a) sG φ) {x : A} (f : hom {A} a x) →
@@ -99,6 +101,7 @@ cocart-map-push-id {A} sA a G sG cG φ cφ {x} (fc , r) =
   k r
 
 -- yon ∘ evid is the identity on cocartesian maps
+private
 yon-evid ∷ {A ∷ U} (sA : is-segalᵣ A) (a ∷ A) (G ∷ A → U) (sG : is-segalᵣ (Σ (x : A) . G x))
   (cG : is-covariant {A} G sA sG) (φ : (x : A) → hom-family {A} a x → G x)
   (cφ : is-cocartesian-map {A} (hom-family {A} a) G sA (is-segalᵣ-hom-family {A} sA a) sG φ) →
@@ -125,6 +128,7 @@ yon-evid {A} sA a G sG cG φ cφ =
 --
 
 -- the total map of yon u (Y)
+private
 yon-total ∷ {A ∷ U} (a ∷ A) (F ∷ A → U) (sA : is-segalᵣ A) (sF : is-segalᵣ (Σ (x : A) . F x)) (cF : is-covariant {A} F sA sF)
   (u : F a) → (Σ (x : A) . hom-family {A} a x) → Σ (x : A) . F x
 yon-total {A} a F sA sF cF u = tot {A} {hom-family {A} a} {F} (yon {A} a F sA sF cF u)
@@ -136,6 +140,7 @@ yon-is-cocartesian {A} a F sA sF cF u =
   is-cocartesian-map {A} (hom-family {A} a) F sA (is-segalᵣ-hom-family {A} sA a) sF (yon {A} a F sA sF cF u)
 
 -- Y sends the connections Γ̄_f to cocartesian 1-cells
+private
 yon-conn-cocart ∷ {A ∷ U} (a ∷ A) (F ∷ A → U) (sA : is-segalᵣ A) (sF : is-segalᵣ (Σ (x : A) . F x)) (cF : is-covariant {A} F sA sF)
   (u : F a) → U
 yon-conn-cocart {A} a F sA sF cF u =
@@ -145,6 +150,7 @@ yon-conn-cocart {A} a F sA sF cF u =
       (cell-hom {Σ (x : A) . hom-family {A} a x} (hom-family-conn {A} a f p)))
 
 -- it suffices
+private
 yon-is-cocartesian-from-conn ∷ {A ∷ U} (rA : is-rezkᵣ A) (a ∷ A) (F ∷ A → U) (sF : is-segalᵣ (Σ (x : A) . F x))
   (cF : is-covariant {A} F (rezk-segalᵣ {A} rA) sF) (u : F a) →
   yon-conn-cocart {A} a F (rezk-segalᵣ {A} rA) sF cF u → yon-is-cocartesian {A} a F (rezk-segalᵣ {A} rA) sF cF u
@@ -184,6 +190,7 @@ yon-is-cocartesian-from-conn {A} rA a F sF cF u H =
 -- The Yoneda lemma, given that yon lands in cocartesian maps
 --
 
+private
 yon-cocart ∷ {A ∷ U} (a ∷ A) (F ∷ A → U) (sA : is-segalᵣ A) (sF : is-segalᵣ (Σ (x : A) . F x)) (cF : is-covariant {A} F sA sF) →
   ((u : F a) → yon-is-cocartesian {A} a F sA sF cF u) →
   F a → cocart-fibrewise-map {A} (hom-family {A} a) F sA (is-segalᵣ-hom-family {A} sA a) sF
@@ -191,6 +198,7 @@ yon-cocart ∷ {A ∷ U} (a ∷ A) (F ∷ A → U) (sA : is-segalᵣ A) (sF : is
 -- preserves-cocartesian, see test/todo/Implicit_lambda_capture.batt)
 yon-cocart {A} a F sA sF cF yc u = (yon {A} a F sA sF cF u , λ {w} {w'} γ cγ . yc u {w} {w'} γ cγ)
 
+private
 evid-cocart ∷ {A ∷ U} (a ∷ A) (F ∷ A → U) (sA : is-segalᵣ A) (sF : is-segalᵣ (Σ (x : A) . F x)) →
   cocart-fibrewise-map {A} (hom-family {A} a) F sA (is-segalᵣ-hom-family {A} sA a) sF → F a
 evid-cocart {A} a F sA sF m =
@@ -224,6 +232,7 @@ yoneda {A} a F sA sF cF yc =
 --
 
 -- the statement, for g : hom b a and a 1-cell f from a
+private
 yon-hom-conn-cocart-stmt ∷ {A ∷ U} (rA : is-rezkᵣ A) (a b ∷ A) → hom {A} b a × coslice a → U
 yon-hom-conn-cocart-stmt {A} rA a b (g , fp) =
   let sA : is-segalᵣ A = rezk-segalᵣ {A} rA in
@@ -235,6 +244,7 @@ yon-hom-conn-cocart-stmt {A} rA a b (g , fp) =
   k fp
 
 -- for the first edges of a 2-simplex σ, with paths γ₀ : σ 0 ≡ b and γ₁ : σ 1 ≡ a
+private
 yon-hom-conn-cocart-simplex ∷ {A ∷ U} (rA : is-rezkᵣ A) (a b ∷ A) (σ : simplex 2 →ᵣ A)
   (γ₀ : σ (Simplex2.edge₀₁ 𝕀0) ≡ b) (γ₁ : σ (Simplex2.edge₀₁ 𝕀1) ≡ a) →
   yon-hom-conn-cocart-stmt {A} rA a b
@@ -262,6 +272,7 @@ yon-hom-conn-cocart-simplex {A} rA a b σ γ₀ γ₁ =
     (htpyᵣ→path 𝕀 Eb H) (snd _ (hom-family-lift {A} sA b σ γ₀))
 
 -- Y sends every connection to a cocartesian 1-cell
+private
 yon-hom-conn-cocart ∷ {A ∷ U} (rA : is-rezkᵣ A) (a b ∷ A) (z : hom {A} b a × coslice a) → yon-hom-conn-cocart-stmt {A} rA a b z
 yon-hom-conn-cocart {A} rA a b z =
   let R : (σ : simplex 2 →ᵣ A) → U = λ σ .

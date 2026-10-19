@@ -42,6 +42,7 @@ is-prop-preserves-cocartesian {X} {Y} {A} sX sY sA p q f =
 
 -- it suffices to check it on the homs of 1-cells, cell-hom c (with refl endpoint paths): the endpoint
 -- paths of a hom are moved away by path induction
+private
 preserves-cocartesian-cells-aux ∷ {X Y A ∷ U} (sX : is-segalᵣ X) (sY : is-segalᵣ Y) (sA : is-segalᵣ A) (p ∷ X → A) (q ∷ Y → A)
   (f : X → Y) →
   ((c : arrᵣ X) → is-cocartesian {X} {A} sX sA p {srcᵣ c} {tgtᵣ c} (cell-hom {X} c) →

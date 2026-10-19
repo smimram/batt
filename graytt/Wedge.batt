@@ -120,24 +120,28 @@ wedge→coconeᵣ {W} {A} {B} inl inr a b γ X φ =
   (preᵣ {A} {W} {X} φ inl , preᵣ {B} {W} {X} φ inr , congᵣ {W} {X} φ {inl a} {inr b} γ)
 
 -- the universal oplax cocone, as a cartesian cocone with values in Q →ₗ X
+private
 wedge-univ-glue-funᵣ ∷ {A B ∷ U} (a ∷ A) (b ∷ B) (X ∷ U) →
   (λ w . wedge-coconeᵣ-fst w a) ≡{wedge-coconeᵣ a b X → X} (λ w . wedge-coconeᵣ-snd w b)
 wedge-univ-glue-funᵣ {A} {B} a b X =
   funext-htpy {wedge-coconeᵣ a b X} {λ _ . X}
     (λ w . wedge-coconeᵣ-fst w a) (λ w . wedge-coconeᵣ-snd w b) (wedge-coconeᵣ-glue {A} {B} {a} {b} {X})
 
+private
 wedge-univ-glueᵣ ∷ {A B ∷ U} (a ∷ A) (b ∷ B) (X ∷ U) →
   (λ w . wedge-coconeᵣ-fst w a) ≡{wedge-coconeᵣ a b X →ₗ X} (λ w . wedge-coconeᵣ-snd w b)
 wedge-univ-glueᵣ {A} {B} a b X =
   cong {wedge-coconeᵣ a b X → X} {wedge-coconeᵣ a b X →ₗ X} (arr→arrₗ {wedge-coconeᵣ a b X} {X})
     (wedge-univ-glue-funᵣ a b X)
 
+private
 wedge-univ-coconeᵣ ∷ {A B ∷ U} (a ∷ A) (b ∷ B) (X ∷ U) → wedge-cocone a b (wedge-coconeᵣ a b X →ₗ X)
 wedge-univ-coconeᵣ {A} {B} a b X =
   ((λ a' . λ w . wedge-coconeᵣ-fst {A} {B} {a} {b} {X} w a') ,
       (λ b' . λ w . wedge-coconeᵣ-snd {A} {B} {a} {b} {X} w b') , wedge-univ-glueᵣ a b X)
 
 -- the inverse: extend the universal cocone, then apply it to w
+private
 wedge-univ-extᵣ ∷ {W A B ∷ U} (inl ∷ A → W) (inr ∷ B → W) (a ∷ A) (b ∷ B) (γ ∷ inl a ≡ inr b)
   (up ∷ wedge-cart-up inl inr a b γ) (X ∷ U) →
   W → (wedge-coconeᵣ a b X →ₗ X)
@@ -146,6 +150,7 @@ wedge-univ-extᵣ {W} {A} {B} inl inr a b γ up X =
     (is-equiv-sec (wedge→cocone inl inr a b γ (wedge-coconeᵣ a b X →ₗ X)) (up (wedge-coconeᵣ a b X →ₗ X)))
     (wedge-univ-coconeᵣ a b X)
 
+private
 wedge-univ-ext-restrᵣ ∷ {W A B ∷ U} (inl ∷ A → W) (inr ∷ B → W) (a ∷ A) (b ∷ B) (γ ∷ inl a ≡ inr b)
   (up ∷ wedge-cart-up inl inr a b γ) (X ∷ U) →
   wedge→cocone inl inr a b γ (wedge-coconeᵣ a b X →ₗ X) (wedge-univ-extᵣ inl inr a b γ up X)
@@ -167,6 +172,7 @@ cocone→wedgeᵣ {W} {A} {B} inl inr a b γ up X w =
 --
 
 -- a crisp cartesian cocone with values in Q →ₗ X, evaluated at a point w : Q
+private
 wedge-cocone-evalᵣ ∷ {A B ∷ U} (a ∷ A) (b ∷ B) (X ∷ U) (d ∷ wedge-cocone a b (wedge-coconeᵣ a b X →ₗ X)) →
   wedge-coconeᵣ a b X → wedge-coconeᵣ a b X
 wedge-cocone-evalᵣ {A} {B} a b X d w =
@@ -174,6 +180,7 @@ wedge-cocone-evalᵣ {A} {B} a b X d w =
    happlyₗ-at {wedge-coconeᵣ a b X} {X} {wedge-cocone-fst d a} {wedge-cocone-snd d b} (wedge-cocone-glue d) w)
 
 -- restricting λ s . e s w is evaluating the restriction of e at w
+private
 wedge→coconeᵣ-eval ∷ {W A B ∷ U} (inl ∷ A → W) (inr ∷ B → W) (a ∷ A) (b ∷ B) (γ ∷ inl a ≡ inr b) (X ∷ U)
   (e ∷ W → (wedge-coconeᵣ a b X →ₗ X)) (w : wedge-coconeᵣ a b X) →
   wedge→coconeᵣ inl inr a b γ X (λ s . e s w)
@@ -183,11 +190,13 @@ wedge→coconeᵣ-eval {W} {A} {B} inl inr a b γ X e w =
     (λ z . ((λ a . e (inl a) w) , (λ b . e (inr b) w) , z))
     (congᵣ-family {W} {wedge-coconeᵣ a b X} {X} γ e w)
 
+private
 wedge-cocone-evalᵣ-path ∷ {A B ∷ U} (a ∷ A) (b ∷ B) (X ∷ U) {d d' ∷ wedge-cocone a b (wedge-coconeᵣ a b X →ₗ X)}
   (p ∷ d ≡ d') (w : wedge-coconeᵣ a b X) → wedge-cocone-evalᵣ a b X d w ≡ wedge-cocone-evalᵣ a b X d' w
 wedge-cocone-evalᵣ-path {A} {B} a b X {d} refl w = refl
 
 -- evaluating the universal cocone at w gives back w
+private
 wedge-univ-glue-evᵣ ∷ {A B ∷ U} (a ∷ A) (b ∷ B) (X ∷ U) (w : wedge-coconeᵣ a b X) →
   happlyₗ-at {wedge-coconeᵣ a b X} {X} {λ w . wedge-coconeᵣ-fst w a} {λ w . wedge-coconeᵣ-snd w b}
     (wedge-univ-glueᵣ a b X) w ≡ wedge-coconeᵣ-glue {A} {B} {a} {b} {X} w
@@ -201,15 +210,18 @@ wedge-univ-glue-evᵣ {A} {B} a b X w =
        (happly-funext-htpy {wedge-coconeᵣ a b X} {λ _ . X}
          (λ w . wedge-coconeᵣ-fst w a) (λ w . wedge-coconeᵣ-snd w b) (wedge-coconeᵣ-glue {A} {B} {a} {b} {X})) w)
 
+private
 wedge-univ-cocone-evalᵣ-aux2 ∷ {A B ∷ U} (a ∷ A) (b ∷ B) (X ∷ U) (f : A →ᵣ X) (g : B →ᵣ X) (q : f a ≡ g b) →
   wedge-cocone-evalᵣ a b X (wedge-univ-coconeᵣ a b X) (f , g , q) ≡ (f , g , q)
 wedge-univ-cocone-evalᵣ-aux2 {A} {B} a b X f g q =
   cong {f a ≡ g b} {wedge-coconeᵣ a b X} (λ z . (f , g , z)) (wedge-univ-glue-evᵣ a b X (f , g , q))
 
+private
 wedge-univ-cocone-evalᵣ-aux1 ∷ {A B ∷ U} (a ∷ A) (b ∷ B) (X ∷ U) (f : A →ᵣ X) (r : Σ (g : B →ᵣ X) . f a ≡ g b) →
   wedge-cocone-evalᵣ a b X (wedge-univ-coconeᵣ a b X) (f , r) ≡ (f , r)
 wedge-univ-cocone-evalᵣ-aux1 {A} {B} a b X f (g , q) = wedge-univ-cocone-evalᵣ-aux2 a b X f g q
 
+private
 wedge-univ-cocone-evalᵣ ∷ {A B ∷ U} (a ∷ A) (b ∷ B) (X ∷ U) (w : wedge-coconeᵣ a b X) →
   wedge-cocone-evalᵣ a b X (wedge-univ-coconeᵣ a b X) w ≡ w
 wedge-univ-cocone-evalᵣ {A} {B} a b X (f , r) = wedge-univ-cocone-evalᵣ-aux1 a b X f r
@@ -227,16 +239,19 @@ wedge→coconeᵣ-sec {W} {A} {B} inl inr a b γ up X w =
 --
 
 -- precomposition with the restriction, from the family on Q to the family on W →ᵣ X
+private
 wedge-pre-restrᵣ ∷ {W A B ∷ U} (inl ∷ A → W) (inr ∷ B → W) (a ∷ A) (b ∷ B) (γ ∷ inl a ≡ inr b) (X ∷ U) →
   (wedge-coconeᵣ a b X →ₗ X) → ((W →ᵣ X) →ₗ X)
 wedge-pre-restrᵣ {W} {A} {B} inl inr a b γ X h = λ φ . h (wedge→coconeᵣ inl inr a b γ X φ)
 
 -- evaluation: the universal family on W →ᵣ X
+private
 wedge-ev-familyᵣ ∷ {W ∷ U} (X ∷ U) → W → ((W →ᵣ X) →ₗ X)
 wedge-ev-familyᵣ {W} X s = λ φ . φ s
 
 -- the key coherence: precomposing the universal glue with the restriction gives the glue of
 -- the evaluation family (both are determined by their pointwise values, by happly-injectivity)
+private
 wedge-univ-glue-preᵣ ∷ {W A B ∷ U} (inl ∷ A → W) (inr ∷ B → W) (a ∷ A) (b ∷ B) (γ ∷ inl a ≡ inr b) (X ∷ U) →
   cong {wedge-coconeᵣ a b X → X} {(W →ᵣ X) → X} (λ m . λ φ . m (wedge→coconeᵣ inl inr a b γ X φ))
     (wedge-univ-glue-funᵣ a b X)
@@ -258,6 +273,7 @@ wedge-univ-glue-preᵣ {W} {A} {B} inl inr a b γ X =
         (sym (happly-evᵣ-path {W} {X} γ))))
 
 -- the universal cocone, precomposed with the restriction, is the cocone of the evaluation family
+private
 wedge-univ-cocone-preᵣ ∷ {W A B ∷ U} (inl ∷ A → W) (inr ∷ B → W) (a ∷ A) (b ∷ B) (γ ∷ inl a ≡ inr b) (X ∷ U) →
   wedge-cocone-post (wedge-pre-restrᵣ inl inr a b γ X) (wedge-univ-coconeᵣ a b X) ≡ wedge→cocone
     inl inr a b γ ((W →ᵣ X) →ₗ X) (wedge-ev-familyᵣ X)
@@ -276,6 +292,7 @@ wedge-univ-cocone-preᵣ {W} {A} {B} inl inr a b γ X =
           (sym (cong-evᵣ-path {W} {X} γ)))))
 
 -- the two families on W →ᵣ X agree, by injectivity of the cartesian comparison map
+private
 wedge-univ-ext-evᵣ ∷ {W A B ∷ U} (inl ∷ A → W) (inr ∷ B → W) (a ∷ A) (b ∷ B) (γ ∷ inl a ≡ inr b)
   (up ∷ wedge-cart-up inl inr a b γ) (X ∷ U) →
   (λ s . wedge-pre-restrᵣ inl inr a b γ X (wedge-univ-extᵣ inl inr a b γ up X s))
@@ -350,24 +367,28 @@ wedge→coconeₗ {W} {A} {B} inl inr a b γ X φ =
   (preₗ {A} {W} {X} φ inl , preₗ {B} {W} {X} φ inr , congₗ {W} {X} φ {inl a} {inr b} γ)
 
 -- the universal lax cocone, as a cartesian cocone with values in Q →ᵣ X
+private
 wedge-univ-glue-funₗ ∷ {A B ∷ U} (a ∷ A) (b ∷ B) (X ∷ U) →
   (λ w . wedge-coconeₗ-fst w a) ≡{wedge-coconeₗ a b X → X} (λ w . wedge-coconeₗ-snd w b)
 wedge-univ-glue-funₗ {A} {B} a b X =
   funext-htpy {wedge-coconeₗ a b X} {λ _ . X}
     (λ w . wedge-coconeₗ-fst w a) (λ w . wedge-coconeₗ-snd w b) (wedge-coconeₗ-glue {A} {B} {a} {b} {X})
 
+private
 wedge-univ-glueₗ ∷ {A B ∷ U} (a ∷ A) (b ∷ B) (X ∷ U) →
   (λ w . wedge-coconeₗ-fst w a) ≡{wedge-coconeₗ a b X →ᵣ X} (λ w . wedge-coconeₗ-snd w b)
 wedge-univ-glueₗ {A} {B} a b X =
   cong {wedge-coconeₗ a b X → X} {wedge-coconeₗ a b X →ᵣ X} (arr→arrᵣ {wedge-coconeₗ a b X} {X})
     (wedge-univ-glue-funₗ a b X)
 
+private
 wedge-univ-coconeₗ ∷ {A B ∷ U} (a ∷ A) (b ∷ B) (X ∷ U) → wedge-cocone a b (wedge-coconeₗ a b X →ᵣ X)
 wedge-univ-coconeₗ {A} {B} a b X =
   ((λ a' . λ w . wedge-coconeₗ-fst {A} {B} {a} {b} {X} w a') ,
       (λ b' . λ w . wedge-coconeₗ-snd {A} {B} {a} {b} {X} w b') , wedge-univ-glueₗ a b X)
 
 -- the inverse: extend the universal cocone, then apply it to w
+private
 wedge-univ-extₗ ∷ {W A B ∷ U} (inl ∷ A → W) (inr ∷ B → W) (a ∷ A) (b ∷ B) (γ ∷ inl a ≡ inr b)
   (up ∷ wedge-cart-up inl inr a b γ) (X ∷ U) →
   W → (wedge-coconeₗ a b X →ᵣ X)
@@ -376,6 +397,7 @@ wedge-univ-extₗ {W} {A} {B} inl inr a b γ up X =
     (is-equiv-sec (wedge→cocone inl inr a b γ (wedge-coconeₗ a b X →ᵣ X)) (up (wedge-coconeₗ a b X →ᵣ X)))
     (wedge-univ-coconeₗ a b X)
 
+private
 wedge-univ-ext-restrₗ ∷ {W A B ∷ U} (inl ∷ A → W) (inr ∷ B → W) (a ∷ A) (b ∷ B) (γ ∷ inl a ≡ inr b)
   (up ∷ wedge-cart-up inl inr a b γ) (X ∷ U) →
   wedge→cocone inl inr a b γ (wedge-coconeₗ a b X →ᵣ X) (wedge-univ-extₗ inl inr a b γ up X)
@@ -397,6 +419,7 @@ cocone→wedgeₗ {W} {A} {B} inl inr a b γ up X w =
 --
 
 -- a crisp cartesian cocone with values in Q →ᵣ X, evaluated at a point w : Q
+private
 wedge-cocone-evalₗ ∷ {A B ∷ U} (a ∷ A) (b ∷ B) (X ∷ U) (d ∷ wedge-cocone a b (wedge-coconeₗ a b X →ᵣ X)) →
   wedge-coconeₗ a b X → wedge-coconeₗ a b X
 wedge-cocone-evalₗ {A} {B} a b X d w =
@@ -404,6 +427,7 @@ wedge-cocone-evalₗ {A} {B} a b X d w =
    happlyᵣ-at {wedge-coconeₗ a b X} {X} {wedge-cocone-fst d a} {wedge-cocone-snd d b} (wedge-cocone-glue d) w)
 
 -- restricting λ s . e s w is evaluating the restriction of e at w
+private
 wedge→coconeₗ-eval ∷ {W A B ∷ U} (inl ∷ A → W) (inr ∷ B → W) (a ∷ A) (b ∷ B) (γ ∷ inl a ≡ inr b) (X ∷ U)
   (e ∷ W → (wedge-coconeₗ a b X →ᵣ X)) (w : wedge-coconeₗ a b X) →
   wedge→coconeₗ inl inr a b γ X (λ s . e s w)
@@ -413,11 +437,13 @@ wedge→coconeₗ-eval {W} {A} {B} inl inr a b γ X e w =
     (λ z . ((λ a . e (inl a) w) , (λ b . e (inr b) w) , z))
     (congₗ-family {W} {wedge-coconeₗ a b X} {X} γ e w)
 
+private
 wedge-cocone-evalₗ-path ∷ {A B ∷ U} (a ∷ A) (b ∷ B) (X ∷ U) {d d' ∷ wedge-cocone a b (wedge-coconeₗ a b X →ᵣ X)}
   (p ∷ d ≡ d') (w : wedge-coconeₗ a b X) → wedge-cocone-evalₗ a b X d w ≡ wedge-cocone-evalₗ a b X d' w
 wedge-cocone-evalₗ-path {A} {B} a b X {d} refl w = refl
 
 -- evaluating the universal cocone at w gives back w
+private
 wedge-univ-glue-evₗ ∷ {A B ∷ U} (a ∷ A) (b ∷ B) (X ∷ U) (w : wedge-coconeₗ a b X) →
   happlyᵣ-at {wedge-coconeₗ a b X} {X} {λ w . wedge-coconeₗ-fst w a} {λ w . wedge-coconeₗ-snd w b}
     (wedge-univ-glueₗ a b X) w ≡ wedge-coconeₗ-glue {A} {B} {a} {b} {X} w
@@ -431,15 +457,18 @@ wedge-univ-glue-evₗ {A} {B} a b X w =
        (happly-funext-htpy {wedge-coconeₗ a b X} {λ _ . X}
          (λ w . wedge-coconeₗ-fst w a) (λ w . wedge-coconeₗ-snd w b) (wedge-coconeₗ-glue {A} {B} {a} {b} {X})) w)
 
+private
 wedge-univ-cocone-evalₗ-aux2 ∷ {A B ∷ U} (a ∷ A) (b ∷ B) (X ∷ U) (f : A →ₗ X) (g : B →ₗ X) (q : f a ≡ g b) →
   wedge-cocone-evalₗ a b X (wedge-univ-coconeₗ a b X) (f , g , q) ≡ (f , g , q)
 wedge-univ-cocone-evalₗ-aux2 {A} {B} a b X f g q =
   cong {f a ≡ g b} {wedge-coconeₗ a b X} (λ z . (f , g , z)) (wedge-univ-glue-evₗ a b X (f , g , q))
 
+private
 wedge-univ-cocone-evalₗ-aux1 ∷ {A B ∷ U} (a ∷ A) (b ∷ B) (X ∷ U) (f : A →ₗ X) (r : Σ (g : B →ₗ X) . f a ≡ g b) →
   wedge-cocone-evalₗ a b X (wedge-univ-coconeₗ a b X) (f , r) ≡ (f , r)
 wedge-univ-cocone-evalₗ-aux1 {A} {B} a b X f (g , q) = wedge-univ-cocone-evalₗ-aux2 a b X f g q
 
+private
 wedge-univ-cocone-evalₗ ∷ {A B ∷ U} (a ∷ A) (b ∷ B) (X ∷ U) (w : wedge-coconeₗ a b X) →
   wedge-cocone-evalₗ a b X (wedge-univ-coconeₗ a b X) w ≡ w
 wedge-univ-cocone-evalₗ {A} {B} a b X (f , r) = wedge-univ-cocone-evalₗ-aux1 a b X f r
@@ -457,16 +486,19 @@ wedge→coconeₗ-sec {W} {A} {B} inl inr a b γ up X w =
 --
 
 -- precomposition with the restriction, from the family on Q to the family on W →ₗ X
+private
 wedge-pre-restrₗ ∷ {W A B ∷ U} (inl ∷ A → W) (inr ∷ B → W) (a ∷ A) (b ∷ B) (γ ∷ inl a ≡ inr b) (X ∷ U) →
   (wedge-coconeₗ a b X →ᵣ X) → ((W →ₗ X) →ᵣ X)
 wedge-pre-restrₗ {W} {A} {B} inl inr a b γ X h = λ φ . h (wedge→coconeₗ inl inr a b γ X φ)
 
 -- evaluation: the universal family on W →ₗ X
+private
 wedge-ev-familyₗ ∷ {W ∷ U} (X ∷ U) → W → ((W →ₗ X) →ᵣ X)
 wedge-ev-familyₗ {W} X s = λ φ . φ s
 
 -- the key coherence: precomposing the universal glue with the restriction gives the glue of
 -- the evaluation family (both are determined by their pointwise values, by happly-injectivity)
+private
 wedge-univ-glue-preₗ ∷ {W A B ∷ U} (inl ∷ A → W) (inr ∷ B → W) (a ∷ A) (b ∷ B) (γ ∷ inl a ≡ inr b) (X ∷ U) →
   cong {wedge-coconeₗ a b X → X} {(W →ₗ X) → X} (λ m . λ φ . m (wedge→coconeₗ inl inr a b γ X φ))
     (wedge-univ-glue-funₗ a b X)
@@ -488,6 +520,7 @@ wedge-univ-glue-preₗ {W} {A} {B} inl inr a b γ X =
         (sym (happly-evₗ-path {W} {X} γ))))
 
 -- the universal cocone, precomposed with the restriction, is the cocone of the evaluation family
+private
 wedge-univ-cocone-preₗ ∷ {W A B ∷ U} (inl ∷ A → W) (inr ∷ B → W) (a ∷ A) (b ∷ B) (γ ∷ inl a ≡ inr b) (X ∷ U) →
   wedge-cocone-post (wedge-pre-restrₗ inl inr a b γ X) (wedge-univ-coconeₗ a b X) ≡ wedge→cocone
     inl inr a b γ ((W →ₗ X) →ᵣ X) (wedge-ev-familyₗ X)
@@ -506,6 +539,7 @@ wedge-univ-cocone-preₗ {W} {A} {B} inl inr a b γ X =
           (sym (cong-evₗ-path {W} {X} γ)))))
 
 -- the two families on W →ₗ X agree, by injectivity of the cartesian comparison map
+private
 wedge-univ-ext-evₗ ∷ {W A B ∷ U} (inl ∷ A → W) (inr ∷ B → W) (a ∷ A) (b ∷ B) (γ ∷ inl a ≡ inr b)
   (up ∷ wedge-cart-up inl inr a b γ) (X ∷ U) →
   (λ s . wedge-pre-restrₗ inl inr a b γ X (wedge-univ-extₗ inl inr a b γ up X s))

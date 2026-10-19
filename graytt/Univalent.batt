@@ -29,6 +29,7 @@ is-biinv-hom {X} s {x} {y} f =
   (Σ (h : hom y x) . comp-homᵣ s {y} {x} {y} h f ≡ Hom.id {X} y)
 
 -- a section and a retraction agree: h = h ; (f ; g) = (h ; f) ; g = g
+private
 biinv-sec-ret ∷ {X ∷ U} (s : is-segalᵣ X) {x y : X} (f : hom x y) (g h : hom y x) →
   comp-homᵣ s {x} {y} {x} f g ≡ Hom.id {X} x → comp-homᵣ s {y} {x} {y} h f ≡ Hom.id {X} y → h ≡ g
 biinv-sec-ret {X} s {x} {y} f g h p q =

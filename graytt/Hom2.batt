@@ -17,12 +17,14 @@ open import Composition
 coslice-pullback ∷ {A ∷ U} (x y ∷ A) → U
 coslice-pullback {A} x y = pullback {⊤} {coslice x} {A} (λ _ . y) (λ w . tgtᵣ (coslice-cell {A} {x} w))
 
+private
 hom→coslice-pullback-aux ∷ {A ∷ U} (x y ∷ A) (f : arrᵣ A) → hom-boundary x y f → coslice-pullback {A} x y
 hom→coslice-pullback-aux x y f (p , q) = (tt , (f , p) , sym q)
 
 hom→coslice-pullback ∷ {A ∷ U} (x y ∷ A) → hom x y → coslice-pullback {A} x y
 hom→coslice-pullback {A} x y (f , pq) = hom→coslice-pullback-aux {A} x y f pq
 
+private
 coslice-pullback→hom-aux ∷ {A ∷ U} (x y ∷ A) (w : coslice x) → y ≡ tgtᵣ (coslice-cell {A} {x} w) → hom x y
 coslice-pullback→hom-aux x y (f , p) q = (f , p , sym q)
 
@@ -30,18 +32,22 @@ coslice-pullback→hom ∷ {A ∷ U} (x y ∷ A) → coslice-pullback {A} x y �
 coslice-pullback→hom {A} x y (t , r) =
   coslice-pullback→hom-aux {A} x y (fst (λ w . y ≡ tgtᵣ (coslice-cell {A} {x} w)) r) (snd (λ w . y ≡ tgtᵣ (coslice-cell {A} {x} w)) r)
 
+private
 hom→coslice-pullback-ret-aux ∷ {A ∷ U} (x y ∷ A) (f : arrᵣ A) (pq : hom-boundary x y f) →
   coslice-pullback→hom {A} x y (hom→coslice-pullback {A} x y (f , pq)) ≡ (f , pq)
 hom→coslice-pullback-ret-aux x y f (p , q) = cong {f 𝕀1 ≡ y} {hom x y} (λ q' . (f , p , q')) (sym-sym q)
 
+private
 hom→coslice-pullback-sec-aux ∷ {A ∷ U} (x y ∷ A) (w : coslice x) (q : y ≡ tgtᵣ (coslice-cell {A} {x} w)) →
   hom→coslice-pullback {A} x y (coslice-pullback→hom {A} x y (tt , w , q)) ≡ (tt , w , q)
 hom→coslice-pullback-sec-aux x y (f , p) q = cong {y ≡ f 𝕀1} {coslice-pullback x y} (λ q' . (tt , (f , p) , q')) (sym-sym q)
 
+private
 hom→coslice-pullback-sec-tt ∷ {A ∷ U} (x y ∷ A) (r : Σ (w : coslice x) . y ≡ tgtᵣ (coslice-cell {A} {x} w)) →
   hom→coslice-pullback {A} x y (coslice-pullback→hom {A} x y (tt , r)) ≡ (tt , r)
 hom→coslice-pullback-sec-tt x y (w , q) = hom→coslice-pullback-sec-aux x y w q
 
+private
 hom→coslice-pullback-sec ∷ {A ∷ U} (x y ∷ A) (t : ⊤) (r : Σ (w : coslice x) . y ≡ tgtᵣ (coslice-cell {A} {x} w)) →
   hom→coslice-pullback {A} x y (coslice-pullback→hom {A} x y (t , r)) ≡ (t , r)
 hom→coslice-pullback-sec x y tt r = hom→coslice-pullback-sec-tt x y r

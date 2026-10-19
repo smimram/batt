@@ -19,15 +19,18 @@ open import Axiom
 --
 
 -- the data of a T-indexed family of oplax cones, curried along T
+private
 curried-cone-dataᵣ ∷ (T K A B C ∷ U) → U
 curried-cone-dataᵣ T K A B C = (T → K →ᵣ A) × (T → K →ᵣ B) × (T → K →ᵣ path C)
 
+private
 curried-cone-pathsᵣ ∷ (T K ∷ U) {A B C ∷ U} (g ∷ A → C) (h ∷ B → C) → curried-cone-dataᵣ T K A B C → U
 curried-cone-pathsᵣ T K {A} {B} {C} g h y =
   ((λ t . postᵣ {K} {path C} {C} (path-src {C}) (Product.snd (Product.snd y) t)) ≡{T → K →ᵣ C} (λ t . postᵣ {K} {A} {C} g (Product.fst y t))) ×
   ((λ t . postᵣ {K} {path C} {C} (path-tgt {C}) (Product.snd (Product.snd y) t)) ≡{T → K →ᵣ C} (λ t . postᵣ {K} {B} {C} h (Product.fst (Product.snd y) t)))
 
 -- currying the data and the paths of a cone with vertex T ⨂ K
+private
 cone-data→curriedᵣ ∷ (T K A B C ∷ U) → pullback-cone-data (T ⨂ K) A B C → curried-cone-dataᵣ T K A B C
 cone-data→curriedᵣ T K A B C =
   flat-Σ-map {T ⨂ K → A} {T → K →ᵣ A} {λ _ . (T ⨂ K → B) × (T ⨂ K → path C)} {λ _ . (T → K →ᵣ B) × (T → K →ᵣ path C)}
@@ -35,6 +38,7 @@ cone-data→curriedᵣ T K A B C =
     (λ _ . flat-Σ-map {T ⨂ K → B} {T → K →ᵣ B} {λ _ . T ⨂ K → path C} {λ _ . T → K →ᵣ path C}
              (Tensor.curry-right' {T} {K} {B}) (λ _ . Tensor.curry-right' {T} {K} {path C}))
 
+private
 cone-paths→curriedᵣ ∷ (T K ∷ U) {A B C ∷ U} (g ∷ A → C) (h ∷ B → C) (x : pullback-cone-data (T ⨂ K) A B C) →
   ((post {T ⨂ K} {path C} {C} (path-src {C}) (Product.snd (Product.snd x)) ≡ post {T ⨂ K} {A} {C} g (Product.fst x)) ×
    (post {T ⨂ K} {path C} {C} (path-tgt {C}) (Product.snd (Product.snd x)) ≡ post {T ⨂ K} {B} {C} h (Product.fst (Product.snd x)))) →
@@ -47,6 +51,7 @@ cone-paths→curriedᵣ T K {A} {B} {C} g h (α , r) =
     (cong (Tensor.curry-right' {T} {K} {C}) p , cong (Tensor.curry-right' {T} {K} {C}) p') in
   k r
 
+private
 cone→curriedᵣ ∷ (T K ∷ U) {A B C ∷ U} (g ∷ A → C) (h ∷ B → C) →
   pullback-cone {T ⨂ K} {A} {B} {C} g h → Σ (y : curried-cone-dataᵣ T K A B C) . curried-cone-pathsᵣ T K {A} {B} {C} g h y
 cone→curriedᵣ T K {A} {B} {C} g h =
@@ -57,6 +62,7 @@ cone→curriedᵣ T K {A} {B} {C} g h =
     (cone-data→curriedᵣ T K A B C) (cone-paths→curriedᵣ T K {A} {B} {C} g h)
 
 -- currying cones is an equivalence on global points
+private
 is-equiv-flat-cone-data→curriedᵣ ∷ (T K A B C ∷ U) → is-equiv (flat-map {pullback-cone-data (T ⨂ K) A B C} {curried-cone-dataᵣ T K A B C} (cone-data→curriedᵣ T K A B C))
 is-equiv-flat-cone-data→curriedᵣ T K A B C =
   flat-Σ-map-equiv {T ⨂ K → A} {T → K →ᵣ A} {λ _ . (T ⨂ K → B) × (T ⨂ K → path C)} {λ _ . (T → K →ᵣ B) × (T → K →ᵣ path C)}
@@ -68,6 +74,7 @@ is-equiv-flat-cone-data→curriedᵣ T K A B C =
              (Tensor.curry-right' {T} {K} {B}) (λ _ . Tensor.curry-right' {T} {K} {path C})
              (is-equiv-flat-tens-uncurryᵣ {T} {K} {B}) (λ _ . is-equiv-flat-tens-uncurryᵣ {T} {K} {path C}))
 
+private
 is-equiv-flat-cone-paths→curriedᵣ ∷ (T K ∷ U) {A B C ∷ U} (g ∷ A → C) (h ∷ B → C) (x ∷ pullback-cone-data (T ⨂ K) A B C) →
   is-equiv (flat-map {(post {T ⨂ K} {path C} {C} (path-src {C}) (Product.snd (Product.snd x)) ≡ post {T ⨂ K} {A} {C} g (Product.fst x)) ×
                       (post {T ⨂ K} {path C} {C} (path-tgt {C}) (Product.snd (Product.snd x)) ≡ post {T ⨂ K} {B} {C} h (Product.fst (Product.snd x)))}
@@ -99,6 +106,7 @@ is-equiv-flat-cone-paths→curriedᵣ T K {A} {B} {C} g h (α , r) =
   in
   k r
 
+private
 is-equiv-flat-cone→curriedᵣ ∷ (T K ∷ U) {A B C ∷ U} (g ∷ A → C) (h ∷ B → C) →
   is-equiv (flat-map {pullback-cone {T ⨂ K} {A} {B} {C} g h} {Σ (y : curried-cone-dataᵣ T K A B C) . curried-cone-pathsᵣ T K {A} {B} {C} g h y}
                      (cone→curriedᵣ T K {A} {B} {C} g h))
@@ -114,6 +122,7 @@ is-equiv-flat-cone→curriedᵣ T K {A} {B} {C} g h =
 -- Distributing T over Σ (a genuine equivalence, by funext)
 --
 
+private
 curried→conesᵣ ∷ (T K ∷ U) {A B C ∷ U} (g ∷ A → C) (h ∷ B → C) →
   (Σ (y : curried-cone-dataᵣ T K A B C) . curried-cone-pathsᵣ T K {A} {B} {C} g h y) → T → pullback-coneᵣ K {A} {B} {C} g h
 curried→conesᵣ T K {A} {B} {C} g h (y , ps) t =
@@ -121,6 +130,7 @@ curried→conesᵣ T K {A} {B} {C} g h (y , ps) t =
    happly {T} {λ _ . K →ᵣ C} {λ t' . postᵣ {K} {path C} {C} (path-src {C}) (Product.snd (Product.snd y) t')} {λ t' . postᵣ {K} {A} {C} g (Product.fst y t')} (Product.fst ps) t ,
    happly {T} {λ _ . K →ᵣ C} {λ t' . postᵣ {K} {path C} {C} (path-tgt {C}) (Product.snd (Product.snd y) t')} {λ t' . postᵣ {K} {B} {C} h (Product.fst (Product.snd y) t')} (Product.snd ps) t)
 
+private
 cones→curriedᵣ ∷ (T K ∷ U) {A B C ∷ U} (g ∷ A → C) (h ∷ B → C) →
   (T → pullback-coneᵣ K {A} {B} {C} g h) → Σ (y : curried-cone-dataᵣ T K A B C) . curried-cone-pathsᵣ T K {A} {B} {C} g h y
 cones→curriedᵣ T K {A} {B} {C} g h F =
@@ -133,6 +143,7 @@ cones→curriedᵣ T K {A} {B} {C} g h F =
    funext-htpy {T} {λ _ . K →ᵣ C} (λ t . postᵣ {K} {path C} {C} (path-tgt {C}) (H' t)) (λ t . postᵣ {K} {B} {C} h (V' t))
      (λ t . Product.snd (snd (pullback-coneᵣ-paths K {A} {B} {C} g h) (F t))))
 
+private
 curried→conesᵣ-sec ∷ (T K ∷ U) {A B C ∷ U} (g ∷ A → C) (h ∷ B → C) (F : T → pullback-coneᵣ K {A} {B} {C} g h) →
   curried→conesᵣ T K {A} {B} {C} g h (cones→curriedᵣ T K {A} {B} {C} g h F) ≡ F
 curried→conesᵣ-sec T K {A} {B} {C} g h F =
@@ -155,6 +166,7 @@ curried→conesᵣ-sec T K {A} {B} {C} g h F =
                    (happly {T} {λ t' . postᵣ {K} {path C} {C} (path-tgt {C}) (H' t') ≡ postᵣ {K} {B} {C} h (V' t')} hs' t))
              (pullback-coneᵣ-eta K {A} {B} {C} g h (F t)))
 
+private
 curried→conesᵣ-retr ∷ (T K ∷ U) {A B C ∷ U} (g ∷ A → C) (h ∷ B → C) (d : Σ (y : curried-cone-dataᵣ T K A B C) . curried-cone-pathsᵣ T K {A} {B} {C} g h y) →
   cones→curriedᵣ T K {A} {B} {C} g h (curried→conesᵣ T K {A} {B} {C} g h d) ≡ d
 curried→conesᵣ-retr T K {A} {B} {C} g h (y , ps) =
@@ -176,6 +188,7 @@ curried→conesᵣ-retr T K {A} {B} {C} g h (y , ps) =
                         fun (V' , H') (p , p') → k U' V' H' p p' in k2 r ps in
   k1 y ps
 
+private
 is-equiv-curried→conesᵣ ∷ (T K ∷ U) {A B C ∷ U} (g ∷ A → C) (h ∷ B → C) → is-equiv (curried→conesᵣ T K {A} {B} {C} g h)
 is-equiv-curried→conesᵣ T K {A} {B} {C} g h =
   ((cones→curriedᵣ T K {A} {B} {C} g h , curried→conesᵣ-sec T K {A} {B} {C} g h) ,
@@ -186,6 +199,7 @@ is-equiv-curried→conesᵣ T K {A} {B} {C} g h =
 --
 
 -- on the global points of T, the comparison map is the composite of the four equivalences above
+private
 flat-pullback→coneᵣ-factored ∷ (T K ∷ U) {A B C ∷ U} (g ∷ A → C) (h ∷ B → C) →
   ♭(T → K →ᵣ pullback {A} {B} {C} g h) → ♭(T → pullback-coneᵣ K {A} {B} {C} g h)
 flat-pullback→coneᵣ-factored T K {A} {B} {C} g h =
@@ -196,6 +210,7 @@ flat-pullback→coneᵣ-factored T K {A} {B} {C} g h =
   (flat-map {T ⨂ K → pullback {A} {B} {C} g h} {pullback-cone {T ⨂ K} {A} {B} {C} g h} (pullback→cone {T ⨂ K} {A} {B} {C} g h) ∘
    flat-tens-curryᵣ {T} {K} {pullback {A} {B} {C} g h}))
 
+private
 is-equiv-flat-pullback→coneᵣ-factored ∷ (T K ∷ U) {A B C ∷ U} (g ∷ A → C) (h ∷ B → C) → is-equiv (flat-pullback→coneᵣ-factored T K {A} {B} {C} g h)
 is-equiv-flat-pullback→coneᵣ-factored T K {A} {B} {C} g h =
   let P ∷ U = pullback {A} {B} {C} g h in
@@ -215,6 +230,7 @@ is-equiv-flat-pullback→coneᵣ-factored T K {A} {B} {C} g h =
         (is-equiv-flat-tens-curryᵣ {T} {K} {P})))
 
 -- the composite agrees with the comparison map on global points, judgmentally
+private
 flat-pullback→coneᵣ-factored-htpy ∷ (T K ∷ U) {A B C ∷ U} (g ∷ A → C) (h ∷ B → C) (ψ : ♭(T → K →ᵣ pullback {A} {B} {C} g h)) →
   flat-pullback→coneᵣ-factored T K {A} {B} {C} g h ψ ≡
   flat-map {T → K →ᵣ pullback {A} {B} {C} g h} {T → pullback-coneᵣ K {A} {B} {C} g h}
@@ -258,15 +274,18 @@ pullback-oplax-up K {A} {B} {C} g h =
 --
 
 -- the data, curried along T
+private
 curried-cone-dataₗ ∷ (T K A B C ∷ U) → U
 curried-cone-dataₗ T K A B C = (T → K →ₗ A) × (T → K →ₗ B) × (T → K →ₗ path C)
 
+private
 curried-cone-pathsₗ ∷ (T K ∷ U) {A B C ∷ U} (g ∷ A → C) (h ∷ B → C) → curried-cone-dataₗ T K A B C → U
 curried-cone-pathsₗ T K {A} {B} {C} g h y =
   ((λ t . postₗ {K} {path C} {C} (path-src {C}) (Product.snd (Product.snd y) t)) ≡{T → K →ₗ C} (λ t . postₗ {K} {A} {C} g (Product.fst y t))) ×
   ((λ t . postₗ {K} {path C} {C} (path-tgt {C}) (Product.snd (Product.snd y) t)) ≡{T → K →ₗ C} (λ t . postₗ {K} {B} {C} h (Product.fst (Product.snd y) t)))
 
 -- currying the data and the paths of a cone with vertex T ⨂ K
+private
 cone-data→curriedₗ ∷ (T K A B C ∷ U) → pullback-cone-data (K ⨂ T) A B C → curried-cone-dataₗ T K A B C
 cone-data→curriedₗ T K A B C =
   flat-Σ-map {K ⨂ T → A} {T → K →ₗ A} {λ _ . (K ⨂ T → B) × (K ⨂ T → path C)} {λ _ . (T → K →ₗ B) × (T → K →ₗ path C)}
@@ -274,6 +293,7 @@ cone-data→curriedₗ T K A B C =
     (λ _ . flat-Σ-map {K ⨂ T → B} {T → K →ₗ B} {λ _ . K ⨂ T → path C} {λ _ . T → K →ₗ path C}
              (Tensor.curry-left' {K} {T} {B}) (λ _ . Tensor.curry-left' {K} {T} {path C}))
 
+private
 cone-paths→curriedₗ ∷ (T K ∷ U) {A B C ∷ U} (g ∷ A → C) (h ∷ B → C) (x : pullback-cone-data (K ⨂ T) A B C) →
   ((post {K ⨂ T} {path C} {C} (path-src {C}) (Product.snd (Product.snd x)) ≡ post {K ⨂ T} {A} {C} g (Product.fst x)) ×
    (post {K ⨂ T} {path C} {C} (path-tgt {C}) (Product.snd (Product.snd x)) ≡ post {K ⨂ T} {B} {C} h (Product.fst (Product.snd x)))) →
@@ -286,6 +306,7 @@ cone-paths→curriedₗ T K {A} {B} {C} g h (α , r) =
     (cong (Tensor.curry-left' {K} {T} {C}) p , cong (Tensor.curry-left' {K} {T} {C}) p') in
   k r
 
+private
 cone→curriedₗ ∷ (T K ∷ U) {A B C ∷ U} (g ∷ A → C) (h ∷ B → C) →
   pullback-cone {K ⨂ T} {A} {B} {C} g h → Σ (y : curried-cone-dataₗ T K A B C) . curried-cone-pathsₗ T K {A} {B} {C} g h y
 cone→curriedₗ T K {A} {B} {C} g h =
@@ -296,6 +317,7 @@ cone→curriedₗ T K {A} {B} {C} g h =
     (cone-data→curriedₗ T K A B C) (cone-paths→curriedₗ T K {A} {B} {C} g h)
 
 -- currying cones is an equivalence on global points
+private
 is-equiv-flat-cone-data→curriedₗ ∷ (T K A B C ∷ U) → is-equiv (flat-map {pullback-cone-data (K ⨂ T) A B C} {curried-cone-dataₗ T K A B C} (cone-data→curriedₗ T K A B C))
 is-equiv-flat-cone-data→curriedₗ T K A B C =
   flat-Σ-map-equiv {K ⨂ T → A} {T → K →ₗ A} {λ _ . (K ⨂ T → B) × (K ⨂ T → path C)} {λ _ . (T → K →ₗ B) × (T → K →ₗ path C)}
@@ -307,6 +329,7 @@ is-equiv-flat-cone-data→curriedₗ T K A B C =
              (Tensor.curry-left' {K} {T} {B}) (λ _ . Tensor.curry-left' {K} {T} {path C})
              (is-equiv-flat-tens-uncurryₗ {K} {T} {B}) (λ _ . is-equiv-flat-tens-uncurryₗ {K} {T} {path C}))
 
+private
 is-equiv-flat-cone-paths→curriedₗ ∷ (T K ∷ U) {A B C ∷ U} (g ∷ A → C) (h ∷ B → C) (x ∷ pullback-cone-data (K ⨂ T) A B C) →
   is-equiv (flat-map {(post {K ⨂ T} {path C} {C} (path-src {C}) (Product.snd (Product.snd x)) ≡ post {K ⨂ T} {A} {C} g (Product.fst x)) ×
                       (post {K ⨂ T} {path C} {C} (path-tgt {C}) (Product.snd (Product.snd x)) ≡ post {K ⨂ T} {B} {C} h (Product.fst (Product.snd x)))}
@@ -338,6 +361,7 @@ is-equiv-flat-cone-paths→curriedₗ T K {A} {B} {C} g h (α , r) =
   in
   k r
 
+private
 is-equiv-flat-cone→curriedₗ ∷ (T K ∷ U) {A B C ∷ U} (g ∷ A → C) (h ∷ B → C) →
   is-equiv (flat-map {pullback-cone {K ⨂ T} {A} {B} {C} g h} {Σ (y : curried-cone-dataₗ T K A B C) . curried-cone-pathsₗ T K {A} {B} {C} g h y}
                      (cone→curriedₗ T K {A} {B} {C} g h))
@@ -353,6 +377,7 @@ is-equiv-flat-cone→curriedₗ T K {A} {B} {C} g h =
 -- Distributing T over Σ (a genuine equivalence, by funext)
 --
 
+private
 curried→conesₗ ∷ (T K ∷ U) {A B C ∷ U} (g ∷ A → C) (h ∷ B → C) →
   (Σ (y : curried-cone-dataₗ T K A B C) . curried-cone-pathsₗ T K {A} {B} {C} g h y) → T → pullback-coneₗ K {A} {B} {C} g h
 curried→conesₗ T K {A} {B} {C} g h (y , ps) t =
@@ -360,6 +385,7 @@ curried→conesₗ T K {A} {B} {C} g h (y , ps) t =
    happly {T} {λ _ . K →ₗ C} {λ t' . postₗ {K} {path C} {C} (path-src {C}) (Product.snd (Product.snd y) t')} {λ t' . postₗ {K} {A} {C} g (Product.fst y t')} (Product.fst ps) t ,
    happly {T} {λ _ . K →ₗ C} {λ t' . postₗ {K} {path C} {C} (path-tgt {C}) (Product.snd (Product.snd y) t')} {λ t' . postₗ {K} {B} {C} h (Product.fst (Product.snd y) t')} (Product.snd ps) t)
 
+private
 cones→curriedₗ ∷ (T K ∷ U) {A B C ∷ U} (g ∷ A → C) (h ∷ B → C) →
   (T → pullback-coneₗ K {A} {B} {C} g h) → Σ (y : curried-cone-dataₗ T K A B C) . curried-cone-pathsₗ T K {A} {B} {C} g h y
 cones→curriedₗ T K {A} {B} {C} g h F =
@@ -372,6 +398,7 @@ cones→curriedₗ T K {A} {B} {C} g h F =
    funext-htpy {T} {λ _ . K →ₗ C} (λ t . postₗ {K} {path C} {C} (path-tgt {C}) (H' t)) (λ t . postₗ {K} {B} {C} h (V' t))
      (λ t . Product.snd (snd (pullback-coneₗ-paths K {A} {B} {C} g h) (F t))))
 
+private
 curried→conesₗ-sec ∷ (T K ∷ U) {A B C ∷ U} (g ∷ A → C) (h ∷ B → C) (F : T → pullback-coneₗ K {A} {B} {C} g h) →
   curried→conesₗ T K {A} {B} {C} g h (cones→curriedₗ T K {A} {B} {C} g h F) ≡ F
 curried→conesₗ-sec T K {A} {B} {C} g h F =
@@ -394,6 +421,7 @@ curried→conesₗ-sec T K {A} {B} {C} g h F =
                    (happly {T} {λ t' . postₗ {K} {path C} {C} (path-tgt {C}) (H' t') ≡ postₗ {K} {B} {C} h (V' t')} hs' t))
              (pullback-coneₗ-eta K {A} {B} {C} g h (F t)))
 
+private
 curried→conesₗ-retr ∷ (T K ∷ U) {A B C ∷ U} (g ∷ A → C) (h ∷ B → C) (d : Σ (y : curried-cone-dataₗ T K A B C) . curried-cone-pathsₗ T K {A} {B} {C} g h y) →
   cones→curriedₗ T K {A} {B} {C} g h (curried→conesₗ T K {A} {B} {C} g h d) ≡ d
 curried→conesₗ-retr T K {A} {B} {C} g h (y , ps) =
@@ -415,6 +443,7 @@ curried→conesₗ-retr T K {A} {B} {C} g h (y , ps) =
                         fun (V' , H') (p , p') → k U' V' H' p p' in k2 r ps in
   k1 y ps
 
+private
 is-equiv-curried→conesₗ ∷ (T K ∷ U) {A B C ∷ U} (g ∷ A → C) (h ∷ B → C) → is-equiv (curried→conesₗ T K {A} {B} {C} g h)
 is-equiv-curried→conesₗ T K {A} {B} {C} g h =
   ((cones→curriedₗ T K {A} {B} {C} g h , curried→conesₗ-sec T K {A} {B} {C} g h) ,
@@ -425,6 +454,7 @@ is-equiv-curried→conesₗ T K {A} {B} {C} g h =
 --
 
 -- on the global points of T, the comparison map is the composite of the four equivalences above
+private
 flat-pullback→coneₗ-factored ∷ (T K ∷ U) {A B C ∷ U} (g ∷ A → C) (h ∷ B → C) →
   ♭(T → K →ₗ pullback {A} {B} {C} g h) → ♭(T → pullback-coneₗ K {A} {B} {C} g h)
 flat-pullback→coneₗ-factored T K {A} {B} {C} g h =
@@ -435,6 +465,7 @@ flat-pullback→coneₗ-factored T K {A} {B} {C} g h =
   (flat-map {K ⨂ T → pullback {A} {B} {C} g h} {pullback-cone {K ⨂ T} {A} {B} {C} g h} (pullback→cone {K ⨂ T} {A} {B} {C} g h) ∘
    flat-tens-curryₗ {K} {T} {pullback {A} {B} {C} g h}))
 
+private
 is-equiv-flat-pullback→coneₗ-factored ∷ (T K ∷ U) {A B C ∷ U} (g ∷ A → C) (h ∷ B → C) → is-equiv (flat-pullback→coneₗ-factored T K {A} {B} {C} g h)
 is-equiv-flat-pullback→coneₗ-factored T K {A} {B} {C} g h =
   let P ∷ U = pullback {A} {B} {C} g h in
@@ -454,6 +485,7 @@ is-equiv-flat-pullback→coneₗ-factored T K {A} {B} {C} g h =
         (is-equiv-flat-tens-curryₗ {K} {T} {P})))
 
 -- the composite agrees with the comparison map on global points, judgmentally
+private
 flat-pullback→coneₗ-factored-htpy ∷ (T K ∷ U) {A B C ∷ U} (g ∷ A → C) (h ∷ B → C) (ψ : ♭(T → K →ₗ pullback {A} {B} {C} g h)) →
   flat-pullback→coneₗ-factored T K {A} {B} {C} g h ψ ≡
   flat-map {T → K →ₗ pullback {A} {B} {C} g h} {T → pullback-coneₗ K {A} {B} {C} g h}

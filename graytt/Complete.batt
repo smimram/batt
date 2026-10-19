@@ -75,16 +75,19 @@ is-completeₗ X = (a ∷ list ℕ) (b ∷ list ℕ) →
 --
 
 -- weakening by an unused middle argument
+private
 cur-const ∷ {Q S T ∷ U} → (Q →ᵣ T) → (Q →ᵣ S →ᵣ T)
 cur-const {Q} {S} {T} k q s = k q
 
 -- restriction along τ, curried, is the weakening by E
+private
 cur-complete-restr ∷ (a ∷ list ℕ) (b ∷ list ℕ) (X ∷ U) (g : grid a ⨂ grid b →ᵣ X) →
   cur-const {grid a} {free-equiv} {grid b →ᵣ X} (Tensor.curry-right {grid a} {grid b} {X} g)
     ≡ cur2 {grid a} {free-equiv} {grid b} {X} (complete-restrᵣ a b X g)
 cur-complete-restr a b X g = refl
 
 -- postcomposition with a crisp equivalence of the target
+private
 cur-const-equiv ∷ {Q S ∷ U} {T T' ∷ U} (h ∷ T → T') (eh ∷ is-equiv h) →
   is-equiv (cur-const {Q} {S} {T}) → is-equiv (cur-const {Q} {S} {T'})
 cur-const-equiv {Q} {S} {T} {T'} h eh e =

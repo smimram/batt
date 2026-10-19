@@ -47,6 +47,7 @@ cong-cell-transported-id {B} {b} {x0} {x1} {p} {p'} a {q} {q'} c =
 --
 
 -- the action on homs of a constant map
+private
 hom-map-const-aux ∷ {S B ∷ U} (b ∷ B) (c : arrᵣ S) {w0 : S} (e0 : srcᵣ c ≡ w0) {w1 : S} (e1 : tgtᵣ c ≡ w1) →
   hom-map {S} {B} (λ _ . b) {w0} {w1} (c , e0 , e1) ≡ Hom.id {B} b
 hom-map-const-aux {S} {B} b c {w0} e0 {w1} e1 =
@@ -57,6 +58,7 @@ hom-map-const {S} {B} b {w0} {w1} g =
   trans (cong {hom w0 w1} {hom {B} b b} (hom-map {S} {B} (λ _ . b) {w0} {w1}) (sym (hom-eta {S} {w0} {w1} g)))
     (hom-map-const-aux {S} {B} b (hom-cell {S} {w0} {w1} g) (hom-src {S} {w0} {w1} g) (hom-tgt {S} {w0} {w1} g))
 
+private
 hom-map-const-comp-stmt ∷ (S B ∷ U) (b ∷ B) (sS : is-segalᵣ S) (sB : is-segalᵣ B) {x y z : S} (u : hom x y) (v : hom y z) → U
 hom-map-const-comp-stmt S B b sS sB {x} {y} {z} u v =
   hom-map-const {S} {B} b {x} {z} (comp-homᵣ sS {x} {y} {z} u v)
@@ -64,6 +66,7 @@ hom-map-const-comp-stmt S B b sS sB {x} {y} {z} u v =
       (trans (cong2 {hom {B} b b} {hom {B} b b} {hom {B} b b} (λ m n . comp-homᵣ sB {b} {b} {b} m n) (hom-map-const {S} {B} b {x} {y} u) (hom-map-const {S} {B} b {y} {z} v))
         (transported-id-comp {B} sB {b} {b} refl {b} refl {b} refl))
 
+private
 hom-map-const-comp-simplex ∷ (S B ∷ U) (b ∷ B) (sS : is-segalᵣ S) (sB : is-segalᵣ B) (Ψ : simplex 2 →ᵣ S) →
   hom-map-const-comp-stmt S B b sS sB (simplex2-hom₀₁ {S} Ψ) (simplex2-hom₁₂ {S} Ψ)
 hom-map-const-comp-simplex S B b sS sB Ψ =

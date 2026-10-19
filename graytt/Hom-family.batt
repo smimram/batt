@@ -57,6 +57,7 @@ is-equiv-coslice→hom-family {A} a =
 
 -- an object (z , λ j . z , p , refl) of E, with p : z ≡ a, is the identity of a (by path induction
 -- on sym p, whose free endpoint is on the right)
+private
 hom-family-id-path-sym ∷ {A ∷ U} (a ∷ A) {z : A} (q : a ≡ z) →
   (z , (λ j . z) , sym q , refl) ≡{Σ (x : A) . hom-family {A} a x} (a , Hom.id {A} a)
 hom-family-id-path-sym {A} a refl = refl
@@ -68,10 +69,12 @@ hom-family-id-path {A} a {z} p =
     (sym-sym p) (hom-family-id-path-sym {A} a {z} (sym p))
 
 -- its image in A, through the total map of any fibrewise map, is p
+private
 hom-family-id-path-sym-tot ∷ {A ∷ U} (a ∷ A) (G ∷ A → U) (φ : (x : A) → hom-family {A} a x → G x) {z : A} (q : a ≡ z) →
   cong (fst G) (cong (tot {A} {hom-family {A} a} {G} φ) (hom-family-id-path-sym {A} a {z} q)) ≡ sym q
 hom-family-id-path-sym-tot {A} a G φ refl = refl
 
+private
 hom-family-id-path-subst-tot ∷ {A ∷ U} (a ∷ A) (G ∷ A → U) (φ : (x : A) → hom-family {A} a x → G x) {z : A} {p₁ p₂ : z ≡ a}
   (e : p₁ ≡ p₂) (X : (z , (λ j . z) , p₁ , refl) ≡{Σ (x : A) . hom-family {A} a x} (a , Hom.id {A} a)) →
   cong (fst G) (cong (tot {A} {hom-family {A} a} {G} φ) X) ≡ p₁ →
@@ -145,6 +148,7 @@ hom-family-conn-cocart ∷ {A ∷ U} (sA : is-segalᵣ A) (a ∷ A) (f : arrᵣ 
 hom-family-conn-cocart {A} sA a f p = snd _ (hom-family-lift {A} sA a (λ y . f (Simplex2.snd y)) p)
 
 -- the 2-simplex τ̄_σ
+private
 hom-family-lift-tri ∷ {A ∷ U} (a ∷ A) (σ : simplex 2 →ᵣ A) (γ : srcᵣ (lift-sq {A} σ 𝕀0) ≡ a) →
   (simplex 2 →ᵣ Σ (x : A) . hom-family {A} a x)
 hom-family-lift-tri {A} a σ γ = λ y .
@@ -152,6 +156,7 @@ hom-family-lift-tri {A} a σ γ = λ y .
     ((λ k . σ ((Simplex2.fst y 𝕀∧ k , Simplex2.fst y 𝕀∧ Simplex2.snd y 𝕀∧ k , tt) , (refl , tt))) , γ)
 
 -- its edges are Γ̄_t, χ̄_σ and Γ̄_{u ∘ t}
+private
 hom-family-lift-tri-edges ∷ {A ∷ U} (sA : is-segalᵣ A) (a ∷ A) (σ : simplex 2 →ᵣ A) (γ : srcᵣ (lift-sq {A} σ 𝕀0) ≡ a) →
   (simplex2-hom₀₁ {Σ (x : A) . hom-family {A} a x} (hom-family-lift-tri {A} a σ γ)
      ≡ cell-hom {Σ (x : A) . hom-family {A} a x} (hom-family-conn {A} a (hom-cell (simplex2-hom₀₁ {A} σ)) γ)) ×
@@ -217,6 +222,7 @@ hom-family-cocart-cell-ind {A} rA a P H w =
 --
 
 -- the statement, for a composable pair out of a
+private
 push-hom-family-stmt ∷ {A ∷ U} (rA : is-rezkᵣ A) (a ∷ A) → pair-from A a → U
 push-hom-family-stmt {A} rA a (b , r) =
   let sA : is-segalᵣ A = rezk-segalᵣ {A} rA in
@@ -228,6 +234,7 @@ push-hom-family-stmt {A} rA a (b , r) =
   k r
 
 -- for the first edges of a 2-simplex
+private
 push-hom-family-simplex ∷ {A ∷ U} (rA : is-rezkᵣ A) (a ∷ A) (σ : simplex 2 →ᵣ A)
   (γ : σ (Simplex2.edge₀₁ 𝕀0) ≡ a) → push-hom-family-stmt {A} rA a (pair→pair-from {A} a (edges-2 {A} σ) γ)
 push-hom-family-simplex {A} rA a σ γ =

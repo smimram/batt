@@ -27,18 +27,22 @@ free-equiv-diagramᵣ Y =
   Σ (σ : simplex 3 →ᵣ Y) . is-collapsedᵣ {Y} (λ x . σ (edge₀₂ x)) × is-collapsedᵣ {Y} (λ x . σ (edge₁₃ x))
 
 -- the two pushout squares defining E, and their oplax cocones
+private
 free-equiv₀₂-coconeᵣ ∷ (Y ∷ U) → U
 free-equiv₀₂-coconeᵣ Y = coconeᵣ {simplex 1} {⊤} {simplex 3} (λ _ . tt) edge₀₂ Y
 
+private
 free-equiv-coconeᵣ ∷ (Y ∷ U) → U
 free-equiv-coconeᵣ Y = coconeᵣ {simplex 1} {⊤} {free-equiv₀₂} (λ _ . tt) edge₁₃' Y
 
+private
 free-equiv₀₂→coconeᵣ ∷ (Y ∷ U) → (free-equiv₀₂ →ᵣ Y) → free-equiv₀₂-coconeᵣ Y
 free-equiv₀₂→coconeᵣ Y =
   cocone-restrᵣ {simplex 1} {⊤} {simplex 3} {free-equiv₀₂} (λ _ . tt) edge₀₂
     (pushout-inl {simplex 1} {⊤} {simplex 3} (λ _ . tt) edge₀₂) (pushout-inr {simplex 1} {⊤} {simplex 3} (λ _ . tt) edge₀₂)
     (pushout-glue {simplex 1} {⊤} {simplex 3} (λ _ . tt) edge₀₂) Y
 
+private
 free-equiv→coconeᵣ ∷ (Y ∷ U) → (free-equiv →ᵣ Y) → free-equiv-coconeᵣ Y
 free-equiv→coconeᵣ Y =
   cocone-restrᵣ {simplex 1} {⊤} {free-equiv₀₂} {free-equiv} (λ _ . tt) edge₁₃'
@@ -46,14 +50,17 @@ free-equiv→coconeᵣ Y =
     (pushout-glue {simplex 1} {⊤} {free-equiv₀₂} (λ _ . tt) edge₁₃') Y
 
 -- the gluing condition of an outer cocone only depends on the 3-simplex of the inner cocone
+private
 free-equiv₁₃-glueᵣ ∷ (Y ∷ U) → (⊤ →ᵣ Y) → free-equiv₀₂-coconeᵣ Y → U
 free-equiv₁₃-glueᵣ Y α c =
   (λ x . α tt) ≡{simplex 1 →ᵣ Y} (λ x . coconeᵣ-snd {simplex 1} {⊤} {simplex 3} (λ _ . tt) edge₀₂ Y c (edge₁₃ x))
 
 -- outer cocones, with the map out of E₀₂ replaced by an inner cocone
+private
 free-equiv-cocone-splitᵣ ∷ (Y ∷ U) → U
 free-equiv-cocone-splitᵣ Y = Σ (α : ⊤ →ᵣ Y) . Σ (c : free-equiv₀₂-coconeᵣ Y) . free-equiv₁₃-glueᵣ Y α c
 
+private
 free-equiv-cocone→splitᵣ ∷ (Y ∷ U) → free-equiv-coconeᵣ Y → free-equiv-cocone-splitᵣ Y
 free-equiv-cocone→splitᵣ Y =
   tot {⊤ →ᵣ Y}
@@ -62,6 +69,7 @@ free-equiv-cocone→splitᵣ Y =
     (λ α . Σ-base (free-equiv₀₂→coconeᵣ Y) (free-equiv₁₃-glueᵣ Y α))
 
 -- by the oplax universal property of the inner pushout, by base change
+private
 is-equiv-free-equiv-cocone→splitᵣ ∷ (Y ∷ U) → is-equiv (free-equiv-cocone→splitᵣ Y)
 is-equiv-free-equiv-cocone→splitᵣ Y =
   is-equiv-tot {⊤ →ᵣ Y}
@@ -72,6 +80,7 @@ is-equiv-free-equiv-cocone→splitᵣ Y =
              (free-equiv₁₃-glueᵣ Y α))
 
 -- reordering the components
+private
 free-equiv-split→diagramᵣ ∷ (Y ∷ U) → free-equiv-cocone-splitᵣ Y → free-equiv-diagramᵣ Y
 free-equiv-split→diagramᵣ Y (α , r) =
   let k : (r : Σ (c : free-equiv₀₂-coconeᵣ Y) . free-equiv₁₃-glueᵣ Y α c) → free-equiv-diagramᵣ Y =
@@ -83,6 +92,7 @@ free-equiv-split→diagramᵣ Y (α , r) =
       k2 c p in
   k r
 
+private
 free-equiv-diagram→splitᵣ ∷ (Y ∷ U) → free-equiv-diagramᵣ Y → free-equiv-cocone-splitᵣ Y
 free-equiv-diagram→splitᵣ Y (σ , cs) =
   let k : (cs : is-collapsedᵣ {Y} (λ x . σ (edge₀₂ x)) × is-collapsedᵣ {Y} (λ x . σ (edge₁₃ x))) → free-equiv-cocone-splitᵣ Y =
@@ -92,6 +102,7 @@ free-equiv-diagram→splitᵣ Y (σ , cs) =
       k2 c₀₂ c₁₃ in
   k cs
 
+private
 free-equiv-split→diagramᵣ-sec ∷ (Y ∷ U) (d : free-equiv-diagramᵣ Y) →
   free-equiv-split→diagramᵣ Y (free-equiv-diagram→splitᵣ Y d) ≡ d
 free-equiv-split→diagramᵣ-sec Y (σ , cs) =
@@ -104,6 +115,7 @@ free-equiv-split→diagramᵣ-sec Y (σ , cs) =
       k2 c₀₂ c₁₃ in
   k cs
 
+private
 free-equiv-split→diagramᵣ-retr ∷ (Y ∷ U) (w : free-equiv-cocone-splitᵣ Y) →
   free-equiv-diagram→splitᵣ Y (free-equiv-split→diagramᵣ Y w) ≡ w
 free-equiv-split→diagramᵣ-retr Y (α , r) =
@@ -119,6 +131,7 @@ free-equiv-split→diagramᵣ-retr Y (α , r) =
       k2 c p in
   k r
 
+private
 is-equiv-free-equiv-split→diagramᵣ ∷ (Y ∷ U) → is-equiv (free-equiv-split→diagramᵣ Y)
 is-equiv-free-equiv-split→diagramᵣ Y =
   ((free-equiv-diagram→splitᵣ Y , free-equiv-split→diagramᵣ-sec Y) ,
@@ -130,6 +143,7 @@ free-equiv-restrᵣ Y h =
   free-equiv-split→diagramᵣ Y (free-equiv-cocone→splitᵣ Y (free-equiv→coconeᵣ Y h))
 
 -- its 3-simplex is the composite with the quotient map Δ³ → E, judgmentally
+private
 free-equiv-restrᵣ-simplex ∷ (Y ∷ U) (h : free-equiv →ᵣ Y) →
   fst {simplex 3 →ᵣ Y} (λ σ . is-collapsedᵣ {Y} (λ x . σ (edge₀₂ x)) × is-collapsedᵣ {Y} (λ x . σ (edge₁₃ x))) (free-equiv-restrᵣ Y h)
     ≡{simplex 3 →ᵣ Y} (λ s . h (simplex3→free-equiv s))
@@ -160,18 +174,22 @@ free-equiv-diagramₗ Y =
   Σ (σ : simplex 3 →ₗ Y) . is-collapsedₗ {Y} (λ x . σ (edge₀₂ x)) × is-collapsedₗ {Y} (λ x . σ (edge₁₃ x))
 
 -- the two pushout squares defining E, and their lax cocones
+private
 free-equiv₀₂-coconeₗ ∷ (Y ∷ U) → U
 free-equiv₀₂-coconeₗ Y = coconeₗ {simplex 1} {⊤} {simplex 3} (λ _ . tt) edge₀₂ Y
 
+private
 free-equiv-coconeₗ ∷ (Y ∷ U) → U
 free-equiv-coconeₗ Y = coconeₗ {simplex 1} {⊤} {free-equiv₀₂} (λ _ . tt) edge₁₃' Y
 
+private
 free-equiv₀₂→coconeₗ ∷ (Y ∷ U) → (free-equiv₀₂ →ₗ Y) → free-equiv₀₂-coconeₗ Y
 free-equiv₀₂→coconeₗ Y =
   cocone-restrₗ {simplex 1} {⊤} {simplex 3} {free-equiv₀₂} (λ _ . tt) edge₀₂
     (pushout-inl {simplex 1} {⊤} {simplex 3} (λ _ . tt) edge₀₂) (pushout-inr {simplex 1} {⊤} {simplex 3} (λ _ . tt) edge₀₂)
     (pushout-glue {simplex 1} {⊤} {simplex 3} (λ _ . tt) edge₀₂) Y
 
+private
 free-equiv→coconeₗ ∷ (Y ∷ U) → (free-equiv →ₗ Y) → free-equiv-coconeₗ Y
 free-equiv→coconeₗ Y =
   cocone-restrₗ {simplex 1} {⊤} {free-equiv₀₂} {free-equiv} (λ _ . tt) edge₁₃'
@@ -179,14 +197,17 @@ free-equiv→coconeₗ Y =
     (pushout-glue {simplex 1} {⊤} {free-equiv₀₂} (λ _ . tt) edge₁₃') Y
 
 -- the gluing condition of an outer cocone only depends on the 3-simplex of the inner cocone
+private
 free-equiv₁₃-glueₗ ∷ (Y ∷ U) → (⊤ →ₗ Y) → free-equiv₀₂-coconeₗ Y → U
 free-equiv₁₃-glueₗ Y α c =
   (λ x . α tt) ≡{simplex 1 →ₗ Y} (λ x . coconeₗ-snd {simplex 1} {⊤} {simplex 3} (λ _ . tt) edge₀₂ Y c (edge₁₃ x))
 
 -- outer cocones, with the map out of E₀₂ replaced by an inner cocone
+private
 free-equiv-cocone-splitₗ ∷ (Y ∷ U) → U
 free-equiv-cocone-splitₗ Y = Σ (α : ⊤ →ₗ Y) . Σ (c : free-equiv₀₂-coconeₗ Y) . free-equiv₁₃-glueₗ Y α c
 
+private
 free-equiv-cocone→splitₗ ∷ (Y ∷ U) → free-equiv-coconeₗ Y → free-equiv-cocone-splitₗ Y
 free-equiv-cocone→splitₗ Y =
   tot {⊤ →ₗ Y}
@@ -195,6 +216,7 @@ free-equiv-cocone→splitₗ Y =
     (λ α . Σ-base (free-equiv₀₂→coconeₗ Y) (free-equiv₁₃-glueₗ Y α))
 
 -- by the lax universal property of the inner pushout, by base change
+private
 is-equiv-free-equiv-cocone→splitₗ ∷ (Y ∷ U) → is-equiv (free-equiv-cocone→splitₗ Y)
 is-equiv-free-equiv-cocone→splitₗ Y =
   is-equiv-tot {⊤ →ₗ Y}
@@ -205,6 +227,7 @@ is-equiv-free-equiv-cocone→splitₗ Y =
              (free-equiv₁₃-glueₗ Y α))
 
 -- reordering the components
+private
 free-equiv-split→diagramₗ ∷ (Y ∷ U) → free-equiv-cocone-splitₗ Y → free-equiv-diagramₗ Y
 free-equiv-split→diagramₗ Y (α , r) =
   let k : (r : Σ (c : free-equiv₀₂-coconeₗ Y) . free-equiv₁₃-glueₗ Y α c) → free-equiv-diagramₗ Y =
@@ -216,6 +239,7 @@ free-equiv-split→diagramₗ Y (α , r) =
       k2 c p in
   k r
 
+private
 free-equiv-diagram→splitₗ ∷ (Y ∷ U) → free-equiv-diagramₗ Y → free-equiv-cocone-splitₗ Y
 free-equiv-diagram→splitₗ Y (σ , cs) =
   let k : (cs : is-collapsedₗ {Y} (λ x . σ (edge₀₂ x)) × is-collapsedₗ {Y} (λ x . σ (edge₁₃ x))) → free-equiv-cocone-splitₗ Y =
@@ -225,6 +249,7 @@ free-equiv-diagram→splitₗ Y (σ , cs) =
       k2 c₀₂ c₁₃ in
   k cs
 
+private
 free-equiv-split→diagramₗ-sec ∷ (Y ∷ U) (d : free-equiv-diagramₗ Y) →
   free-equiv-split→diagramₗ Y (free-equiv-diagram→splitₗ Y d) ≡ d
 free-equiv-split→diagramₗ-sec Y (σ , cs) =
@@ -237,6 +262,7 @@ free-equiv-split→diagramₗ-sec Y (σ , cs) =
       k2 c₀₂ c₁₃ in
   k cs
 
+private
 free-equiv-split→diagramₗ-retr ∷ (Y ∷ U) (w : free-equiv-cocone-splitₗ Y) →
   free-equiv-diagram→splitₗ Y (free-equiv-split→diagramₗ Y w) ≡ w
 free-equiv-split→diagramₗ-retr Y (α , r) =
@@ -252,6 +278,7 @@ free-equiv-split→diagramₗ-retr Y (α , r) =
       k2 c p in
   k r
 
+private
 is-equiv-free-equiv-split→diagramₗ ∷ (Y ∷ U) → is-equiv (free-equiv-split→diagramₗ Y)
 is-equiv-free-equiv-split→diagramₗ Y =
   ((free-equiv-diagram→splitₗ Y , free-equiv-split→diagramₗ-sec Y) ,
@@ -263,6 +290,7 @@ free-equiv-restrₗ Y h =
   free-equiv-split→diagramₗ Y (free-equiv-cocone→splitₗ Y (free-equiv→coconeₗ Y h))
 
 -- its 3-simplex is the composite with the quotient map Δ³ → E, judgmentally
+private
 free-equiv-restrₗ-simplex ∷ (Y ∷ U) (h : free-equiv →ₗ Y) →
   fst {simplex 3 →ₗ Y} (λ σ . is-collapsedₗ {Y} (λ x . σ (edge₀₂ x)) × is-collapsedₗ {Y} (λ x . σ (edge₁₃ x))) (free-equiv-restrₗ Y h)
     ≡{simplex 3 →ₗ Y} (λ s . h (simplex3→free-equiv s))

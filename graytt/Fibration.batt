@@ -158,6 +158,7 @@ is-prop-is-cocartesian-fibration {X} {A} sX sA p = is-prop-is-equiv (cocart-cell
 --
 
 -- the type of preimages, with the path in the other direction, is contractible
+private
 is-contr-fib-sym ∷ {A B : U} (f : A → B) → is-equiv f → (y : B) → is-contr (Σ (a : A) . y ≡ f a)
 is-contr-fib-sym {A} {B} f e y =
   let s : (Σ (a : A) . y ≡ f a) → fib f y = fun (a , q) → (a , sym q) in
@@ -202,6 +203,7 @@ is-cartesian-iso {X} {A} sX sA p {x} {y} f i x' =
 --
 
 -- the comparison map between the fibre products of g and of comp f g
+private
 cancel-R ∷ {X A ∷ U} (sX : is-segalᵣ X) (sA : is-segalᵣ A) (p ∷ X → A) {x y z : X} (f : hom x y) (g : hom y z) (z' : X)
   (k : hom (p z) (p z')) →
   comp-homᵣ sA {p x} {p y} {p z'} (hom-map {X} {A} p {x} {y} f) (comp-homᵣ sA {p y} {p z} {p z'} (hom-map {X} {A} p {y} {z} g) k)
@@ -210,6 +212,7 @@ cancel-R {X} {A} sX sA p {x} {y} {z} f g z' k =
   trans (sym (comp-homᵣ-assoc A sA {p x} {p y} {p z} {p z'} (hom-map {X} {A} p {x} {y} f) (hom-map {X} {A} p {y} {z} g) k))
     (sym (cong (λ m . comp-homᵣ sA {p x} {p z} {p z'} m k) (hom-map-comp X A p sX sA {x} {y} {z} f g)))
 
+private
 cancel-Φ ∷ {X A ∷ U} (sX : is-segalᵣ X) (sA : is-segalᵣ A) (p ∷ X → A) {x y z : X} (f : hom x y) (g : hom y z) (z' : X) →
   cocart-pb {X} {A} sA p {y} {z} g z' → cocart-pb {X} {A} sA p {x} {z} (comp-homᵣ sX {x} {y} {z} f g) z'
 cancel-Φ {X} {A} sX sA p {x} {y} {z} f g z' v =
@@ -221,6 +224,7 @@ cancel-Φ {X} {A} sX sA p {x} {y} {z} f g z' v =
   pb-paste a b c d (cancel-R {X} {A} sX sA p {x} {y} {z} f g z')
     (Σ-base (cocart-gap {X} {A} sX sA p {x} {y} f z') (pb-Q a b c) v)
 
+private
 is-equiv-cancel-Φ ∷ {X A ∷ U} (sX : is-segalᵣ X) (sA : is-segalᵣ A) (p ∷ X → A) {x y z : X} (f : hom x y) (g : hom y z) →
   is-cocartesian {X} {A} sX sA p {x} {y} f → (z' : X) → is-equiv (cancel-Φ {X} {A} sX sA p {x} {y} {z} f g z')
 is-equiv-cancel-Φ {X} {A} sX sA p {x} {y} {z} f g cf z' =
@@ -235,6 +239,7 @@ is-equiv-cancel-Φ {X} {A} sX sA p {x} {y} {z} f g cf z' =
     (is-equiv-Σ-base (cocart-gap {X} {A} sX sA p {x} {y} f z') (cf z') (pb-Q a b c))
 
 -- Φ sends the gap map of g to the gap map of comp f g
+private
 cancel-Φ-gap ∷ {X A ∷ U} (sX : is-segalᵣ X) (sA : is-segalᵣ A) (p ∷ X → A)
   {x y z : X} (f : hom x y) (g : hom y z) (z' : X) (w : hom z z') →
   cancel-Φ {X} {A} sX sA p {x} {y} {z} f g z' (cocart-gap {X} {A} sX sA p {y} {z} g z' w)
@@ -449,10 +454,12 @@ hom-map-dec {S} {X} e {x} {y} =
     (tot {𝕀 →ᵣ S} {λ c . (c 𝕀0 ≡ x) × (c 𝕀1 ≡ y)} {λ c . (e (c 𝕀0) ≡ e x) × (e (c 𝕀1) ≡ e y)}
       (λ c . prod-map (cong e {c 𝕀0} {x}) (cong e {c 𝕀1} {y})) u)
 
+private
 hom-map-dec-eq-aux ∷ {S X ∷ U} (e ∷ S → X) {x y : S} (c : 𝕀 →ᵣ S) (p : (c 𝕀0 ≡ x) × (c 𝕀1 ≡ y)) →
   hom-map-dec {S} {X} e {x} {y} (c , p) ≡ hom-map {S} {X} e {x} {y} (c , p)
 hom-map-dec-eq-aux {S} {X} e {x} {y} c (p0 , p1) = refl
 
+private
 hom-map-dec-eq ∷ {S X ∷ U} (e ∷ S → X) {x y : S} (u : hom x y) → hom-map-dec {S} {X} e {x} {y} u ≡ hom-map {S} {X} e {x} {y} u
 hom-map-dec-eq {S} {X} e {x} {y} (c , p) = hom-map-dec-eq-aux {S} {X} e {x} {y} c p
 
@@ -468,6 +475,7 @@ is-equiv-hom-map {S} {X} e ee {x} {y} =
         (λ c . is-equiv-prod-map (cong e {c 𝕀0} {x}) (cong e {c 𝕀1} {y}) (ap-equiv e ee (c 𝕀0) x) (ap-equiv e ee (c 𝕀1) y))))
 
 -- the gap maps of γ (for pX ∘ e) and of its image e γ (for pX) are conjugate, at every target in S
+private
 cocart-gap-equiv-square ∷ {S X A ∷ U} (sS : is-segalᵣ S) (sX : is-segalᵣ X) (sA : is-segalᵣ A) (e ∷ S → X) (ee ∷ is-equiv e) (pX ∷ X → A)
   {u v : S} (γ : hom u v) (s' : S) →
   Σ (transfer : cocart-pb {S} {A} sA (λ w . pX (e w)) {u} {v} γ s' → cocart-pb {X} {A} sA pX {e u} {e v} (hom-map {S} {X} e {u} {v} γ) (e s')) .

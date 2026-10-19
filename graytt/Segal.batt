@@ -117,15 +117,18 @@ is-equiv-cur2 {Q} {S} {G} {T} =
     (snd _ (Tensor.curry-equiv-right {Q} {S ⨂ G} {T}))
 
 -- the restriction along a map of the middle factor, curried
+private
 cur-restr ∷ {Q S S' T ∷ U} (ι ∷ S' → S) → (Q →ᵣ S →ᵣ T) → (Q →ᵣ S' →ᵣ T)
 cur-restr {Q} {S} {S'} {T} ι k q s = k q (ι s)
 
+private
 cur-segal-restr ∷ (a ∷ list ℕ) (n ∷ ℕ) (b ∷ list ℕ) (X ∷ U) (f : thick-simplex a n b →ᵣ X) →
   cur2 {grid a} {spine n} {grid b} {X} (segal-restrᵣ a n b X f)
     ≡ cur-restr {grid a} {simplex n} {spine n} {grid b →ᵣ X} (spine→simplex n) (cur2 {grid a} {simplex n} {grid b} {X} f)
 cur-segal-restr a n b X f = refl
 
 -- postcomposition with a crisp equivalence of the target
+private
 cur-restr-equiv ∷ {Q S S' ∷ U} (ι ∷ S' → S) {T T' ∷ U} (h ∷ T → T') (eh ∷ is-equiv h) →
   is-equiv (cur-restr {Q} {S} {S'} {T} ι) → is-equiv (cur-restr {Q} {S} {S'} {T'} ι)
 cur-restr-equiv {Q} {S} {S'} ι {T} {T'} h eh e =

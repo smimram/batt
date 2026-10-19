@@ -100,6 +100,7 @@ point-pullback-homs-split ∷ {Y B ∷ U} (r ∷ Y → B) (b ∷ B) → U
 point-pullback-homs-split {Y} {B} r b =
   Σ (w0 : point-pullback {Y} {B} r b) . Σ (w1 : point-pullback {Y} {B} r b) . point-pullback-hom-split {Y} {B} r b w0 w1
 
+private
 homs-split→path-cone ∷ {Y B ∷ U} (r ∷ Y → B) (b ∷ B) → point-pullback-homs-split {Y} {B} r b → point-pullback-path-cone {Y} {B} r b
 homs-split→path-cone {Y} {B} r b (w0 , z) =
   let h : (w1 : point-pullback {Y} {B} r b) → point-pullback-hom-split {Y} {B} r b w0 w1 → point-pullback-path-cone {Y} {B} r b = λ w1 s .
@@ -112,22 +113,26 @@ homs-split→path-cone {Y} {B} r b (w0 , z) =
   h (fst _ z) (snd _ z)
 
 -- the transport of the trivial endpoint paths along a path to the constant arrow
+private
 path-cone-boundary ∷ {Y B ∷ U} (r ∷ Y → B) (b ∷ B) (u : arrᵣ Y) (e : postᵣ {𝕀} {Y} {B} r u ≡{arrᵣ B} (λ _ . b)) →
   subst (hom-boundary {B} (r (u 𝕀0)) (r (u 𝕀1))) e (refl , refl) ≡ (sym (cong (srcᵣ {B}) e) , sym (cong (tgtᵣ {B}) e))
 path-cone-boundary {Y} {B} r b u e =
   subst-path-pair {arrᵣ B} {B} {B} (srcᵣ {B}) (tgtᵣ {B}) {r (u 𝕀0)} {r (u 𝕀1)} e refl refl
 
+private
 path-cone→homs-split ∷ {Y B ∷ U} (r ∷ Y → B) (b ∷ B) → point-pullback-path-cone {Y} {B} r b → point-pullback-homs-split {Y} {B} r b
 path-cone→homs-split {Y} {B} r b (u , e) =
   ((u 𝕀0 , sym (cong (srcᵣ {B}) e)) , (u 𝕀1 , sym (cong (tgtᵣ {B}) e)) , (u , refl , refl) , e ,
    path-cone-boundary {Y} {B} r b u e)
 
+private
 homs-split→path-cone-sec ∷ {Y B ∷ U} (r ∷ Y → B) (b ∷ B) (z : point-pullback-path-cone {Y} {B} r b) →
   homs-split→path-cone {Y} {B} r b (path-cone→homs-split {Y} {B} r b z) ≡ z
 homs-split→path-cone-sec {Y} {B} r b (u , e) = refl
 
 -- the retraction, at trivial endpoint paths of the hom, by path induction on the components of
 -- the transport condition
+private
 homs-split→path-cone-retr-core ∷ {Y B ∷ U} (r ∷ Y → B) (b ∷ B) (u : arrᵣ Y) (e : postᵣ {𝕀} {Y} {B} r u ≡{arrᵣ B} (λ _ . b))
   {d0 : b ≡ r (u 𝕀0)} (a0 : sym (cong (srcᵣ {B}) e) ≡ d0) {d1 : b ≡ r (u 𝕀1)} (a1 : sym (cong (tgtᵣ {B}) e) ≡ d1) →
   path-cone→homs-split {Y} {B} r b (u , e)
@@ -152,6 +157,7 @@ homs-split→path-cone-retr-core {Y} {B} r b u e {d0} a0 {d1} a1 =
       refl a1)
     a0
 
+private
 homs-split→path-cone-retr-base ∷ {Y B ∷ U} (r ∷ Y → B) (b ∷ B) (u : arrᵣ Y) (e : postᵣ {𝕀} {Y} {B} r u ≡{arrᵣ B} (λ _ . b))
   (d0 : b ≡ r (u 𝕀0)) (d1 : b ≡ r (u 𝕀1))
   (D : subst (hom-boundary {B} (r (u 𝕀0)) (r (u 𝕀1))) e (refl , refl) ≡ (d0 , d1)) →
@@ -171,6 +177,7 @@ homs-split→path-cone-retr-base {Y} {B} r b u e d0 d1 D =
                (prod-path-join'-eta {b ≡ r (u 𝕀0)} {b ≡ r (u 𝕀1)} {sym (cong (srcᵣ {B}) e)} {sym (cong (tgtᵣ {B}) e)} (d0 , d1) D2))
         (trans-trans-sym-cancel spp D)))
 
+private
 homs-split→path-cone-retr-hom ∷ {Y B ∷ U} (r ∷ Y → B) (b ∷ B) (u : arrᵣ Y) (e : postᵣ {𝕀} {Y} {B} r u ≡{arrᵣ B} (λ _ . b))
   {y0 : Y} (α0 : srcᵣ u ≡ y0) {y1 : Y} (α1 : tgtᵣ u ≡ y1) (d0 : b ≡ r y0) (d1 : b ≡ r y1)
   (D : subst (hom-boundary {B} (r y0) (r y1)) e (cong r α0 , cong r α1) ≡ (d0 , d1)) →
@@ -187,6 +194,7 @@ homs-split→path-cone-retr-hom {Y} {B} r b u e {y0} α0 {y1} α1 =
       (homs-split→path-cone-retr-base {Y} {B} r b u e) α1)
     α0
 
+private
 homs-split→path-cone-retr ∷ {Y B ∷ U} (r ∷ Y → B) (b ∷ B) (x : point-pullback-homs-split {Y} {B} r b) →
   path-cone→homs-split {Y} {B} r b (homs-split→path-cone {Y} {B} r b x) ≡ x
 homs-split→path-cone-retr {Y} {B} r b (w0 , z) =
@@ -212,6 +220,7 @@ homs-split→path-cone-retr {Y} {B} r b (w0 , z) =
       h1 w1 s in
   h0 w0 z
 
+private
 is-equiv-homs-split→path-cone ∷ {Y B ∷ U} (r ∷ Y → B) (b ∷ B) → is-equiv (homs-split→path-cone {Y} {B} r b)
 is-equiv-homs-split→path-cone {Y} {B} r b =
   ((path-cone→homs-split {Y} {B} r b , homs-split→path-cone-sec {Y} {B} r b) ,
@@ -222,6 +231,7 @@ is-equiv-homs-split→path-cone {Y} {B} r b =
 --
 
 -- the path of the cone of an arrow of S is the image of the null path along the arrow
+private
 point-pullback-arr-null-eq ∷ {Y B ∷ U} (r ∷ Y → B) (b ∷ B) (c : arrᵣ (point-pullback {Y} {B} r b)) →
   cong (λ φ . postᵣ {𝕀} {point-pullback {Y} {B} r b} {B} φ c) (point-pullback-null {Y} {B} r b) ≡ point-pullback-arr-null {Y} {B} r b c
 point-pullback-arr-null-eq {Y} {B} r b c =
@@ -241,6 +251,7 @@ point-pullback-arr-null-eq {Y} {B} r b c =
     (trans e1 (sym (snd (is-section hf) (is-equiv-sec hf ef) h)))
 
 -- the path of the split form of point-pullback-hom→data is that of the cone (at trivial endpoint paths)
+private
 point-pullback-hom-image-cell-refl ∷ {Y B ∷ U} (r ∷ Y → B) (b ∷ B) (c : arrᵣ (point-pullback {Y} {B} r b)) →
   cong (fst (hom-boundary {B} (r (point-pullback-proj {Y} {B} r b (c 𝕀0))) (r (point-pullback-proj {Y} {B} r b (c 𝕀1)))))
     (point-pullback-hom-image {Y} {B} r b {c 𝕀0} {c 𝕀1} (c , refl , refl))
@@ -256,6 +267,7 @@ point-pullback-hom-image-cell-refl {Y} {B} r b c =
       (trans (cong-sym (λ φ . postᵣ {𝕀} {S} {B} φ c) (point-pullback-null {Y} {B} r b))
         (cong (sym {arrᵣ B} {λ k . b} {postᵣ {𝕀} {S} {B} f c}) (point-pullback-arr-null-eq {Y} {B} r b c))))
 
+private
 point-pullback-hom-image-cell ∷ {Y B ∷ U} (r ∷ Y → B) (b ∷ B) {w0 w1 : point-pullback {Y} {B} r b} (g : hom w0 w1) →
   cong (fst (hom-boundary {B} (r (point-pullback-proj {Y} {B} r b w0)) (r (point-pullback-proj {Y} {B} r b w1))))
     (point-pullback-hom-image {Y} {B} r b {w0} {w1} g)
@@ -278,6 +290,7 @@ point-pullback-hom-image-cell {Y} {B} r b {w0} {w1} (c , es) =
 --
 
 -- the split form of point-pullback-hom→data, as a map of total spaces
+private
 point-pullback-hom→split ∷ {Y B ∷ U} (r ∷ Y → B) (b ∷ B) (w0 w1 : point-pullback {Y} {B} r b) → hom w0 w1 → point-pullback-hom-split {Y} {B} r b w0 w1
 point-pullback-hom→split {Y} {B} r b w0 w1 g = point-pullback-hom-data→split {Y} {B} r b w0 w1 (point-pullback-hom→data {Y} {B} r b w0 w1 g)
 
@@ -289,6 +302,7 @@ point-pullback-homs→split {Y} {B} r b =
               (λ w1 . point-pullback-hom→split {Y} {B} r b w0 w1))
 
 -- both ways to path-cones agree
+private
 point-pullback-homs→split-cone ∷ {Y B ∷ U} (r ∷ Y → B) (b ∷ B) (w : Homs.total (point-pullback {Y} {B} r b)) →
   arr→path-cone {Y} {B} r b (Homs.to-arr {point-pullback {Y} {B} r b} w)
     ≡ homs-split→path-cone {Y} {B} r b (point-pullback-homs→split {Y} {B} r b w)

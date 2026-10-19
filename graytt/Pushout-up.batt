@@ -19,22 +19,26 @@ open import Axiom
 --
 
 -- T-indexed oplax cocones, as a single Σ
+private
 curried-coconeᵣ ∷ (T ∷ U) {X A B ∷ U} (f ∷ X → A) (g ∷ X → B) (Y ∷ U) → U
 curried-coconeᵣ T {X} {A} {B} f g Y =
   Σ (α : T → A →ᵣ Y) . Σ (β : T → B →ᵣ Y) . (λ t . λ x . α t (f x)) ≡{T → X →ᵣ Y} (λ t . λ x . β t (g x))
 
 -- cocones in maps out of T ⨂ −
+private
 cocone-tensᵣ ∷ (T ∷ U) {X A B ∷ U} (f ∷ X → A) (g ∷ X → B) (Y ∷ U) → U
 cocone-tensᵣ T {X} {A} {B} f g Y =
   Σ (α : T ⨂ A → Y) . Σ (β : T ⨂ B → Y) .
     (λ z . α (Tensor.map {T} {T} {X} {A} (λ t . t) f z)) ≡{T ⨂ X → Y} (λ z . β (Tensor.map {T} {T} {X} {B} (λ t . t) g z))
 
 -- lax currying: to cocones in T →ₗ Y
+private
 cocone-tensᵣ→cocone-fib ∷ (T ∷ U) {X A B ∷ U} (f ∷ X → A) (g ∷ X → B) (Y ∷ U) (α : T ⨂ A → Y) →
   (Σ (β : T ⨂ B → Y) . (λ z . α (Tensor.map {T} {T} {X} {A} (λ t . t) f z)) ≡{T ⨂ X → Y} (λ z . β (Tensor.map {T} {T} {X} {B} (λ t . t) g z))) →
   Σ (β : B → T →ₗ Y) . (λ x . Tensor.curry-left' {T} {A} {Y} α (f x)) ≡{X → T →ₗ Y} (λ x . β (g x))
 cocone-tensᵣ→cocone-fib T {X} {A} {B} f g Y α (β , p) = (Tensor.curry-left' {T} {B} {Y} β , cong (Tensor.curry-left' {T} {X} {Y}) p)
 
+private
 cocone-tensᵣ→cocone ∷ (T ∷ U) {X A B ∷ U} (f ∷ X → A) (g ∷ X → B) (Y ∷ U) → cocone-tensᵣ T {X} {A} {B} f g Y → cocone {X} {A} {B} f g (T →ₗ Y)
 cocone-tensᵣ→cocone T {X} {A} {B} f g Y =
   flat-Σ-map {T ⨂ A → Y} {A → T →ₗ Y}
@@ -43,11 +47,13 @@ cocone-tensᵣ→cocone T {X} {A} {B} f g Y =
     (Tensor.curry-left' {T} {A} {Y}) (cocone-tensᵣ→cocone-fib T {X} {A} {B} f g Y)
 
 -- oplax currying: to T-indexed oplax cocones
+private
 cocone-tensᵣ→curried-fib ∷ (T ∷ U) {X A B ∷ U} (f ∷ X → A) (g ∷ X → B) (Y ∷ U) (α : T ⨂ A → Y) →
   (Σ (β : T ⨂ B → Y) . (λ z . α (Tensor.map {T} {T} {X} {A} (λ t . t) f z)) ≡{T ⨂ X → Y} (λ z . β (Tensor.map {T} {T} {X} {B} (λ t . t) g z))) →
   Σ (β : T → B →ᵣ Y) . (λ t . λ x . Tensor.curry-right' {T} {A} {Y} α t (f x)) ≡{T → X →ᵣ Y} (λ t . λ x . β t (g x))
 cocone-tensᵣ→curried-fib T {X} {A} {B} f g Y α (β , p) = (Tensor.curry-right' {T} {B} {Y} β , cong (Tensor.curry-right' {T} {X} {Y}) p)
 
+private
 cocone-tensᵣ→curried ∷ (T ∷ U) {X A B ∷ U} (f ∷ X → A) (g ∷ X → B) (Y ∷ U) → cocone-tensᵣ T {X} {A} {B} f g Y → curried-coconeᵣ T {X} {A} {B} f g Y
 cocone-tensᵣ→curried T {X} {A} {B} f g Y =
   flat-Σ-map {T ⨂ A → Y} {T → A →ᵣ Y}
@@ -56,18 +62,21 @@ cocone-tensᵣ→curried T {X} {A} {B} f g Y =
     (Tensor.curry-right' {T} {A} {Y}) (cocone-tensᵣ→curried-fib T {X} {A} {B} f g Y)
 
 -- distributing T over the Σ (a genuine equivalence, by funext)
+private
 curried→coconesᵣ ∷ (T ∷ U) {X A B ∷ U} (f ∷ X → A) (g ∷ X → B) (Y ∷ U) → curried-coconeᵣ T {X} {A} {B} f g Y → T → coconeᵣ {X} {A} {B} f g Y
 curried→coconesᵣ T {X} {A} {B} f g Y (α , r) =
   let k : (r : Σ (β : T → B →ᵣ Y) . (λ t . λ x . α t (f x)) ≡{T → X →ᵣ Y} (λ t . λ x . β t (g x))) → T → coconeᵣ {X} {A} {B} f g Y =
     fun (β , p) → λ t . (α t , β t , happly {T} {λ _ . X →ᵣ Y} {λ t' . λ x . α t' (f x)} {λ t' . λ x . β t' (g x)} p t) in
   k r
 
+private
 cocones→curriedᵣ ∷ (T ∷ U) {X A B ∷ U} (f ∷ X → A) (g ∷ X → B) (Y ∷ U) → (T → coconeᵣ {X} {A} {B} f g Y) → curried-coconeᵣ T {X} {A} {B} f g Y
 cocones→curriedᵣ T {X} {A} {B} f g Y F =
   let α : T → A →ᵣ Y = λ t . coconeᵣ-fst {X} {A} {B} f g Y (F t) in
   let β : T → B →ᵣ Y = λ t . coconeᵣ-snd {X} {A} {B} f g Y (F t) in
   (α , β , funext-htpy {T} {λ _ . X →ᵣ Y} (λ t . λ x . α t (f x)) (λ t . λ x . β t (g x)) (λ t . coconeᵣ-glue {X} {A} {B} f g Y (F t)))
 
+private
 curried→coconesᵣ-sec ∷ (T ∷ U) {X A B ∷ U} (f ∷ X → A) (g ∷ X → B) (Y ∷ U) (F : T → coconeᵣ {X} {A} {B} f g Y) →
   curried→coconesᵣ T {X} {A} {B} f g Y (cocones→curriedᵣ T {X} {A} {B} f g Y F) ≡ F
 curried→coconesᵣ-sec T {X} {A} {B} f g Y F =
@@ -83,6 +92,7 @@ curried→coconesᵣ-sec T {X} {A} {B} f g Y F =
                    (happly {T} {λ t' . (λ x . α t' (f x)) ≡{X →ᵣ Y} (λ x . β t' (g x))} hs t))
              (coconeᵣ-eta {X} {A} {B} f g Y (F t)))
 
+private
 curried→coconesᵣ-retr ∷ (T ∷ U) {X A B ∷ U} (f ∷ X → A) (g ∷ X → B) (Y ∷ U) (d : curried-coconeᵣ T {X} {A} {B} f g Y) →
   cocones→curriedᵣ T {X} {A} {B} f g Y (curried→coconesᵣ T {X} {A} {B} f g Y d) ≡ d
 curried→coconesᵣ-retr T {X} {A} {B} f g Y (α , r) =
@@ -94,12 +104,14 @@ curried→coconesᵣ-retr T {X} {A} {B} f g Y (α , r) =
         (funext-htpy-happly {T} {λ _ . X →ᵣ Y} {λ t . λ x . α t (f x)} {λ t . λ x . β t (g x)} p) in
   k r
 
+private
 is-equiv-curried→coconesᵣ ∷ (T ∷ U) {X A B ∷ U} (f ∷ X → A) (g ∷ X → B) (Y ∷ U) → is-equiv (curried→coconesᵣ T {X} {A} {B} f g Y)
 is-equiv-curried→coconesᵣ T {X} {A} {B} f g Y =
   ((cocones→curriedᵣ T {X} {A} {B} f g Y , curried→coconesᵣ-sec T {X} {A} {B} f g Y) ,
    (cocones→curriedᵣ T {X} {A} {B} f g Y , curried→coconesᵣ-retr T {X} {A} {B} f g Y))
 
 -- the two currying maps are equivalences on global points
+private
 is-equiv-flat-cocone-tensᵣ→cocone-fib ∷ (T ∷ U) {X A B ∷ U} (f ∷ X → A) (g ∷ X → B) (Y ∷ U) (α ∷ T ⨂ A → Y) →
   is-equiv (flat-map {Σ (β : T ⨂ B → Y) . (λ z . α (Tensor.map {T} {T} {X} {A} (λ t . t) f z)) ≡{T ⨂ X → Y} (λ z . β (Tensor.map {T} {T} {X} {B} (λ t . t) g z))}
                      {Σ (β : B → T →ₗ Y) . (λ x . Tensor.curry-left' {T} {A} {Y} α (f x)) ≡{X → T →ₗ Y} (λ x . β (g x))}
@@ -122,6 +134,7 @@ is-equiv-flat-cocone-tensᵣ→cocone-fib T {X} {A} {B} f g Y α =
       (λ β . flat-cong-equiv (Tensor.curry-left' {T} {X} {Y}) (is-equiv-flat-tens-uncurryₗ {T} {X} {Y})
                S (λ z . β (Tensor.map {T} {T} {X} {B} (λ t . t) g z))))
 
+private
 is-equiv-flat-cocone-tensᵣ→cocone ∷ (T ∷ U) {X A B ∷ U} (f ∷ X → A) (g ∷ X → B) (Y ∷ U) →
   is-equiv (flat-map {cocone-tensᵣ T {X} {A} {B} f g Y} {cocone {X} {A} {B} f g (T →ₗ Y)} (cocone-tensᵣ→cocone T {X} {A} {B} f g Y))
 is-equiv-flat-cocone-tensᵣ→cocone T {X} {A} {B} f g Y =
@@ -132,6 +145,7 @@ is-equiv-flat-cocone-tensᵣ→cocone T {X} {A} {B} f g Y =
     (is-equiv-flat-tens-uncurryₗ {T} {A} {Y})
     (is-equiv-flat-cocone-tensᵣ→cocone-fib T {X} {A} {B} f g Y)
 
+private
 is-equiv-flat-cocone-tensᵣ→curried-fib ∷ (T ∷ U) {X A B ∷ U} (f ∷ X → A) (g ∷ X → B) (Y ∷ U) (α ∷ T ⨂ A → Y) →
   is-equiv (flat-map {Σ (β : T ⨂ B → Y) . (λ z . α (Tensor.map {T} {T} {X} {A} (λ t . t) f z)) ≡{T ⨂ X → Y} (λ z . β (Tensor.map {T} {T} {X} {B} (λ t . t) g z))}
                      {Σ (β : T → B →ᵣ Y) . (λ t . λ x . Tensor.curry-right' {T} {A} {Y} α t (f x)) ≡{T → X →ᵣ Y} (λ t . λ x . β t (g x))}
@@ -154,6 +168,7 @@ is-equiv-flat-cocone-tensᵣ→curried-fib T {X} {A} {B} f g Y α =
       (λ β . flat-cong-equiv (Tensor.curry-right' {T} {X} {Y}) (is-equiv-flat-tens-uncurryᵣ {T} {X} {Y})
                S (λ z . β (Tensor.map {T} {T} {X} {B} (λ t . t) g z))))
 
+private
 is-equiv-flat-cocone-tensᵣ→curried ∷ (T ∷ U) {X A B ∷ U} (f ∷ X → A) (g ∷ X → B) (Y ∷ U) →
   is-equiv (flat-map {cocone-tensᵣ T {X} {A} {B} f g Y} {curried-coconeᵣ T {X} {A} {B} f g Y} (cocone-tensᵣ→curried T {X} {A} {B} f g Y))
 is-equiv-flat-cocone-tensᵣ→curried T {X} {A} {B} f g Y =
@@ -170,6 +185,7 @@ is-equiv-flat-cocone-tensᵣ→curried T {X} {A} {B} f g Y =
 
 -- a crisp cocone in T →ₗ Y gives a T-indexed family of oplax cocones, by swapping the arguments
 -- (crisp only: see crisp-swapₗᵣ, Function.batt)
+private
 cocone-swapᵣ ∷ (T ∷ U) {X A B ∷ U} (f ∷ X → A) (g ∷ X → B) (Y ∷ U) (c ∷ cocone {X} {A} {B} f g (T →ₗ Y)) → T → coconeᵣ {X} {A} {B} f g Y
 cocone-swapᵣ T {X} {A} {B} f g Y (α , r) =
   let k : (r ∷ Σ (β : B → T →ₗ Y) . (λ x . α (f x)) ≡{X → T →ₗ Y} (λ x . β (g x))) → T → coconeᵣ {X} {A} {B} f g Y =
@@ -179,10 +195,12 @@ cocone-swapᵣ T {X} {A} {B} f g Y (α , r) =
          (crisp-cong {X → T →ₗ Y} {T → X →ᵣ Y} (crisp-swapₗᵣ {X} {T} {Y}) p) t) in
   k r
 
+private
 flat-cocone-swapᵣ ∷ (T ∷ U) {X A B ∷ U} (f ∷ X → A) (g ∷ X → B) (Y ∷ U) →
   ♭(cocone {X} {A} {B} f g (T →ₗ Y)) → ♭(T → coconeᵣ {X} {A} {B} f g Y)
 flat-cocone-swapᵣ T {X} {A} {B} f g Y 𝄫c = 𝄫(cocone-swapᵣ T {X} {A} {B} f g Y c)
 
+private
 cong-restr-swapᵣ ∷ {T X P Y ∷ U} (ψ ∷ T → P →ᵣ Y) {k₀ k₁ ∷ X → P} (q ∷ k₀ ≡ k₁) (t : T) →
   happly {T} {λ _ . X →ᵣ Y}
     {crisp-swapₗᵣ {X} {T} {Y} (post {X} {P} {T →ₗ Y} (Tensor.curry-left' {T} {P} {Y} (tens-uncurry-crispᵣ {T} {P} {Y} ψ)) k₀)}
@@ -197,18 +215,21 @@ cong-restr-swapᵣ {T} {X} {P} {Y} ψ {k₀} refl t = refl
 --
 
 -- the triangle: swapping identifies the two curried forms of cocones in maps out of T ⨂ −
+private
 flat-cocone-tensᵣ→cocones-curried ∷ (T ∷ U) {X A B ∷ U} (f ∷ X → A) (g ∷ X → B) (Y ∷ U) →
   ♭(cocone-tensᵣ T {X} {A} {B} f g Y) → ♭(T → coconeᵣ {X} {A} {B} f g Y)
 flat-cocone-tensᵣ→cocones-curried T {X} {A} {B} f g Y c =
   flat-map {curried-coconeᵣ T {X} {A} {B} f g Y} {T → coconeᵣ {X} {A} {B} f g Y} (curried→coconesᵣ T {X} {A} {B} f g Y)
     (flat-map {cocone-tensᵣ T {X} {A} {B} f g Y} {curried-coconeᵣ T {X} {A} {B} f g Y} (cocone-tensᵣ→curried T {X} {A} {B} f g Y) c)
 
+private
 flat-cocone-tensᵣ→cocones-swapped ∷ (T ∷ U) {X A B ∷ U} (f ∷ X → A) (g ∷ X → B) (Y ∷ U) →
   ♭(cocone-tensᵣ T {X} {A} {B} f g Y) → ♭(T → coconeᵣ {X} {A} {B} f g Y)
 flat-cocone-tensᵣ→cocones-swapped T {X} {A} {B} f g Y c =
   flat-cocone-swapᵣ T {X} {A} {B} f g Y
     (flat-map {cocone-tensᵣ T {X} {A} {B} f g Y} {cocone {X} {A} {B} f g (T →ₗ Y)} (cocone-tensᵣ→cocone T {X} {A} {B} f g Y) c)
 
+private
 flat-cocone-tensᵣ-triangle ∷ (T ∷ U) {X A B ∷ U} (f ∷ X → A) (g ∷ X → B) (Y ∷ U) (c : ♭(cocone-tensᵣ T {X} {A} {B} f g Y)) →
   flat-cocone-tensᵣ→cocones-curried T {X} {A} {B} f g Y c ≡ flat-cocone-tensᵣ→cocones-swapped T {X} {A} {B} f g Y c
 flat-cocone-tensᵣ-triangle T {X} {A} {B} f g Y 𝄫c =
@@ -240,6 +261,7 @@ flat-cocone-tensᵣ-triangle T {X} {A} {B} f g Y 𝄫c =
   h c
 
 -- swapping is an equivalence on global points
+private
 is-equiv-flat-cocone-swapᵣ ∷ (T ∷ U) {X A B ∷ U} (f ∷ X → A) (g ∷ X → B) (Y ∷ U) → is-equiv (flat-cocone-swapᵣ T {X} {A} {B} f g Y)
 is-equiv-flat-cocone-swapᵣ T {X} {A} {B} f g Y =
   let L : ♭(cocone-tensᵣ T {X} {A} {B} f g Y) → ♭(cocone {X} {A} {B} f g (T →ₗ Y)) =
@@ -259,12 +281,14 @@ is-equiv-flat-cocone-swapᵣ T {X} {A} {B} f g Y =
     (flat-cocone-swapᵣ T {X} {A} {B} f g Y) L (is-equiv-flat-cocone-tensᵣ→cocone T {X} {A} {B} f g Y) eSL
 
 -- on global points, the comparison map is swapping after the cartesian restriction (curried)
+private
 flat-cocone-restr-curriedᵣ ∷ (T ∷ U) {X A B P ∷ U} (f ∷ X → A) (g ∷ X → B) (i ∷ A → P) (j ∷ B → P) (q ∷ (λ x . i (f x)) ≡{X → P} (λ x . j (g x)))
   (Y ∷ U) → ♭(T → P →ᵣ Y) → ♭(cocone {X} {A} {B} f g (T →ₗ Y))
 flat-cocone-restr-curriedᵣ T {X} {A} {B} {P} f g i j q Y c =
   flat-map {P → T →ₗ Y} {cocone {X} {A} {B} f g (T →ₗ Y)} (cocone-restr {X} {A} {B} {P} f g i j q (T →ₗ Y))
     (flat-tens-uncurryₗ {T} {P} {Y} (flat-tens-curryᵣ {T} {P} {Y} c))
 
+private
 flat-cocone-restrᵣ-factored-htpy ∷ (T ∷ U) {X A B P ∷ U} (f ∷ X → A) (g ∷ X → B) (i ∷ A → P) (j ∷ B → P) (q ∷ (λ x . i (f x)) ≡{X → P} (λ x . j (g x)))
   (Y ∷ U) (c : ♭(T → P →ᵣ Y)) →
   flat-cocone-swapᵣ T {X} {A} {B} f g Y (flat-cocone-restr-curriedᵣ T {X} {A} {B} {P} f g i j q Y c)
@@ -282,6 +306,7 @@ flat-cocone-restrᵣ-factored-htpy T {X} {A} {B} {P} f g i j q Y 𝄫ψ =
                (cong-restr-swapᵣ {T} {X} {P} {Y} ψ {λ x . i (f x)} {λ x . j (g x)} q t)))
 
 -- the comparison map is an equivalence on the global points of any crisp T
+private
 is-equiv-flat-post-cocone-restrᵣ ∷ (T ∷ U) {X A B P ∷ U} (f ∷ X → A) (g ∷ X → B) (i ∷ A → P) (j ∷ B → P) (q ∷ (λ x . i (f x)) ≡{X → P} (λ x . j (g x)))
   (up ∷ is-pushout {X} {A} {B} {P} f g i j q) (Y ∷ U) →
   is-equiv (flat-map {T → P →ᵣ Y} {T → coconeᵣ {X} {A} {B} f g Y}
@@ -341,22 +366,26 @@ is-pushout→is-pushoutᵣ {X} {A} {B} {P} f g i j q up = λ Y .
 --
 
 -- T-indexed lax cocones, as a single Σ
+private
 curried-coconeₗ ∷ (T ∷ U) {X A B ∷ U} (f ∷ X → A) (g ∷ X → B) (Y ∷ U) → U
 curried-coconeₗ T {X} {A} {B} f g Y =
   Σ (α : T → A →ₗ Y) . Σ (β : T → B →ₗ Y) . (λ t . λ x . α t (f x)) ≡{T → X →ₗ Y} (λ t . λ x . β t (g x))
 
 -- cocones in maps out of − ⨂ T
+private
 cocone-tensₗ ∷ (T ∷ U) {X A B ∷ U} (f ∷ X → A) (g ∷ X → B) (Y ∷ U) → U
 cocone-tensₗ T {X} {A} {B} f g Y =
   Σ (α : A ⨂ T → Y) . Σ (β : B ⨂ T → Y) .
     (λ z . α (Tensor.map {X} {A} {T} {T} f (λ t . t) z)) ≡{X ⨂ T → Y} (λ z . β (Tensor.map {X} {B} {T} {T} g (λ t . t) z))
 
 -- oplax currying: to cocones in T →ᵣ Y
+private
 cocone-tensₗ→cocone-fib ∷ (T ∷ U) {X A B ∷ U} (f ∷ X → A) (g ∷ X → B) (Y ∷ U) (α : A ⨂ T → Y) →
   (Σ (β : B ⨂ T → Y) . (λ z . α (Tensor.map {X} {A} {T} {T} f (λ t . t) z)) ≡{X ⨂ T → Y} (λ z . β (Tensor.map {X} {B} {T} {T} g (λ t . t) z))) →
   Σ (β : B → T →ᵣ Y) . (λ x . Tensor.curry-right' {A} {T} {Y} α (f x)) ≡{X → T →ᵣ Y} (λ x . β (g x))
 cocone-tensₗ→cocone-fib T {X} {A} {B} f g Y α (β , p) = (Tensor.curry-right' {B} {T} {Y} β , cong (Tensor.curry-right' {X} {T} {Y}) p)
 
+private
 cocone-tensₗ→cocone ∷ (T ∷ U) {X A B ∷ U} (f ∷ X → A) (g ∷ X → B) (Y ∷ U) → cocone-tensₗ T {X} {A} {B} f g Y → cocone {X} {A} {B} f g (T →ᵣ Y)
 cocone-tensₗ→cocone T {X} {A} {B} f g Y =
   flat-Σ-map {A ⨂ T → Y} {A → T →ᵣ Y}
@@ -365,11 +394,13 @@ cocone-tensₗ→cocone T {X} {A} {B} f g Y =
     (Tensor.curry-right' {A} {T} {Y}) (cocone-tensₗ→cocone-fib T {X} {A} {B} f g Y)
 
 -- lax currying: to T-indexed lax cocones
+private
 cocone-tensₗ→curried-fib ∷ (T ∷ U) {X A B ∷ U} (f ∷ X → A) (g ∷ X → B) (Y ∷ U) (α : A ⨂ T → Y) →
   (Σ (β : B ⨂ T → Y) . (λ z . α (Tensor.map {X} {A} {T} {T} f (λ t . t) z)) ≡{X ⨂ T → Y} (λ z . β (Tensor.map {X} {B} {T} {T} g (λ t . t) z))) →
   Σ (β : T → B →ₗ Y) . (λ t . λ x . Tensor.curry-left' {A} {T} {Y} α t (f x)) ≡{T → X →ₗ Y} (λ t . λ x . β t (g x))
 cocone-tensₗ→curried-fib T {X} {A} {B} f g Y α (β , p) = (Tensor.curry-left' {B} {T} {Y} β , cong (Tensor.curry-left' {X} {T} {Y}) p)
 
+private
 cocone-tensₗ→curried ∷ (T ∷ U) {X A B ∷ U} (f ∷ X → A) (g ∷ X → B) (Y ∷ U) → cocone-tensₗ T {X} {A} {B} f g Y → curried-coconeₗ T {X} {A} {B} f g Y
 cocone-tensₗ→curried T {X} {A} {B} f g Y =
   flat-Σ-map {A ⨂ T → Y} {T → A →ₗ Y}
@@ -378,18 +409,21 @@ cocone-tensₗ→curried T {X} {A} {B} f g Y =
     (Tensor.curry-left' {A} {T} {Y}) (cocone-tensₗ→curried-fib T {X} {A} {B} f g Y)
 
 -- distributing T over the Σ (a genuine equivalence, by funext)
+private
 curried→coconesₗ ∷ (T ∷ U) {X A B ∷ U} (f ∷ X → A) (g ∷ X → B) (Y ∷ U) → curried-coconeₗ T {X} {A} {B} f g Y → T → coconeₗ {X} {A} {B} f g Y
 curried→coconesₗ T {X} {A} {B} f g Y (α , r) =
   let k : (r : Σ (β : T → B →ₗ Y) . (λ t . λ x . α t (f x)) ≡{T → X →ₗ Y} (λ t . λ x . β t (g x))) → T → coconeₗ {X} {A} {B} f g Y =
     fun (β , p) → λ t . (α t , β t , happly {T} {λ _ . X →ₗ Y} {λ t' . λ x . α t' (f x)} {λ t' . λ x . β t' (g x)} p t) in
   k r
 
+private
 cocones→curriedₗ ∷ (T ∷ U) {X A B ∷ U} (f ∷ X → A) (g ∷ X → B) (Y ∷ U) → (T → coconeₗ {X} {A} {B} f g Y) → curried-coconeₗ T {X} {A} {B} f g Y
 cocones→curriedₗ T {X} {A} {B} f g Y F =
   let α : T → A →ₗ Y = λ t . coconeₗ-fst {X} {A} {B} f g Y (F t) in
   let β : T → B →ₗ Y = λ t . coconeₗ-snd {X} {A} {B} f g Y (F t) in
   (α , β , funext-htpy {T} {λ _ . X →ₗ Y} (λ t . λ x . α t (f x)) (λ t . λ x . β t (g x)) (λ t . coconeₗ-glue {X} {A} {B} f g Y (F t)))
 
+private
 curried→coconesₗ-sec ∷ (T ∷ U) {X A B ∷ U} (f ∷ X → A) (g ∷ X → B) (Y ∷ U) (F : T → coconeₗ {X} {A} {B} f g Y) →
   curried→coconesₗ T {X} {A} {B} f g Y (cocones→curriedₗ T {X} {A} {B} f g Y F) ≡ F
 curried→coconesₗ-sec T {X} {A} {B} f g Y F =
@@ -405,6 +439,7 @@ curried→coconesₗ-sec T {X} {A} {B} f g Y F =
                    (happly {T} {λ t' . (λ x . α t' (f x)) ≡{X →ₗ Y} (λ x . β t' (g x))} hs t))
              (coconeₗ-eta {X} {A} {B} f g Y (F t)))
 
+private
 curried→coconesₗ-retr ∷ (T ∷ U) {X A B ∷ U} (f ∷ X → A) (g ∷ X → B) (Y ∷ U) (d : curried-coconeₗ T {X} {A} {B} f g Y) →
   cocones→curriedₗ T {X} {A} {B} f g Y (curried→coconesₗ T {X} {A} {B} f g Y d) ≡ d
 curried→coconesₗ-retr T {X} {A} {B} f g Y (α , r) =
@@ -416,12 +451,14 @@ curried→coconesₗ-retr T {X} {A} {B} f g Y (α , r) =
         (funext-htpy-happly {T} {λ _ . X →ₗ Y} {λ t . λ x . α t (f x)} {λ t . λ x . β t (g x)} p) in
   k r
 
+private
 is-equiv-curried→coconesₗ ∷ (T ∷ U) {X A B ∷ U} (f ∷ X → A) (g ∷ X → B) (Y ∷ U) → is-equiv (curried→coconesₗ T {X} {A} {B} f g Y)
 is-equiv-curried→coconesₗ T {X} {A} {B} f g Y =
   ((cocones→curriedₗ T {X} {A} {B} f g Y , curried→coconesₗ-sec T {X} {A} {B} f g Y) ,
    (cocones→curriedₗ T {X} {A} {B} f g Y , curried→coconesₗ-retr T {X} {A} {B} f g Y))
 
 -- the two currying maps are equivalences on global points
+private
 is-equiv-flat-cocone-tensₗ→cocone-fib ∷ (T ∷ U) {X A B ∷ U} (f ∷ X → A) (g ∷ X → B) (Y ∷ U) (α ∷ A ⨂ T → Y) →
   is-equiv (flat-map {Σ (β : B ⨂ T → Y) . (λ z . α (Tensor.map {X} {A} {T} {T} f (λ t . t) z)) ≡{X ⨂ T → Y} (λ z . β (Tensor.map {X} {B} {T} {T} g (λ t . t) z))}
                      {Σ (β : B → T →ᵣ Y) . (λ x . Tensor.curry-right' {A} {T} {Y} α (f x)) ≡{X → T →ᵣ Y} (λ x . β (g x))}
@@ -444,6 +481,7 @@ is-equiv-flat-cocone-tensₗ→cocone-fib T {X} {A} {B} f g Y α =
       (λ β . flat-cong-equiv (Tensor.curry-right' {X} {T} {Y}) (is-equiv-flat-tens-uncurryᵣ {X} {T} {Y})
                S (λ z . β (Tensor.map {X} {B} {T} {T} g (λ t . t) z))))
 
+private
 is-equiv-flat-cocone-tensₗ→cocone ∷ (T ∷ U) {X A B ∷ U} (f ∷ X → A) (g ∷ X → B) (Y ∷ U) →
   is-equiv (flat-map {cocone-tensₗ T {X} {A} {B} f g Y} {cocone {X} {A} {B} f g (T →ᵣ Y)} (cocone-tensₗ→cocone T {X} {A} {B} f g Y))
 is-equiv-flat-cocone-tensₗ→cocone T {X} {A} {B} f g Y =
@@ -454,6 +492,7 @@ is-equiv-flat-cocone-tensₗ→cocone T {X} {A} {B} f g Y =
     (is-equiv-flat-tens-uncurryᵣ {A} {T} {Y})
     (is-equiv-flat-cocone-tensₗ→cocone-fib T {X} {A} {B} f g Y)
 
+private
 is-equiv-flat-cocone-tensₗ→curried-fib ∷ (T ∷ U) {X A B ∷ U} (f ∷ X → A) (g ∷ X → B) (Y ∷ U) (α ∷ A ⨂ T → Y) →
   is-equiv (flat-map {Σ (β : B ⨂ T → Y) . (λ z . α (Tensor.map {X} {A} {T} {T} f (λ t . t) z)) ≡{X ⨂ T → Y} (λ z . β (Tensor.map {X} {B} {T} {T} g (λ t . t) z))}
                      {Σ (β : T → B →ₗ Y) . (λ t . λ x . Tensor.curry-left' {A} {T} {Y} α t (f x)) ≡{T → X →ₗ Y} (λ t . λ x . β t (g x))}
@@ -476,6 +515,7 @@ is-equiv-flat-cocone-tensₗ→curried-fib T {X} {A} {B} f g Y α =
       (λ β . flat-cong-equiv (Tensor.curry-left' {X} {T} {Y}) (is-equiv-flat-tens-uncurryₗ {X} {T} {Y})
                S (λ z . β (Tensor.map {X} {B} {T} {T} g (λ t . t) z))))
 
+private
 is-equiv-flat-cocone-tensₗ→curried ∷ (T ∷ U) {X A B ∷ U} (f ∷ X → A) (g ∷ X → B) (Y ∷ U) →
   is-equiv (flat-map {cocone-tensₗ T {X} {A} {B} f g Y} {curried-coconeₗ T {X} {A} {B} f g Y} (cocone-tensₗ→curried T {X} {A} {B} f g Y))
 is-equiv-flat-cocone-tensₗ→curried T {X} {A} {B} f g Y =
@@ -492,6 +532,7 @@ is-equiv-flat-cocone-tensₗ→curried T {X} {A} {B} f g Y =
 
 -- a crisp cocone in T →ᵣ Y gives a T-indexed family of lax cocones, by swapping the arguments
 -- (crisp only: see crisp-swapᵣₗ, Function.batt)
+private
 cocone-swapₗ ∷ (T ∷ U) {X A B ∷ U} (f ∷ X → A) (g ∷ X → B) (Y ∷ U) (c ∷ cocone {X} {A} {B} f g (T →ᵣ Y)) → T → coconeₗ {X} {A} {B} f g Y
 cocone-swapₗ T {X} {A} {B} f g Y (α , r) =
   let k : (r ∷ Σ (β : B → T →ᵣ Y) . (λ x . α (f x)) ≡{X → T →ᵣ Y} (λ x . β (g x))) → T → coconeₗ {X} {A} {B} f g Y =
@@ -501,10 +542,12 @@ cocone-swapₗ T {X} {A} {B} f g Y (α , r) =
          (crisp-cong {X → T →ᵣ Y} {T → X →ₗ Y} (crisp-swapᵣₗ {X} {T} {Y}) p) t) in
   k r
 
+private
 flat-cocone-swapₗ ∷ (T ∷ U) {X A B ∷ U} (f ∷ X → A) (g ∷ X → B) (Y ∷ U) →
   ♭(cocone {X} {A} {B} f g (T →ᵣ Y)) → ♭(T → coconeₗ {X} {A} {B} f g Y)
 flat-cocone-swapₗ T {X} {A} {B} f g Y 𝄫c = 𝄫(cocone-swapₗ T {X} {A} {B} f g Y c)
 
+private
 cong-restr-swapₗ ∷ {T X P Y ∷ U} (ψ ∷ T → P →ₗ Y) {k₀ k₁ ∷ X → P} (q ∷ k₀ ≡ k₁) (t : T) →
   happly {T} {λ _ . X →ₗ Y}
     {crisp-swapᵣₗ {X} {T} {Y} (post {X} {P} {T →ᵣ Y} (Tensor.curry-right' {P} {T} {Y} (tens-uncurry-crispₗ {P} {T} {Y} ψ)) k₀)}
@@ -519,18 +562,21 @@ cong-restr-swapₗ {T} {X} {P} {Y} ψ {k₀} refl t = refl
 --
 
 -- the triangle: swapping identifies the two curried forms of cocones in maps out of − ⨂ T
+private
 flat-cocone-tensₗ→cocones-curried ∷ (T ∷ U) {X A B ∷ U} (f ∷ X → A) (g ∷ X → B) (Y ∷ U) →
   ♭(cocone-tensₗ T {X} {A} {B} f g Y) → ♭(T → coconeₗ {X} {A} {B} f g Y)
 flat-cocone-tensₗ→cocones-curried T {X} {A} {B} f g Y c =
   flat-map {curried-coconeₗ T {X} {A} {B} f g Y} {T → coconeₗ {X} {A} {B} f g Y} (curried→coconesₗ T {X} {A} {B} f g Y)
     (flat-map {cocone-tensₗ T {X} {A} {B} f g Y} {curried-coconeₗ T {X} {A} {B} f g Y} (cocone-tensₗ→curried T {X} {A} {B} f g Y) c)
 
+private
 flat-cocone-tensₗ→cocones-swapped ∷ (T ∷ U) {X A B ∷ U} (f ∷ X → A) (g ∷ X → B) (Y ∷ U) →
   ♭(cocone-tensₗ T {X} {A} {B} f g Y) → ♭(T → coconeₗ {X} {A} {B} f g Y)
 flat-cocone-tensₗ→cocones-swapped T {X} {A} {B} f g Y c =
   flat-cocone-swapₗ T {X} {A} {B} f g Y
     (flat-map {cocone-tensₗ T {X} {A} {B} f g Y} {cocone {X} {A} {B} f g (T →ᵣ Y)} (cocone-tensₗ→cocone T {X} {A} {B} f g Y) c)
 
+private
 flat-cocone-tensₗ-triangle ∷ (T ∷ U) {X A B ∷ U} (f ∷ X → A) (g ∷ X → B) (Y ∷ U) (c : ♭(cocone-tensₗ T {X} {A} {B} f g Y)) →
   flat-cocone-tensₗ→cocones-curried T {X} {A} {B} f g Y c ≡ flat-cocone-tensₗ→cocones-swapped T {X} {A} {B} f g Y c
 flat-cocone-tensₗ-triangle T {X} {A} {B} f g Y 𝄫c =
@@ -562,6 +608,7 @@ flat-cocone-tensₗ-triangle T {X} {A} {B} f g Y 𝄫c =
   h c
 
 -- swapping is an equivalence on global points
+private
 is-equiv-flat-cocone-swapₗ ∷ (T ∷ U) {X A B ∷ U} (f ∷ X → A) (g ∷ X → B) (Y ∷ U) → is-equiv (flat-cocone-swapₗ T {X} {A} {B} f g Y)
 is-equiv-flat-cocone-swapₗ T {X} {A} {B} f g Y =
   let L : ♭(cocone-tensₗ T {X} {A} {B} f g Y) → ♭(cocone {X} {A} {B} f g (T →ᵣ Y)) =
@@ -581,12 +628,14 @@ is-equiv-flat-cocone-swapₗ T {X} {A} {B} f g Y =
     (flat-cocone-swapₗ T {X} {A} {B} f g Y) L (is-equiv-flat-cocone-tensₗ→cocone T {X} {A} {B} f g Y) eSL
 
 -- on global points, the comparison map is swapping after the cartesian restriction (curried)
+private
 flat-cocone-restr-curriedₗ ∷ (T ∷ U) {X A B P ∷ U} (f ∷ X → A) (g ∷ X → B) (i ∷ A → P) (j ∷ B → P) (q ∷ (λ x . i (f x)) ≡{X → P} (λ x . j (g x)))
   (Y ∷ U) → ♭(T → P →ₗ Y) → ♭(cocone {X} {A} {B} f g (T →ᵣ Y))
 flat-cocone-restr-curriedₗ T {X} {A} {B} {P} f g i j q Y c =
   flat-map {P → T →ᵣ Y} {cocone {X} {A} {B} f g (T →ᵣ Y)} (cocone-restr {X} {A} {B} {P} f g i j q (T →ᵣ Y))
     (flat-tens-uncurryᵣ {P} {T} {Y} (flat-tens-curryₗ {P} {T} {Y} c))
 
+private
 flat-cocone-restrₗ-factored-htpy ∷ (T ∷ U) {X A B P ∷ U} (f ∷ X → A) (g ∷ X → B) (i ∷ A → P) (j ∷ B → P) (q ∷ (λ x . i (f x)) ≡{X → P} (λ x . j (g x)))
   (Y ∷ U) (c : ♭(T → P →ₗ Y)) →
   flat-cocone-swapₗ T {X} {A} {B} f g Y (flat-cocone-restr-curriedₗ T {X} {A} {B} {P} f g i j q Y c)
@@ -604,6 +653,7 @@ flat-cocone-restrₗ-factored-htpy T {X} {A} {B} {P} f g i j q Y 𝄫ψ =
                (cong-restr-swapₗ {T} {X} {P} {Y} ψ {λ x . i (f x)} {λ x . j (g x)} q t)))
 
 -- the comparison map is an equivalence on the global points of any crisp T
+private
 is-equiv-flat-post-cocone-restrₗ ∷ (T ∷ U) {X A B P ∷ U} (f ∷ X → A) (g ∷ X → B) (i ∷ A → P) (j ∷ B → P) (q ∷ (λ x . i (f x)) ≡{X → P} (λ x . j (g x)))
   (up ∷ is-pushout {X} {A} {B} {P} f g i j q) (Y ∷ U) →
   is-equiv (flat-map {T → P →ₗ Y} {T → coconeₗ {X} {A} {B} f g Y}

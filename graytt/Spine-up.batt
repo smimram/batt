@@ -96,6 +96,7 @@ spine2-glue ∷ spine2-edge-1-incl spine2-edge-1-end ≡{spine 2} spine2-edge-2-
 spine2-glue = Union.glue spine2-vertex
 
 -- the intersection of the two edges is contractible, with centre the vertex
+private
 spine2-meet-contr-aux2 ∷ (c1 : 𝕀) (xs : cart-cube 1) (w : spine2-on-edge-1 (c1 , xs) × spine2-on-edge-2 (c1 , xs)) →
   spine2-vertex ≡{spine2-meet} ((c1 , xs) , w)
 spine2-meet-contr-aux2 c1 xs w =
@@ -107,6 +108,7 @@ spine2-meet-contr-aux2 c1 xs w =
       (sym (Product.fst {spine2-on-edge-1 (c1 , xs)} {spine2-on-edge-2 (c1 , xs)} w)))
     (refl , (refl , spine1-pt 𝕀0)) w
 
+private
 spine2-meet-contr-aux1 ∷ (c : cart-cube 2) (w : spine2-on-edge-1 c × spine2-on-edge-2 c) →
   spine2-vertex ≡{spine2-meet} (c , w)
 spine2-meet-contr-aux1 (c1 , xs) w = spine2-meet-contr-aux2 c1 xs w
@@ -277,6 +279,7 @@ spine3-edge-1-end = ((𝕀1 , 𝕀0 , 𝕀0 , tt) , refl)
 spine3-tail-start ∷ spine3-tail
 spine3-tail-start = spine2→spine3-tail (spine2-edge-1-incl spine2-edge-1-start)
 
+private
 spine3-on-tail-vertex ∷ spine3-on-tail (𝕀1 , 𝕀0 , 𝕀0 , tt)
 spine3-on-tail-vertex = snd spine3-on-tail spine3-tail-start
 
@@ -287,6 +290,7 @@ spine3-glue ∷ spine3-edge-1-incl spine3-edge-1-end ≡{spine 3} spine3-tail-in
 spine3-glue = Union.glue spine3-vertex
 
 -- the intersection of the two pieces is contractible, with centre the vertex
+private
 spine3-meet-contr-aux2 ∷ (c1 : 𝕀) (xs : cart-cube 2) (w : spine3-on-edge-1 (c1 , xs) × spine3-on-tail (c1 , xs)) →
   spine3-vertex ≡{spine3-meet} ((c1 , xs) , w)
 spine3-meet-contr-aux2 c1 xs w =
@@ -298,6 +302,7 @@ spine3-meet-contr-aux2 c1 xs w =
       (sym (Product.fst {spine3-on-edge-1 (c1 , xs)} {spine3-on-tail (c1 , xs)} w)))
     (refl , spine3-on-tail-vertex) w
 
+private
 spine3-meet-contr-aux1 ∷ (c : cart-cube 3) (w : spine3-on-edge-1 c × spine3-on-tail c) →
   spine3-vertex ≡{spine3-meet} (c , w)
 spine3-meet-contr-aux1 (c1 , xs) w = spine3-meet-contr-aux2 c1 xs w

@@ -46,6 +46,7 @@ cocart-hom→cell {X} {A} sX sA p (x , r) =
   h r
 
 -- cocart-hom→cell is a retraction (cocartesianness is a proposition)
+private
 cell→cocart-hom-retr ∷ {X A ∷ U} (sX : is-segalᵣ X) (sA : is-segalᵣ A) (p ∷ X → A) →
   retraction (cell→cocart-hom {X} {A} sX sA p)
 cell→cocart-hom-retr {X} {A} sX sA p =
@@ -58,15 +59,18 @@ cell→cocart-hom-retr {X} {A} sX sA p =
 -- Lifting data as homs out of p x
 --
 
+private
 lift-homs-data ∷ {X A ∷ U} (p ∷ X → A) → U
 lift-homs-data {X} {A} p = Σ (x : X) . Σ (b : A) . hom (p x) b
 
+private
 lift-data→homs ∷ {X A ∷ U} (p ∷ X → A) → pullback {X} {arrᵣ A} {A} p (λ u . srcᵣ u) → lift-homs-data {X} {A} p
 lift-data→homs {X} {A} p (x , r) =
   let h : (r : Σ (α : arrᵣ A) . p x ≡ srcᵣ α) → lift-homs-data {X} {A} p = fun (α , e) → (x , tgtᵣ α , (α , sym e , refl)) in
   h r
 
 -- the map on cocartesian homs, fibrewise over the source x
+private
 lift-homs-x ∷ {X A ∷ U} (sX : is-segalᵣ X) (sA : is-segalᵣ A) (p ∷ X → A) (x : X) →
   (Σ (y : X) . Σ (f : hom x y) . is-cocartesian {X} {A} sX sA p {x} {y} f) → Σ (b : A) . hom (p x) b
 lift-homs-x {X} {A} sX sA p x (y , s) = (p y , hom-map {X} {A} p {x} {y} (fst (λ f . is-cocartesian {X} {A} sX sA p {x} {y} f) s))
@@ -77,6 +81,7 @@ lift-homs {X} {A} sX sA p =
     (lift-homs-x {X} {A} sX sA p)
 
 -- the square commutes judgmentally
+private
 lift-square ∷ {X A ∷ U} (sX : is-segalᵣ X) (sA : is-segalᵣ A) (p ∷ X → A) (w : cocart-cell {X} {A} sX sA p) →
   lift-data→homs {X} {A} p (cocart-cell-lift {X} {A} sX sA p w) ≡ lift-homs {X} {A} sX sA p (cell→cocart-hom {X} {A} sX sA p w)
 lift-square {X} {A} sX sA p (f , c) = refl
@@ -112,6 +117,7 @@ is-cocartesian-fibration-from-inj {X} {A} sX sA p sec inj =
 
 
 -- injectivity is fibrewise
+private
 tot-inj-aux ∷ {B : U} {R Q : B → U} (L : (b : B) → R b → Q b) → ((b : B) → is-inj (L b)) →
   (b : B) (r : R b) {b' : B} (e : b ≡ b') (r' : R b') → subst Q e (L b r) ≡ L b' r' → (b , r) ≡{Σ (b'' : B) . R b''} (b' , r')
 tot-inj-aux {B} {R} {Q} L inj b r {b'} e =
@@ -124,6 +130,7 @@ tot-inj {B} {R} {Q} L inj (b , r) (b' , r') q =
   tot-inj-aux {B} {R} {Q} L inj b r {b'} (fst {b ≡ b'} (λ e . subst Q e (L b r) ≡ L b' r') sp) r' (snd {b ≡ b'} (λ e . subst Q e (L b r) ≡ L b' r') sp)
 
 -- a path of targets with a transport of homs, and cocartesianness, give a path of cocartesian homs
+private
 cocart-hom-join ∷ {X A ∷ U} (sX : is-segalᵣ X) (sA : is-segalᵣ A) (p ∷ X → A) {x y : X} (f : hom x y)
   (c : is-cocartesian {X} {A} sX sA p {x} {y} f) {y' : X} (P : y ≡ y') (f' : hom x y') (E : subst (λ z . hom x z) P f ≡ f')
   (c' : is-cocartesian {X} {A} sX sA p {x} {y'} f') →
@@ -139,6 +146,7 @@ cocart-hom-join {X} {A} sX sA p {x} {y} f c {y'} P =
     P
 
 -- the core: two cocartesian homs out of x with the same image are equal
+private
 lift-unique-core ∷ {X A ∷ U} (sX : is-segalᵣ X) (sA : is-segalᵣ A) (p ∷ X → A) (uX : is-univalentᵣ X sX)
   {x y : X} (f : hom x y) (c : is-cocartesian {X} {A} sX sA p {x} {y} f)
   {y' : X} (f' : hom x y') (c' : is-cocartesian {X} {A} sX sA p {x} {y'} f')
@@ -186,6 +194,7 @@ lift-unique-core {X} {A} sX sA p uX {x} {y} f c {y'} f' c' q =
   cocart-hom-join {X} {A} sX sA p {x} {y} f c {y'} P f' E c'
 
 -- fibrewise injectivity
+private
 lift-homs-x-inj ∷ {X A ∷ U} (sX : is-segalᵣ X) (sA : is-segalᵣ A) (p ∷ X → A) (uX : is-univalentᵣ X sX) (x : X) →
   is-inj (lift-homs-x {X} {A} sX sA p x)
 lift-homs-x-inj {X} {A} sX sA p uX x (y , s) (y' , s') =

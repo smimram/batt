@@ -91,6 +91,7 @@ is-equiv-point-pullback→pullback {Y} {B} r b =
 point-pullback-coneᵣ ∷ (K ∷ U) {Y B ∷ U} (r ∷ Y → B) (b ∷ B) → U
 point-pullback-coneᵣ K {Y} {B} r b = Σ (u : K →ᵣ Y) . Htpyᵣ K B (λ k . b) (postᵣ {K} {Y} {B} r u)
 
+private
 pullback-coneᵣ→point-pullback-coneᵣ ∷ (K ∷ U) {Y B ∷ U} (r ∷ Y → B) (b ∷ B) →
   pullback-coneᵣ K {⊤} {Y} {B} (λ _ . b) r → point-pullback-coneᵣ K {Y} {B} r b
 pullback-coneᵣ→point-pullback-coneᵣ K {Y} {B} r b (x , pq) =
@@ -98,6 +99,7 @@ pullback-coneᵣ→point-pullback-coneᵣ K {Y} {B} r b (x , pq) =
     fun (v , uH) pq → (Product.fst uH , Product.snd uH , pq) in
   h x pq
 
+private
 point-pullback-coneᵣ→pullback-coneᵣ ∷ (K ∷ U) {Y B ∷ U} (r ∷ Y → B) (b ∷ B) →
   point-pullback-coneᵣ K {Y} {B} r b → pullback-coneᵣ K {⊤} {Y} {B} (λ _ . b) r
 point-pullback-coneᵣ→pullback-coneᵣ K {Y} {B} r b (u , hH) =
@@ -105,6 +107,7 @@ point-pullback-coneᵣ→pullback-coneᵣ K {Y} {B} r b (u , hH) =
     fun (H , pq) → (((λ _ . tt) , u , H) , pq) in
   h hH
 
+private
 is-equiv-pullback-coneᵣ→point-pullback-coneᵣ ∷ (K ∷ U) {Y B ∷ U} (r ∷ Y → B) (b ∷ B) → is-equiv (pullback-coneᵣ→point-pullback-coneᵣ K {Y} {B} r b)
 is-equiv-pullback-coneᵣ→point-pullback-coneᵣ K {Y} {B} r b =
   let C ∷ U = pullback-coneᵣ K {⊤} {Y} {B} (λ _ . b) r in
@@ -154,11 +157,13 @@ point-pullback-path-cone ∷ {Y B ∷ U} (r ∷ Y → B) (b ∷ B) → U
 point-pullback-path-cone {Y} {B} r b = Σ (u : arrᵣ Y) . postᵣ {𝕀} {Y} {B} r u ≡{arrᵣ B} (λ _ . b)
 
 -- from homotopies to paths (the inverse of happlyᵣ-fib)
+private
 coneᵣ→path-cone ∷ {Y B ∷ U} (r ∷ Y → B) (b ∷ B) → point-pullback-coneᵣ 𝕀 {Y} {B} r b → point-pullback-path-cone {Y} {B} r b
 coneᵣ→path-cone {Y} {B} r b (u , h) =
   (u , sym (section-map (happlyᵣ-fib 𝕀 B (λ k . b) (postᵣ {𝕀} {Y} {B} r u))
               (is-equiv-sec (happlyᵣ-fib 𝕀 B (λ k . b) (postᵣ {𝕀} {Y} {B} r u)) (is-equiv-happlyᵣ-fib 𝕀 B (λ k . b) (postᵣ {𝕀} {Y} {B} r u))) h))
 
+private
 is-equiv-coneᵣ→path-cone ∷ {Y B ∷ U} (r ∷ Y → B) (b ∷ B) → is-equiv (coneᵣ→path-cone {Y} {B} r b)
 is-equiv-coneᵣ→path-cone {Y} {B} r b =
   let F : (u : arrᵣ Y) → Htpyᵣ 𝕀 B (λ k . b) (postᵣ {𝕀} {Y} {B} r u) → postᵣ {𝕀} {Y} {B} r u ≡{arrᵣ B} (λ _ . b) = λ u h .

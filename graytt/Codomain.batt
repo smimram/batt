@@ -39,12 +39,14 @@ lift-sq-over ∷ {A ∷ U} (σ : simplex 2 →ᵣ A) →
 lift-sq-over {A} σ = refl
 
 -- τ_σ = λ y . λ k . σ (y₁ ∧ k , y₂ ∧ k), sorted since y₁ ≥ y₂ gives y₁ ∧ k ≥ y₂ ∧ k
+private
 lift-tri ∷ {A ∷ U} → (simplex 2 →ᵣ A) → (simplex 2 →ᵣ arrᵣ A)
 lift-tri {A} σ = λ y . λ k .
   σ ((Simplex2.fst y 𝕀∧ k , Simplex2.snd y 𝕀∧ k , tt) ,
      (cong {𝕀} {𝕀} (λ z . z 𝕀∧ k) (Simplex2.geq y) , tt))
 
 -- its edges are Γ_t, χ_σ and Γ_{u ∘ t}, judgmentally
+private
 lift-tri-edges ∷ {A ∷ U} (σ : simplex 2 →ᵣ A) →
   (simplex2-hom₀₁ {arrᵣ A} (lift-tri {A} σ) ≡ conn-hom {A} (hom-cell (simplex2-hom₀₁ {A} σ))) ×
   (simplex2-hom₁₂ {arrᵣ A} (lift-tri {A} σ) ≡ cell-hom {arrᵣ A} (lift-sq {A} σ)) ×
@@ -56,6 +58,7 @@ lift-tri-edges {A} σ = (refl , refl , refl)
 --
 
 -- Γ_t ; χ_σ = Γ_{u ∘ t}
+private
 lift-sq-comp ∷ {A ∷ U} (sA : is-segalᵣ A) (σ : simplex 2 →ᵣ A) →
   comp-homᵣ (is-segal-arrᵣ {A} sA) (conn-hom {A} (hom-cell (simplex2-hom₀₁ {A} σ))) (cell-hom {arrᵣ A} (lift-sq {A} σ))
     ≡ conn-hom {A} (hom-cell (simplex2-hom₀₂ {A} σ))
@@ -92,6 +95,7 @@ open import Composable
 open import Simplex-edges
 
 -- composable pairs and lifting data
+private
 pair→lift-data ∷ {A ∷ U} → pairs A → pullback {arrᵣ A} {arrᵣ A} {A} (tgtᵣ {A}) (λ u . srcᵣ u)
 pair→lift-data {A} (y , r) =
   let h : (r : pair-from A y) → pullback {arrᵣ A} {arrᵣ A} {A} (tgtᵣ {A}) (λ u . srcᵣ u) = fun (z , s) →
@@ -102,12 +106,14 @@ pair→lift-data {A} (y , r) =
     h' s in
   h r
 
+private
 lift-data→pair ∷ {A ∷ U} → pullback {arrᵣ A} {arrᵣ A} {A} (tgtᵣ {A}) (λ u . srcᵣ u) → pairs A
 lift-data→pair {A} (z , r) =
   let h : (r : Σ (u : arrᵣ A) . tgtᵣ z ≡ srcᵣ u) → pairs A = fun (u , e) →
     (srcᵣ z , tgtᵣ z , tgtᵣ u , (z , refl , refl) , (u , sym e , refl)) in
   h r
 
+private
 lift-data-ret ∷ {A ∷ U} (d : pullback {arrᵣ A} {arrᵣ A} {A} (tgtᵣ {A}) (λ u . srcᵣ u)) →
   pair→lift-data {A} (lift-data→pair {A} d) ≡ d
 lift-data-ret {A} (z , r) =

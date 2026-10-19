@@ -75,6 +75,7 @@ pair-path-J {X} g h {y} e0 {t} e2 {z} e1' e1 =
       e2)
     e0
 
+private
 spine2-cocone→pair-homs ∷ {X ∷ U} {y z t : X} (v : hom y z) (w : hom z t) →
   spine2-cocone→pair {X} (homs→spine2-cocone {X} {y} {z} {t} v w) ≡ (y , z , t , v , w)
 spine2-cocone→pair-homs {X} {y} {z} {t} (g , ev) (h , ew) =
@@ -88,6 +89,7 @@ spine2-cocone→pair-homs {X} {y} {z} {t} (g , ev) (h , ew) =
 pair-section ∷ (X ∷ U) {y z t : X} (v : hom y z) (w : hom z t) → (spine 2 →ᵣ X)
 pair-section X {y} {z} {t} v w = homs→spine2 X {y} {z} {t} v w
 
+private
 pair-section-path ∷ (X ∷ U) {y z t : X} (v : hom y z) (w : hom z t) →
   spine2-cocone→pair {X} (spine2→coconeᵣ X (pair-section X {y} {z} {t} v w)) ≡ (y , z , t , v , w)
 pair-section-path X {y} {z} {t} v w =
@@ -103,6 +105,7 @@ pair-section-path X {y} {z} {t} v w =
 cell-pair→triple ∷ {X ∷ U} (f : 𝕀 →ᵣ X) (r : pairs X) → f 𝕀1 ≡ fst (pair-from X) r → triples X
 cell-pair→triple {X} f r q = (f 𝕀0 , fst (pair-from X) r , (f , refl , q) , snd (pair-from X) r)
 
+private
 cell-pair→triple-path ∷ {X ∷ U} (f : 𝕀 →ᵣ X) {r r' : pairs X} (P : r ≡ r') (q : f 𝕀1 ≡ fst (pair-from X) r) →
   cell-pair→triple {X} f r q ≡ cell-pair→triple {X} f r' (trans q (cong (fst (pair-from X)) P))
 cell-pair→triple-path {X} f {r} {r'} P =
@@ -140,6 +143,7 @@ spine3-cocone→triple {X} c =
       (spine3-cocone-glue {X} c)
 
 -- an oplax map out of the 2-spine, seen on the copy of the 2-spine, has the same pair of edges
+private
 spine3-tail-pair-proj ∷ {X ∷ U} (Φ : spine 2 →ᵣ X) →
   spine3-tail-pair {X} (preᵣ {spine3-tail} {spine 2} {X} Φ spine3-tail→spine2) ≡ spine2-cocone→pair {X}
     (spine2→coconeᵣ X Φ)
@@ -167,6 +171,7 @@ tri-section X {x} {y} {z} {t} u v w =
     trans (hom-tgt {X} {x} {y} u) (sym (cong (fst (pair-from X)) P)))
 
 -- trans (trans p (sym q)) q ≡ p
+private
 trans-sym-cancel-r ∷ {A : U} {x y : A} (p : x ≡ y) {z : A} (q : z ≡ y) → trans (trans p (sym q)) q ≡ p
 trans-sym-cancel-r {A} {x} {y} p {z} q = trans (assoc p (sym q) q) (cong {y ≡ y} {x ≡ y} (λ r . trans p r) (trans-sym-l q))
 

@@ -54,6 +54,7 @@ hom-map-comp-stmt X A p sX sA {x} {y} {z} u v =
   hom-map p (comp-homᵣ sX u v) ≡ comp-homᵣ sA (hom-map p u) (hom-map p v)
 
 -- the statement, as a family over composable pairs
+private
 pair-stmt ∷ (X A ∷ U) (p : X → A) (sX : is-segalᵣ X) (sA : is-segalᵣ A) → pairs X → U
 pair-stmt X A p sX sA = pair-family X (λ y z t v w . hom-map-comp-stmt X A p sX sA {y} {z} {t} v w)
 
@@ -123,6 +124,7 @@ face-image X A p sX sA {x} {y} {z} u v {a} c =
   trans (sym (hom-map-comp X A p sX sA u v)) (cong (hom-map p {x} {z}) c)
 
 -- solving f ≡ q · c⁻¹ for c
+private
 trans-solve ∷ {T : U} {x y : T} {z : T} (c : y ≡ z) (q : x ≡ z) {f : x ≡ y} → trans q (sym c) ≡ f → trans (sym f) q ≡ c
 trans-solve {T} {x} {y} refl q refl = trans-sym-l q
 
@@ -185,6 +187,7 @@ hom-map-hexagon X A p sX sA {x} {y} {z} {t} u v w αX αA =
         αA)
 
 -- the path algebra of the degenerate tetrahedron
+private
 tetra-core ∷ {T : U} {t0 : T} {y4 : T} (F4 : t0 ≡ y4) {y1 : T} (F1 : t0 ≡ y1) →
   trans refl F1 ≡ trans F4 (trans refl (trans refl (trans (sym F4) (sym (sym F1)))))
 tetra-core {T} {t0} refl refl = refl
@@ -274,6 +277,7 @@ assoc-coh-simplex X A p sX sA Θ =
     (subst hexagon-for-αA (sym (comp-homᵣ-assoc-edges A sA pΘ)) tetrahedron)
 
 -- the coherence, as a family over composable triples
+private
 assoc-coh-tri ∷ (X A ∷ U) (p ∷ X → A) (sX : is-segalᵣ X) (sA : is-segalᵣ A) → triples X → U
 assoc-coh-tri X A p sX sA = tri-family X (λ x y z t u v w . assoc-coh-stmt X A p sX sA {x} {y} {z} {t} u v w)
 
@@ -299,6 +303,7 @@ hom-map-comp-assoc X A p sX sA {x} {y} {z} {t} u v w =
 
 -- the action on homs of a composite map is the composite of the actions, up to the images of the
 -- boundary paths
+private
 hom-map-circ-aux ∷ {X Y A ∷ U} (ι ∷ X → Y) (q ∷ Y → A) (c : arrᵣ X) {x : X} (e0 : srcᵣ c ≡ x) {y : X} (e1 : tgtᵣ c ≡ y) →
   hom-map {X} {A} (λ w . q (ι w)) {x} {y} (c , e0 , e1) ≡ hom-map {Y} {A} q {ι x} {ι y} (hom-map {X} {Y} ι {x} {y} (c , e0 , e1))
 hom-map-circ-aux {X} {Y} {A} ι q c refl refl = refl
@@ -323,6 +328,7 @@ hom-map-comp-circ-stmt X Y A ι q sX sY sA {x} {y} {z} u v =
                  (hom-map-circ {X} {Y} {A} ι q {x} {y} u) (hom-map-circ {X} {Y} {A} ι q {y} {z} v)))))
 
 -- the path algebra on the edges of a 2-simplex
+private
 circ-alg ∷ {H M T : U} (P : H → T) (I : H → M) (Q : M → T) (c : (h : H) → P h ≡ Q (I h))
   {h h' : H} (α : h ≡ h') {m : M} (β : I h' ≡ m) {t : T} (γ : Q (I h') ≡ t) →
   trans (cong P α) (trans (c h') γ) ≡ trans (c h) (trans (cong Q (trans (cong I α) β)) (trans (cong Q (sym β)) γ))

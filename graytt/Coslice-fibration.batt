@@ -76,12 +76,14 @@ open import Complete-univalent
 
 -- lifting data for the codomain fibration, with a path from the source of the first arrow to a,
 -- are lifting data for the coslice
+private
 coslice-lift-data ∷ {A ∷ U} (a ∷ A) (d : pullback {arrᵣ A} {arrᵣ A} {A} (tgtᵣ {A}) (λ u . srcᵣ u)) →
   srcᵣ (fst {arrᵣ A} (λ y . Σ (u : arrᵣ A) . tgtᵣ y ≡ srcᵣ u) d) ≡ a →
   pullback {coslice a} {arrᵣ A} {A} (coslice-tgt {A} {a}) (λ u . srcᵣ u)
 coslice-lift-data {A} a (y , r) δ = ((y , δ) , r)
 
 -- paths of lifting data lift to the coslice
+private
 coslice-lift-data-path ∷ {A ∷ U} (a ∷ A) {d₀ d : pullback {arrᵣ A} {arrᵣ A} {A} (tgtᵣ {A}) (λ u . srcᵣ u)} (Q : d₀ ≡ d)
   (δ : srcᵣ (fst {arrᵣ A} (λ y . Σ (u : arrᵣ A) . tgtᵣ y ≡ srcᵣ u) d) ≡ a) →
   coslice-lift-data {A} a d₀ (trans (cong (λ d' . srcᵣ (fst {arrᵣ A} (λ y . Σ (u : arrᵣ A) . tgtᵣ y ≡ srcᵣ u) d')) Q) δ)

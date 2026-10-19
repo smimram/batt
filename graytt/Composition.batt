@@ -32,18 +32,22 @@ snd-cell fg = preᵣ fg Spine2.edge₁₂
 --
 
 -- the unthickened oplax Segal condition for Λ² ↪ Δ²
+private
 is-segalᵣ-2 ∷ {X ∷ U} → is-segalᵣ X → is-equiv (segal-restrᵣ nil 2 nil X)
 is-segalᵣ-2 s = s nil 2 nil
 
 -- the section of restriction along Λ² ↪ Δ² given by the oplax Segal condition
+private
 segal-sectionᵣ ∷ {X ∷ U} → is-segalᵣ X → section (segal-restrᵣ nil 2 nil X)
 segal-sectionᵣ {X} s = is-equiv-sec (segal-restrᵣ nil 2 nil X) (is-segalᵣ-2 s)
 
 -- the extension of a (trivially thickened) composable pair to a (trivially thickened) 2-simplex
+private
 thick-fillerᵣ ∷ {X ∷ U} → is-segalᵣ X → (thick-spine nil 2 nil →ᵣ X) → (thick-simplex nil 2 nil →ᵣ X)
 thick-fillerᵣ {X} s = section-map (segal-restrᵣ nil 2 nil X) (segal-sectionᵣ s)
 
 -- it restricts back to the given pair
+private
 thick-fillerᵣ-restr ∷ {X ∷ U} (s : is-segalᵣ X) (ψ : thick-spine nil 2 nil →ᵣ X) →
   segal-restrᵣ nil 2 nil X (thick-fillerᵣ s ψ) ≡ ψ
 thick-fillerᵣ-restr {X} s ψ =
@@ -51,6 +55,7 @@ thick-fillerᵣ-restr {X} s ψ =
     (is-section (segal-restrᵣ nil 2 nil X)) (segal-sectionᵣ s) ψ
 
 -- the composable pair φ, trivially thickened
+private
 thick-pairᵣ ∷ {X ∷ U} → (spine 2 →ᵣ X) → (thick-spine nil 2 nil →ᵣ X)
 thick-pairᵣ φ =
   let u ∷ thick-spine nil 2 nil → spine 2 = thicken-unit in
@@ -75,6 +80,7 @@ compᵣ s φ =
 --
 
 -- on the image of the spine, the filler of φ agrees with φ
+private
 comp-fillerᵣ-spine ∷ {X ∷ U} (s : is-segalᵣ X) (φ : spine 2 →ᵣ X) (v ∷ spine 2) {y ∷ simplex 2}
   (r ∷ y ≡ spine→simplex 2 v) → comp-fillerᵣ s φ y ≡ φ v
 comp-fillerᵣ-spine {X} s φ v {y} r =
@@ -268,12 +274,14 @@ spine2-edge-2-in-simplex-pt (c , w) =
   in
   k c w
 
+private
 spine2-edge-1-in-simplex-htpy ∷ (λ a . spine→simplex 2 (spine2-edge-1-incl a))
   ≡{spine2-edge-1 → simplex 2} (λ a . Simplex2.edge₀₁ (spine2-edge-1→𝕀 a))
 spine2-edge-1-in-simplex-htpy =
   funext-htpy (λ a . spine→simplex 2 (spine2-edge-1-incl a))
     (λ a . Simplex2.edge₀₁ (spine2-edge-1→𝕀 a)) spine2-edge-1-in-simplex-pt
 
+private
 spine2-edge-2-in-simplex-htpy ∷ (λ b . spine→simplex 2 (spine2-edge-2-incl b))
   ≡{spine2-edge-2 → simplex 2} (λ b . Simplex2.edge₁₂ (spine2-edge-2→𝕀 b))
 spine2-edge-2-in-simplex-htpy =
@@ -281,6 +289,7 @@ spine2-edge-2-in-simplex-htpy =
     (λ b . Simplex2.edge₁₂ (spine2-edge-2→𝕀 b)) spine2-edge-2-in-simplex-pt
 
 -- the restriction of a 2-simplex to the edges of the spine is the cocone of its two first edges
+private
 simplex2→cocone-edges ∷ {X ∷ U} (Ψ : simplex 2 →ᵣ X) →
   simplex2→coconeᵣ X Ψ ≡ homs→spine2-cocone
     (simplex2-hom₀₁ Ψ) (simplex2-hom₁₂ Ψ)
