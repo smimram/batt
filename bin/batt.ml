@@ -31,7 +31,8 @@ let () =
          Lang.check_decls_toplevel decls
       ) files;
     Lang.finalize_unify ();
-    Lang.check_meta ()
+    Lang.check_meta ();
+    Lang.print_stats ()
   with
   | Failure err ->
     let bt = Printexc.raw_backtrace_to_string @@ Printexc.get_raw_backtrace () in
