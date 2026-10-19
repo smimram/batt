@@ -37,4 +37,5 @@ open import Local
 open import Pushout-up
 open import FreeEquiv-up
 open import Complete-univalent
+open import HomSquare
 open import Hom2
