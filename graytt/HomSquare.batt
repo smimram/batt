@@ -1,5 +1,35 @@
 --
--- Squares
+-- Oplax squares with given sides, and their compositions
+--
+-- A square with left, right, bottom and top sides f1 : hom a c, f2 : hom b d, g : hom a b and
+-- h : hom c d is an oplax square x : 𝕀 ⊗ 𝕀 →ᵣ A together with a path from its boundary to the
+-- given one:
+--
+--   square f1 f2 g h  =  Σ (x : squareᵣ A) . bdry x ≡ (a , b , c , d , f1 , f2 , g , h)
+--
+-- i.e. the fiber of the boundary map bdry : squareᵣ A → boundary A. The square (x , refl) has
+-- boundary bdry x judgmentally, so that statements about squares with a free boundary reduce to
+-- those squares by path induction (square-ind, hom-square-ind, vsquare-ind).
+--
+-- Main results, for an oplax-Segal type A:
+--
+--   comp-h, comp-v            horizontal and vertical composition
+--   id-h, id-v                horizontal and vertical identities
+--   comp-h-lunit, -runit      unit laws for horizontal composition
+--   comp-v-lunit, -runit      unit laws for vertical composition
+--   comp-h-assoc              associativity of horizontal composition
+--   comp-v-assoc              associativity of vertical composition
+--   comp-h-simplex,           composites of the squares given by the edges of 2-simplices
+--   comp-v-simplex
+--
+-- Squares curry with the horizontal variable outside, so that a square is a hom between arrows
+-- (of-hom) and horizontal composition is composition in the oplax-Segal type arrᵣ A. Vertical
+-- composition is pointwise in the horizontal variable: it composes the oplax families of
+-- composable pairs given by cones over tgtᵣ and srcᵣ (pullback-oplax-up). Both compositions are
+-- first defined along a path between the glued sides, as homs with free endpoints (comp-h-gen,
+-- comp-v-gen), so that their laws can be shown by induction on independent squares.
+--
+-- The exchange law between the two compositions is in Exchange.batt.
 --
 
 open import Stdlib

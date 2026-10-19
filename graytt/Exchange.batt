@@ -1,5 +1,21 @@
 --
--- 2×2 grids of squares, and the exchange law
+-- The exchange law for oplax squares
+--
+--   exchange : comp-v (comp-h σ00 σ10) (comp-h σ01 σ11) ≡ comp-h (comp-v σ00 σ01) (comp-v σ10 σ11)
+--
+-- for a 2×2 grid of squares σ00, σ10 (lower row) and σ01, σ11 (upper row) of an oplax-Segal type,
+-- sharing their inner sides. Both sides have the same boundary, so that this is a plain path.
+--
+-- The proof goes through primitive grids Θ : Δ² →ᵣ (Δ² →ᵣ A), whose four squares share their
+-- sides judgmentally:
+--
+--   exchange-grid   the exchange law for primitive grids: both composites are the square of Θ
+--                   along the long edges, moved along the composites of the edges of the
+--                   2-simplices on its boundary (comp-h-simplex, comp-v-simplex)
+--   row-ind         induction on rows (pairs of horizontally adjacent squares): they are given
+--                   by 2-simplices of arrows
+--   grid-ind        induction on grids (a row and a row above it): they are given by primitive
+--                   grids
 --
 
 open import Stdlib
