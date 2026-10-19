@@ -10,8 +10,6 @@ let debug s = Console.console##debug (Js.string s)
 
 let loop s =
   debug "Type checking code";
-  (* There is no file system to store cached modules. *)
-  Common.cache := false;
   Lang.check_decls_toplevel @@ Module.parse_string s
 
 let number_of_int n = Js.number_of_float (float n)
