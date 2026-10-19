@@ -103,8 +103,7 @@ is-set-cart-cube (succ n) = is-set-prod {𝕀} {cart-cube n} is-set-𝕀 rec
 -- and the tail is in the spine
 spine-sub ∷ (n ∷ ℕ) → subtype (cart-cube n)
 spine-sub zero     _         = hprop is-prop-unit
-spine-sub (succ n) (x1 , xs) =
-  (xs ≡ origin n , is-set-cart-cube n xs (origin n)) ∨ (hprop (is-set-𝕀 x1 𝕀1) ∧ rec xs)
+spine-sub (succ n) (x1 , xs) = (xs ≡ origin n , is-set-cart-cube n xs (origin n)) ∨ (hprop (is-set-𝕀 x1 𝕀1) ∧ rec xs)
 
 -- -- Whether a point of the cartesian cube is in the n-spine
 -- is-in-spine ∷ (n ∷ ℕ) → (x : cart-cube n) → Type
