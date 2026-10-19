@@ -142,6 +142,41 @@ let mk ?pos t =
   (match pos with Some pos -> Position.register t pos | None -> ());
   t
 
+(** Replace the maximal subterms on which [f] is defined. This does not take binders in account and is used to rename identifiers. *)
+let rec map f t =
+  match f t with
+  | Some t -> t
+  | None ->
+    let map = map f in
+    match t with
+    | Type _ | Var _ | Var' _ | Opaque _ | Global _ | Hole _ | Meta _ | Import _ | I | I0 | I1 -> t
+    | IndType (a, l) -> IndType (a, List.map map l)
+    | IndType_ind (a, l) -> IndType_ind (a, List.map map l)
+    | IndTerm (c, l) -> IndTerm (c, List.map map l)
+    | Pi (i, c, x, a, b) -> Pi (i, c, x, map a, map b)
+    | Abs (i, x, t) -> Abs (i, x, map t)
+    | App (t, i, u) -> App (map t, i, map u)
+    | Sigma (x, a, b) -> Sigma (x, map a, map b)
+    | Pair (t, u) -> Pair (map t, map u)
+    | Pair_ind (x, y, t) -> Pair_ind (x, y, map t)
+    | Arr (s, a, b) -> Arr (s, map a, map b)
+    | Tens (a, b) -> Tens (map a, map b)
+    | TensPair (t, u) -> TensPair (map t, map u)
+    | Tens_ind (x, y, t) -> Tens_ind (x, y, map t)
+    | Flat a -> Flat (map a)
+    | Flatten t -> Flatten (map t)
+    | Flat_ind (x, t) -> Flat_ind (x, map t)
+    | Eq (a, t, u) -> Eq (map a, map t, map u)
+    | Refl t -> Refl (map t)
+    | J r -> J (map r)
+    | Let (q, x, a, t, u) -> Let (q, x, map a, map t, map u)
+    | RecordType l -> RecordType (List.map (fun (x, q, a) -> x, q, map a) l)
+    | Record (r, l) -> Record (r, List.map (fun (x, t) -> x, map t) l)
+    | RecordDecls _ -> assert false
+    | RecordField (t, x) -> RecordField (map t, x)
+    | Iv (i, j) -> Iv (map i, map j)
+    | Iw (i, j) -> Iw (map i, map j)
+
 module FV = struct
   include Set.Make(String)
 
