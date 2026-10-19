@@ -37,6 +37,7 @@ post-equiv {A} {B} f e X =
   k (is-equiv-sec equiv-eq (univalence A B))
 
 -- contractibility of postcomposition with the map coming from an equality
+private
 post-contr-eq ∷ {A B : U} (P : A ≡ B) (X : U) → is-contr-map (post {X} (map-equiv (equiv-eq P)))
 post-contr-eq {A} refl X = fun y → is-contr-sing' y
 
@@ -65,6 +66,7 @@ postᵣ-equiv A {X} {Y} f e =
   k (is-equiv-sec equiv-eq (univalence X Y))
 
 -- r-postcomposition with the map of a crisp path has contractible fibers (crisp path induction)
+private
 postᵣ-contr-eq ∷ (A ∷ U) {X Y ∷ U} (P ∷ X ≡ Y) → is-contr-map (postᵣ {A} (map-equiv (equiv-eq P)))
 postᵣ-contr-eq A {X} refl = fun y → is-contr-sing' y
 
@@ -85,6 +87,7 @@ postₗ-equiv A {X} {Y} f e =
   k (is-equiv-sec equiv-eq (univalence X Y))
 
 -- l-postcomposition with the map of a crisp path has contractible fibers (crisp path induction)
+private
 postₗ-contr-eq ∷ (A ∷ U) {X Y ∷ U} (P ∷ X ≡ Y) → is-contr-map (postₗ {A} (map-equiv (equiv-eq P)))
 postₗ-contr-eq A {X} refl = fun y → is-contr-sing' y
 

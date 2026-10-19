@@ -163,10 +163,12 @@ htpy-nat ∷ {A B : U} {h k : A → B} (H : (a : A) → h a ≡ k a) {a a' : A} 
 htpy-nat {A} {B} {h} {k} H {a} refl = sym (trans-refl-l (H a))
 
 -- right cancellation of a path
+private
 trans-cancel-r ∷ {A : U} {x y : A} {p q : x ≡ y} {z : A} (r : y ≡ z) → trans p r ≡ trans q r → p ≡ q
 trans-cancel-r {A} {x} {y} {p} {q} refl e = e
 
 -- a homotopy g ∘ f ~ id commutes with g ∘ f
+private
 htpy-gf-coh ∷ {A B : U} (f : A → B) (g : B → A) (η : (x : A) → g (f x) ≡ x) (x : A) →
   η (g (f x)) ≡ cong (λ a . g (f a)) (η x)
 htpy-gf-coh {A} {B} f g η x =
@@ -175,14 +177,17 @@ htpy-gf-coh {A} {B} f g η x =
       (htpy-nat {A} {A} {λ a . g (f a)} {λ a . a} η (η x)))
 
 -- the half-adjoint section homotopy
+private
 ha-sec ∷ {A B : U} (f : A → B) (g : B → A) (η : (x : A) → g (f x) ≡ x) (ε : (y : B) → f (g y) ≡ y) (y : B) → f (g y) ≡ y
 ha-sec {A} {B} f g η ε y = trans (sym (ε (f (g y)))) (trans (cong f (η (g y))) (ε y))
 
 -- cancelling a path on the left
+private
 trans-sym-cancel ∷ {A : U} {x y : A} (E : x ≡ y) {z : A} (q : y ≡ z) (X : x ≡ z) → X ≡ trans E q → trans (sym E) X ≡ q
 trans-sym-cancel {A} {x} {y} E {z} q X h =
   trans (cong {x ≡ z} {y ≡ z} (λ w . trans (sym E) w) h) (trans (sym (assoc (sym E) E q)) (trans (cong {y ≡ y} {y ≡ z} (λ w . trans w q) (trans-sym-l E)) (trans-refl-l q)))
 
+private
 ha-coh ∷ {A B : U} (f : A → B) (g : B → A) (η : (x : A) → g (f x) ≡ x) (ε : (y : B) → f (g y) ≡ y) (x : A) →
   ha-sec f g η ε (f x) ≡ cong f (η x)
 ha-coh {A} {B} f g η ε x =
@@ -194,6 +199,7 @@ ha-coh {A} {B} f g η ε x =
           (cong {f (g (f x)) ≡ f x} {f (g (f (g (f x)))) ≡ f x} (λ w . trans (ε (f (g (f x)))) w) (cong-id (cong f (η x)))))))
 
 -- a point of the fibre over f x, with a path to x over which its path is the image of that path
+private
 fib-path ∷ {A B : U} (f : A → B) {a x : A} (e : a ≡ x) (q : f a ≡ f x) → q ≡ cong f e → (a , q) ≡{fib f (f x)} (x , refl)
 fib-path {A} {B} f {a} {x} e =
   J' (λ a x e . (q : f a ≡ f x) → q ≡ cong f e → (a , q) ≡{fib f (f x)} (x , refl))
@@ -283,6 +289,7 @@ is-equiv-conj' {A} {B} {C} {D} f g α β H eα eβ eg =
 Σ-subst-sym ∷ {B : U} (Q : B → U) {b' b : B} (p : b' ≡ b) (q : Q b) → (b' , subst Q (sym p) q) ≡{Σ (b : B) . Q b} (b , q)
 Σ-subst-sym {B} Q {b'} refl q = refl
 
+private
 Σ-subst-sym-cong ∷ {A B : U} (f : A → B) (Q : B → U) {a' a : A} (p : a' ≡ a) (q : Q (f a)) →
   (a' , subst Q (sym (cong f p)) q) ≡{Σ (a : A) . Q (f a)} (a , q)
 Σ-subst-sym-cong {A} {B} f Q {a'} refl q = refl
@@ -306,6 +313,7 @@ is-equiv-Σ-base {A} {B} f (sec , ret) Q =
   h sec ret
 
 -- rotating a square of paths
+private
 trans-sym-trans ∷ {T : U} {a0 a1 : T} (A : a0 ≡ a1) {a3 : T} (X : a1 ≡ a3) → trans (sym A) (trans A X) ≡ X
 trans-sym-trans {T} {a0} {a1} A refl = trans-sym-l A
 
@@ -359,6 +367,7 @@ is-contr-map→is-equiv {A} {B} f c =
   ((s , ε) , (s , η))
 
 -- the fibres of a map are retracts of the fibres of its total map
+private
 tot-fib→fib ∷ {A : U} {P Q : A → U} (f : (a : A) → P a → Q a) (z : Σ (a : A) . Q a) →
   fib (tot {A} {P} {Q} f) z → fib (f (fst Q z)) (snd Q z)
 tot-fib→fib {A} {P} {Q} f z (x , e) =
@@ -366,10 +375,12 @@ tot-fib→fib {A} {P} {Q} f z (x , e) =
     J {Σ (a : A) . Q a} (a' , f a' p') (λ z' e' . fib (f (fst Q z')) (snd Q z')) (p' , refl) e in
   h x e
 
+private
 fib→tot-fib ∷ {A : U} {P Q : A → U} (f : (a : A) → P a → Q a) (a : A) (q : Q a) →
   fib (f a) q → fib (tot {A} {P} {Q} f) (a , q)
 fib→tot-fib {A} {P} {Q} f a q (p , e) = ((a , p) , cong {Q a} {Σ (a' : A) . Q a'} (λ q' . (a , q')) e)
 
+private
 fib→tot-fib-retr ∷ {A : U} {P Q : A → U} (f : (a : A) → P a → Q a) (a : A) (q : Q a) (w : fib (f a) q) →
   tot-fib→fib {A} {P} {Q} f (a , q) (fib→tot-fib {A} {P} {Q} f a q w) ≡ w
 fib→tot-fib-retr {A} {P} {Q} f a q (p , e) =
@@ -393,9 +404,11 @@ is-equiv-Σ-path-split {B} {Q} {b} {v} w =
    (Σ-path-join' {B} {Q} {b} {v} w , Σ-path-join'-split {B} {Q} {b} {v} w))
 
 -- composing with a fixed path on the right is an equivalence
+private
 trans-right-retr ∷ {A : U} {x y z : A} (p : y ≡ z) (q : x ≡ y) → trans (trans q p) (sym p) ≡ q
 trans-right-retr {A} {x} {y} {z} p q = J y (λ z' p' . trans (trans q p') (sym p') ≡ q) refl p
 
+private
 trans-right-sec ∷ {A : U} {x y z : A} (p : y ≡ z) (q : x ≡ z) → trans (trans q (sym p)) p ≡ q
 trans-right-sec {A} {x} {y} {z} p q =
   J y (λ z' p' . (q' : x ≡ z') → trans (trans q' (sym p')) p' ≡ q') (λ q' . refl) p q
@@ -431,14 +444,17 @@ family-pullback→Σ {M} {K} C φ (mc , r) =
     fun (m , c) (k , e) → (k , subst C e c) in
   h mc r
 
+private
 Σ→family-pullback ∷ {M K : U} (C : M → U) (φ : K → M) → (Σ (k : K) . C (φ k)) → Σ (mc : Σ (m : M) . C m) . Σ (k : K) . fst C mc ≡ φ k
 Σ→family-pullback {M} {K} C φ (k , c) = ((φ k , c) , (k , refl))
 
+private
 family-pullback→Σ-retr-aux ∷ {M K : U} (C : M → U) (φ : K → M) (k : K) {m : M} (e' : φ k ≡ m) (c : C m) →
   Σ→family-pullback C φ (family-pullback→Σ C φ ((m , c) , (k , sym e')))
     ≡{Σ (mc : Σ (m : M) . C m) . Σ (k : K) . fst C mc ≡ φ k} ((m , c) , (k , sym e'))
 family-pullback→Σ-retr-aux {M} {K} C φ k refl c = refl
 
+private
 family-pullback→Σ-retr ∷ {M K : U} (C : M → U) (φ : K → M) (w : Σ (mc : Σ (m : M) . C m) . Σ (k : K) . fst C mc ≡ φ k) →
   Σ→family-pullback C φ (family-pullback→Σ C φ w) ≡ w
 family-pullback→Σ-retr {M} {K} C φ (mc , r) =

@@ -77,27 +77,33 @@ is-section-crispify-bool = Bool.ind (λb. unflatten (crispify-bool b) ≡ b) ref
 open import Funext
 
 -- Theorem 6.1
+private
 flat-code ∷ {A ∷ U} → ♭A → ♭A → U
 flat-code {A} = fun 𝄫x → fun 𝄫y → ♭(x ≡ y)
 
+private
 flat-refl ∷ {A ∷ U} (u : ♭A) → flat-code u u
 flat-refl {A} = fun 𝄫x → 𝄫refl
 
 -- transporting flat-refl along the path
+private
 flat-encode ∷ {A ∷ U} (u v : ♭A) → u ≡ v → flat-code u v
 flat-encode {A} u v p = subst (flat-code u) p (flat-refl u)
 
 -- crisp path induction, after matching on everybody
+private
 flat-decode ∷ {A ∷ U} (u v : ♭A) → flat-code u v → u ≡ v
 flat-decode {A} = fun 𝄫x → fun 𝄫y → fun 𝄫p →
   let h : (y ∷ A) (p ∷ x ≡ y) → 𝄫x ≡ 𝄫y = fun refl → refl in
   h y p
 
+private
 flat-encode-decode ∷ {A ∷ U} (u v : ♭A) (c : flat-code u v) → flat-encode u v (flat-decode u v c) ≡ c
 flat-encode-decode {A} = fun 𝄫x → fun 𝄫y → fun 𝄫p →
   let h : (y ∷ A) (p ∷ x ≡ y) → flat-encode 𝄫x 𝄫y (flat-decode 𝄫x 𝄫y 𝄫p) ≡ 𝄫p = fun refl → refl in
   h y p
 
+private
 flat-decode-encode ∷ {A ∷ U} (u v : ♭A) (p : u ≡ v) → flat-decode u v (flat-encode u v p) ≡ p
 flat-decode-encode {A} =
   let lem : (u : ♭A) → flat-decode {A} u u (flat-encode {A} u u refl) ≡ refl = fun 𝄫x → refl in
@@ -143,6 +149,7 @@ flat-sigma-unsplit {A} {B} (u , v) =
   let h : (u : ♭A) → flat-fam B u → ♭(Σ (x : A) . B x) = fun 𝄫a → fun 𝄫b → 𝄫(a , b) in
   h u v
 
+private
 flat-sigma-split-unsplit ∷ {A ∷ U} {B ∷ A → U} (y : Σ (u : ♭A) . flat-fam B u) →
   flat-sigma-split {A} {B} (flat-sigma-unsplit {A} {B} y) ≡ y
 flat-sigma-split-unsplit {A} {B} (u , v) =
@@ -152,6 +159,7 @@ flat-sigma-split-unsplit {A} {B} (u , v) =
   in
   h u v
 
+private
 flat-sigma-unsplit-split ∷ {A ∷ U} {B ∷ A → U} (x : ♭(Σ (x : A) . B x)) →
   flat-sigma-unsplit {A} {B} (flat-sigma-split {A} {B} x) ≡ x
 flat-sigma-unsplit-split {A} {B} 𝄫p =
@@ -176,6 +184,7 @@ flat-unsplit {A} {B} (u , v) =
   let h : (u : ♭A) (v : ♭B) → ♭(A × B) = fun 𝄫a → fun 𝄫b → 𝄫(a , b) in
   h u v
 
+private
 flat-split-unsplit ∷ {A B ∷ U} (y : ♭A × ♭B) → flat-split (flat-unsplit y) ≡ y
 flat-split-unsplit {A} {B} (u , v) =
   let h : (u : ♭A) (v : ♭B) → flat-split (flat-unsplit (u , v)) ≡ (u , v) =
@@ -183,6 +192,7 @@ flat-split-unsplit {A} {B} (u , v) =
   in
   h u v
 
+private
 flat-unsplit-split ∷ {A B ∷ U} (x : ♭(A × B)) → flat-unsplit (flat-split x) ≡ x
 flat-unsplit-split {A} {B} 𝄫x =
   let h : (x ∷ A × B) → flat-unsplit (flat-split 𝄫x) ≡ 𝄫x = fun (a , b) → refl in
@@ -249,6 +259,7 @@ is-discrete-flat A =
 flat-pair ∷ {A B ∷ U} → ♭A → ♭B → ♭(A × B)
 flat-pair 𝄫a 𝄫b = 𝄫(a , b)
 
+private
 unflatten-flat-pair ∷ {A B ∷ U} (x : ♭A) (y : ♭B) → unflatten (flat-pair x y) ≡ (unflatten x , unflatten y)
 unflatten-flat-pair 𝄫a 𝄫b = refl
 
@@ -283,6 +294,7 @@ is-discrete-unit =
 open import Univalence
 
 -- unflatten on ♭(x ≡ y) is the action of unflatten on paths
+private
 unflatten-flat-decode ∷ {A ∷ U} {x y ∷ A} (c : ♭(x ≡ y)) → cong (unflatten {A}) (flat-decode 𝄫x 𝄫y c) ≡ unflatten c
 unflatten-flat-decode {A} {x} {y} 𝄫p =
   let h : (y ∷ A) (p ∷ x ≡ y) → cong (unflatten {A}) (flat-decode 𝄫x 𝄫y 𝄫p) ≡ unflatten 𝄫p = fun refl → refl in
@@ -312,11 +324,13 @@ flat-prod-to-tens {A} {B} 𝄫ab =
   let f : (ab ∷ A × B) → ♭(A ⨂ B) = fun (a , b) → 𝄫(a ⊗ b) in
   f ab
 
+private
 flat-prod-to-tens-to-prod ∷ {A B ∷ U} (x : ♭(A × B)) → flat-tens-to-prod (flat-prod-to-tens x) ≡ x
 flat-prod-to-tens-to-prod {A} {B} 𝄫x =
   let f : (x : A × B) → flat-tens-to-prod (flat-prod-to-tens 𝄫x) ≡ 𝄫x = fun (a , b) → refl in
   f x
 
+private
 flat-tens-to-prod-to-tens ∷ {A B ∷ U} (x : ♭(A ⨂ B)) → flat-prod-to-tens (flat-tens-to-prod x) ≡ x
 flat-tens-to-prod-to-tens {A} {B} 𝄫x =
   let f : (x : A ⨂ B) → flat-prod-to-tens (flat-tens-to-prod 𝄫x) ≡ 𝄫x = fun (a ⊗ b) → refl in
@@ -373,9 +387,11 @@ flat-pi-to-arrᵣ {A} {B} 𝄫f = 𝄫(λ a . f a)
 flat-arrᵣ-to-pi ∷ {A B ∷ U} → ♭(A →ᵣ B) → ♭(A → B)
 flat-arrᵣ-to-pi {A} {B} 𝄫f = 𝄫(λ a . f a)
 
+private
 flat-pi-arrᵣ-pi ∷ {A B ∷ U} (x : ♭(A → B)) → flat-arrᵣ-to-pi {A} {B} (flat-pi-to-arrᵣ {A} {B} x) ≡ x
 flat-pi-arrᵣ-pi {A} {B} 𝄫f = refl
 
+private
 flat-arrᵣ-pi-arrᵣ ∷ {A B ∷ U} (x : ♭(A →ᵣ B)) → flat-pi-to-arrᵣ {A} {B} (flat-arrᵣ-to-pi {A} {B} x) ≡ x
 flat-arrᵣ-pi-arrᵣ {A} {B} 𝄫f = refl
 
@@ -391,9 +407,11 @@ flat-pi-to-arrₗ {A} {B} 𝄫f = 𝄫(λ a . f a)
 flat-arrₗ-to-pi ∷ {A B ∷ U} → ♭(A →ₗ B) → ♭(A → B)
 flat-arrₗ-to-pi {A} {B} 𝄫f = 𝄫(λ a . f a)
 
+private
 flat-pi-arrₗ-pi ∷ {A B ∷ U} (x : ♭(A → B)) → flat-arrₗ-to-pi {A} {B} (flat-pi-to-arrₗ {A} {B} x) ≡ x
 flat-pi-arrₗ-pi {A} {B} 𝄫f = refl
 
+private
 flat-arrₗ-pi-arrₗ ∷ {A B ∷ U} (x : ♭(A →ₗ B)) → flat-pi-to-arrₗ {A} {B} (flat-arrₗ-to-pi {A} {B} x) ≡ x
 flat-arrₗ-pi-arrₗ {A} {B} 𝄫f = refl
 
@@ -416,9 +434,11 @@ tens-uncurry-crispᵣ ∷ {T K W ∷ U} (F ∷ T → K →ᵣ W) → T ⨂ K →
 tens-uncurry-crispᵣ {T} {K} {W} F (t ⊗ k) = F t k
 
 -- the two round trips
+private
 tens-curry-uncurry-crispᵣ ∷ {T K W ∷ U} (F ∷ T → K →ᵣ W) → Tensor.curry-right' {T} {K} {W} (tens-uncurry-crispᵣ {T} {K} {W} F) ≡ F
 tens-curry-uncurry-crispᵣ {T} {K} {W} F = refl
 
+private
 tens-uncurry-curry-crispᵣ ∷ {T K W ∷ U} (G ∷ T ⨂ K → W) → tens-uncurry-crispᵣ {T} {K} {W} (Tensor.curry-right' {T} {K} {W} G) ≡ G
 tens-uncurry-curry-crispᵣ {T} {K} {W} G =
   funext-htpy {T ⨂ K} {λ _ . W} (tens-uncurry-crispᵣ {T} {K} {W} (Tensor.curry-right' {T} {K} {W} G)) G
@@ -487,6 +507,7 @@ flat-Σ-map-equiv {X} {Y} {P} {Q} F m eF em =
     eC
 
 -- ♭ of cong φ, on paths between crisp points, is an equivalence when ♭ of φ is
+private
 flat-cong-htpy ∷ {Z W ∷ U} (φ ∷ Z → W) {z ∷ Z} {z' ∷ Z} (p ∷ z ≡ z') →
   flat-encode {W} 𝄫(φ z) 𝄫(φ z') (cong (flat-map {Z} {W} φ) (flat-decode {Z} 𝄫z 𝄫z' 𝄫p)) ≡ 𝄫(cong φ p)
 flat-cong-htpy {Z} {W} φ {z} refl = refl
@@ -513,9 +534,11 @@ is-equiv-flat-tens-uncurryᵣ {T} {K} {W} =
 tens-uncurry-crispₗ ∷ {A B W ∷ U} (F ∷ B → A →ₗ W) → A ⨂ B → W
 tens-uncurry-crispₗ {A} {B} {W} F (a ⊗ b) = F b a
 
+private
 tens-curry-uncurry-crispₗ ∷ {A B W ∷ U} (F ∷ B → A →ₗ W) → Tensor.curry-left' {A} {B} {W} (tens-uncurry-crispₗ {A} {B} {W} F) ≡ F
 tens-curry-uncurry-crispₗ {A} {B} {W} F = refl
 
+private
 tens-uncurry-curry-crispₗ ∷ {A B W ∷ U} (G ∷ A ⨂ B → W) → tens-uncurry-crispₗ {A} {B} {W} (Tensor.curry-left' {A} {B} {W} G) ≡ G
 tens-uncurry-curry-crispₗ {A} {B} {W} G =
   funext-htpy {A ⨂ B} {λ _ . W} (tens-uncurry-crispₗ {A} {B} {W} (Tensor.curry-left' {A} {B} {W} G)) G

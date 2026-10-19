@@ -53,6 +53,7 @@ homotopy-cst f x = path-cst (f x)
 -- Any path is equal to a constant path
 --
 
+private
 path-cst-src' ∷ {A : U} (x : A) (q : Σ (y : A) . x ≡ y) → path-cst x ≡ (x , q)
 path-cst-src' x (y , p) = J x (fun y p → path-cst x ≡ (x , y , p)) refl p
 

@@ -32,6 +32,7 @@ funext-nd {X} {Y} f g h =
 ---
 
 -- the first projection of a family of contractible types is an equivalence
+private
 fst-contr-ret ∷ {X : U} (P : X → U) (c : (x : X) → is-contr (P x)) (x : X) (y : P x) → (x , center (P x) (c x)) ≡{Σ (x : X) . P x} (x , y)
 fst-contr-ret {X} P c x y = cong {P x} {Σ (w : X) . P w} (fun z → (x , z)) (is-contr-eq (c x) (center (P x) (c x)) y)
 

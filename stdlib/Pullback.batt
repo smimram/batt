@@ -68,18 +68,22 @@ pb-Q ∷ {H L K C : U} (a : H → C) (b : L → C) (c : K → L) → (pullback {
 pb-Q {H} {L} {K} {C} a b c (h , r) = Σ (k : K) . fst (λ l . a h ≡ b l) r ≡ c k
 
 -- the domain of the pasting map, (H ×_C L) ×_L K
+private
 pb-pasted ∷ {H L K C : U} (a : H → C) (b : L → C) (c : K → L) → U
 pb-pasted {H} {L} {K} {C} a b c = Σ (t : pullback {H} {L} {C} a b) . pb-Q a b c t
 
 -- the pasting map, by successive pattern matching
+private
 pb-paste-r ∷ {H L K C : U} (a : H → C) (b : L → C) (c : K → L) (d : K → C) (R : (k : K) → b (c k) ≡ d k) (h : H) (l : L) (e1 : a h ≡ b l) →
   (Σ (k : K) . l ≡ c k) → pullback {H} {K} {C} a d
 pb-paste-r {H} {L} {K} {C} a b c d R h l e1 (k , e2) = (h , k , trans e1 (trans (cong b e2) (R k)))
 
+private
 pb-paste-h ∷ {H L K C : U} (a : H → C) (b : L → C) (c : K → L) (d : K → C) (R : (k : K) → b (c k) ≡ d k) (h : H) (r : Σ (l : L) . a h ≡ b l) →
   pb-Q a b c (h , r) → pullback {H} {K} {C} a d
 pb-paste-h {H} {L} {K} {C} a b c d R h (l , e1) = pb-paste-r a b c d R h l e1
 
+private
 pb-paste-t ∷ {H L K C : U} (a : H → C) (b : L → C) (c : K → L) (d : K → C) (R : (k : K) → b (c k) ≡ d k) (t : pullback {H} {L} {C} a b) →
   pb-Q a b c t → pullback {H} {K} {C} a d
 pb-paste-t {H} {L} {K} {C} a b c d R (h , r) = pb-paste-h a b c d R h r
@@ -89,37 +93,45 @@ pb-paste ∷ {H L K C : U} (a : H → C) (b : L → C) (c : K → L) (d : K → 
 pb-paste {H} {L} {K} {C} a b c d R (t , q) = pb-paste-t a b c d R t q
 
 -- its inverse: l is c k, with the identification e · R k⁻¹
+private
 pb-unpaste-r ∷ {H L K C : U} (a : H → C) (b : L → C) (c : K → L) (d : K → C) (R : (k : K) → b (c k) ≡ d k) (h : H) →
   (Σ (k : K) . a h ≡ d k) → pb-pasted {H} {L} {K} {C} a b c
 pb-unpaste-r {H} {L} {K} {C} a b c d R h (k , e) = ((h , c k , trans e (sym (R k))) , (k , refl))
 
+private
 pb-unpaste ∷ {H L K C : U} (a : H → C) (b : L → C) (c : K → L) (d : K → C) (R : (k : K) → b (c k) ≡ d k) →
   (pullback {H} {K} {C} a d) → pb-pasted {H} {L} {K} {C} a b c
 pb-unpaste {H} {L} {K} {C} a b c d R (h , r) = pb-unpaste-r a b c d R h r
 
 -- path algebra for the two round trips
+private
 trans-sym-trans-r ∷ {T : U} {x y z : T} (r : y ≡ z) (e : x ≡ z) → trans (trans e (sym r)) (trans refl r) ≡ e
 trans-sym-trans-r {T} {x} {y} refl e = refl
 
+private
 trans-trans-sym ∷ {T : U} {x y : T} (e : x ≡ y) {z : T} (r : y ≡ z) → trans (trans e (trans refl r)) (sym r) ≡ e
 trans-trans-sym {T} {x} {y} e refl = refl
 
 -- first round trip
+private
 pb-paste-sec-r ∷ {H L K C : U} (a : H → C) (b : L → C) (c : K → L) (d : K → C) (R : (k : K) → b (c k) ≡ d k) (h : H) (w : Σ (k : K) . a h ≡ d k) →
   pb-paste a b c d R (pb-unpaste-r a b c d R h w) ≡ (h , w)
 pb-paste-sec-r {H} {L} {K} {C} a b c d R h (k , e) =
   cong {a h ≡ d k} {pullback {H} {K} {C} a d} (λ e' . (h , k , e')) (trans-sym-trans-r (R k) e)
 
+private
 pb-paste-sec ∷ {H L K C : U} (a : H → C) (b : L → C) (c : K → L) (d : K → C) (R : (k : K) → b (c k) ≡ d k) (w : pullback {H} {K} {C} a d) →
   pb-paste a b c d R (pb-unpaste a b c d R w) ≡ w
 pb-paste-sec {H} {L} {K} {C} a b c d R (h , w) = pb-paste-sec-r a b c d R h w
 
 -- the second round trip, by induction on the path l ≡ c k
+private
 pb-paste-ret-aux ∷ {H L K C : U} (a : H → C) (b : L → C) (c : K → L) (d : K → C) (R : (k : K) → b (c k) ≡ d k) (h : H) (k : K) {l : L} (e2 : c k ≡ l) (e1 : a h ≡ b l) →
   pb-unpaste a b c d R (pb-paste a b c d R ((h , l , e1) , (k , sym e2))) ≡{pb-pasted {H} {L} {K} {C} a b c} ((h , l , e1) , (k , sym e2))
 pb-paste-ret-aux {H} {L} {K} {C} a b c d R h k refl e1 =
   cong {a h ≡ b (c k)} {pb-pasted {H} {L} {K} {C} a b c} (λ e . ((h , c k , e) , (k , refl))) (trans-trans-sym e1 (R k))
 
+private
 pb-paste-ret-r ∷ {H L K C : U} (a : H → C) (b : L → C) (c : K → L) (d : K → C) (R : (k : K) → b (c k) ≡ d k) (h : H) (l : L) (e1 : a h ≡ b l)
   (q : Σ (k : K) . l ≡ c k) →
   pb-unpaste a b c d R (pb-paste a b c d R ((h , l , e1) , q)) ≡{pb-pasted {H} {L} {K} {C} a b c} ((h , l , e1) , q)
@@ -129,11 +141,13 @@ pb-paste-ret-r {H} {L} {K} {C} a b c d R h l e1 (k , e2) =
     (trans (pb-paste-ret-aux a b c d R h k (sym e2) e1)
       (cong {l ≡ c k} {T} (λ e . ((h , l , e1) , (k , e))) (sym-sym e2)))
 
+private
 pb-paste-ret-h ∷ {H L K C : U} (a : H → C) (b : L → C) (c : K → L) (d : K → C) (R : (k : K) → b (c k) ≡ d k) (h : H) (r : Σ (l : L) . a h ≡ b l)
   (q : pb-Q a b c (h , r)) →
   pb-unpaste a b c d R (pb-paste a b c d R ((h , r) , q)) ≡{pb-pasted {H} {L} {K} {C} a b c} ((h , r) , q)
 pb-paste-ret-h {H} {L} {K} {C} a b c d R h (l , e1) = pb-paste-ret-r a b c d R h l e1
 
+private
 pb-paste-ret-t ∷ {H L K C : U} (a : H → C) (b : L → C) (c : K → L) (d : K → C) (R : (k : K) → b (c k) ≡ d k) (t : pullback {H} {L} {C} a b)
   (q : pb-Q a b c t) →
   pb-unpaste a b c d R (pb-paste a b c d R (t , q)) ≡{pb-pasted {H} {L} {K} {C} a b c} (t , q)
@@ -163,6 +177,7 @@ pullback-post {Z} {A} {B} {C} g h φ =
   (a , b , funext-htpy {Z} {λ _ . C} (λ z . g (a z)) (λ z . h (b z))
              (λ z . snd (λ b' . g (a z) ≡ h b') (snd (λ a' . Σ (b' : B) . g a' ≡ h b') (φ z))))
 
+private
 pullback-post-inv ∷ {Z A B C : U} (g : A → C) (h : B → C) →
   pullback {Z → A} {Z → B} {Z → C} (post {Z} {A} {C} g) (post {Z} {B} {C} h) → (Z → pullback {A} {B} {C} g h)
 pullback-post-inv {Z} {A} {B} {C} g h (α , r) z =
@@ -181,6 +196,7 @@ pullback-eta {A} {B} {C} g h (a , r) =
     fun (b , e) → refl in
   k r
 
+private
 pullback-post-retr ∷ {Z A B C : U} (g : A → C) (h : B → C) (φ : Z → pullback {A} {B} {C} g h) →
   pullback-post-inv {Z} {A} {B} {C} g h (pullback-post {Z} {A} {B} {C} g h φ) ≡ φ
 pullback-post-retr {Z} {A} {B} {C} g h φ =
@@ -194,6 +210,7 @@ pullback-post-retr {Z} {A} {B} {C} g h φ =
                    (happly {Z} {λ z' . g (a z') ≡ h (b z')} {happly {Z} {λ _ . C} {λ z' . g (a z')} {λ z' . h (b z')} (funext-htpy {Z} {λ _ . C} (λ z' . g (a z')) (λ z' . h (b z')) e)} {e} he z))
              (pullback-eta {A} {B} {C} g h (φ z)))
 
+private
 pullback-post-sec ∷ {Z A B C : U} (g : A → C) (h : B → C) (d : pullback {Z → A} {Z → B} {Z → C} (post {Z} {A} {C} g) (post {Z} {B} {C} h)) →
   pullback-post {Z} {A} {B} {C} g h (pullback-post-inv {Z} {A} {B} {C} g h d) ≡ d
 pullback-post-sec {Z} {A} {B} {C} g h (α , r) =
@@ -244,6 +261,7 @@ cone→pullback {Z} {A} {B} {C} g h (x , ss) z =
    trans (sym (happly {Z} {λ _ . C} {post {Z} {path C} {C} (path-src {C}) H} {post {Z} {A} {C} g α} s z))
      (trans (path-eq {C} (H z)) (happly {Z} {λ _ . C} {post {Z} {path C} {C} (path-tgt {C}) H} {post {Z} {B} {C} h β} s' z)))
 
+private
 pullback→cone-retr ∷ {Z A B C : U} (g : A → C) (h : B → C) (φ : Z → pullback {A} {B} {C} g h) →
   cone→pullback {Z} {A} {B} {C} g h (pullback→cone {Z} {A} {B} {C} g h φ) ≡ φ
 pullback→cone-retr {Z} {A} {B} {C} g h φ =
@@ -257,6 +275,7 @@ pullback→cone-retr {Z} {A} {B} {C} g h φ =
 
 -- the coherence of the second round trip: re-gluing a homotopy along its endpoint paths gives it
 -- back (by J on the two endpoint paths, then the η of free paths)
+private
 pullback-cone-reglue ∷ {Z C : U} (H : Z → path C) {F : Z → C} (s : post {Z} {path C} {C} (path-src {C}) H ≡ F)
   {F' : Z → C} (s' : post {Z} {path C} {C} (path-tgt {C}) H ≡ F') →
   ((λ z . (F z , F' z , trans (sym (happly {Z} {λ _ . C} {post {Z} {path C} {C} (path-src {C}) H} {F} s z))
@@ -301,6 +320,7 @@ pullback-cone-reglue {Z} {C} H refl refl =
     (trans (subst-path-pair {Z → path C} {Z → C} {Z → C} (post {Z} {path C} {C} (path-src {C})) (post {Z} {path C} {C} (path-tgt {C})) {src} {tgt} P refl refl)
       (cong2 {src ≡ src} {tgt ≡ tgt} {(src ≡ src) × (tgt ≡ tgt)} pair (cong {src ≡ src} {src ≡ src} (sym {Z → C} {src} {src}) Ps) (cong {tgt ≡ tgt} {tgt ≡ tgt} (sym {Z → C} {tgt} {tgt}) Pt)))
 
+private
 pullback→cone-sec ∷ {Z A B C : U} (g : A → C) (h : B → C) (d : pullback-cone {Z} {A} {B} {C} g h) →
   pullback→cone {Z} {A} {B} {C} g h (cone→pullback {Z} {A} {B} {C} g h d) ≡ d
 pullback→cone-sec {Z} {A} {B} {C} g h (x , ss) =
@@ -440,10 +460,12 @@ pullback-coneₗ-eta K {A} {B} {C} g h (x , ps) =
 -- Restricting a fibre product along a map a : H → M of its left factor: the type of points h : H
 -- with a point of M ×_T L lying over a h is the fibre product H ×_T L of Q ∘ a and b (the path
 -- a h ≡ m is contracted with m).
+private
 pb-restrict-r ∷ {H M L T : U} (a : H → M) (Q : M → T) (b : L → T) (h : H) {m : M} (e : a h ≡ m) (s : Σ (l : L) . Q m ≡ b l) →
   Σ (l : L) . Q (a h) ≡ b l
 pb-restrict-r {H} {M} {L} {T} a Q b h e (l , f) = (l , trans (cong Q e) f)
 
+private
 pb-restrict-z ∷ {H M L T : U} (a : H → M) (Q : M → T) (b : L → T) (h : H) (z : pullback {M} {L} {T} Q b) →
   a h ≡ fst (λ m . Σ (l : L) . Q m ≡ b l) z → Σ (l : L) . Q (a h) ≡ b l
 pb-restrict-z {H} {M} {L} {T} a Q b h (m , s) e = pb-restrict-r a Q b h {m} e s
@@ -456,16 +478,19 @@ pb-restrict {H} {M} {L} {T} a Q b (h , r) =
     fun (z , e) → pb-restrict-z a Q b h z e in
   (h , k r)
 
+private
 pb-unrestrict ∷ {H M L T : U} (a : H → M) (Q : M → T) (b : L → T) →
   (Σ (h : H) . Σ (l : L) . Q (a h) ≡ b l) →
   Σ (h : H) . Σ (z : pullback {M} {L} {T} Q b) . a h ≡ fst (λ m . Σ (l : L) . Q m ≡ b l) z
 pb-unrestrict {H} {M} {L} {T} a Q b (h , s) = (h , ((a h , s) , refl))
 
+private
 pb-restrict-sec-r ∷ {H M L T : U} (a : H → M) (Q : M → T) (b : L → T) (h : H) (s : Σ (l : L) . Q (a h) ≡ b l) →
   pb-restrict a Q b (pb-unrestrict a Q b (h , s)) ≡{pullback {H} {L} {T} (λ h . Q (a h)) b} (h , s)
 pb-restrict-sec-r {H} {M} {L} {T} a Q b h (l , f) =
   cong {Q (a h) ≡ b l} {Σ (h : H) . Σ (l : L) . Q (a h) ≡ b l} (λ f' . (h , (l , f'))) (trans-refl-l f)
 
+private
 pb-restrict-retr-r ∷ {H M L T : U} (a : H → M) (Q : M → T) (b : L → T) (h : H) {m : M} (e : a h ≡ m) (l : L) (f : Q m ≡ b l) →
   pb-unrestrict a Q b (pb-restrict a Q b (h , ((m , (l , f)) , e)))
     ≡{Σ (h : H) . Σ (z : pullback {M} {L} {T} Q b) . a h ≡ fst (λ m . Σ (l : L) . Q m ≡ b l) z} (h , ((m , (l , f)) , e))
@@ -473,17 +498,20 @@ pb-restrict-retr-r {H} {M} {L} {T} a Q b h refl l f =
   cong {Q (a h) ≡ b l} {Σ (h : H) . Σ (z : pullback {M} {L} {T} Q b) . a h ≡ fst (λ m . Σ (l : L) . Q m ≡ b l) z}
     (λ f' . (h , ((a h , (l , f')) , refl))) (trans-refl-l f)
 
+private
 pb-restrict-retr-s ∷ {H M L T : U} (a : H → M) (Q : M → T) (b : L → T) (h : H) (m : M) (s : Σ (l : L) . Q m ≡ b l) (e : a h ≡ m) →
   pb-unrestrict a Q b (pb-restrict a Q b (h , ((m , s) , e)))
     ≡{Σ (h : H) . Σ (z : pullback {M} {L} {T} Q b) . a h ≡ fst (λ m . Σ (l : L) . Q m ≡ b l) z} (h , ((m , s) , e))
 pb-restrict-retr-s {H} {M} {L} {T} a Q b h m (l , f) e = pb-restrict-retr-r a Q b h {m} e l f
 
+private
 pb-restrict-retr-z ∷ {H M L T : U} (a : H → M) (Q : M → T) (b : L → T) (h : H) (z : pullback {M} {L} {T} Q b)
   (e : a h ≡ fst (λ m . Σ (l : L) . Q m ≡ b l) z) →
   pb-unrestrict a Q b (pb-restrict a Q b (h , (z , e)))
     ≡{Σ (h : H) . Σ (z : pullback {M} {L} {T} Q b) . a h ≡ fst (λ m . Σ (l : L) . Q m ≡ b l) z} (h , (z , e))
 pb-restrict-retr-z {H} {M} {L} {T} a Q b h (m , s) e = pb-restrict-retr-s a Q b h m s e
 
+private
 pb-restrict-retr ∷ {H M L T : U} (a : H → M) (Q : M → T) (b : L → T)
   (w : Σ (h : H) . Σ (z : pullback {M} {L} {T} Q b) . a h ≡ fst (λ m . Σ (l : L) . Q m ≡ b l) z) →
   pb-unrestrict a Q b (pb-restrict a Q b w) ≡ w
@@ -494,6 +522,7 @@ pb-restrict-retr {H} {M} {L} {T} a Q b (h , r) =
     fun (z , e) → pb-restrict-retr-z a Q b h z e in
   k r
 
+private
 pb-restrict-sec ∷ {H M L T : U} (a : H → M) (Q : M → T) (b : L → T) (w : pullback {H} {L} {T} (λ h . Q (a h)) b) →
   pb-restrict a Q b (pb-unrestrict a Q b w) ≡ w
 pb-restrict-sec {H} {M} {L} {T} a Q b (h , s) = pb-restrict-sec-r a Q b h s

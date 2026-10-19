@@ -367,6 +367,7 @@ ret-z k x w =
                  (cong-trans ι (τ w (or-l a)) (τ (or-l a) (or-r b))))
           (cong-trans k (cong ι (τ w (or-l a))) (cong ι (τ (or-l a) (or-r b)))))))
 
+private
 ret-pw ∷ {X : U} {A B : subtype X} {Y : U} (k : ⟨ union A B ⟩ → Y) (z : ⟨ union A B ⟩) → ext (restr k) z ≡ k z
 ret-pw k (x , w) =
   let f : ⟨ A ⟩ → Y = k ∘ inl in
@@ -404,6 +405,7 @@ ev-pt i (f , r) =
   k r
 
 -- The inverse: spread the glue at the centre along the contraction
+private
 pt-inv ∷ {X : U} {A B : subtype X} {Y : U} (c : is-contr ⟨ intersection A B ⟩) →
   pt-cocone A B Y (center _ c) → cocone A B Y
 pt-inv c (f , r) =
@@ -411,6 +413,7 @@ pt-inv c (f , r) =
     fun (g , e) → (f , g , λ t . subst {⟨ intersection A B ⟩} (λ t . f (fst t) ≡ g (snd t)) (is-contr-eq c (center _ c) t) e) in
   k r
 
+private
 pt-sec ∷ {X : U} {A B : subtype X} {Y : U} (c : is-contr ⟨ intersection A B ⟩)
   (d : pt-cocone A B Y (center _ c)) → ev-pt (center _ c) (pt-inv c d) ≡ d
 pt-sec c (f , r) =
@@ -421,6 +424,7 @@ pt-sec c (f , r) =
         (cong {i0 ≡ i0} (λ π . subst {⟨ intersection A B ⟩} (λ t . f (fst t) ≡ g (snd t)) π e) (is-contr-eq-refl c i0)) in
   k r
 
+private
 pt-ret ∷ {X : U} {A B : subtype X} {Y : U} (c : is-contr ⟨ intersection A B ⟩)
   (d : cocone A B Y) → pt-inv c (ev-pt (center _ c) d) ≡ d
 pt-ret c (f , r) =

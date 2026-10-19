@@ -280,6 +280,7 @@ trans-cong2-cancel-r {T} {S1} {S2} f a b {x} refl {y} refl c = refl
 
 -- cancelling the first argument of cong2 F d1 d2 against cong (λ x . F x b0) d1, under a
 -- conjugation by c0 and a transport along e'
+private
 trans-cong2-cancel-l-core ∷ {T : U} {X0 Y0 : T} (c0 : X0 ≡ Y0) {Z0 : T} (h : Y0 ≡ Z0) → trans refl h ≡ trans (sym c0) (trans c0 (trans refl h))
 trans-cong2-cancel-l-core {T} {X0} {Y0} c0 refl = sym (trans-sym-l c0)
 
