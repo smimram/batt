@@ -17,10 +17,12 @@ open Square
 --
 
 -- a hom with its endpoints moved along paths
+private
 hom-move : {X ∷ U} {a b : X} (u : hom a b) {a' b' : X} → a ≡ a' → b ≡ b' → hom a' b'
 hom-move u p q = (hom-cell u , trans (hom-src u) p , trans (hom-tgt u) q)
 
 -- composition commutes with moving endpoints
+private
 hom-move-comp : {X ∷ U} (s : is-segalᵣ X) {a b c : X} (u : hom a b) (v : hom b c)
   {a' : X} (p : a ≡ a') {b' : X} (r : b ≡ b') {c' : X} (q : c ≡ c') →
   hom-move (comp-homᵣ s u v) p q ≡ comp-homᵣ s (hom-move u p r) (hom-move v r q)
@@ -33,25 +35,30 @@ arr-hom : {A ∷ U} (f : arrᵣ A) → hom (srcᵣ f) (tgtᵣ f)
 arr-hom f = (f , refl , refl)
 
 -- paths between the endpoint paths give a path of homs
+private
 hom-path : {A ∷ U} (t : arrᵣ A) {a b : A} {p p' : srcᵣ t ≡ a} {q q' : tgtᵣ t ≡ b} →
   p ≡ p' → q ≡ q' → (t , p , q) ≡{hom a b} (t , p' , q')
 hom-path {A} t {a} {b} P Q = cong2 {srcᵣ t ≡ a} {tgtᵣ t ≡ b} {hom a b} (λ p0 p1 . (t , p0 , p1)) P Q
 
 -- a path of arrows gives a path of homs
+private
 arr-hom-move : {A ∷ U} (t : arrᵣ A) {k : arrᵣ A} (p : t ≡ k) {a c : A} (q0 : srcᵣ k ≡ a) (q1 : tgtᵣ k ≡ c) →
   (t , trans (cong srcᵣ p) q0 , trans (cong tgtᵣ p) q1) ≡{hom a c} (k , q0 , q1)
 arr-hom-move {A} t refl q0 q1 = hom-path t (trans-refl-l q0) (trans-refl-l q1)
 
 -- the endpoint paths of homs related by a path
+private
 hom-path-src : {A ∷ U} {a b : A} {u v : hom a b} (E : u ≡ v) →
   trans (cong srcᵣ (cong (hom-cell {A}) E)) (hom-src v) ≡ hom-src u
 hom-path-src {A} {a} {b} {u} refl = trans-refl-l (hom-src u)
 
+private
 hom-path-tgt : {A ∷ U} {a b : A} {u v : hom a b} (E : u ≡ v) →
   trans (cong tgtᵣ (cong (hom-cell {A}) E)) (hom-tgt v) ≡ hom-tgt u
 hom-path-tgt {A} {a} {b} {u} refl = trans-refl-l (hom-tgt u)
 
 -- postcomposing with homotopic maps gives the same hom
+private
 post-htpy-hom : {S A ∷ U} (F G : S → A) (h : (s : S) → F s ≡ G s) (Φ : 𝕀 →ᵣ S) →
   (postᵣ F Φ , h (Φ 𝕀0) , h (Φ 𝕀1)) ≡{hom (G (Φ 𝕀0)) (G (Φ 𝕀1))} arr-hom (postᵣ G Φ)
 post-htpy-hom {S} {A} F G h Φ =
@@ -192,43 +199,55 @@ comph {A} sA {a} {b} {e} {c} {d} {f} {f1} {f2} {f3} {g} {g'} {h} {h'} σ τ =
 --
 
 -- the components of a composable pair of cells
+private
 cp-fst : {A ∷ U} → cell-pairs A → arrᵣ A
 cp-fst c = fst _ c
 
+private
 cp-snd : {A ∷ U} → cell-pairs A → arrᵣ A
 cp-snd c = fst _ (snd _ c)
 
+private
 cp-glue : {A ∷ U} (c : cell-pairs A) → tgtᵣ (cp-fst c) ≡ srcᵣ (cp-snd c)
 cp-glue c = snd _ (snd _ c)
 
 -- the composite of a composable pair of cells
+private
 comp-cells : {A ∷ U} (sA : is-segalᵣ A) (c : cell-pairs A) → hom (srcᵣ (cp-fst c)) (tgtᵣ (cp-snd c))
 comp-cells sA c = comp-homᵣ sA (cp-fst c , refl , cp-glue c) (cp-snd c , refl , refl)
 
 -- oplax cones over tgtᵣ and srcᵣ: a lower and an upper square, glued along a homotopy
+private
 cone : (A ∷ U) → U
 cone A = pullback-coneᵣ 𝕀 {arrᵣ A} {arrᵣ A} {A} tgtᵣ srcᵣ
 
+private
 cone-lower : {A ∷ U} → cone A → squareᵣ A
 cone-lower {A} κ = of-arrᵣ (pullback-coneᵣ-fst 𝕀 {arrᵣ A} {arrᵣ A} {A} tgtᵣ srcᵣ κ)
 
+private
 cone-upper : {A ∷ U} → cone A → squareᵣ A
 cone-upper {A} κ = of-arrᵣ (pullback-coneᵣ-snd 𝕀 {arrᵣ A} {arrᵣ A} {A} tgtᵣ srcᵣ κ)
 
+private
 cone-htpy : {A ∷ U} → cone A → 𝕀 →ᵣ path A
 cone-htpy {A} κ = pullback-coneᵣ-htpy 𝕀 {arrᵣ A} {arrᵣ A} {A} tgtᵣ srcᵣ κ
 
+private
 cone-src : {A ∷ U} (κ : cone A) → postᵣ {𝕀} {path A} {A} path-src (cone-htpy κ) ≡ topᵣ (cone-lower κ)
 cone-src {A} κ = Product.fst (snd (pullback-coneᵣ-paths 𝕀 {arrᵣ A} {arrᵣ A} {A} tgtᵣ srcᵣ) κ)
 
+private
 cone-tgt : {A ∷ U} (κ : cone A) → postᵣ {𝕀} {path A} {A} path-tgt (cone-htpy κ) ≡ bottomᵣ (cone-upper κ)
 cone-tgt {A} κ = Product.snd (snd (pullback-coneᵣ-paths 𝕀 {arrᵣ A} {arrᵣ A} {A} tgtᵣ srcᵣ) κ)
 
 -- the gluing path of a cone at a crisp point
+private
 cone-glue : {A ∷ U} (κ : cone A) (i ∷ 𝕀) → topᵣ (cone-lower κ) i ≡ bottomᵣ (cone-upper κ) i
 cone-glue κ i = trans (sym (happlyᵣ (cone-src κ) i)) (trans (path-eq (cone-htpy κ i)) (happlyᵣ (cone-tgt κ) i))
 
 -- cone induction: cones are families of composable pairs
+private
 cone-ind : {A ∷ U} (Q : cone A → U) → ((Ψ : 𝕀 →ᵣ cell-pairs A) → Q (pullback→coneᵣ 𝕀 {arrᵣ A} {arrᵣ A} {A} tgtᵣ srcᵣ Ψ)) →
   (κ : cone A) → Q κ
 cone-ind {A} Q q κ =
@@ -237,6 +256,7 @@ cone-ind {A} Q q κ =
   subst Q (snd _ s κ) (q (section-map f s κ))
 
 -- vertical composition for the squares of a cone, whose corners agree with the gluing paths
+private
 compv-stmt : {A ∷ U} (sA : is-segalᵣ A) → cone A → U
 compv-stmt {A} sA κ =
   {a b c d e f : A} {f1 : hom a c} {f2 : hom b d} {f1' : hom c e} {f2' : hom d f} {g : hom a b} {h : hom c d} {h' : hom e f} →
@@ -245,6 +265,7 @@ compv-stmt {A} sA κ =
   square (comp-homᵣ sA f1 f1') (comp-homᵣ sA f2 f2') g h'
 
 -- for a family of composable pairs: the pointwise composite
+private
 compv-fam : {A ∷ U} (sA : is-segalᵣ A) (Ψ : 𝕀 →ᵣ cell-pairs A) → compv-stmt sA (pullback→coneᵣ 𝕀 {arrᵣ A} {arrᵣ A} {A} tgtᵣ srcᵣ Ψ)
 compv-fam {A} sA Ψ {a} {b} {c} {d} {e} {f} {f1} {f2} {f1'} {f2'} {g} {h} {h'} σ τ gl0 gl1 =
   let x : squareᵣ A = cone-lower (pullback→coneᵣ 𝕀 {arrᵣ A} {arrᵣ A} {A} tgtᵣ srcᵣ Ψ) in
@@ -287,25 +308,31 @@ compv-fam {A} sA Ψ {a} {b} {c} {d} {e} {f} {f1} {f2} {f1'} {f2'} {g} {h} {h'} �
      (trans (hom-path (topᵣ y) (trans-refl-l qe) (trans-refl-l qf)) (sq-top τ)))
 
 -- for every cone, by cone induction
+private
 compv-cone : {A ∷ U} (sA : is-segalᵣ A) (κ : cone A) → compv-stmt sA κ
 compv-cone {A} sA κ = cone-ind (compv-stmt sA) (compv-fam sA) κ
 
 -- the homotopy of a path between arrows, and its endpoints
+private
 arr-htpy : {A ∷ U} {f k : arrᵣ A} → f ≡ k → 𝕀 →ᵣ path A
 arr-htpy {A} {f} {k} P = Funext.happlyᵣ 𝕀 A (f , k , P)
 
+private
 arr-htpy-src : {A ∷ U} (f : arrᵣ A) {k : arrᵣ A} (P : f ≡ k) → postᵣ {𝕀} {path A} {A} path-src (arr-htpy P) ≡ f
 arr-htpy-src f refl = refl
 
+private
 arr-htpy-tgt : {A ∷ U} (f : arrᵣ A) {k : arrᵣ A} (P : f ≡ k) → postᵣ {𝕀} {path A} {A} path-tgt (arr-htpy P) ≡ k
 arr-htpy-tgt f refl = refl
 
 -- the gluing path of the homotopy at a crisp point is the evaluation of the path
+private
 arr-htpy-glue : {A ∷ U} (f : arrᵣ A) {k : arrᵣ A} (P : f ≡ k) (i ∷ 𝕀) →
   trans (sym (happlyᵣ (arr-htpy-src f P) i)) (trans (path-eq (arr-htpy P i)) (happlyᵣ (arr-htpy-tgt f P) i)) ≡ happlyᵣ P i
 arr-htpy-glue f refl i = refl
 
 -- the cone of two squares glued along a path
+private
 cone-of : {A ∷ U} (x y : squareᵣ A) → topᵣ x ≡ bottomᵣ y → cone A
 cone-of x y P = ((to-arrᵣ x , to-arrᵣ y , arr-htpy P) , arr-htpy-src (topᵣ x) P , arr-htpy-tgt (topᵣ x) P)
 
