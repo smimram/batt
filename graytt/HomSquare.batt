@@ -15,6 +15,7 @@
 --
 --   comp-h, comp-v            horizontal and vertical composition
 --   id-h, id-v                horizontal and vertical identities
+--   connection-tr, -bl        connections
 --   comp-h-lunit, -runit      unit laws for horizontal composition
 --   comp-v-lunit, -runit      unit laws for vertical composition
 --   comp-h-assoc              associativity of horizontal composition
@@ -225,6 +226,49 @@ id-v-at {A} k {a} α {b} β =
 
 id-v : {A ∷ U} {a b : A} (g : hom a b) → square (Hom.id a) (Hom.id b) g g
 id-v {A} {a} {b} g = hom-ind (λ g . square (Hom.id a) (Hom.id b) g g) (λ k α β . id-v-at k α β) g
+
+--
+-- Connections
+--
+-- The connection squares of a hom f : hom a b, folding f along the diagonal: their two sides
+-- meeting at a corner (after which they are named) are f, and the two other ones are identities.
+-- They are given by the lattice operations of the interval (as in Connection.batt), their
+-- boundaries holding judgmentally:
+--
+--      a ────f───→ b            b ──id b──→ b
+--      ↑           ↑            ↑           ↑
+--     id a   tr    f            f     bl   id b
+--      │           │            │           │
+--      a ──id a──→ a            a ────f───→ b
+--
+-- Since homs are directed, the other two corners do not give connections.
+--
+
+-- The connection at the top-right corner: its right and top sides are f, and its left and bottom
+-- sides are identities.
+private
+connection-tr-at : {A ∷ U} (k : arrᵣ A) {a : A} (α : srcᵣ k ≡ a) {b : A} (β : tgtᵣ k ≡ b) →
+  square (Hom.id a) (k , α , β) (Hom.id a) (k , α , β)
+connection-tr-at {A} k {a} α {b} β =
+  J (srcᵣ k) (λ a α . square (Hom.id a) (k , α , β) (Hom.id a) (k , α , β))
+    (J (tgtᵣ k) (λ b β . square (Hom.id (srcᵣ k)) (k , refl , β) (Hom.id (srcᵣ k)) (k , refl , β))
+      (of-arrᵣ (λ i . λ j . k (i 𝕀∧ j)) , refl) β) α
+
+connection-tr : {A ∷ U} {a b : A} (f : hom a b) → square (Hom.id a) f (Hom.id a) f
+connection-tr {A} {a} {b} f = hom-ind (λ f . square (Hom.id a) f (Hom.id a) f) (λ k α β . connection-tr-at k α β) f
+
+-- The connection at the bottom-left corner: its left and bottom sides are f, and its right and
+-- top sides are identities.
+private
+connection-bl-at : {A ∷ U} (k : arrᵣ A) {a : A} (α : srcᵣ k ≡ a) {b : A} (β : tgtᵣ k ≡ b) →
+  square (k , α , β) (Hom.id b) (k , α , β) (Hom.id b)
+connection-bl-at {A} k {a} α {b} β =
+  J (srcᵣ k) (λ a α . square (k , α , β) (Hom.id b) (k , α , β) (Hom.id b))
+    (J (tgtᵣ k) (λ b β . square (k , refl , β) (Hom.id b) (k , refl , β) (Hom.id b))
+      (of-arrᵣ (λ i . λ j . k (i 𝕀∨ j)) , refl) β) α
+
+connection-bl : {A ∷ U} {a b : A} (f : hom a b) → square f (Hom.id b) f (Hom.id b)
+connection-bl {A} {a} {b} f = hom-ind (λ f . square f (Hom.id b) f (Hom.id b)) (λ k α β . connection-bl-at k α β) f
 
 --
 -- Horizontal composition
