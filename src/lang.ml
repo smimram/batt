@@ -1022,9 +1022,10 @@ and infer k env ctx (t:term) : term * value =
     let k = aux 0 env in
     let a = match Context.assoc_opt x ctx with Some a -> a | None -> error ~t "variable %s is not crisp and cannot be used here (e.g. in a crisp definition, such as one without a type)" x in
     (
-      (* Global definitions are referred to directly, which avoids looking them up in the environment during evaluation. *)
+      (* Global definitions and opaque constants are referred to directly, which avoids looking them up in the environment during evaluation (and makes toplevel definitions closed terms). *)
       match snd (List.nth env k) with
       | Def (g, [], _) -> Global (g.name, g.id)
+      | Opaque (o, []) -> Opaque (Some o)
       | _ -> Var' k
     ), a
   | Meta (`Fresh pos) ->
@@ -1121,7 +1122,7 @@ and check_decls k env ctx (decls:T.decls) =
             (* Toplevel definitions are elaborated to global definitions, which are only unfolded when needed. *)
             let env = !env in
             let g = V.Global.fresh x (lazy (V.eval env t)) in
-            Cache.register g t env;
+            Cache.register g t;
             T.Global (x, g.id)
       in
       tm := (x,t) :: !tm;
@@ -1211,7 +1212,6 @@ and import_module ?pos m =
                     solve_deferred ();
                     let record = T.Record (`Recursive, tm) in
                     let global = V.Global.fresh m (lazy (V.eval env record)) in
-                    Cache.register global record env;
                     let ty = V.RecordType ty in
                     let dependencies = List.rev !dependencies in
                     if !Common.cache then

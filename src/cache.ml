@@ -25,6 +25,41 @@ type header =
     dependencies : (string * string) list; (** modules we depend on (transitively, in loading order) along with the digest of their source *)
   }
 
+(** Replace the maximal subterms on which [f] is defined. This does not take binders in account and is used to rename identifiers. *)
+let rec map f (t:T.t) : T.t =
+  match f t with
+  | Some t -> t
+  | None ->
+    let map = map f in
+    match t with
+    | Type _ | Var _ | Var' _ | Opaque _ | Global _ | Hole _ | Meta _ | Import _ | I | I0 | I1 -> t
+    | IndType (a, l) -> IndType (a, List.map map l)
+    | IndType_ind (a, l) -> IndType_ind (a, List.map map l)
+    | IndTerm (c, l) -> IndTerm (c, List.map map l)
+    | Pi (i, c, x, a, b) -> Pi (i, c, x, map a, map b)
+    | Abs (i, x, t) -> Abs (i, x, map t)
+    | App (t, i, u) -> App (map t, i, map u)
+    | Sigma (x, a, b) -> Sigma (x, map a, map b)
+    | Pair (t, u) -> Pair (map t, map u)
+    | Pair_ind (x, y, t) -> Pair_ind (x, y, map t)
+    | Arr (s, a, b) -> Arr (s, map a, map b)
+    | Tens (a, b) -> Tens (map a, map b)
+    | TensPair (t, u) -> TensPair (map t, map u)
+    | Tens_ind (x, y, t) -> Tens_ind (x, y, map t)
+    | Flat a -> Flat (map a)
+    | Flatten t -> Flatten (map t)
+    | Flat_ind (x, t) -> Flat_ind (x, map t)
+    | Eq (a, t, u) -> Eq (map a, map t, map u)
+    | Refl t -> Refl (map t)
+    | J r -> J (map r)
+    | Let (q, x, a, t, u) -> Let (q, x, map a, map t, map u)
+    | RecordType l -> RecordType (List.map (fun (x, q, a) -> x, q, map a) l)
+    | Record (r, l) -> Record (r, List.map (fun (x, t) -> x, map t) l)
+    | RecordDecls _ -> assert false
+    | RecordField (t, x) -> RecordField (map t, x)
+    | Iv (i, j) -> Iv (map i, map j)
+    | Iw (i, j) -> Iw (map i, map j)
+
 (** A reference to a global definition or an opaque constant from another module. *)
 type reference = [`Global | `Opaque] * V.origin
 
@@ -38,12 +73,12 @@ type payload =
     ty : (string * T.qualifier list * [`Type of T.t | `Module of string]) list; (** type of the module: fields which are modules are given by name since their types are large *)
   }
 
-(** Elaborated term of global definitions of modules, along with the environment in which they should be evaluated. *)
-let definitions : (int, T.t * V.environment) Hashtbl.t = Hashtbl.create 100
+(** Elaborated term of global definitions of modules. Those are closed since they refer to toplevel definitions through [Global] or [Opaque]. *)
+let definitions : (int, T.t) Hashtbl.t = Hashtbl.create 100
 
 (** Register the elaborated term of a global definition. *)
-let register (g:V.global) t env =
-  if !Common.cache && !V.Origin.current <> "" then Hashtbl.replace definitions g.id (t, env)
+let register (g:V.global) t =
+  if !Common.cache && !V.Origin.current <> "" then Hashtbl.replace definitions g.id t
 
 (** Forget the elaborated terms of the global definitions of a module (they are only needed to save it). *)
 let forget m =
@@ -119,7 +154,7 @@ let save ~module_type fname h m (g:V.global) ty =
   let opaque n = reference `Opaque (V.Opaque.origin n) in
   (* Rename identifiers and inline solved metavariables. *)
   let rec rename t =
-    T.map
+    map
       (function
         | Global (x, id) -> Some (Global (x, reference `Global (V.Global.get id).origin))
         | Opaque (Some (`Abstract (x, n))) -> Some (Opaque (Some (`Abstract (x, opaque n))))
@@ -136,19 +171,13 @@ let save ~module_type fname h m (g:V.global) ty =
         | _ -> None
       ) t
   in
-  (* Close the term of a global definition with respect to its environment. *)
-  let export (g:V.global) =
-    let t, env = Hashtbl.find definitions g.id in
-    let env = Array.of_list env in
-    let values = Array.map (fun (_, v) -> lazy (V.readback 0 v)) env in
-    rename @@ T.subst_free (fun n -> Lazy.force values.(n)) t
-  in
   let globals =
     V.Meta.Dynarray.to_list V.Global.definitions
     |> List.filter (fun (g':V.global) -> fst g'.origin = m && g'.id <> g.id)
-    |> List.map (fun (g:V.global) -> g.name, export g)
+    |> List.map (fun (g:V.global) -> g.name, rename (Hashtbl.find definitions g.id))
   in
-  let record = export g in
+  (* The fields of the module are global definitions or opaque constants, so that its readback is small. *)
+  let record = rename @@ V.readback 0 (Lazy.force g.value) in
   let ty =
     match ty with
     | V.RecordType l ->
@@ -191,7 +220,7 @@ let load ~module_type m (p:payload) =
     ) p.references;
   let import t =
     let opaque n = V.Opaque.of_origin (snd p.references.(n)) in
-    T.map
+    map
       (function
         | Global (x, n) -> Some (Global (x, V.Global.of_origin (snd p.references.(n))))
         | Opaque (Some (`Abstract (x, n))) -> Some (Opaque (Some (`Abstract (x, opaque n))))
