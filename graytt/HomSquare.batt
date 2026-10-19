@@ -5,6 +5,7 @@ open import Composition
 open import Functoriality
 open import Simplex-edges
 open import Unitality
+open import PathOver
 open import Pullback-up
 
 --
@@ -381,27 +382,17 @@ id-v {A} {a} {b} g =
 --
 -- Unit laws for horizontal composition
 --
--- The bottom and top sides of a horizontal composite are composites, which are only equal to the
--- sides of the original square up to the unit laws of composition. We thus state the unit laws
--- in the type of squares with given left and right sides, but arbitrary bottom and top sides
--- (squares-lr). There, a square is determined by its underlying oplax square, its corner paths
--- and its left and right paths (squares-lr-canon), and those of the composite are the ones read
--- off the composite hom in arrᵣ A, which is unital (comp-homᵣ-lunit, comp-homᵣ-runit).
+-- The bottom and top sides of a horizontal composite with an identity are composites with
+-- identities, so the composite lies over the original square along the unit laws of composition.
+-- The composite is read off a hom w in arrᵣ A (hpack), whose bottom and top sides are the images
+-- of w by srcᵣ and tgtᵣ, identified with the composites by the commutation of hom-map with
+-- composition. Moving w along the unit law in arrᵣ A, this commutation followed by the unit law
+-- in A is the image of the unit law in arrᵣ A (hom-map-lunit, hom-map-runit, Unitality.batt).
 --
 
--- the squares with given left and right sides
-squares-lr : {A ∷ U} {a b c d : A} (f1 : hom a c) (f2 : hom b d) → U
-squares-lr {A} {a} {b} {c} {d} f1 f2 = Σ (g : hom a b) . Σ (h : hom c d) . square f1 f2 g h
-
--- a square with free bottom and top is determined by the other components
-private
-squares-lr-canon : {A ∷ U} (x : squareᵣ A) {a b c d : A}
-  (pa : bottom-leftᵣ x ≡ a) (pb : bottom-rightᵣ x ≡ b) (pc : top-leftᵣ x ≡ c) (pd : top-rightᵣ x ≡ d)
-  {f1 : hom a c} {f2 : hom b d} (L : (leftᵣ x , pa , pc) ≡{hom a c} f1) (R : (rightᵣ x , pb , pd) ≡{hom b d} f2)
-  {g : hom a b} (B : (bottomᵣ x , pa , pb) ≡{hom a b} g) {h : hom c d} (T : (topᵣ x , pc , pd) ≡{hom c d} h) →
-  (g , h , x , pa , pb , pc , pd , L , R , B , T) ≡{squares-lr f1 f2}
-  ((bottomᵣ x , pa , pb) , (topᵣ x , pc , pd) , x , pa , pb , pc , pd , L , R , refl , refl)
-squares-lr-canon x pa pb pc pd L R refl refl = refl
+-- the squares with given left and right sides, as a family over their bottom and top sides
+squares-lr : {A ∷ U} {a b c d : A} (f1 : hom a c) (f2 : hom b d) → hom a b × hom c d → U
+squares-lr f1 f2 k = square f1 f2 (Product.fst k) (Product.snd k)
 
 -- induction on squares: it is enough to consider squares given by their components
 private
@@ -436,19 +427,55 @@ square-ind {A} {a} {b} {c} {d} {f1} {f2} {g} {h} P k (x , s) =
     k2 s1 in
   k1 s
 
--- the square read off a hom w in arrᵣ A between the sides of y, as horizontal composition does
+-- the hom with its boundary paths, as a hom with refl boundary paths
 private
-comp-h-pack : {A ∷ U} (y : squareᵣ A) → hom (leftᵣ y) (rightᵣ y) → squares-lr (left-hom y) (right-hom y)
-comp-h-pack {A} y w =
-  let x : squareᵣ A = of-arrᵣ (hom-cell w) in
-  let pa : bottom-leftᵣ x ≡ bottom-leftᵣ y = trans (cong srcᵣ (hom-src w)) refl in
-  let pb : bottom-rightᵣ x ≡ bottom-rightᵣ y = trans (cong srcᵣ (hom-tgt w)) refl in
-  let pc : top-leftᵣ x ≡ top-leftᵣ y = trans (cong tgtᵣ (hom-src w)) refl in
-  let pd : top-rightᵣ x ≡ top-rightᵣ y = trans (cong tgtᵣ (hom-tgt w)) refl in
-  ((bottomᵣ x , pa , pb) , (topᵣ x , pc , pd) , x , pa , pb , pc , pd ,
+hom-norm : {A ∷ U} {a b : A} → hom a b → hom a b
+hom-norm {A} {a} {b} k = hom-move k {a} {b} refl refl
+
+private
+hom-move-cong : {A ∷ U} {a b : A} {k k' : hom a b} (p : k ≡ k') →
+  cong (hom-norm {A} {a} {b}) p ≡ trans (trans (hom-eta k) p) (sym (hom-eta k'))
+hom-move-cong {A} {a} {b} {k} refl = sym (trans-sym-r (hom-eta k))
+
+-- the square read off a hom w in arrᵣ A between the sides of y, as horizontal composition does,
+-- with given paths from the images of w to its bottom and top sides
+private
+hpack : {A ∷ U} (y : squareᵣ A) (w : hom (leftᵣ y) (rightᵣ y))
+  {g : hom (bottom-leftᵣ y) (bottom-rightᵣ y)} (β : hom-map srcᵣ w ≡ g)
+  {h : hom (top-leftᵣ y) (top-rightᵣ y)} (τ : hom-map tgtᵣ w ≡ h) →
+  square (left-hom y) (right-hom y) g h
+hpack {A} y w β τ =
+  (of-arrᵣ (hom-cell w) ,
+   trans (cong srcᵣ (hom-src w)) refl , trans (cong srcᵣ (hom-tgt w)) refl ,
+   trans (cong tgtᵣ (hom-src w)) refl , trans (cong tgtᵣ (hom-tgt w)) refl ,
    trans (arr-hom-move (srcᵣ (hom-cell w)) (hom-src w) refl refl) refl ,
    trans (arr-hom-move (tgtᵣ (hom-cell w)) (hom-tgt w) refl refl) refl ,
-   refl , refl)
+   β , τ)
+
+-- transporting along paths between its bottom and top sides
+private
+subst-hpack : {A ∷ U} (y : squareᵣ A) (w : hom (leftᵣ y) (rightᵣ y))
+  {g : hom (bottom-leftᵣ y) (bottom-rightᵣ y)} (β : hom-map srcᵣ w ≡ g)
+  {h : hom (top-leftᵣ y) (top-rightᵣ y)} (τ : hom-map tgtᵣ w ≡ h)
+  {g' : hom (bottom-leftᵣ y) (bottom-rightᵣ y)} (q : g ≡ g') {h' : hom (top-leftᵣ y) (top-rightᵣ y)} (q' : h ≡ h') →
+  subst (squares-lr (left-hom y) (right-hom y)) (cong2 pair q q') (hpack y w β τ) ≡ hpack y w (trans β q) (trans τ q')
+subst-hpack y w β τ refl refl = refl
+
+-- moving w along a path
+private
+hpack-path : {A ∷ U} (y : squareᵣ A) {w w' : hom (leftᵣ y) (rightᵣ y)} (e : w ≡ w')
+  {g : hom (bottom-leftᵣ y) (bottom-rightᵣ y)} (β : hom-map srcᵣ w ≡ g)
+  {h : hom (top-leftᵣ y) (top-rightᵣ y)} (τ : hom-map tgtᵣ w ≡ h) →
+  hpack y w β τ ≡ hpack y w' (trans (sym (cong (hom-map {arrᵣ A} {A} (srcᵣ {A}) {leftᵣ y} {rightᵣ y}) e)) β) (trans (sym (cong (hom-map {arrᵣ A} {A} (tgtᵣ {A}) {leftᵣ y} {rightᵣ y}) e)) τ)
+hpack-path y {w} refl {g} β {h} τ = cong2 {hom-map srcᵣ w ≡ g} {hom-map tgtᵣ w ≡ h} (λ β' τ' . hpack y w β' τ') (sym (trans-refl-l β)) (sym (trans-refl-l τ))
+
+-- the side of the composite, followed by the unit law, cancels the image of the unit law
+private
+hpack-coh : {A ∷ U} {a b : A} {W : U} (F : W → hom a b) {w w' : W} (e : w ≡ w') {k : hom a b} (fn : F w ≡ k)
+  (l : k ≡ F w') (fn' : F w ≡ k) → fn' ≡ fn → cong F e ≡ trans fn l → trans (sym (cong F e)) (trans fn' l) ≡ refl
+hpack-coh {A} {a} {b} {W} F {w} {w'} e {k} fn l fn' M H =
+  trans (cong {F w ≡ F w'} {F w' ≡ F w'} (λ r . trans (sym (cong F e)) r) (trans (cong {F w ≡ k} {F w ≡ F w'} (λ r . trans r l) M) (sym H)))
+    (trans-sym-l (cong F e))
 
 -- left unit law, for a square given by its components
 private
@@ -456,11 +483,22 @@ comp-h-lunit-aux : {A ∷ U} (sA : is-segalᵣ A) (x : squareᵣ A) {a : A} (pa 
   {c : A} (pc : top-leftᵣ x ≡ c) {d : A} (pd : top-rightᵣ x ≡ d)
   {f1 : hom a c} (L : (leftᵣ x , pa , pc) ≡{hom a c} f1) {f2 : hom b d} (R : (rightᵣ x , pb , pd) ≡{hom b d} f2)
   {g : hom a b} (B : (bottomᵣ x , pa , pb) ≡{hom a b} g) {h : hom c d} (T : (topᵣ x , pc , pd) ≡{hom c d} h) →
-  (comp-homᵣ sA (Hom.id a) g , comp-homᵣ sA (Hom.id c) h , comp-h sA (id-h f1) (x , pa , pb , pc , pd , L , R , B , T))
-  ≡{squares-lr f1 f2} (g , h , x , pa , pb , pc , pd , L , R , B , T)
+  path-over (squares-lr f1 f2) (cong2 pair (comp-homᵣ-lunit A sA g) (comp-homᵣ-lunit A sA h))
+    (comp-h sA (id-h f1) (x , pa , pb , pc , pd , L , R , B , T)) (x , pa , pb , pc , pd , L , R , B , T)
 comp-h-lunit-aux {A} sA x refl refl refl refl refl refl refl refl =
-  trans (squares-lr-canon _ _ _ _ _ _ _ _ _)
-    (cong (comp-h-pack x) (comp-homᵣ-lunit (arrᵣ A) (is-segal-arrᵣ sA) (to-arrᵣ x , refl , refl)))
+  let sA' : is-segalᵣ (arrᵣ A) = is-segal-arrᵣ sA in
+  let u : hom (leftᵣ x) (leftᵣ x) = Hom.id (leftᵣ x) in
+  let v : hom (leftᵣ x) (rightᵣ x) = (to-arrᵣ x , refl , refl) in
+  let e : comp-homᵣ sA' u v ≡ v = comp-homᵣ-lunit (arrᵣ A) sA' v in
+  let fs : hom-map srcᵣ (comp-homᵣ sA' u v) ≡ comp-homᵣ sA (hom-map srcᵣ u) (hom-map srcᵣ v) = hom-map-comp (arrᵣ A) A srcᵣ sA' sA u v in
+  let ft : hom-map tgtᵣ (comp-homᵣ sA' u v) ≡ comp-homᵣ sA (hom-map tgtᵣ u) (hom-map tgtᵣ v) = hom-map-comp (arrᵣ A) A tgtᵣ sA' sA u v in
+  let lg : comp-homᵣ sA (Hom.id (bottom-leftᵣ x)) (bottom-hom x) ≡ bottom-hom x = comp-homᵣ-lunit A sA (bottom-hom x) in
+  let lh : comp-homᵣ sA (Hom.id (top-leftᵣ x)) (top-hom x) ≡ top-hom x = comp-homᵣ-lunit A sA (top-hom x) in
+  trans (subst-hpack x (comp-homᵣ sA' u v) (cong (hom-norm {A} {bottom-leftᵣ x} {bottom-rightᵣ x}) fs) (cong (hom-norm {A} {top-leftᵣ x} {top-rightᵣ x}) ft) lg lh)
+    (trans (hpack-path x e (trans (cong (hom-norm {A} {bottom-leftᵣ x} {bottom-rightᵣ x}) fs) lg) (trans (cong (hom-norm {A} {top-leftᵣ x} {top-rightᵣ x}) ft) lh))
+      (cong2 {hom-map srcᵣ v ≡ bottom-hom x} {hom-map tgtᵣ v ≡ top-hom x} (λ β τ . hpack x v β τ)
+        (hpack-coh (hom-map {arrᵣ A} {A} (srcᵣ {A}) {leftᵣ x} {rightᵣ x}) e fs lg (cong (hom-norm {A} {bottom-leftᵣ x} {bottom-rightᵣ x}) fs) (trans (hom-move-cong fs) (trans-refl-l fs)) (hom-map-lunit (arrᵣ A) A srcᵣ sA' sA v))
+        (hpack-coh (hom-map {arrᵣ A} {A} (tgtᵣ {A}) {leftᵣ x} {rightᵣ x}) e ft lh (cong (hom-norm {A} {top-leftᵣ x} {top-rightᵣ x}) ft) (trans (hom-move-cong ft) (trans-refl-l ft)) (hom-map-lunit (arrᵣ A) A tgtᵣ sA' sA v))))
 
 -- right unit law, for a square given by its components
 private
@@ -468,52 +506,53 @@ comp-h-runit-aux : {A ∷ U} (sA : is-segalᵣ A) (x : squareᵣ A) {a : A} (pa 
   {c : A} (pc : top-leftᵣ x ≡ c) {d : A} (pd : top-rightᵣ x ≡ d)
   {f1 : hom a c} (L : (leftᵣ x , pa , pc) ≡{hom a c} f1) {f2 : hom b d} (R : (rightᵣ x , pb , pd) ≡{hom b d} f2)
   {g : hom a b} (B : (bottomᵣ x , pa , pb) ≡{hom a b} g) {h : hom c d} (T : (topᵣ x , pc , pd) ≡{hom c d} h) →
-  (comp-homᵣ sA g (Hom.id b) , comp-homᵣ sA h (Hom.id d) , comp-h sA (x , pa , pb , pc , pd , L , R , B , T) (id-h f2))
-  ≡{squares-lr f1 f2} (g , h , x , pa , pb , pc , pd , L , R , B , T)
+  path-over (squares-lr f1 f2) (cong2 pair (comp-homᵣ-runit A sA g) (comp-homᵣ-runit A sA h))
+    (comp-h sA (x , pa , pb , pc , pd , L , R , B , T) (id-h f2)) (x , pa , pb , pc , pd , L , R , B , T)
 comp-h-runit-aux {A} sA x refl refl refl refl refl refl refl refl =
-  trans (squares-lr-canon _ _ _ _ _ _ _ _ _)
-    (cong (comp-h-pack x) (comp-homᵣ-runit (arrᵣ A) (is-segal-arrᵣ sA) (to-arrᵣ x , refl , refl)))
+  let sA' : is-segalᵣ (arrᵣ A) = is-segal-arrᵣ sA in
+  let u : hom (leftᵣ x) (rightᵣ x) = (to-arrᵣ x , refl , refl) in
+  let v : hom (rightᵣ x) (rightᵣ x) = Hom.id (rightᵣ x) in
+  let e : comp-homᵣ sA' u v ≡ u = comp-homᵣ-runit (arrᵣ A) sA' u in
+  let fs : hom-map srcᵣ (comp-homᵣ sA' u v) ≡ comp-homᵣ sA (hom-map srcᵣ u) (hom-map srcᵣ v) = hom-map-comp (arrᵣ A) A srcᵣ sA' sA u v in
+  let ft : hom-map tgtᵣ (comp-homᵣ sA' u v) ≡ comp-homᵣ sA (hom-map tgtᵣ u) (hom-map tgtᵣ v) = hom-map-comp (arrᵣ A) A tgtᵣ sA' sA u v in
+  let lg : comp-homᵣ sA (bottom-hom x) (Hom.id (bottom-rightᵣ x)) ≡ bottom-hom x = comp-homᵣ-runit A sA (bottom-hom x) in
+  let lh : comp-homᵣ sA (top-hom x) (Hom.id (top-rightᵣ x)) ≡ top-hom x = comp-homᵣ-runit A sA (top-hom x) in
+  trans (subst-hpack x (comp-homᵣ sA' u v) (cong (hom-norm {A} {bottom-leftᵣ x} {bottom-rightᵣ x}) fs) (cong (hom-norm {A} {top-leftᵣ x} {top-rightᵣ x}) ft) lg lh)
+    (trans (hpack-path x e (trans (cong (hom-norm {A} {bottom-leftᵣ x} {bottom-rightᵣ x}) fs) lg) (trans (cong (hom-norm {A} {top-leftᵣ x} {top-rightᵣ x}) ft) lh))
+      (cong2 {hom-map srcᵣ u ≡ bottom-hom x} {hom-map tgtᵣ u ≡ top-hom x} (λ β τ . hpack x u β τ)
+        (hpack-coh (hom-map {arrᵣ A} {A} (srcᵣ {A}) {leftᵣ x} {rightᵣ x}) e fs lg (cong (hom-norm {A} {bottom-leftᵣ x} {bottom-rightᵣ x}) fs) (trans (hom-move-cong fs) (trans-refl-l fs)) (hom-map-runit (arrᵣ A) A srcᵣ sA' sA u))
+        (hpack-coh (hom-map {arrᵣ A} {A} (tgtᵣ {A}) {leftᵣ x} {rightᵣ x}) e ft lh (cong (hom-norm {A} {top-leftᵣ x} {top-rightᵣ x}) ft) (trans (hom-move-cong ft) (trans-refl-l ft)) (hom-map-runit (arrᵣ A) A tgtᵣ sA' sA u))))
 
 -- Left unit law for horizontal composition: composing with the horizontal identity on the left
--- side gives back the square (its bottom and top sides being composites with identities).
+-- side gives back the square, over the left unit laws for its bottom and top sides.
 comp-h-lunit : {A ∷ U} (sA : is-segalᵣ A) {a b c d : A} {f1 : hom a c} {f2 : hom b d} {g : hom a b} {h : hom c d}
   (σ : square f1 f2 g h) →
-  (comp-homᵣ sA (Hom.id a) g , comp-homᵣ sA (Hom.id c) h , comp-h sA (id-h f1) σ) ≡{squares-lr f1 f2} (g , h , σ)
+  path-over (squares-lr f1 f2) (cong2 pair (comp-homᵣ-lunit A sA g) (comp-homᵣ-lunit A sA h)) (comp-h sA (id-h f1) σ) σ
 comp-h-lunit {A} sA {a} {b} {c} {d} {f1} {f2} {g} {h} σ =
-  square-ind (λ σ . (comp-homᵣ sA (Hom.id a) g , comp-homᵣ sA (Hom.id c) h , comp-h sA (id-h f1) σ) ≡{squares-lr f1 f2} (g , h , σ))
+  square-ind (λ σ . path-over (squares-lr f1 f2) (cong2 pair (comp-homᵣ-lunit A sA g) (comp-homᵣ-lunit A sA h)) (comp-h sA (id-h f1) σ) σ)
     (λ x pa pb pc pd L R B T . comp-h-lunit-aux sA x pa pb pc pd L R B T) σ
 
 -- Right unit law for horizontal composition.
 comp-h-runit : {A ∷ U} (sA : is-segalᵣ A) {a b c d : A} {f1 : hom a c} {f2 : hom b d} {g : hom a b} {h : hom c d}
   (σ : square f1 f2 g h) →
-  (comp-homᵣ sA g (Hom.id b) , comp-homᵣ sA h (Hom.id d) , comp-h sA σ (id-h f2)) ≡{squares-lr f1 f2} (g , h , σ)
+  path-over (squares-lr f1 f2) (cong2 pair (comp-homᵣ-runit A sA g) (comp-homᵣ-runit A sA h)) (comp-h sA σ (id-h f2)) σ
 comp-h-runit {A} sA {a} {b} {c} {d} {f1} {f2} {g} {h} σ =
-  square-ind (λ σ . (comp-homᵣ sA g (Hom.id b) , comp-homᵣ sA h (Hom.id d) , comp-h sA σ (id-h f2)) ≡{squares-lr f1 f2} (g , h , σ))
+  square-ind (λ σ . path-over (squares-lr f1 f2) (cong2 pair (comp-homᵣ-runit A sA g) (comp-homᵣ-runit A sA h)) (comp-h sA σ (id-h f2)) σ)
     (λ x pa pb pc pd L R B T . comp-h-runit-aux sA x pa pb pc pd L R B T) σ
 
 --
 -- Unit laws for vertical composition
 --
--- As for horizontal composition, they are stated in the type of squares with given bottom and
--- top sides, but arbitrary left and right sides (squares-bt). The cone of a vertical composite
--- with an identity is the one of the family of composable pairs (id , e) (resp. (e , id)) for e
--- running along the other square, so that the composite is computed by comp-v-fam
--- (comp-v-cone-β), and pointwise unitality (comp-homᵣ-lunit, comp-homᵣ-runit) concludes.
+-- The cone of a vertical composite with an identity is the one of the family of composable pairs
+-- (id , e) (resp. (e , id)) for e running along the other square, so that the composite is
+-- computed by comp-v-fam (comp-v-cone-β): it is read off the family of composites of those pairs
+-- (vpack). Its left and right sides are the composites of the sides of the square with
+-- identities, and moving the family along the pointwise unit laws gives the original square.
 --
 
--- the squares with given bottom and top sides
-squares-bt : {A ∷ U} {a b c d : A} (g : hom a b) (h : hom c d) → U
-squares-bt {A} {a} {b} {c} {d} g h = Σ (f1 : hom a c) . Σ (f2 : hom b d) . square f1 f2 g h
-
--- a square with free left and right sides is determined by the other components
-private
-squares-bt-canon : {A ∷ U} (x : squareᵣ A) {a b c d : A}
-  (pa : bottom-leftᵣ x ≡ a) (pb : bottom-rightᵣ x ≡ b) (pc : top-leftᵣ x ≡ c) (pd : top-rightᵣ x ≡ d)
-  {f1 : hom a c} (L : (leftᵣ x , pa , pc) ≡{hom a c} f1) {f2 : hom b d} (R : (rightᵣ x , pb , pd) ≡{hom b d} f2)
-  {g : hom a b} (B : (bottomᵣ x , pa , pb) ≡{hom a b} g) {h : hom c d} (T : (topᵣ x , pc , pd) ≡{hom c d} h) →
-  (f1 , f2 , x , pa , pb , pc , pd , L , R , B , T) ≡{squares-bt g h}
-  ((leftᵣ x , pa , pc) , (rightᵣ x , pb , pd) , x , pa , pb , pc , pd , refl , refl , B , T)
-squares-bt-canon x pa pb pc pd refl refl B T = refl
+-- the squares with given bottom and top sides, as a family over their left and right sides
+squares-bt : {A ∷ U} {a b c d : A} (g : hom a b) (h : hom c d) → hom a c × hom b d → U
+squares-bt g h k = square (Product.fst k) (Product.snd k) g h
 
 -- cone induction computes on families of composable pairs
 private
@@ -564,19 +603,19 @@ post-htpy-hom-pre {R} {S} {A} φ F G h Φ =
     (is-contr-eq c t0 t)
 
 -- the square read off a family E of homs along the arrows of y, as vertical composition does,
--- given the paths identifying its bottom and top sides
+-- given paths identifying its sides
 private
-vpack-at : {A ∷ U} (y : squareᵣ A) (E : (e : arrᵣ A) → hom (srcᵣ e) (tgtᵣ e)) →
+vpack-at : {A ∷ U} (y : squareᵣ A) (E : (e : arrᵣ A) → hom (srcᵣ e) (tgtᵣ e))
+  {f1 : hom (bottom-leftᵣ y) (top-leftᵣ y)} (L : hom-norm (E (leftᵣ y)) ≡ f1)
+  {f2 : hom (bottom-rightᵣ y) (top-rightᵣ y)} (R : hom-norm (E (rightᵣ y)) ≡ f2) →
   (postᵣ (λ e . hom-cell (E e) 𝕀0) (to-arrᵣ y) , hom-src (E (leftᵣ y)) , hom-src (E (rightᵣ y))) ≡{hom (bottom-leftᵣ y) (bottom-rightᵣ y)} bottom-hom y →
   (postᵣ (λ e . hom-cell (E e) 𝕀1) (to-arrᵣ y) , hom-tgt (E (leftᵣ y)) , hom-tgt (E (rightᵣ y))) ≡{hom (top-leftᵣ y) (top-rightᵣ y)} top-hom y →
-  squares-bt (bottom-hom y) (top-hom y)
-vpack-at {A} y E PB PT =
-  let x : squareᵣ A = of-arrᵣ (postᵣ (λ e . hom-cell (E e)) (to-arrᵣ y)) in
-  let pa : bottom-leftᵣ x ≡ bottom-leftᵣ y = trans (hom-src (E (leftᵣ y))) refl in
-  let pb : bottom-rightᵣ x ≡ bottom-rightᵣ y = trans (hom-src (E (rightᵣ y))) refl in
-  let pc : top-leftᵣ x ≡ top-leftᵣ y = trans (hom-tgt (E (leftᵣ y))) refl in
-  let pd : top-rightᵣ x ≡ top-rightᵣ y = trans (hom-tgt (E (rightᵣ y))) refl in
-  ((leftᵣ x , pa , pc) , (rightᵣ x , pb , pd) , x , pa , pb , pc , pd , refl , refl ,
+  square f1 f2 (bottom-hom y) (top-hom y)
+vpack-at {A} y E L R PB PT =
+  (of-arrᵣ (postᵣ (λ e . hom-cell (E e)) (to-arrᵣ y)) ,
+   trans (hom-src (E (leftᵣ y))) refl , trans (hom-src (E (rightᵣ y))) refl ,
+   trans (hom-tgt (E (leftᵣ y))) refl , trans (hom-tgt (E (rightᵣ y))) refl ,
+   L , R ,
    trans (cong {hom (bottom-leftᵣ y) (bottom-rightᵣ y)} (λ k . hom-move k refl refl) PB)
      (trans (hom-path (bottomᵣ y) (trans-refl-l refl) (trans-refl-l refl)) refl) ,
    trans (cong {hom (top-leftᵣ y) (top-rightᵣ y)} (λ k . hom-move k refl refl) PT)
@@ -584,18 +623,42 @@ vpack-at {A} y E PB PT =
 
 -- with the paths given by the homotopies hom-src and hom-tgt
 private
-vpack : {A ∷ U} (y : squareᵣ A) (E : (e : arrᵣ A) → hom (srcᵣ e) (tgtᵣ e)) → squares-bt (bottom-hom y) (top-hom y)
-vpack {A} y E =
-  vpack-at y E
+vpack : {A ∷ U} (y : squareᵣ A) (E : (e : arrᵣ A) → hom (srcᵣ e) (tgtᵣ e))
+  {f1 : hom (bottom-leftᵣ y) (top-leftᵣ y)} (L : hom-norm (E (leftᵣ y)) ≡ f1)
+  {f2 : hom (bottom-rightᵣ y) (top-rightᵣ y)} (R : hom-norm (E (rightᵣ y)) ≡ f2) →
+  square f1 f2 (bottom-hom y) (top-hom y)
+vpack {A} y E L R =
+  vpack-at y E L R
     (post-htpy-hom (λ e . hom-cell (E e) 𝕀0) (λ e . srcᵣ e) (λ e . hom-src (E e)) (to-arrᵣ y))
     (post-htpy-hom (λ e . hom-cell (E e) 𝕀1) (λ e . tgtᵣ e) (λ e . hom-tgt (E e)) (to-arrᵣ y))
+
+-- transporting along paths between its left and right sides
+private
+subst-vpack-at : {A ∷ U} (y : squareᵣ A) (E : (e : arrᵣ A) → hom (srcᵣ e) (tgtᵣ e))
+  {f1 : hom (bottom-leftᵣ y) (top-leftᵣ y)} (L : hom-norm (E (leftᵣ y)) ≡ f1)
+  {f2 : hom (bottom-rightᵣ y) (top-rightᵣ y)} (R : hom-norm (E (rightᵣ y)) ≡ f2)
+  (PB : (postᵣ (λ e . hom-cell (E e) 𝕀0) (to-arrᵣ y) , hom-src (E (leftᵣ y)) , hom-src (E (rightᵣ y))) ≡{hom (bottom-leftᵣ y) (bottom-rightᵣ y)} bottom-hom y)
+  (PT : (postᵣ (λ e . hom-cell (E e) 𝕀1) (to-arrᵣ y) , hom-tgt (E (leftᵣ y)) , hom-tgt (E (rightᵣ y))) ≡{hom (top-leftᵣ y) (top-rightᵣ y)} top-hom y)
+  {f1' : hom (bottom-leftᵣ y) (top-leftᵣ y)} (q : f1 ≡ f1') {f2' : hom (bottom-rightᵣ y) (top-rightᵣ y)} (q' : f2 ≡ f2') →
+  subst (squares-bt (bottom-hom y) (top-hom y)) (cong2 pair q q') (vpack-at y E L R PB PT) ≡ vpack-at y E (trans L q) (trans R q') PB PT
+subst-vpack-at y E L R PB PT refl refl = refl
+
+-- moving the family along a path
+private
+vpack-path : {A ∷ U} (y : squareᵣ A) {E E' : (e : arrᵣ A) → hom (srcᵣ e) (tgtᵣ e)} (F : E ≡ E')
+  {f1 : hom (bottom-leftᵣ y) (top-leftᵣ y)} (L : hom-norm (E (leftᵣ y)) ≡ f1)
+  {f2 : hom (bottom-rightᵣ y) (top-rightᵣ y)} (R : hom-norm (E (rightᵣ y)) ≡ f2) →
+  vpack y E L R ≡ vpack y E' (trans (sym (cong (hom-norm {A} {bottom-leftᵣ y} {top-leftᵣ y}) (happly {arrᵣ A} {λ e . hom (srcᵣ e) (tgtᵣ e)} F (leftᵣ y)))) L) (trans (sym (cong (hom-norm {A} {bottom-rightᵣ y} {top-rightᵣ y}) (happly {arrᵣ A} {λ e . hom (srcᵣ e) (tgtᵣ e)} F (rightᵣ y)))) R)
+vpack-path {A} y {E} refl {f1} L {f2} R =
+  cong2 {hom-norm (E (leftᵣ y)) ≡ f1} {hom-norm (E (rightᵣ y)) ≡ f2} (λ L' R' . vpack y E L' R')
+    (sym (trans-refl-l L)) (sym (trans-refl-l R))
 
 -- for the trivial family, it is y
 private
 vpack-arr-hom : {A ∷ U} (y : squareᵣ A) →
-  vpack y (λ e . arr-hom e) ≡ ((left-hom y , right-hom y , y , refl , refl , refl , refl , refl , refl , refl , refl))
+  vpack y (λ e . arr-hom e) refl refl ≡ (y , refl , refl , refl , refl , refl , refl , refl , refl)
 vpack-arr-hom {A} y =
-  cong2 (vpack-at y (λ e . arr-hom e)) (post-htpy-hom-refl {arrᵣ A} {A} (λ e . srcᵣ e) (to-arrᵣ y))
+  cong2 (vpack-at y (λ e . arr-hom e) refl refl) (post-htpy-hom-refl {arrᵣ A} {A} (λ e . srcᵣ e) (to-arrᵣ y))
     (post-htpy-hom-refl {arrᵣ A} {A} (λ e . tgtᵣ e) (to-arrᵣ y))
 
 -- the composable pairs (id , e) and (e , id)
@@ -607,17 +670,60 @@ private
 pair-id : {A ∷ U} → arrᵣ A → cell-pairs A
 pair-id {A} e = (e , (λ j . tgtᵣ {A} e) , refl)
 
+-- the bottom and top paths of the composite, read along the arrows of the square
+private
+vpack-pre-l : {A ∷ U} (sA : is-segalᵣ A) (y : squareᵣ A)
+  {f1 : hom (bottom-leftᵣ y) (top-leftᵣ y)} (L : hom-norm (comp-cells sA (id-pair (leftᵣ y))) ≡ f1)
+  {f2 : hom (bottom-rightᵣ y) (top-rightᵣ y)} (R : hom-norm (comp-cells sA (id-pair (rightᵣ y))) ≡ f2) →
+  vpack-at y (λ e . comp-cells sA (id-pair e)) L R
+    (post-htpy-hom (λ c . hom-cell (comp-cells sA c) 𝕀0) (λ c . cp-fst c 𝕀0) (λ c . hom-src (comp-cells sA c)) (postᵣ id-pair (to-arrᵣ y)))
+    (post-htpy-hom (λ c . hom-cell (comp-cells sA c) 𝕀1) (λ c . cp-snd c 𝕀1) (λ c . hom-tgt (comp-cells sA c)) (postᵣ id-pair (to-arrᵣ y)))
+  ≡ vpack y (λ e . comp-cells sA (id-pair e)) L R
+vpack-pre-l {A} sA y L R =
+  cong2 {_ ≡ _} {_ ≡ _} (λ PB PT . vpack-at y (λ e . comp-cells sA (id-pair e)) L R PB PT)
+    (post-htpy-hom-pre id-pair (λ c . hom-cell (comp-cells sA c) 𝕀0) (λ c . cp-fst c 𝕀0) (λ c . hom-src (comp-cells sA c)) (to-arrᵣ y))
+    (post-htpy-hom-pre id-pair (λ c . hom-cell (comp-cells sA c) 𝕀1) (λ c . cp-snd c 𝕀1) (λ c . hom-tgt (comp-cells sA c)) (to-arrᵣ y))
+
+private
+vpack-pre-r : {A ∷ U} (sA : is-segalᵣ A) (y : squareᵣ A)
+  {f1 : hom (bottom-leftᵣ y) (top-leftᵣ y)} (L : hom-norm (comp-cells sA (pair-id (leftᵣ y))) ≡ f1)
+  {f2 : hom (bottom-rightᵣ y) (top-rightᵣ y)} (R : hom-norm (comp-cells sA (pair-id (rightᵣ y))) ≡ f2) →
+  vpack-at y (λ e . comp-cells sA (pair-id e)) L R
+    (post-htpy-hom (λ c . hom-cell (comp-cells sA c) 𝕀0) (λ c . cp-fst c 𝕀0) (λ c . hom-src (comp-cells sA c)) (postᵣ pair-id (to-arrᵣ y)))
+    (post-htpy-hom (λ c . hom-cell (comp-cells sA c) 𝕀1) (λ c . cp-snd c 𝕀1) (λ c . hom-tgt (comp-cells sA c)) (postᵣ pair-id (to-arrᵣ y)))
+  ≡ vpack y (λ e . comp-cells sA (pair-id e)) L R
+vpack-pre-r {A} sA y L R =
+  cong2 {_ ≡ _} {_ ≡ _} (λ PB PT . vpack-at y (λ e . comp-cells sA (pair-id e)) L R PB PT)
+    (post-htpy-hom-pre pair-id (λ c . hom-cell (comp-cells sA c) 𝕀0) (λ c . cp-fst c 𝕀0) (λ c . hom-src (comp-cells sA c)) (to-arrᵣ y))
+    (post-htpy-hom-pre pair-id (λ c . hom-cell (comp-cells sA c) 𝕀1) (λ c . cp-snd c 𝕀1) (λ c . hom-tgt (comp-cells sA c)) (to-arrᵣ y))
+
+-- a path composed with the inverse of an equal one
+private
+trans-sym-path : {T : U} {s t : T} {p q : s ≡ t} → p ≡ q → trans (sym p) q ≡ refl
+trans-sym-path {T} {s} {t} {p} refl = trans-sym-l p
+
+-- the image of a pointwise path under hom-norm
+private
+hom-norm-happly : {A ∷ U} {E : (e : arrᵣ A) → hom (srcᵣ e) (tgtᵣ e)} (H : (e : arrᵣ A) → E e ≡ arr-hom e) (e : arrᵣ A) →
+  cong (hom-norm {A} {srcᵣ e} {tgtᵣ e}) (happly (funext-htpy {arrᵣ A} {λ e . hom (srcᵣ e) (tgtᵣ e)} E (λ e . arr-hom e) H) e) ≡ trans (hom-eta (E e)) (H e)
+hom-norm-happly {A} {E} H e =
+  trans (hom-move-cong (happly (funext-htpy {arrᵣ A} {λ e . hom (srcᵣ e) (tgtᵣ e)} E (λ e . arr-hom e) H) e))
+    (cong {E e ≡ arr-hom e} {hom-norm (E e) ≡ arr-hom e} (λ γ . trans (hom-eta (E e)) γ)
+      (happly (happly-funext-htpy {arrᵣ A} {λ e . hom (srcᵣ e) (tgtᵣ e)} E (λ e . arr-hom e) H) e))
+
 -- left unit law, for a square given by its components
 private
 comp-v-lunit-aux : {A ∷ U} (sA : is-segalᵣ A) (y : squareᵣ A) {a : A} (pa : bottom-leftᵣ y ≡ a) {b : A} (pb : bottom-rightᵣ y ≡ b)
   {c : A} (pc : top-leftᵣ y ≡ c) {d : A} (pd : top-rightᵣ y ≡ d)
   {f1 : hom a c} (L : (leftᵣ y , pa , pc) ≡{hom a c} f1) {f2 : hom b d} (R : (rightᵣ y , pb , pd) ≡{hom b d} f2)
   {g : hom a b} (B : (bottomᵣ y , pa , pb) ≡{hom a b} g) {h : hom c d} (T : (topᵣ y , pc , pd) ≡{hom c d} h) →
-  (comp-homᵣ sA (Hom.id a) f1 , comp-homᵣ sA (Hom.id b) f2 , comp-v sA (id-v g) (y , pa , pb , pc , pd , L , R , B , T))
-  ≡{squares-bt g h} (f1 , f2 , y , pa , pb , pc , pd , L , R , B , T)
+  path-over (squares-bt g h) (cong2 pair (comp-homᵣ-lunit A sA f1) (comp-homᵣ-lunit A sA f2))
+    (comp-v sA (id-v g) (y , pa , pb , pc , pd , L , R , B , T)) (y , pa , pb , pc , pd , L , R , B , T)
 comp-v-lunit-aux {A} sA y refl refl refl refl refl refl refl refl =
   let Ψ : 𝕀 →ᵣ cell-pairs A = postᵣ id-pair (to-arrᵣ y) in
   let E : (e : arrᵣ A) → hom (srcᵣ e) (tgtᵣ e) = λ e . comp-cells sA (id-pair e) in
+  let H : (e : arrᵣ A) → E e ≡ arr-hom e = λ e . comp-homᵣ-lunit A sA (arr-hom e) in
+  let F : E ≡ (λ e . arr-hom e) = funext-htpy {arrᵣ A} {λ e . hom (srcᵣ e) (tgtᵣ e)} E (λ e . arr-hom e) H in
   -- the arguments of comp-v-cone in comp-v
   let x : squareᵣ A = fst _ (id-v (bottom-hom y)) in
   let σ' : square-at x (Hom.id (bottom-leftᵣ y)) (Hom.id (bottom-rightᵣ y)) (bottom-hom y) (bottom-hom y) = snd _ (id-v (bottom-hom y)) in
@@ -628,16 +734,18 @@ comp-v-lunit-aux {A} sA y refl refl refl refl refl refl refl refl =
     trans (cong {top-leftᵣ x ≡ bottom-leftᵣ y} (λ p . trans p (sq-pa τ')) (arr-htpy-glue (topᵣ x) P 𝕀0)) (hom-path-src Eh) in
   let gl1 : trans (cone-glue (cone-of x y P) 𝕀1) (sq-pb τ') ≡ sq-pd σ' =
     trans (cong {top-rightᵣ x ≡ bottom-rightᵣ y} (λ p . trans p (sq-pb τ')) (arr-htpy-glue (topᵣ x) P 𝕀1)) (hom-path-tgt Eh) in
-  let f1' : hom (bottom-leftᵣ y) (top-leftᵣ y) = comp-homᵣ sA (Hom.id (bottom-leftᵣ y)) (left-hom y) in
-  let f2' : hom (bottom-rightᵣ y) (top-rightᵣ y) = comp-homᵣ sA (Hom.id (bottom-rightᵣ y)) (right-hom y) in
-  trans (cong {square f1' f2' (bottom-hom y) (top-hom y)} {squares-bt (bottom-hom y) (top-hom y)} (λ k . (f1' , f2' , k))
-           (comp-v-cone-β-app sA Ψ σ' τ' gl0 gl1))
-    (trans (squares-bt-canon _ _ _ _ _ _ _ _ _)
-      (trans (cong2 (vpack-at y E)
-                (post-htpy-hom-pre id-pair (λ c . hom-cell (comp-cells sA c) 𝕀0) (λ c . cp-fst c 𝕀0) (λ c . hom-src (comp-cells sA c)) (to-arrᵣ y))
-                (post-htpy-hom-pre id-pair (λ c . hom-cell (comp-cells sA c) 𝕀1) (λ c . cp-snd c 𝕀1) (λ c . hom-tgt (comp-cells sA c)) (to-arrᵣ y)))
-        (trans (cong (vpack y) (funext {arrᵣ A} (λ e . hom {A} (srcᵣ e) (tgtᵣ e)) E (λ e . arr-hom {A} e) (λ e . comp-homᵣ-lunit A sA (arr-hom {A} e))))
-          (vpack-arr-hom y))))
+  let l1 : E (leftᵣ y) ≡ left-hom y = H (leftᵣ y) in
+  let l2 : E (rightᵣ y) ≡ right-hom y = H (rightᵣ y) in
+  let Q : U = square (E (leftᵣ y)) (E (rightᵣ y)) (bottom-hom y) (top-hom y) in
+  trans (cong {Q} (subst (squares-bt (bottom-hom y) (top-hom y)) (cong2 pair l1 l2)) (comp-v-cone-β-app sA Ψ σ' τ' gl0 gl1))
+    (trans (cong {Q} (subst (squares-bt (bottom-hom y) (top-hom y)) (cong2 pair l1 l2)) (vpack-pre-l sA y refl refl))
+      (trans (subst-vpack-at y E refl refl _ _ l1 l2)
+        (trans (vpack-path y F (trans refl l1) (trans refl l2))
+          (trans (cong2 {hom-norm (arr-hom (leftᵣ y)) ≡ left-hom y} {hom-norm (arr-hom (rightᵣ y)) ≡ right-hom y}
+                    (λ L' R' . vpack y (λ e . arr-hom e) L' R')
+                    (trans-sym-path (hom-norm-happly H (leftᵣ y)))
+                    (trans-sym-path (hom-norm-happly H (rightᵣ y))))
+            (vpack-arr-hom y)))))
 
 -- right unit law, for a square given by its components
 private
@@ -645,11 +753,13 @@ comp-v-runit-aux : {A ∷ U} (sA : is-segalᵣ A) (y : squareᵣ A) {a : A} (pa 
   {c : A} (pc : top-leftᵣ y ≡ c) {d : A} (pd : top-rightᵣ y ≡ d)
   {f1 : hom a c} (L : (leftᵣ y , pa , pc) ≡{hom a c} f1) {f2 : hom b d} (R : (rightᵣ y , pb , pd) ≡{hom b d} f2)
   {g : hom a b} (B : (bottomᵣ y , pa , pb) ≡{hom a b} g) {h : hom c d} (T : (topᵣ y , pc , pd) ≡{hom c d} h) →
-  (comp-homᵣ sA f1 (Hom.id c) , comp-homᵣ sA f2 (Hom.id d) , comp-v sA (y , pa , pb , pc , pd , L , R , B , T) (id-v h))
-  ≡{squares-bt g h} (f1 , f2 , y , pa , pb , pc , pd , L , R , B , T)
+  path-over (squares-bt g h) (cong2 pair (comp-homᵣ-runit A sA f1) (comp-homᵣ-runit A sA f2))
+    (comp-v sA (y , pa , pb , pc , pd , L , R , B , T) (id-v h)) (y , pa , pb , pc , pd , L , R , B , T)
 comp-v-runit-aux {A} sA y refl refl refl refl refl refl refl refl =
   let Ψ : 𝕀 →ᵣ cell-pairs A = postᵣ pair-id (to-arrᵣ y) in
   let E : (e : arrᵣ A) → hom (srcᵣ e) (tgtᵣ e) = λ e . comp-cells sA (pair-id e) in
+  let H : (e : arrᵣ A) → E e ≡ arr-hom e = λ e . comp-homᵣ-runit A sA (arr-hom e) in
+  let F : E ≡ (λ e . arr-hom e) = funext-htpy {arrᵣ A} {λ e . hom (srcᵣ e) (tgtᵣ e)} E (λ e . arr-hom e) H in
   -- the arguments of comp-v-cone in comp-v
   let x : squareᵣ A = fst _ (id-v (top-hom y)) in
   let σ' : square-at y (left-hom y) (right-hom y) (bottom-hom y) (top-hom y) = (refl , refl , refl , refl , refl , refl , refl , refl) in
@@ -660,30 +770,32 @@ comp-v-runit-aux {A} sA y refl refl refl refl refl refl refl refl =
     trans (cong {top-leftᵣ y ≡ bottom-leftᵣ x} (λ p . trans p (sq-pa τ')) (arr-htpy-glue (topᵣ y) P 𝕀0)) (hom-path-src Eh) in
   let gl1 : trans (cone-glue (cone-of y x P) 𝕀1) (sq-pb τ') ≡ sq-pd σ' =
     trans (cong {top-rightᵣ y ≡ bottom-rightᵣ x} (λ p . trans p (sq-pb τ')) (arr-htpy-glue (topᵣ y) P 𝕀1)) (hom-path-tgt Eh) in
-  let f1' : hom (bottom-leftᵣ y) (top-leftᵣ y) = comp-homᵣ sA (left-hom y) (Hom.id (top-leftᵣ y)) in
-  let f2' : hom (bottom-rightᵣ y) (top-rightᵣ y) = comp-homᵣ sA (right-hom y) (Hom.id (top-rightᵣ y)) in
-  trans (cong {square f1' f2' (bottom-hom y) (top-hom y)} {squares-bt (bottom-hom y) (top-hom y)} (λ k . (f1' , f2' , k))
-           (comp-v-cone-β-app sA Ψ σ' τ' gl0 gl1))
-    (trans (squares-bt-canon _ _ _ _ _ _ _ _ _)
-      (trans (cong2 (vpack-at y E)
-                (post-htpy-hom-pre pair-id (λ c . hom-cell (comp-cells sA c) 𝕀0) (λ c . cp-fst c 𝕀0) (λ c . hom-src (comp-cells sA c)) (to-arrᵣ y))
-                (post-htpy-hom-pre pair-id (λ c . hom-cell (comp-cells sA c) 𝕀1) (λ c . cp-snd c 𝕀1) (λ c . hom-tgt (comp-cells sA c)) (to-arrᵣ y)))
-        (trans (cong (vpack y) (funext {arrᵣ A} (λ e . hom {A} (srcᵣ e) (tgtᵣ e)) E (λ e . arr-hom {A} e) (λ e . comp-homᵣ-runit A sA (arr-hom {A} e))))
-          (vpack-arr-hom y))))
+  let l1 : E (leftᵣ y) ≡ left-hom y = H (leftᵣ y) in
+  let l2 : E (rightᵣ y) ≡ right-hom y = H (rightᵣ y) in
+  let Q : U = square (E (leftᵣ y)) (E (rightᵣ y)) (bottom-hom y) (top-hom y) in
+  trans (cong {Q} (subst (squares-bt (bottom-hom y) (top-hom y)) (cong2 pair l1 l2)) (comp-v-cone-β-app sA Ψ σ' τ' gl0 gl1))
+    (trans (cong {Q} (subst (squares-bt (bottom-hom y) (top-hom y)) (cong2 pair l1 l2)) (vpack-pre-r sA y refl refl))
+      (trans (subst-vpack-at y E refl refl _ _ l1 l2)
+        (trans (vpack-path y F (trans refl l1) (trans refl l2))
+          (trans (cong2 {hom-norm (arr-hom (leftᵣ y)) ≡ left-hom y} {hom-norm (arr-hom (rightᵣ y)) ≡ right-hom y}
+                    (λ L' R' . vpack y (λ e . arr-hom e) L' R')
+                    (trans-sym-path (hom-norm-happly H (leftᵣ y)))
+                    (trans-sym-path (hom-norm-happly H (rightᵣ y))))
+            (vpack-arr-hom y)))))
 
 -- Left unit law for vertical composition: composing with the vertical identity on the bottom
--- side gives back the square (its left and right sides being composites with identities).
+-- side gives back the square, over the left unit laws for its left and right sides.
 comp-v-lunit : {A ∷ U} (sA : is-segalᵣ A) {a b c d : A} {f1 : hom a c} {f2 : hom b d} {g : hom a b} {h : hom c d}
   (σ : square f1 f2 g h) →
-  (comp-homᵣ sA (Hom.id a) f1 , comp-homᵣ sA (Hom.id b) f2 , comp-v sA (id-v g) σ) ≡{squares-bt g h} (f1 , f2 , σ)
+  path-over (squares-bt g h) (cong2 pair (comp-homᵣ-lunit A sA f1) (comp-homᵣ-lunit A sA f2)) (comp-v sA (id-v g) σ) σ
 comp-v-lunit {A} sA {a} {b} {c} {d} {f1} {f2} {g} {h} σ =
-  square-ind (λ σ . (comp-homᵣ sA (Hom.id a) f1 , comp-homᵣ sA (Hom.id b) f2 , comp-v sA (id-v g) σ) ≡{squares-bt g h} (f1 , f2 , σ))
+  square-ind (λ σ . path-over (squares-bt g h) (cong2 pair (comp-homᵣ-lunit A sA f1) (comp-homᵣ-lunit A sA f2)) (comp-v sA (id-v g) σ) σ)
     (λ x pa pb pc pd L R B T . comp-v-lunit-aux sA x pa pb pc pd L R B T) σ
 
 -- Right unit law for vertical composition.
 comp-v-runit : {A ∷ U} (sA : is-segalᵣ A) {a b c d : A} {f1 : hom a c} {f2 : hom b d} {g : hom a b} {h : hom c d}
   (σ : square f1 f2 g h) →
-  (comp-homᵣ sA f1 (Hom.id c) , comp-homᵣ sA f2 (Hom.id d) , comp-v sA σ (id-v h)) ≡{squares-bt g h} (f1 , f2 , σ)
+  path-over (squares-bt g h) (cong2 pair (comp-homᵣ-runit A sA f1) (comp-homᵣ-runit A sA f2)) (comp-v sA σ (id-v h)) σ
 comp-v-runit {A} sA {a} {b} {c} {d} {f1} {f2} {g} {h} σ =
-  square-ind (λ σ . (comp-homᵣ sA f1 (Hom.id c) , comp-homᵣ sA f2 (Hom.id d) , comp-v sA σ (id-v h)) ≡{squares-bt g h} (f1 , f2 , σ))
+  square-ind (λ σ . path-over (squares-bt g h) (cong2 pair (comp-homᵣ-runit A sA f1) (comp-homᵣ-runit A sA f2)) (comp-v sA σ (id-v h)) σ)
     (λ x pa pb pc pd L R B T . comp-v-runit-aux sA x pa pb pc pd L R B T) σ
