@@ -93,6 +93,39 @@ square-at {A} x {a} {b} {c} {d} f1 f2 g h =
 square : {A ∷ U} {a b c d : A} (f1 : hom a c) (f2 : hom b d) (g : hom a b) (h : hom c d) → U
 square {A} f1 f2 g h = Σ (x : squareᵣ A) . square-at x f1 f2 g h
 
+-- the components of a square with given sides
+sq-pa : {A ∷ U} {x : squareᵣ A} {a b c d : A} {f1 : hom a c} {f2 : hom b d} {g : hom a b} {h : hom c d} →
+  square-at x f1 f2 g h → bottom-leftᵣ x ≡ a
+sq-pa σ = fst _ σ
+
+sq-pb : {A ∷ U} {x : squareᵣ A} {a b c d : A} {f1 : hom a c} {f2 : hom b d} {g : hom a b} {h : hom c d} →
+  square-at x f1 f2 g h → bottom-rightᵣ x ≡ b
+sq-pb σ = fst _ (snd _ σ)
+
+sq-pc : {A ∷ U} {x : squareᵣ A} {a b c d : A} {f1 : hom a c} {f2 : hom b d} {g : hom a b} {h : hom c d} →
+  square-at x f1 f2 g h → top-leftᵣ x ≡ c
+sq-pc σ = fst _ (snd _ (snd _ σ))
+
+sq-pd : {A ∷ U} {x : squareᵣ A} {a b c d : A} {f1 : hom a c} {f2 : hom b d} {g : hom a b} {h : hom c d} →
+  square-at x f1 f2 g h → top-rightᵣ x ≡ d
+sq-pd σ = fst _ (snd _ (snd _ (snd _ σ)))
+
+sq-left : {A ∷ U} {x : squareᵣ A} {a b c d : A} {f1 : hom a c} {f2 : hom b d} {g : hom a b} {h : hom c d} →
+  (σ : square-at x f1 f2 g h) → (leftᵣ x , sq-pa σ , sq-pc σ) ≡{hom a c} f1
+sq-left σ = Product.fst (snd _ (snd _ (snd _ (snd _ σ))))
+
+sq-right : {A ∷ U} {x : squareᵣ A} {a b c d : A} {f1 : hom a c} {f2 : hom b d} {g : hom a b} {h : hom c d} →
+  (σ : square-at x f1 f2 g h) → (rightᵣ x , sq-pb σ , sq-pd σ) ≡{hom b d} f2
+sq-right σ = Product.fst (Product.snd (snd _ (snd _ (snd _ (snd _ σ)))))
+
+sq-bottom : {A ∷ U} {x : squareᵣ A} {a b c d : A} {f1 : hom a c} {f2 : hom b d} {g : hom a b} {h : hom c d} →
+  (σ : square-at x f1 f2 g h) → (bottomᵣ x , sq-pa σ , sq-pb σ) ≡{hom a b} g
+sq-bottom σ = Product.fst (Product.snd (Product.snd (snd _ (snd _ (snd _ (snd _ σ))))))
+
+sq-top : {A ∷ U} {x : squareᵣ A} {a b c d : A} {f1 : hom a c} {f2 : hom b d} {g : hom a b} {h : hom c d} →
+  (σ : square-at x f1 f2 g h) → (topᵣ x , sq-pc σ , sq-pd σ) ≡{hom c d} h
+sq-top σ = Product.snd (Product.snd (Product.snd (snd _ (snd _ (snd _ (snd _ σ))))))
+
 -- A hom l r in arrᵣ A (between vertical sides) is an oplax square from l to r: its bottom and
 -- top sides are the images of the hom by srcᵣ and tgtᵣ.
 of-hom : {A ∷ U} {l r : arrᵣ A} (u : hom l r) → square (arr-hom l) (arr-hom r) (hom-map srcᵣ u) (hom-map tgtᵣ u)
@@ -110,30 +143,18 @@ comph : {A ∷ U} (sA : is-segalᵣ A) {a b e c d f : A}
   square f1 f2 g h → square f2 f3 g' h' → square f1 f3 (comp-homᵣ sA g g') (comp-homᵣ sA h h')
 comph {A} sA {a} {b} {e} {c} {d} {f} {f1} {f2} {f3} {g} {g'} {h} {h'} σ τ =
   let x : squareᵣ A = fst _ σ in
-  let pa : bottom-leftᵣ x ≡ a = fst _ (snd _ σ) in
-  let pb : bottom-rightᵣ x ≡ b = fst _ (snd _ (snd _ σ)) in
-  let pc : top-leftᵣ x ≡ c = fst _ (snd _ (snd _ (snd _ σ))) in
-  let pd : top-rightᵣ x ≡ d = fst _ (snd _ (snd _ (snd _ (snd _ σ)))) in
-  let rσ : ((leftᵣ x , pa , pc) ≡{hom a c} f1) × ((rightᵣ x , pb , pd) ≡{hom b d} f2) ×
-           ((bottomᵣ x , pa , pb) ≡{hom a b} g) × ((topᵣ x , pc , pd) ≡{hom c d} h) =
-    snd _ (snd _ (snd _ (snd _ (snd _ σ)))) in
-  let e1 : (leftᵣ x , pa , pc) ≡{hom a c} f1 = Product.fst rσ in
-  let e2 : (rightᵣ x , pb , pd) ≡{hom b d} f2 = Product.fst (Product.snd rσ) in
-  let e3 : (bottomᵣ x , pa , pb) ≡{hom a b} g = Product.fst (Product.snd (Product.snd rσ)) in
-  let e4 : (topᵣ x , pc , pd) ≡{hom c d} h = Product.snd (Product.snd (Product.snd rσ)) in
   let y : squareᵣ A = fst _ τ in
-  let qb : bottom-leftᵣ y ≡ b = fst _ (snd _ τ) in
-  let qe : bottom-rightᵣ y ≡ e = fst _ (snd _ (snd _ τ)) in
-  let qd : top-leftᵣ y ≡ d = fst _ (snd _ (snd _ (snd _ τ))) in
-  let qf : top-rightᵣ y ≡ f = fst _ (snd _ (snd _ (snd _ (snd _ τ)))) in
-  let rτ : ((leftᵣ y , qb , qd) ≡{hom b d} f2) × ((rightᵣ y , qe , qf) ≡{hom e f} f3) ×
-           ((bottomᵣ y , qb , qe) ≡{hom b e} g') × ((topᵣ y , qd , qf) ≡{hom d f} h') =
-    snd _ (snd _ (snd _ (snd _ (snd _ τ)))) in
-  let e2' : (leftᵣ y , qb , qd) ≡{hom b d} f2 = Product.fst rτ in
-  let e5 : (rightᵣ y , qe , qf) ≡{hom e f} f3 = Product.fst (Product.snd rτ) in
-  let e3' : (bottomᵣ y , qb , qe) ≡{hom b e} g' = Product.fst (Product.snd (Product.snd rτ)) in
-  let e6 : (topᵣ y , qd , qf) ≡{hom d f} h' = Product.snd (Product.snd (Product.snd rτ)) in
-  let E : (rightᵣ x , pb , pd) ≡{hom b d} (leftᵣ y , qb , qd) = trans e2 (sym e2') in
+  let σ' : square-at x f1 f2 g h = snd _ σ in
+  let τ' : square-at y f2 f3 g' h' = snd _ τ in
+  let pa : bottom-leftᵣ x ≡ a = sq-pa σ' in
+  let pb : bottom-rightᵣ x ≡ b = sq-pb σ' in
+  let pc : top-leftᵣ x ≡ c = sq-pc σ' in
+  let pd : top-rightᵣ x ≡ d = sq-pd σ' in
+  let qb : bottom-leftᵣ y ≡ b = sq-pa τ' in
+  let qe : bottom-rightᵣ y ≡ e = sq-pb τ' in
+  let qd : top-leftᵣ y ≡ d = sq-pc τ' in
+  let qf : top-rightᵣ y ≡ f = sq-pd τ' in
+  let E : (rightᵣ x , pb , pd) ≡{hom b d} (leftᵣ y , qb , qd) = trans (sq-right σ') (sym (sq-left τ')) in
   let p : rightᵣ x ≡ leftᵣ y = cong (hom-cell {A}) E in
   let sA' : is-segalᵣ (arrᵣ A) = is-segal-arrᵣ sA in
   let u : hom (leftᵣ x) (leftᵣ y) = (to-arrᵣ x , refl , p) in
@@ -141,18 +162,18 @@ comph {A} sA {a} {b} {e} {c} {d} {f} {f1} {f2} {f3} {g} {g'} {h} {h'} σ τ =
   let w : hom (leftᵣ x) (rightᵣ y) = comp-homᵣ sA' u v in
   -- the bottom and top sides of the two squares
   let gu : hom-move (hom-map srcᵣ u) pa qb ≡ g =
-    trans (hom-path (bottomᵣ x) (trans-refl-l pa) (hom-path-src E)) e3 in
+    trans (hom-path (bottomᵣ x) (trans-refl-l pa) (hom-path-src E)) (sq-bottom σ') in
   let gv : hom-move (hom-map srcᵣ v) qb qe ≡ g' =
-    trans (hom-path (bottomᵣ y) (trans-refl-l qb) (trans-refl-l qe)) e3' in
+    trans (hom-path (bottomᵣ y) (trans-refl-l qb) (trans-refl-l qe)) (sq-bottom τ') in
   let hu : hom-move (hom-map tgtᵣ u) pc qd ≡ h =
-    trans (hom-path (topᵣ x) (trans-refl-l pc) (hom-path-tgt E)) e4 in
+    trans (hom-path (topᵣ x) (trans-refl-l pc) (hom-path-tgt E)) (sq-top σ') in
   let hv : hom-move (hom-map tgtᵣ v) qd qf ≡ h' =
-    trans (hom-path (topᵣ y) (trans-refl-l qd) (trans-refl-l qf)) e6 in
+    trans (hom-path (topᵣ y) (trans-refl-l qd) (trans-refl-l qf)) (sq-top τ') in
   (of-arrᵣ (hom-cell w) ,
    trans (cong srcᵣ (hom-src w)) pa , trans (cong srcᵣ (hom-tgt w)) qe ,
    trans (cong tgtᵣ (hom-src w)) pc , trans (cong tgtᵣ (hom-tgt w)) qf ,
-   trans (arr-hom-move (srcᵣ (hom-cell w)) (hom-src w) pa pc) e1 ,
-   trans (arr-hom-move (tgtᵣ (hom-cell w)) (hom-tgt w) qe qf) e5 ,
+   trans (arr-hom-move (srcᵣ (hom-cell w)) (hom-src w) pa pc) (sq-left σ') ,
+   trans (arr-hom-move (tgtᵣ (hom-cell w)) (hom-tgt w) qe qf) (sq-right τ') ,
    trans (cong {hom (bottom-leftᵣ x) (bottom-rightᵣ y)} (λ k . hom-move k pa qe) (hom-map-comp (arrᵣ A) A srcᵣ sA' sA u v))
      (trans (hom-move-comp sA (hom-map srcᵣ u) (hom-map srcᵣ v) pa qb qe) (cong2 (comp-homᵣ sA) gu gv)) ,
    trans (cong {hom (top-leftᵣ x) (top-rightᵣ y)} (λ k . hom-move k pc qf) (hom-map-comp (arrᵣ A) A tgtᵣ sA' sA u v))
@@ -214,39 +235,6 @@ cone-ind {A} Q q κ =
   let f : (𝕀 →ᵣ cell-pairs A) → cone A = pullback→coneᵣ 𝕀 {arrᵣ A} {arrᵣ A} {A} tgtᵣ srcᵣ in
   let s : section f = is-equiv-sec f (pullback-oplax-up 𝕀 {arrᵣ A} {arrᵣ A} {A} tgtᵣ srcᵣ) in
   subst Q (snd _ s κ) (q (section-map f s κ))
-
--- the components of a square with given sides
-sq-pa : {A ∷ U} {x : squareᵣ A} {a b c d : A} {f1 : hom a c} {f2 : hom b d} {g : hom a b} {h : hom c d} →
-  square-at x f1 f2 g h → bottom-leftᵣ x ≡ a
-sq-pa σ = fst _ σ
-
-sq-pb : {A ∷ U} {x : squareᵣ A} {a b c d : A} {f1 : hom a c} {f2 : hom b d} {g : hom a b} {h : hom c d} →
-  square-at x f1 f2 g h → bottom-rightᵣ x ≡ b
-sq-pb σ = fst _ (snd _ σ)
-
-sq-pc : {A ∷ U} {x : squareᵣ A} {a b c d : A} {f1 : hom a c} {f2 : hom b d} {g : hom a b} {h : hom c d} →
-  square-at x f1 f2 g h → top-leftᵣ x ≡ c
-sq-pc σ = fst _ (snd _ (snd _ σ))
-
-sq-pd : {A ∷ U} {x : squareᵣ A} {a b c d : A} {f1 : hom a c} {f2 : hom b d} {g : hom a b} {h : hom c d} →
-  square-at x f1 f2 g h → top-rightᵣ x ≡ d
-sq-pd σ = fst _ (snd _ (snd _ (snd _ σ)))
-
-sq-left : {A ∷ U} {x : squareᵣ A} {a b c d : A} {f1 : hom a c} {f2 : hom b d} {g : hom a b} {h : hom c d} →
-  (σ : square-at x f1 f2 g h) → (leftᵣ x , sq-pa σ , sq-pc σ) ≡{hom a c} f1
-sq-left σ = Product.fst (snd _ (snd _ (snd _ (snd _ σ))))
-
-sq-right : {A ∷ U} {x : squareᵣ A} {a b c d : A} {f1 : hom a c} {f2 : hom b d} {g : hom a b} {h : hom c d} →
-  (σ : square-at x f1 f2 g h) → (rightᵣ x , sq-pb σ , sq-pd σ) ≡{hom b d} f2
-sq-right σ = Product.fst (Product.snd (snd _ (snd _ (snd _ (snd _ σ)))))
-
-sq-bottom : {A ∷ U} {x : squareᵣ A} {a b c d : A} {f1 : hom a c} {f2 : hom b d} {g : hom a b} {h : hom c d} →
-  (σ : square-at x f1 f2 g h) → (bottomᵣ x , sq-pa σ , sq-pb σ) ≡{hom a b} g
-sq-bottom σ = Product.fst (Product.snd (Product.snd (snd _ (snd _ (snd _ (snd _ σ))))))
-
-sq-top : {A ∷ U} {x : squareᵣ A} {a b c d : A} {f1 : hom a c} {f2 : hom b d} {g : hom a b} {h : hom c d} →
-  (σ : square-at x f1 f2 g h) → (topᵣ x , sq-pc σ , sq-pd σ) ≡{hom c d} h
-sq-top σ = Product.snd (Product.snd (Product.snd (snd _ (snd _ (snd _ (snd _ σ))))))
 
 -- vertical composition for the squares of a cone, whose corners agree with the gluing paths
 compv-stmt : {A ∷ U} (sA : is-segalᵣ A) → cone A → U
