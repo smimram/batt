@@ -191,9 +191,10 @@ module Unification = struct
     {
       problems : t IntMap.t; (** deferred problems, indexed by their order of creation *)
       candidates : IntSet.t; (** problems which might be solvable (other ones are stuck) *)
+      size : int; (** number of problems *)
     }
 
-  let state = ref { problems = IntMap.empty; candidates = IntSet.empty }
+  let state = ref { problems = IntMap.empty; candidates = IntSet.empty; size = 0 }
 
   (** Number of problems deferred so far, used to index them. *)
   let count = ref 0
@@ -221,7 +222,9 @@ module Unification = struct
   let defer pos k t u =
     let n = !count in
     incr count;
-    state := { problems = IntMap.add n (pos,k,t,u) !state.problems; candidates = IntSet.add n !state.candidates }
+    state := { problems = IntMap.add n (pos,k,t,u) !state.problems; candidates = IntSet.add n !state.candidates; size = !state.size + 1 };
+    incr Stats.deferred;
+    Stats.max_deferred := max !Stats.max_deferred !state.size
 
   (** Unsolved metavariable heading a value in weak head normal form. *)
   let head_meta : value -> V.meta option = function
@@ -278,7 +281,7 @@ module Unification = struct
     Option.map
       (fun n ->
          let pb = IntMap.find n !state.problems in
-         state := { problems = IntMap.remove n !state.problems; candidates = IntSet.remove n !state.candidates };
+         state := { problems = IntMap.remove n !state.problems; candidates = IntSet.remove n !state.candidates; size = !state.size - 1 };
          pb
       ) (find_solvable ())
 
@@ -290,6 +293,7 @@ module Unification = struct
 
   (** Restore a saved state of unification: metavariables solved since then are unsolved again. *)
   let restore (tr, s) =
+    incr Stats.backtracks;
     while !trail != tr do
       (List.hd !trail : V.meta).value <- None;
       trail := List.tl !trail
@@ -300,12 +304,12 @@ module Unification = struct
   (** Start again with no deferred problems: returns the current ones, which should be given back to [resume]. *)
   let suspend () =
     let s = !state in
-    state := { problems = IntMap.empty; candidates = IntSet.empty };
+    state := { problems = IntMap.empty; candidates = IntSet.empty; size = 0 };
     s
 
   (** Add back the deferred problems returned by [suspend]. *)
   let resume s =
-    state := { problems = IntMap.union (fun _ _ _ -> assert false) s.problems !state.problems; candidates = IntSet.union s.candidates !state.candidates }
+    state := { problems = IntMap.union (fun _ _ _ -> assert false) s.problems !state.problems; candidates = IntSet.union s.candidates !state.candidates; size = s.size + !state.size }
 end
 
 exception Unification
@@ -330,6 +334,7 @@ let error ?t fmt =
 
 (** Unify two values. *)
 let unify ~pos k (t:value) (u:value) =
+  incr Stats.unifications;
   if !Common.show_debug then debug "UNIFY %s WITH %s\n%!" (V.to_string k t) (V.to_string k u);
   (* Make sure that metavariable m applied to spine s equals t. *)
   let solve_meta k m s t =
@@ -1145,6 +1150,8 @@ and check_decls k env ctx (decls:T.decls) =
   let ty = ref [] in
   let env = ref env in
   let ctx = ref ctx in
+  (* The declarations added by [open] below are not counted. *)
+  Stats.declarations := !Stats.declarations + List.length (List.filter (function T.Def _ -> true | _ -> false) decls);
   let decls = ref decls in
   while !decls <> [] do
     let decl = List.hd !decls in
@@ -1251,6 +1258,7 @@ and import_module ?pos m =
                      try
                        let global, ty = Cache.load ~module_type m (Lazy.force payload) in
                        Common.print "Load %s\n%!" cache;
+                       incr Stats.modules_loaded;
                        Some { global; ty; digest; dependencies = List.map fst h.dependencies }
                      with e -> debug "Could not load %s: %s\n" cache (Printexc.to_string e); None
                    else None
@@ -1260,6 +1268,7 @@ and import_module ?pos m =
              | Some md -> md
              | None ->
                Common.print "Include %s...\n%!" fname;
+               incr Stats.modules_checked;
                let decls = Module.parse_file fname in
                let env, ctx = toplevel () in
                let current = !V.Origin.current in
@@ -1299,6 +1308,11 @@ and import_module ?pos m =
 let check_decls_toplevel decls =
   let env, ctx = toplevel () in
   ignore @@ check_decls 0 env ctx decls
+
+(** Display statistics about the run. *)
+let print_stats () =
+  let metas = V.Meta.Dynarray.to_list V.Meta.variables in
+  Stats.print ~metas:(List.length metas) ~solved:(List.length (List.filter (fun (m:V.meta) -> m.value <> None) metas)) ~globals:(V.Meta.Dynarray.length V.Global.definitions)
 
 let check_meta () =
   let m =

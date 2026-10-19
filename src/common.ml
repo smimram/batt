@@ -9,6 +9,9 @@ let include_directories () = "." :: !include_directories_list
 (** Declare builtins. *)
 let builtins = ref true
 
+(** Display statistics at the end (see [Stats]). *)
+let stats = ref true
+
 (** Cache checked modules (see [Cache]). *)
 let cache = ref true
 
