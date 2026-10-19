@@ -26,16 +26,6 @@ open Square
 grid-sq : {A ∷ U} (Θ : simplex 2 →ᵣ (simplex 2 →ᵣ A)) (e e' ∷ 𝕀 → simplex 2) → squareᵣ A
 grid-sq Θ e e' = of-arrᵣ (λ i . λ j . Θ (e i) (e' j))
 
--- a path-over with respect to a two-argument family, the other way round
-private
-from-path-over2 : {A ∷ U} {P1 P2 : U} (F : P1 → P2 → boundary A) {p p' : P1} (e : p ≡ p') {q q' : P2} (e' : q ≡ q')
-  (σ : squares (F p q)) (τ : squares (F p' q')) → subst squares (cong2 F e e') σ ≡ τ → σ ≡ subst squares (cong2 F (sym e) (sym e')) τ
-from-path-over2 {A} {P1} {P2} F {p} e {q} e' σ τ =
-  J p (λ p' e . (τ : squares (F p' q')) → subst squares (cong2 F e e') σ ≡ τ → σ ≡ subst squares (cong2 F (sym e) (sym e')) τ)
-    (J q (λ q' e' . (τ : squares (F p q')) → subst squares (cong2 F refl e') σ ≡ τ → σ ≡ subst squares (cong2 F refl (sym e')) τ)
-      (λ τ E . E) e')
-    e τ
-
 -- vertical composition commutes with transporting along the bottom and top sides
 private
 comp-v-subst : {A ∷ U} (sA : is-segalᵣ A) {a b c d c' d' : A} {f1 : hom a c} {f2 : hom b d} {f1' : hom c c'} {f2' : hom d d'}

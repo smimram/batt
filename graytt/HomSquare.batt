@@ -1,3 +1,7 @@
+--
+-- Squares
+--
+
 open import Stdlib
 open import Hom
 open import Segal
@@ -9,10 +13,6 @@ open import Associativity
 open import Unitality
 open import PathOver
 open import Pullback-up
-
---
--- Squares
---
 
 open Square
 
@@ -1013,3 +1013,446 @@ comp-v-simplex {A} sA Φ =
            (comp-v-cone-β sA (postᵣ simplex2-pair Φ)))
     (trans (fam-sq-htpy s t (λ c . comp-simplex2 sA c) Φ)
       (fam-sq-of-arr (λ i . λ j . Φ i (Simplex2.edge₀₂ j))))
+
+--
+-- Associativity of vertical composition
+--
+-- The statement is shown for squares composed along paths E1 and E2 between their sides
+-- (comp-v-assoc-gen): the squares can then be assumed to be given by families of arrows
+-- with free bottom and top sides, and the paths to be refl, so that the three squares are given by
+-- three families of arrows glued along two paths. By cone induction (twice), those are families of
+-- composable triples of cells, i.e. families of 3-simplices. For a family of 3-simplices, the
+-- composites are the square of the long edges, moved along the composites of the edges of the faces
+-- (comp-v-simplex), and those are related by the associator of the 3-simplices, which is given by
+-- their faces (assoc-simplex3).
+--
+
+-- a path-over with respect to a two-argument family, the other way round
+from-path-over2 : {A ∷ U} {P1 P2 : U} (F : P1 → P2 → boundary A) {p p' : P1} (e : p ≡ p') {q q' : P2} (e' : q ≡ q')
+  (σ : squares (F p q)) (τ : squares (F p' q')) → subst squares (cong2 F e e') σ ≡ τ → σ ≡ subst squares (cong2 F (sym e) (sym e')) τ
+from-path-over2 {A} {P1} {P2} F {p} e {q} e' σ τ =
+  J p (λ p' e . (τ : squares (F p' q')) → subst squares (cong2 F e e') σ ≡ τ → σ ≡ subst squares (cong2 F (sym e) (sym e')) τ)
+    (J q (λ q' e' . (τ : squares (F p q')) → subst squares (cong2 F refl e') σ ≡ τ → σ ≡ subst squares (cong2 F refl (sym e')) τ)
+      (λ τ E . E) e')
+    e τ
+
+-- vertical composition commutes with transporting along the vertical sides of the lower square
+private
+comp-v-subst-l : {A ∷ U} (sA : is-segalᵣ A) {a b c d c' d' : A} {f1 F1 : hom a c} {f2 F2 : hom b d} {f1' : hom c c'} {f2' : hom d d'}
+  {g : hom a b} {h : hom c d} {k : hom c' d'} (σ : square f1 f2 g h) (τ : square f1' f2' h k) (p : f1 ≡ F1) (q : f2 ≡ F2) →
+  comp-v sA (subst squares (cong2 {hom a c} {hom b d} {boundary A} (λ l r . (a , b , c , d , l , r , g , h)) p q) σ) τ
+  ≡ subst squares (cong2 {hom a c'} {hom b d'} {boundary A} (λ l r . (a , b , c' , d' , l , r , g , k))
+                    (cong (λ m . comp-homᵣ sA {a} {c} {c'} m f1') p) (cong (λ m . comp-homᵣ sA {b} {d} {d'} m f2') q))
+      (comp-v sA σ τ)
+comp-v-subst-l {A} sA {a} {b} {c} {d} {c'} {d'} {f1} {F1} {f2} {F2} {f1'} {f2'} {g} {h} {k} σ τ p q =
+  J f1 (λ F1 p . comp-v sA (subst squares (cong2 {hom a c} {hom b d} {boundary A} (λ l r . (a , b , c , d , l , r , g , h)) p q) σ) τ
+      ≡ subst squares (cong2 {hom a c'} {hom b d'} {boundary A} (λ l r . (a , b , c' , d' , l , r , g , k))
+                        (cong (λ m . comp-homᵣ sA {a} {c} {c'} m f1') p) (cong (λ m . comp-homᵣ sA {b} {d} {d'} m f2') q))
+          (comp-v sA σ τ))
+    (J f2 (λ F2 q . comp-v sA (subst squares (cong2 {hom a c} {hom b d} {boundary A} (λ l r . (a , b , c , d , l , r , g , h)) refl q) σ) τ
+        ≡ subst squares (cong2 {hom a c'} {hom b d'} {boundary A} (λ l r . (a , b , c' , d' , l , r , g , k))
+                          refl (cong (λ m . comp-homᵣ sA {b} {d} {d'} m f2') q))
+            (comp-v sA σ τ))
+      refl q)
+    p
+
+-- vertical composition commutes with transporting along the vertical sides of the upper square
+private
+comp-v-subst-u : {A ∷ U} (sA : is-segalᵣ A) {a b c d c' d' : A} {f1 : hom a c} {f2 : hom b d} {f1' F1' : hom c c'} {f2' F2' : hom d d'}
+  {g : hom a b} {h : hom c d} {k : hom c' d'} (σ : square f1 f2 g h) (τ : square f1' f2' h k) (p : f1' ≡ F1') (q : f2' ≡ F2') →
+  comp-v sA σ (subst squares (cong2 {hom c c'} {hom d d'} {boundary A} (λ l r . (c , d , c' , d' , l , r , h , k)) p q) τ)
+  ≡ subst squares (cong2 {hom a c'} {hom b d'} {boundary A} (λ l r . (a , b , c' , d' , l , r , g , k))
+                    (cong (λ m . comp-homᵣ sA {a} {c} {c'} f1 m) p) (cong (λ m . comp-homᵣ sA {b} {d} {d'} f2 m) q))
+      (comp-v sA σ τ)
+comp-v-subst-u {A} sA {a} {b} {c} {d} {c'} {d'} {f1} {f2} {f1'} {F1'} {f2'} {F2'} {g} {h} {k} σ τ p q =
+  J f1' (λ F1' p . comp-v sA σ (subst squares (cong2 {hom c c'} {hom d d'} {boundary A} (λ l r . (c , d , c' , d' , l , r , h , k)) p q) τ)
+      ≡ subst squares (cong2 {hom a c'} {hom b d'} {boundary A} (λ l r . (a , b , c' , d' , l , r , g , k))
+                        (cong (λ m . comp-homᵣ sA {a} {c} {c'} f1 m) p) (cong (λ m . comp-homᵣ sA {b} {d} {d'} f2 m) q))
+          (comp-v sA σ τ))
+    (J f2' (λ F2' q . comp-v sA σ (subst squares (cong2 {hom c c'} {hom d d'} {boundary A} (λ l r . (c , d , c' , d' , l , r , h , k)) refl q) τ)
+        ≡ subst squares (cong2 {hom a c'} {hom b d'} {boundary A} (λ l r . (a , b , c' , d' , l , r , g , k))
+                          refl (cong (λ m . comp-homᵣ sA {b} {d} {d'} f2 m) q))
+            (comp-v sA σ τ))
+      refl q)
+    p
+
+-- transporting twice
+private
+subst-subst : {A ∷ U} {β β' β'' : boundary A} (p : β ≡ β') (q : β' ≡ β'') (σ : squares β) → subst squares q (subst squares p σ) ≡ subst squares (trans p q) σ
+subst-subst {A} {β} {β'} p q σ = J β' (λ β'' q . subst squares q (subst squares p σ) ≡ subst squares (trans p q) σ) refl q
+
+-- composites of images of pairs of paths
+private
+cong2-trans : {P1 P2 T : U} (F : P1 → P2 → T) {a a' a'' : P1} (p : a ≡ a') (p' : a' ≡ a'') {b b' b'' : P2} (q : b ≡ b') (q' : b' ≡ b'') →
+  trans (cong2 F p q) (cong2 F p' q') ≡ cong2 F (trans p p') (trans q q')
+cong2-trans {P1} {P2} {T} F {a} {a'} p p' {b} {b'} q q' =
+  J a' (λ a'' p' . trans (cong2 F p q) (cong2 F p' q') ≡ cong2 F (trans p p') (trans q q'))
+    (J b' (λ b'' q' . trans (cong2 F p q) (cong2 F refl q') ≡ cong2 F p (trans q q')) refl q')
+    p'
+
+private
+cong-cong2-pair : {P1 P2 T : U} (F : P1 → P2 → T) {a a' : P1} (p : a ≡ a') {b b' : P2} (q : b ≡ b') →
+  cong {P1 × P2} {T} (λ k . F (Product.fst k) (Product.snd k)) (cong2 pair p q) ≡ cong2 F p q
+cong-cong2-pair {P1} {P2} {T} F {a} p {b} q =
+  J a (λ a' p . cong {P1 × P2} {T} (λ k . F (Product.fst k) (Product.snd k)) (cong2 pair p q) ≡ cong2 F p q)
+    (J b (λ b' q . cong {P1 × P2} {T} (λ k . F (Product.fst k) (Product.snd k)) (cong2 pair refl q) ≡ cong2 F refl q) refl q)
+    p
+
+-- the associator of the edges of a 3-simplex is the one given by its faces
+private
+assoc-edges : {A ∷ U} (sA : is-segalᵣ A) (Θ : simplex 3 →ᵣ A) →
+  comp-homᵣ-assoc A sA (simplex3-hom Simplex3.edge₀₁ Θ) (simplex3-hom Simplex3.edge₁₂ Θ) (simplex3-hom Simplex3.edge₂₃ Θ)
+  ≡ assoc-simplex3-def A sA Θ
+assoc-edges {A} sA Θ =
+  let u : hom (Θ (Simplex3.edge₀₁ 𝕀0)) (Θ (Simplex3.edge₀₁ 𝕀1)) = simplex3-hom Simplex3.edge₀₁ Θ in
+  let v : hom (Θ (Simplex3.edge₁₂ 𝕀0)) (Θ (Simplex3.edge₁₂ 𝕀1)) = simplex3-hom Simplex3.edge₁₂ Θ in
+  let w : hom (Θ (Simplex3.edge₂₃ 𝕀0)) (Θ (Simplex3.edge₂₃ 𝕀1)) = simplex3-hom Simplex3.edge₂₃ Θ in
+  trans (comp-homᵣ-assoc-eq A sA u v w)
+    (trans (transfer-equiv (edges-tri {A}) (is-equiv-edges-tri A sA) (tri-assoc A sA) (assoc-simplex3 A sA) Θ
+              (assoc-filler A sA u v w) (assoc-filler-edges A sA u v w))
+      (assoc-simplex3-eq A sA Θ))
+
+-- the paths of the faces of a 3-simplex cancel
+private
+faces-cancel : {H1 H2 : U} (L : H1 → H2) {x y : H1} (c3 : x ≡ y) {z : H2} (c1 : L y ≡ z) {e : H2} (r : z ≡ e) →
+  trans (trans (sym c1) (cong L (sym c3))) (trans (cong L c3) (trans c1 r)) ≡ r
+faces-cancel {H1} {H2} L {x} {y} c3 {z} c1 {e} r =
+  J z (λ e r . trans (trans (sym c1) (cong L (sym c3))) (trans (cong L c3) (trans c1 r)) ≡ r)
+    (J (L y) (λ z c1 . trans (trans (sym c1) (cong L (sym c3))) (trans (cong L c3) c1) ≡ refl)
+      (J x (λ y c3 . trans (trans refl (cong L (sym c3))) (cong L c3) ≡ refl) refl c3)
+      c1)
+    r
+
+-- congruence of vertical composition in each argument
+private
+comp-v-cong-l : {A ∷ U} (sA : is-segalᵣ A) {a b c d c' d' : A} {f1 : hom a c} {f2 : hom b d} {f1' : hom c c'} {f2' : hom d d'}
+  {g : hom a b} {h : hom c d} {k : hom c' d'} {σ σ' : square f1 f2 g h} (e : σ ≡ σ') (τ : square f1' f2' h k) → comp-v sA σ τ ≡ comp-v sA σ' τ
+comp-v-cong-l {A} sA {a} {b} {c} {d} {c'} {d'} {f1} {f2} {f1'} {f2'} {g} {h} {k} {σ} e τ = cong {square f1 f2 g h} (λ z . comp-v sA z τ) e
+
+private
+comp-v-cong-u : {A ∷ U} (sA : is-segalᵣ A) {a b c d c' d' : A} {f1 : hom a c} {f2 : hom b d} {f1' : hom c c'} {f2' : hom d d'}
+  {g : hom a b} {h : hom c d} {k : hom c' d'} (σ : square f1 f2 g h) {τ τ' : square f1' f2' h k} (e : τ ≡ τ') → comp-v sA σ τ ≡ comp-v sA σ τ'
+comp-v-cong-u {A} sA {a} {b} {c} {d} {c'} {d'} {f1} {f2} {f1'} {f2'} {g} {h} {k} σ {τ} e = cong {square f1' f2' h k} (λ z . comp-v sA σ z) e
+
+-- the boundary of the squares of a family of 3-simplices, with given left and right sides
+private
+bdry-03 : {A ∷ U} (Θ : 𝕀 →ᵣ (simplex 3 →ᵣ A)) →
+  hom (Θ 𝕀0 (Simplex3.edge₀₁ 𝕀0)) (Θ 𝕀0 (Simplex3.edge₀₃ 𝕀1)) × hom (Θ 𝕀1 (Simplex3.edge₀₁ 𝕀0)) (Θ 𝕀1 (Simplex3.edge₀₃ 𝕀1)) → boundary A
+bdry-03 Θ k =
+  (Θ 𝕀0 (Simplex3.edge₀₁ 𝕀0) , Θ 𝕀1 (Simplex3.edge₀₁ 𝕀0) , Θ 𝕀0 (Simplex3.edge₀₃ 𝕀1) , Θ 𝕀1 (Simplex3.edge₀₃ 𝕀1) , Product.fst k , Product.snd k ,
+   ((λ i . Θ i (Simplex3.edge₀₁ 𝕀0)) , refl , refl) , ((λ i . Θ i (Simplex3.edge₀₃ 𝕀1)) , refl , refl))
+
+-- associativity for the squares given by the edges of a family of 3-simplices
+private
+comp-v-assoc-simplex : {A ∷ U} (sA : is-segalᵣ A) (Θ : 𝕀 →ᵣ (simplex 3 →ᵣ A)) →
+  path-over squares
+    (cong (bdry-03 Θ)
+      (cong2 pair (comp-homᵣ-assoc A sA (simplex3-hom Simplex3.edge₀₁ (Θ 𝕀0)) (simplex3-hom Simplex3.edge₁₂ (Θ 𝕀0)) (simplex3-hom Simplex3.edge₂₃ (Θ 𝕀0)))
+                  (comp-homᵣ-assoc A sA (simplex3-hom Simplex3.edge₀₁ (Θ 𝕀1)) (simplex3-hom Simplex3.edge₁₂ (Θ 𝕀1)) (simplex3-hom Simplex3.edge₂₃ (Θ 𝕀1)))))
+    (comp-v sA (comp-v sA (of-arrᵣ (λ i . λ j . Θ i (Simplex3.edge₀₁ j)) , refl) (of-arrᵣ (λ i . λ j . Θ i (Simplex3.edge₁₂ j)) , refl))
+      (of-arrᵣ (λ i . λ j . Θ i (Simplex3.edge₂₃ j)) , refl))
+    (comp-v sA (of-arrᵣ (λ i . λ j . Θ i (Simplex3.edge₀₁ j)) , refl)
+      (comp-v sA (of-arrᵣ (λ i . λ j . Θ i (Simplex3.edge₁₂ j)) , refl) (of-arrᵣ (λ i . λ j . Θ i (Simplex3.edge₂₃ j)) , refl)))
+comp-v-assoc-simplex {A} sA Θ =
+  let e01 ∷ 𝕀 → simplex 3 = Simplex3.edge₀₁ in
+  let e12 ∷ 𝕀 → simplex 3 = Simplex3.edge₁₂ in
+  let e23 ∷ 𝕀 → simplex 3 = Simplex3.edge₂₃ in
+  let e02 ∷ 𝕀 → simplex 3 = Simplex3.edge₀₂ in
+  let e13 ∷ 𝕀 → simplex 3 = Simplex3.edge₁₃ in
+  let e03 ∷ 𝕀 → simplex 3 = Simplex3.edge₀₃ in
+  let s : (e ∷ 𝕀 → simplex 3) → squares (bdry (of-arrᵣ (λ i . λ j . Θ i (e j)))) = λ e . (of-arrᵣ (λ i . λ j . Θ i (e j)) , refl) in
+  -- the faces, as families of 2-simplices, and the composites of their edges
+  let F : (d ∷ simplex 2 → simplex 3) → 𝕀 →ᵣ (simplex 2 →ᵣ A) = λ d . λ i . preᵣ {simplex 2} {simplex 3} {A} (Θ i) d in
+  let B : (d ∷ simplex 2 → simplex 3) → _ = λ d . bdry-st {A} {simplex 2 →ᵣ A} (λ c . c (Simplex2.edge₀₁ 𝕀0)) (λ c . c (Simplex2.edge₁₂ 𝕀1)) (F d) in
+  let V : (d ∷ simplex 2 → simplex 3) → _ = λ d .
+    from-path-over2 (B d) (comp-simplex2 sA (F d 𝕀0)) (comp-simplex2 sA (F d 𝕀1)) _ _ (comp-v-simplex sA (F d)) in
+  let c : (d ∷ simplex 2 → simplex 3) (i ∷ 𝕀) → _ = λ d i . comp-simplex2 sA (F d i) in
+  let u : (i ∷ 𝕀) → hom (Θ i (e01 𝕀0)) (Θ i (e01 𝕀1)) = λ i . simplex3-hom e01 (Θ i) in
+  let v : (i ∷ 𝕀) → hom (Θ i (e12 𝕀0)) (Θ i (e12 𝕀1)) = λ i . simplex3-hom e12 (Θ i) in
+  let w : (i ∷ 𝕀) → hom (Θ i (e23 𝕀0)) (Θ i (e23 𝕀1)) = λ i . simplex3-hom e23 (Θ i) in
+  let L : (i ∷ 𝕀) → hom (Θ i (e01 𝕀0)) (Θ i (e02 𝕀1)) → hom (Θ i (e01 𝕀0)) (Θ i (e03 𝕀1)) = λ i . λ m . comp-homᵣ sA {Θ i (e01 𝕀0)} {Θ i (e02 𝕀1)} {Θ i (e03 𝕀1)} m (w i) in
+  let R : (i ∷ 𝕀) → hom (Θ i (e12 𝕀0)) (Θ i (e13 𝕀1)) → hom (Θ i (e01 𝕀0)) (Θ i (e03 𝕀1)) = λ i . λ m . comp-homᵣ sA {Θ i (e01 𝕀0)} {Θ i (e01 𝕀1)} {Θ i (e03 𝕀1)} (u i) m in
+  -- the composites
+  let lhs : _ =
+    trans (comp-v-cong-l sA (V Simplex3.d₃) (s e23))
+      (trans (comp-v-subst-l sA (s e02) (s e23) (sym (c Simplex3.d₃ 𝕀0)) (sym (c Simplex3.d₃ 𝕀1)))
+        (trans (cong (subst squares _) (V Simplex3.d₁)) (subst-subst _ _ (s e03)))) in
+  let rhs : _ =
+    trans (comp-v-cong-u sA (s e01) (V Simplex3.d₀))
+      (trans (comp-v-subst-u sA (s e01) (s e13) (sym (c Simplex3.d₀ 𝕀0)) (sym (c Simplex3.d₀ 𝕀1)))
+        (trans (cong (subst squares _) (V Simplex3.d₂)) (subst-subst _ _ (s e03)))) in
+  -- on each side, the associator is given by the faces
+  let side : (i ∷ 𝕀) → _ = λ i .
+    trans (cong (trans (trans (sym (c Simplex3.d₁ i)) (cong (L i) (sym (c Simplex3.d₃ i))))) (assoc-edges sA (Θ i)))
+      (faces-cancel (L i) (c Simplex3.d₃ i) (c Simplex3.d₁ i) (trans (sym (c Simplex3.d₂ i)) (cong (R i) (sym (c Simplex3.d₀ i))))) in
+  let B : hom (Θ 𝕀0 (e01 𝕀0)) (Θ 𝕀0 (e03 𝕀1)) → hom (Θ 𝕀1 (e01 𝕀0)) (Θ 𝕀1 (e03 𝕀1)) → boundary A = λ l r . bdry-03 Θ (l , r) in
+  let α : (i ∷ 𝕀) → _ = λ i . comp-homᵣ-assoc A sA (u i) (v i) (w i) in
+  let Y : (i ∷ 𝕀) → _ = λ i . sym (c Simplex3.d₁ i) in
+  let X : (i ∷ 𝕀) → _ = λ i . cong (L i) (sym (c Simplex3.d₃ i)) in
+  let W : (i ∷ 𝕀) → _ = λ i . sym (c Simplex3.d₂ i) in
+  let Z : (i ∷ 𝕀) → _ = λ i . cong (R i) (sym (c Simplex3.d₀ i)) in
+  let P : _ = cong (bdry-03 Θ) (cong2 pair (α 𝕀0) (α 𝕀1)) in
+  let H : (i ∷ 𝕀) → U = λ i . simplex3-hom e03 (Θ i) ≡ comp-homᵣ sA (u i) (comp-homᵣ sA (v i) (w i)) in
+  let path : trans (trans (cong2 B (Y 𝕀0) (Y 𝕀1)) (cong2 B (X 𝕀0) (X 𝕀1))) P ≡ trans (cong2 B (W 𝕀0) (W 𝕀1)) (cong2 B (Z 𝕀0) (Z 𝕀1)) =
+    trans (cong {_ ≡ _} {_ ≡ _} (λ r . trans r P) (cong2-trans B (Y 𝕀0) (X 𝕀0) (Y 𝕀1) (X 𝕀1)))
+      (trans (cong {_ ≡ _} {_ ≡ _} (λ r . trans (cong2 B (trans (Y 𝕀0) (X 𝕀0)) (trans (Y 𝕀1) (X 𝕀1))) r) (cong-cong2-pair B (α 𝕀0) (α 𝕀1)))
+        (trans (cong2-trans B (trans (Y 𝕀0) (X 𝕀0)) (α 𝕀0) (trans (Y 𝕀1) (X 𝕀1)) (α 𝕀1))
+          (trans (cong2 {H 𝕀0} {H 𝕀1} {B (simplex3-hom e03 (Θ 𝕀0)) (simplex3-hom e03 (Θ 𝕀1)) ≡ B (comp-homᵣ sA (u 𝕀0) (comp-homᵣ sA (v 𝕀0) (w 𝕀0))) (comp-homᵣ sA (u 𝕀1) (comp-homᵣ sA (v 𝕀1) (w 𝕀1)))} (λ p q . cong2 B p q) (side 𝕀0) (side 𝕀1)) (sym (cong2-trans B (W 𝕀0) (Z 𝕀0) (W 𝕀1) (Z 𝕀1)))))) in
+  trans (cong (subst squares P) lhs)
+    (trans (subst-subst _ P (s e03))
+      (trans (cong {bdry (of-arrᵣ (λ i . λ j . Θ i (e03 j))) ≡ B (comp-homᵣ sA (u 𝕀0) (comp-homᵣ sA (v 𝕀0) (w 𝕀0))) (comp-homᵣ sA (u 𝕀1) (comp-homᵣ sA (v 𝕀1) (w 𝕀1)))} (λ r . subst squares r (s e03)) path) (sym rhs)))
+
+-- the boundary with given bottom side, as a hom with free endpoints
+private
+bdry-at-v : {A ∷ U} (t : Homs.total A) {c d : A} (f1 : hom (Homs.src t) c) (f2 : hom (Homs.tgt t) d) (h : hom c d) → boundary A
+bdry-at-v t {c} {d} f1 f2 h = (Homs.src t , Homs.tgt t , c , d , f1 , f2 , Homs.to-hom t , h)
+
+-- associativity of the left and right sides of vertical composites
+private
+assoc-lr : {A ∷ U} (sA : is-segalᵣ A) (β : boundary A) {t1 : Homs.total A} (E1 : bdry-top β ≡ t1)
+  {c d : A} (f1 : hom (Homs.src t1) c) (f2 : hom (Homs.tgt t1) d) (h : hom c d) {t2 : Homs.total A} (E2 : (c , d , h) ≡{Homs.total A} t2)
+  {e f : A} (f1' : hom (Homs.src t2) e) (f2' : hom (Homs.tgt t2) f) →
+  comp-lr-at sA (bl β , br β , c , d , Product.fst (comp-lr-at sA β E1 f1 f2) , Product.snd (comp-lr-at sA β E1 f1 f2) , side-b β , h) E2 f1' f2'
+  ≡ comp-lr-at sA β E1 (Product.fst (comp-lr-at sA (bdry-at-v t1 f1 f2 h) E2 f1' f2')) (Product.snd (comp-lr-at sA (bdry-at-v t1 f1 f2 h) E2 f1' f2'))
+assoc-lr {A} sA β {t1} E1 {c} {d} f1 f2 h {t2} E2 {e} {f} f1' f2' =
+  J (bdry-top β) (λ t1 E1 . (f1 : hom (Homs.src t1) c) (f2 : hom (Homs.tgt t1) d) →
+      comp-lr-at sA (bl β , br β , c , d , Product.fst (comp-lr-at sA β E1 f1 f2) , Product.snd (comp-lr-at sA β E1 f1 f2) , side-b β , h) E2 f1' f2'
+      ≡ comp-lr-at sA β E1 (Product.fst (comp-lr-at sA (bdry-at-v t1 f1 f2 h) E2 f1' f2')) (Product.snd (comp-lr-at sA (bdry-at-v t1 f1 f2 h) E2 f1' f2')))
+    (λ f1 f2 .
+      J {Homs.total A} (c , d , h) (λ t2 E2 . (f1' : hom (Homs.src t2) e) (f2' : hom (Homs.tgt t2) f) →
+          comp-lr-at sA (bl β , br β , c , d , comp-homᵣ sA (side-l β) f1 , comp-homᵣ sA (side-r β) f2 , side-b β , h) E2 f1' f2'
+          ≡ comp-lr-at sA β refl (Product.fst (comp-lr-at sA (bdry-at-v (bdry-top β) f1 f2 h) E2 f1' f2')) (Product.snd (comp-lr-at sA (bdry-at-v (bdry-top β) f1 f2 h) E2 f1' f2')))
+        (λ f1' f2' . cong2 pair (comp-homᵣ-assoc A sA (side-l β) f1 f1') (comp-homᵣ-assoc A sA (side-r β) f2 f2'))
+        E2 f1' f2')
+    E1 f1 f2
+
+-- associativity of the boundaries of vertical composites
+assoc-bdry-v : {A ∷ U} (sA : is-segalᵣ A) (β β' β'' : boundary A) (E1 : bdry-top β ≡ bdry-bottom β') (E2 : bdry-top β' ≡ bdry-bottom β'') →
+  comp-bdry-v sA (comp-bdry-v sA β β' E1) β'' E2 ≡ comp-bdry-v sA β (comp-bdry-v sA β' β'' E2) E1
+assoc-bdry-v {A} sA β β' β'' E1 E2 =
+  bdry-ind (λ β' . (E1 : bdry-top β ≡ bdry-bottom β') (E2 : bdry-top β' ≡ bdry-bottom β'') →
+      comp-bdry-v sA (comp-bdry-v sA β β' E1) β'' E2 ≡ comp-bdry-v sA β (comp-bdry-v sA β' β'' E2) E1)
+    (λ a' b' c' d' f1' f2' g' h' E1 E2 .
+      cong {hom (bl β) (tl β'') × hom (br β) (tr β'')} {boundary A} (λ k . (bl β , br β , tl β'' , tr β'' , Product.fst k , Product.snd k , side-b β , side-t β''))
+        (assoc-lr sA β E1 f1' f2' h' E2 (side-l β'') (side-r β'')))
+    β' E1 E2
+
+-- the statement of associativity
+private
+v-assoc-stmt : {A ∷ U} (sA : is-segalᵣ A) {β : boundary A} (σ : squares β) {β' : boundary A} (τ : squares β') {β'' : boundary A} (υ : squares β'')
+  (E1 : bdry-top β ≡ bdry-bottom β') (E2 : bdry-top β' ≡ bdry-bottom β'') → U
+v-assoc-stmt {A} sA {β} σ {β'} τ {β''} υ E1 E2 =
+  path-over squares (assoc-bdry-v sA β β' β'' E1 E2) (comp-v-gen sA (comp-v-gen sA σ τ E1) υ E2) (comp-v-gen sA σ (comp-v-gen sA τ υ E2) E1)
+
+-- oplax cones, their paths, and cone induction
+private
+gc-path : (K ∷ U) {B1 B2 C ∷ U} (g ∷ B1 → C) (h ∷ B2 → C) (κ : pullback-coneᵣ K {B1} {B2} {C} g h) →
+  postᵣ {K} {B1} {C} g (pullback-coneᵣ-fst K {B1} {B2} {C} g h κ) ≡ postᵣ {K} {B2} {C} h (pullback-coneᵣ-snd K {B1} {B2} {C} g h κ)
+gc-path K {B1} {B2} {C} g h κ =
+  trans (sym (Product.fst (snd (pullback-coneᵣ-paths K {B1} {B2} {C} g h) κ)))
+    (trans (path-eq (Funext.funextᵣ K C (pullback-coneᵣ-htpy K {B1} {B2} {C} g h κ)))
+      (Product.snd (snd (pullback-coneᵣ-paths K {B1} {B2} {C} g h) κ)))
+
+private
+gc-htpy-src : (K ∷ U) {C ∷ U} (f : K →ᵣ C) {k : K →ᵣ C} (P : f ≡ k) → postᵣ {K} {path C} {C} path-src (Funext.happlyᵣ K C (f , k , P)) ≡ f
+gc-htpy-src K {C} f {k} P = J f (λ k P . postᵣ {K} {path C} {C} path-src (Funext.happlyᵣ K C (f , k , P)) ≡ f) refl P
+
+private
+gc-htpy-tgt : (K ∷ U) {C ∷ U} (f : K →ᵣ C) {k : K →ᵣ C} (P : f ≡ k) → postᵣ {K} {path C} {C} path-tgt (Funext.happlyᵣ K C (f , k , P)) ≡ k
+gc-htpy-tgt K {C} f {k} P = J f (λ k P . postᵣ {K} {path C} {C} path-tgt (Funext.happlyᵣ K C (f , k , P)) ≡ k) refl P
+
+private
+gcone-of : (K ∷ U) {B1 B2 C ∷ U} (g ∷ B1 → C) (h ∷ B2 → C) (X : K →ᵣ B1) (Y : K →ᵣ B2) →
+  postᵣ {K} {B1} {C} g X ≡ postᵣ {K} {B2} {C} h Y → pullback-coneᵣ K {B1} {B2} {C} g h
+gcone-of K {B1} {B2} {C} g h X Y P =
+  ((X , Y , Funext.happlyᵣ K C (postᵣ {K} {B1} {C} g X , postᵣ {K} {B2} {C} h Y , P)) ,
+   gc-htpy-src K (postᵣ {K} {B1} {C} g X) P , gc-htpy-tgt K (postᵣ {K} {B1} {C} g X) P)
+
+private
+gc-retraction-inj-refl : {X Y : U} (f : X → Y) (r : retraction f) (x : X) → retraction-inj f r {x} {x} refl ≡ refl
+gc-retraction-inj-refl {X} {Y} f (g , η) x = trans (cong (trans (sym (η x))) (trans-refl-l (η x))) (trans-sym-l (η x))
+
+private
+gc-funext-cst : (K ∷ U) {C ∷ U} (f : K →ᵣ C) → path-eq (Funext.funextᵣ K C (λ a . (f a , f a , refl))) ≡ refl
+gc-funext-cst K {C} f =
+  let e ∷ is-equiv (postᵣ {K} (path-src {C})) = postᵣ-equiv K (path-src {C}) (is-equiv-path-src C) in
+  cong (cong (postᵣ {K} (path-tgt {C})))
+    (gc-retraction-inj-refl (postᵣ {K} (path-src {C})) (is-equiv-ret (postᵣ {K} (path-src {C})) e) (λ a . (f a , f a , refl)))
+
+private
+gc-path-of : (K ∷ U) {B1 B2 C ∷ U} (g ∷ B1 → C) (h ∷ B2 → C) (X : K →ᵣ B1) (Y : K →ᵣ B2) (P : postᵣ {K} {B1} {C} g X ≡ postᵣ {K} {B2} {C} h Y) →
+  gc-path K g h (gcone-of K g h X Y P) ≡ P
+gc-path-of K {B1} {B2} {C} g h X Y P =
+  J (postᵣ {K} {B1} {C} g X)
+    (λ k P . trans (sym (gc-htpy-src K (postᵣ {K} {B1} {C} g X) P)) (trans (path-eq (Funext.funextᵣ K C (Funext.happlyᵣ K C (postᵣ {K} {B1} {C} g X , k , P)))) (gc-htpy-tgt K (postᵣ {K} {B1} {C} g X) P)) ≡ P)
+    (cong {_ ≡ _} {_ ≡ _} (λ q . trans refl q) (gc-funext-cst K (postᵣ {K} {B1} {C} g X))) P
+
+private
+gcone-ind : (K ∷ U) {B1 B2 C ∷ U} (g ∷ B1 → C) (h ∷ B2 → C) (Q : pullback-coneᵣ K {B1} {B2} {C} g h → U) →
+  ((Ψ : K →ᵣ pullback {B1} {B2} {C} g h) → Q (pullback→coneᵣ K {B1} {B2} {C} g h Ψ)) → (κ : pullback-coneᵣ K {B1} {B2} {C} g h) → Q κ
+gcone-ind K {B1} {B2} {C} g h Q q κ =
+  let f : (K →ᵣ pullback {B1} {B2} {C} g h) → pullback-coneᵣ K {B1} {B2} {C} g h = pullback→coneᵣ K {B1} {B2} {C} g h in
+  let s : section f = is-equiv-sec f (pullback-oplax-up K {B1} {B2} {C} g h) in
+  subst Q (snd _ s κ) (q (section-map f s κ))
+
+-- the source of the first cell of a composable pair
+private
+cp-src ∷ {A ∷ U} → cell-pairs A → A
+cp-src c = srcᵣ (fst _ c)
+
+-- composable triples of cells
+private
+cell-trips ∷ (A ∷ U) → U
+cell-trips A = pullback {arrᵣ A} {cell-pairs A} {A} tgtᵣ cp-src
+
+-- the composable triple of the first three edges of a 3-simplex
+private
+simplex3-cells : {A ∷ U} → (simplex 3 →ᵣ A) → cell-trips A
+simplex3-cells c = ((λ j . c (Simplex3.edge₀₁ j)) , ((λ j . c (Simplex3.edge₁₂ j)) , (λ j . c (Simplex3.edge₂₃ j)) , refl) , refl)
+
+-- composable triples of cells and of homs
+private
+trips→triples : {A ∷ U} → cell-trips A → triples A
+trips→triples {A} (f , r) =
+  let k1 : (r : Σ (c : cell-pairs A) . tgtᵣ f ≡ cp-src c) → triples A = fun (c , g1) →
+    let k2 : (c : cell-pairs A) → tgtᵣ f ≡ cp-src c → triples A = fun (g , r2) → λ g1 .
+      let k3 : (r2 : Σ (h : arrᵣ A) . tgtᵣ g ≡ srcᵣ h) → triples A = fun (h , g2) →
+        (f 𝕀0 , g 𝕀0 , (f , refl , g1) , h 𝕀0 , h 𝕀1 , (g , refl , g2) , (h , refl , refl)) in
+      k3 r2 in
+    k2 c g1 in
+  k1 r
+
+private
+triples→trips : {A ∷ U} → triples A → cell-trips A
+triples→trips {A} τ =
+  let u : hom (fst _ τ) (fst _ (snd _ τ)) = Product.fst (snd _ (snd _ τ)) in
+  let r : pair-from A (fst _ (snd _ τ)) = Product.snd (snd _ (snd _ τ)) in
+  let v : hom (fst _ (snd _ τ)) (fst _ r) = Product.fst (snd _ (snd _ r)) in
+  let w : hom (fst _ r) (fst _ (snd _ r)) = Product.snd (snd _ (snd _ r)) in
+  (hom-cell u , (hom-cell v , hom-cell w , trans (hom-tgt v) (sym (hom-src w))) , trans (hom-tgt u) (sym (hom-src v)))
+
+private
+trips-retr : {A ∷ U} (c : cell-trips A) → triples→trips (trips→triples c) ≡ c
+trips-retr {A} (f , r) =
+  let k1 : (r : Σ (c : cell-pairs A) . tgtᵣ f ≡ cp-src c) → triples→trips (trips→triples (f , r)) ≡ (f , r) = fun (c , g1) →
+    let k2 : (c : cell-pairs A) (g1 : tgtᵣ f ≡ cp-src c) → triples→trips (trips→triples (f , c , g1)) ≡ (f , c , g1) = fun (g , r2) → λ g1 .
+      let k3 : (r2 : Σ (h : arrᵣ A) . tgtᵣ g ≡ srcᵣ h) → triples→trips (trips→triples (f , (g , r2) , g1)) ≡ (f , (g , r2) , g1) = fun (h , g2) → refl in
+      k3 r2 in
+    k2 c g1 in
+  k1 r
+
+-- a filler of a composable triple of cells
+private
+trips-fill : {A ∷ U} (sA : is-segalᵣ A) → cell-trips A → simplex 3 →ᵣ A
+trips-fill {A} sA c = section-map (edges-tri {A}) (is-equiv-sec (edges-tri {A}) (is-equiv-edges-tri A sA)) (trips→triples c)
+
+private
+trips-fill-sec : {A ∷ U} (sA : is-segalᵣ A) (c : cell-trips A) → simplex3-cells (trips-fill sA c) ≡ c
+trips-fill-sec {A} sA c =
+  trans (cong (triples→trips {A}) (snd (is-section (edges-tri {A})) (is-equiv-sec (edges-tri {A}) (is-equiv-edges-tri A sA)) (trips→triples c)))
+    (trips-retr c)
+
+-- induction on families of composable triples of cells: they are given by families of 3-simplices
+private
+trips-ind : {A ∷ U} (sA : is-segalᵣ A) (Q : (𝕀 →ᵣ cell-trips A) → U) →
+  ((Θ : 𝕀 →ᵣ (simplex 3 →ᵣ A)) → Q (postᵣ simplex3-cells Θ)) → (Ψ : 𝕀 →ᵣ cell-trips A) → Q Ψ
+trips-ind {A} sA Q k Ψ =
+  subst Q
+    (cong (λ F . postᵣ {𝕀} {cell-trips A} {cell-trips A} F Ψ)
+      (funext-htpy {cell-trips A} {λ _ . cell-trips A} (λ c . simplex3-cells (trips-fill sA c)) (λ c . c) (trips-fill-sec sA)))
+    (k (postᵣ (trips-fill sA) Ψ))
+
+-- associativity for three families of arrows glued along paths, by cone induction twice
+private
+v-assoc-3 : {A ∷ U} (sA : is-segalᵣ A) (Φ Φ' Φ'' : arrᵣ (arrᵣ A))
+  (P1 : postᵣ tgtᵣ Φ ≡ postᵣ srcᵣ Φ') (P2 : postᵣ tgtᵣ Φ' ≡ postᵣ srcᵣ Φ'') →
+  v-assoc-stmt sA (vsq Φ refl P1) (vsq Φ' refl P2) (vsq Φ'' refl refl) refl refl
+v-assoc-3 {A} sA Φ Φ' Φ'' P1 P2 =
+  let pc2 : (𝕀 →ᵣ cell-pairs A) → pullback-coneᵣ 𝕀 {arrᵣ A} {arrᵣ A} {A} tgtᵣ srcᵣ = pullback→coneᵣ 𝕀 {arrᵣ A} {arrᵣ A} {A} tgtᵣ srcᵣ in
+  let pc1 : (𝕀 →ᵣ cell-trips A) → pullback-coneᵣ 𝕀 {arrᵣ A} {cell-pairs A} {A} tgtᵣ cp-src = pullback→coneᵣ 𝕀 {arrᵣ A} {cell-pairs A} {A} tgtᵣ cp-src in
+  -- the statement for the upper two families given by a cone
+  let S2 : (Φ : arrᵣ (arrᵣ A)) (κ : pullback-coneᵣ 𝕀 {arrᵣ A} {arrᵣ A} {A} tgtᵣ srcᵣ) →
+      postᵣ tgtᵣ Φ ≡ postᵣ srcᵣ (pullback-coneᵣ-fst 𝕀 {arrᵣ A} {arrᵣ A} {A} tgtᵣ srcᵣ κ) → U =
+    λ Φ κ P1 . v-assoc-stmt sA (vsq Φ refl P1)
+      (vsq (pullback-coneᵣ-fst 𝕀 {arrᵣ A} {arrᵣ A} {A} tgtᵣ srcᵣ κ) refl (gc-path 𝕀 tgtᵣ srcᵣ κ))
+      (vsq (pullback-coneᵣ-snd 𝕀 {arrᵣ A} {arrᵣ A} {A} tgtᵣ srcᵣ κ) refl refl) refl refl in
+  -- the statement for the lower family and the composable pairs above it given by a cone
+  let S1 : pullback-coneᵣ 𝕀 {arrᵣ A} {cell-pairs A} {A} tgtᵣ cp-src → U =
+    λ κ . S2 (pullback-coneᵣ-fst 𝕀 {arrᵣ A} {cell-pairs A} {A} tgtᵣ cp-src κ)
+      (pc2 (pullback-coneᵣ-snd 𝕀 {arrᵣ A} {cell-pairs A} {A} tgtᵣ cp-src κ)) (gc-path 𝕀 tgtᵣ cp-src κ) in
+  -- for a family of 3-simplices, the paths are refl
+  let k0 : (Θ : 𝕀 →ᵣ (simplex 3 →ᵣ A)) → S1 (pc1 (postᵣ simplex3-cells Θ)) = λ Θ .
+    subst (S2 (λ i . λ j . Θ i (Simplex3.edge₀₁ j)) (pc2 (λ i . ((λ j . Θ i (Simplex3.edge₁₂ j)) , (λ j . Θ i (Simplex3.edge₂₃ j)) , refl))))
+      (sym (cong {_ ≡ _} {_ ≡ _} (λ q . trans refl q) (gc-funext-cst 𝕀 (λ i . Θ i (Simplex3.edge₀₁ 𝕀1)))))
+      (subst {postᵣ {𝕀} {arrᵣ A} {A} tgtᵣ (λ i . λ j . Θ i (Simplex3.edge₁₂ j)) ≡ postᵣ {𝕀} {arrᵣ A} {A} srcᵣ (λ i . λ j . Θ i (Simplex3.edge₂₃ j))} (λ P2 . v-assoc-stmt sA (vsq (λ i . λ j . Θ i (Simplex3.edge₀₁ j)) refl refl) (vsq (λ i . λ j . Θ i (Simplex3.edge₁₂ j)) refl P2)
+                       (vsq (λ i . λ j . Θ i (Simplex3.edge₂₃ j)) refl refl) refl refl)
+        (sym (cong {_ ≡ _} {_ ≡ _} (λ q . trans refl q) (gc-funext-cst 𝕀 (λ i . Θ i (Simplex3.edge₁₂ 𝕀1)))))
+        (comp-v-assoc-simplex sA Θ)) in
+  let k1 : (κ : pullback-coneᵣ 𝕀 {arrᵣ A} {cell-pairs A} {A} tgtᵣ cp-src) → S1 κ =
+    gcone-ind 𝕀 tgtᵣ cp-src S1 (trips-ind sA (λ Ψ . S1 (pc1 Ψ)) k0) in
+  let k2 : (κ : pullback-coneᵣ 𝕀 {arrᵣ A} {arrᵣ A} {A} tgtᵣ srcᵣ) (Φ : arrᵣ (arrᵣ A))
+      (P1 : postᵣ tgtᵣ Φ ≡ postᵣ srcᵣ (pullback-coneᵣ-fst 𝕀 {arrᵣ A} {arrᵣ A} {A} tgtᵣ srcᵣ κ)) → S2 Φ κ P1 =
+    gcone-ind 𝕀 tgtᵣ srcᵣ
+      (λ κ . (Φ : arrᵣ (arrᵣ A)) (P1 : postᵣ tgtᵣ Φ ≡ postᵣ srcᵣ (pullback-coneᵣ-fst 𝕀 {arrᵣ A} {arrᵣ A} {A} tgtᵣ srcᵣ κ)) → S2 Φ κ P1)
+      (λ Ψ Φ P1 . subst (S2 Φ (pc2 Ψ)) (gc-path-of 𝕀 tgtᵣ cp-src Φ Ψ P1) (k1 (gcone-of 𝕀 tgtᵣ cp-src Φ Ψ P1))) in
+  subst {postᵣ tgtᵣ Φ' ≡ postᵣ srcᵣ Φ''} (λ P2 . v-assoc-stmt sA (vsq Φ refl P1) (vsq Φ' refl P2) (vsq Φ'' refl refl) refl refl)
+    (gc-path-of 𝕀 tgtᵣ srcᵣ Φ' Φ'' P2) (k2 (gcone-of 𝕀 tgtᵣ srcᵣ Φ' Φ'' P2) Φ P1)
+
+-- associativity for squares given by families of arrows with free bottom and top sides, glued along refl
+private
+v-assoc-J : {A ∷ U} (sA : is-segalᵣ A) (Φ : arrᵣ (arrᵣ A)) {b : arrᵣ A} (p : postᵣ srcᵣ Φ ≡ b) {t : arrᵣ A} (q : postᵣ tgtᵣ Φ ≡ t)
+  (Φ' : arrᵣ (arrᵣ A)) (p' : postᵣ srcᵣ Φ' ≡ t) {t' : arrᵣ A} (q' : postᵣ tgtᵣ Φ' ≡ t')
+  (Φ'' : arrᵣ (arrᵣ A)) (p'' : postᵣ srcᵣ Φ'' ≡ t') {t'' : arrᵣ A} (q'' : postᵣ tgtᵣ Φ'' ≡ t'') →
+  v-assoc-stmt sA (vsq Φ p q) (vsq Φ' p' q') (vsq Φ'' p'' q'') refl refl
+v-assoc-J {A} sA Φ {b} p {t} q Φ' p' {t'} q' Φ'' p'' {t''} q'' =
+  J (postᵣ srcᵣ Φ) (λ b p . v-assoc-stmt sA (vsq Φ p q) (vsq Φ' p' q') (vsq Φ'' p'' q'') refl refl)
+    (J (postᵣ tgtᵣ Φ'') (λ t'' q'' . v-assoc-stmt sA (vsq Φ refl q) (vsq Φ' p' q') (vsq Φ'' p'' q'') refl refl)
+      (J (postᵣ srcᵣ Φ') (λ t p' . (q : postᵣ tgtᵣ Φ ≡ t) → v-assoc-stmt sA (vsq Φ refl q) (vsq Φ' p' q') (vsq Φ'' p'' refl) refl refl)
+        (λ q . J (postᵣ srcᵣ Φ'') (λ t' p'' . (q' : postᵣ tgtᵣ Φ' ≡ t') → v-assoc-stmt sA (vsq Φ refl q) (vsq Φ' refl q') (vsq Φ'' p'' refl) refl refl)
+                 (λ q' . v-assoc-3 sA Φ Φ' Φ'' q q') p'' q')
+        p' q)
+      q'')
+    p
+
+-- Associativity of vertical composition along paths between the sides.
+comp-v-assoc-gen : {A ∷ U} (sA : is-segalᵣ A) {β : boundary A} (σ : squares β) {β' : boundary A} (τ : squares β') {β'' : boundary A} (υ : squares β'')
+  (E1 : bdry-top β ≡ bdry-bottom β') (E2 : bdry-top β' ≡ bdry-bottom β'') →
+  path-over squares (assoc-bdry-v sA β β' β'' E1 E2) (comp-v-gen sA (comp-v-gen sA σ τ E1) υ E2) (comp-v-gen sA σ (comp-v-gen sA τ υ E2) E1)
+comp-v-assoc-gen {A} sA σ τ υ E1 E2 =
+  vsquare-ind (λ β σ . {β' : boundary A} (τ : squares β') {β'' : boundary A} (υ : squares β'')
+      (E1 : bdry-top β ≡ bdry-bottom β') (E2 : bdry-top β' ≡ bdry-bottom β'') → v-assoc-stmt sA σ τ υ E1 E2)
+    (λ Φ {b} p {t} q {β'} τ {β''} υ E1 E2 .
+      vsquare-ind (λ β' τ . {β'' : boundary A} (υ : squares β'') (E1 : bdry-top (vbdry Φ p q) ≡ bdry-bottom β') (E2 : bdry-top β' ≡ bdry-bottom β'') →
+          v-assoc-stmt sA (vsq Φ p q) τ υ E1 E2)
+        (λ Φ' {b'} p' {t'} q' {β''} υ E1 E2 .
+          vsquare-ind (λ β'' υ . (E1 : bdry-top (vbdry Φ p q) ≡ bdry-bottom (vbdry Φ' p' q')) (E2 : bdry-top (vbdry Φ' p' q') ≡ bdry-bottom β'') →
+              v-assoc-stmt sA (vsq Φ p q) (vsq Φ' p' q') υ E1 E2)
+            (λ Φ'' {b''} p'' {t''} q'' E1 E2 .
+              tot-ind {A} {t} (λ b' E1 . (p' : postᵣ srcᵣ Φ' ≡ b') (E2 : bdry-top (vbdry Φ' p' q') ≡ bdry-bottom (vbdry Φ'' p'' q'')) →
+                  v-assoc-stmt sA (vsq Φ p q) (vsq Φ' p' q') (vsq Φ'' p'' q'') E1 E2)
+                (λ p' E2 .
+                  tot-ind {A} {t'} (λ b'' E2 . (p'' : postᵣ srcᵣ Φ'' ≡ b'') → v-assoc-stmt sA (vsq Φ p q) (vsq Φ' p' q') (vsq Φ'' p'' q'') refl E2)
+                    (λ p'' . v-assoc-J sA Φ p q Φ' p' q' Φ'' p'' q'') {b''} E2 p'')
+                {b'} E1 p' E2)
+            υ E1 E2)
+        τ υ E1 E2)
+    σ τ υ E1 E2
+
+-- transporting over the left and right sides is transporting over the boundary
+private
+subst-bt-pair : {A ∷ U} {a b c d : A} (g : hom a b) (h : hom c d) {k k' : hom a c × hom b d} (K : k ≡ k') (σ : squares-bt g h k) →
+  subst (squares-bt g h) K σ ≡ subst squares (cong {hom a c × hom b d} {boundary A} (λ k . (a , b , c , d , Product.fst k , Product.snd k , g , h)) K) σ
+subst-bt-pair {A} {a} {b} {c} {d} g h {k} K σ =
+  J k (λ k' K . subst (squares-bt g h) K σ ≡ subst squares (cong {hom a c × hom b d} {boundary A} (λ k . (a , b , c , d , Product.fst k , Product.snd k , g , h)) K) σ) refl K
+
+-- Associativity of vertical composition: the two composites of three squares agree, over the
+-- associativity of the composites of their left and right sides.
+comp-v-assoc : {A ∷ U} (sA : is-segalᵣ A) {a b c d c' d' c'' d'' : A}
+  {f1 : hom a c} {f2 : hom b d} {f1' : hom c c'} {f2' : hom d d'} {f1'' : hom c' c''} {f2'' : hom d' d''}
+  {g : hom a b} {h : hom c d} {h' : hom c' d'} {h'' : hom c'' d''}
+  (σ : square f1 f2 g h) (τ : square f1' f2' h h') (υ : square f1'' f2'' h' h'') →
+  path-over (squares-bt g h'') (cong2 pair (comp-homᵣ-assoc A sA f1 f1' f1'') (comp-homᵣ-assoc A sA f2 f2' f2''))
+    (comp-v sA (comp-v sA σ τ) υ) (comp-v sA σ (comp-v sA τ υ))
+comp-v-assoc {A} sA {a} {b} {c} {d} {c'} {d'} {c''} {d''} {f1} {f2} {f1'} {f2'} {f1''} {f2''} {g} {h} {h'} {h''} σ τ υ =
+  trans (subst-bt-pair g h'' (cong2 pair (comp-homᵣ-assoc A sA f1 f1' f1'') (comp-homᵣ-assoc A sA f2 f2' f2'')) (comp-v sA (comp-v sA σ τ) υ))
+    (comp-v-assoc-gen sA σ τ υ refl refl)
