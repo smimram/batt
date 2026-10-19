@@ -261,6 +261,10 @@ is-prop-Π-impl ∷ {A : U} (P : A → U) → ((x : A) → is-prop (P x)) → is
 is-prop-Π-impl {A} P pP =
   is-prop-retract {{x : A} → P x} {(x : A) → P x} (λ f x . f {x}) (λ g {x} . g x) (λ f . refl) (is-prop-Π P pP)
 
+-- Variant for non-dependent functions
+is-prop-→ ∷ {A B : U} → is-prop B → is-prop (A → B)
+is-prop-→ pB = is-prop-Π (λ _ → B) (λ x → pB)
+
 is-prop-is-contr ∷ (A : U) → is-prop (is-contr A)
 is-prop-is-contr A =
   let P : A → U = λ a . (x : A) → a ≡ x in
