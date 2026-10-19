@@ -180,24 +180,59 @@ module Unification = struct
   (** Metavariables solved so far, most recent first (used to undo tentative unifications). *)
   let trail = ref ([] : V.meta list)
 
+  (** A unification problem. *)
+  type t = Pos.t option * int * value * value
+
+  module IntMap = Map.Make(Int)
+  module IntSet = Set.Make(Int)
+
+  (** The deferred problems. There are often thousands of those, which are stuck because of unsolved metavariables, and we look for a solvable one after each unification: in order to avoid checking all of them each time, we only check the candidates, which are the problems that were not found stuck yet or that were stuck because of a metavariable which has been solved since. *)
+  type state =
+    {
+      problems : t IntMap.t; (** deferred problems, indexed by their order of creation *)
+      candidates : IntSet.t; (** problems which might be solvable (other ones are stuck) *)
+    }
+
+  let state = ref { problems = IntMap.empty; candidates = IntSet.empty }
+
+  (** Number of problems deferred so far, used to index them. *)
+  let count = ref 0
+
+  (** Problems stuck because of a metavariable, indexed by its identifier. This is only an over-approximation: the problems might have been solved since, or be stuck because of other metavariables. *)
+  let waiting : (int, IntSet.t) Hashtbl.t = Hashtbl.create 100
+
   let set (m:V.meta) t =
     if !Common.show_debug then debug "META  %s <- %s\n%!" (V.Meta.to_string m) (T.to_string t);
     assert (m.value = None);
     let t = V.eval [] t in
     m.value <- Some t;
-    trail := m :: !trail
+    trail := m :: !trail;
+    (* The problems stuck because of the metavariable might be solvable now. We keep them in [waiting] because the metavariable might be unsolved by [restore]. *)
+    match Hashtbl.find_opt waiting m.id with
+    | Some w -> state := { !state with candidates = IntSet.union w !state.candidates }
+    | None -> ()
 
-  (** A unification problem. *)
-  type t = Pos.t option * int * value * value
+  let is_empty () = IntMap.is_empty !state.problems
 
-  let deferred = ref ([] : t list)
-
-  let is_empty () = !deferred = []
+  (** Deferred problems, in order of creation. *)
+  let deferred () = List.map snd @@ IntMap.bindings !state.problems
 
   (** Defer a unification problem. *)
   let defer pos k t u =
-    (* TODO: better data structure *)
-    deferred := !deferred @ [pos,k,t,u]
+    let n = !count in
+    incr count;
+    state := { problems = IntMap.add n (pos,k,t,u) !state.problems; candidates = IntSet.add n !state.candidates }
+
+  (** Unsolved metavariable heading a value in weak head normal form. *)
+  let head_meta : value -> V.meta option = function
+    | Meta (m, _) -> Some m
+    | _ -> None
+
+  (** Metavariable blocking an eliminator (e.g. [?A] in [fst (?A x)]), for a value in weak head normal form. *)
+  let blocking : value -> V.meta option = function
+    | Pair_ind (_, l) | Tens_ind (_, l) | Flat_ind (_, l) | IndType_ind (_, _, l) -> (match List.rev l with Meta (m, _) :: _ -> Some m | _ -> None)
+    | J (_, l) -> (match List.rev l with _ :: Meta (m, _) :: _ -> Some m | _ -> None)
+    | _ -> None
 
   (** Whether a metavariable spine contains an unsolved metavariable, which prevents it from being a pattern for now. *)
   let flex_spine s =
@@ -205,46 +240,72 @@ module Unification = struct
 
   (** Whether a value is an eliminator blocked by an unsolved metavariable (e.g. [fst (?A x)]). *)
   let blocked t =
-    match V.force t with
-    | Pair_ind (_, l) | Tens_ind (_, l) | Flat_ind (_, l) | IndType_ind (_, _, l) -> (match List.rev l with Meta _ :: _ -> true | _ -> false)
-    | J (_, l) -> (match List.rev l with _ :: Meta _ :: _ -> true | _ -> false)
-    | _ -> false
+    Option.is_some (blocking (V.force t))
 
-  let solvable ((_,_,t,u) : t) =
+  (** Metavariables preventing a problem from being solved now, if any: the weak head normal forms, and thus the solvability, of the problem cannot change before one of those is solved. Those are the head metavariables and the ones in their spines, as well as the ones blocking eliminators. *)
+  let blockers ((_,_,t,u) : t) =
+    let elim v = Option.to_list (blocking v) in
     match V.force t, V.force u with
-    | Meta (m, _), Meta (m', _) -> m.id = m'.id
-    | Meta (_, s), _ | _, Meta (_, s) -> not (flex_spine s)
-    | t, u -> not (blocked t || blocked u)
+    | Meta (m, _), Meta (m', _) -> if m.id = m'.id then None else Some [m; m']
+    | Meta (m, s), v | v, Meta (m, s) -> if flex_spine s then Some (m :: List.filter_map (fun t -> head_meta (V.force t)) s @ elim v) else None
+    | t, u -> if blocking t = None && blocking u = None then None else Some (elim t @ elim u)
+
+  (** Find the first deferred problem which can be solved, if any. The candidates found to be stuck are not candidates anymore. *)
+  let find_solvable () =
+    let rec find candidates =
+      match IntSet.min_elt_opt candidates with
+      | None -> None
+      | Some n ->
+        let candidates = IntSet.remove n candidates in
+        let not_candidate () = state := { !state with candidates = IntSet.remove n !state.candidates } in
+        match IntMap.find_opt n !state.problems with
+        | None -> not_candidate (); find candidates
+        | Some pb ->
+          match blockers pb with
+          | None -> Some n
+          | Some l ->
+            List.iter (fun (m:V.meta) -> Hashtbl.replace waiting m.id (IntSet.add n (Option.value ~default:IntSet.empty (Hashtbl.find_opt waiting m.id)))) l;
+            not_candidate ();
+            find candidates
+    in
+    find !state.candidates
 
   let has_solvable () =
-    List.exists solvable !deferred
+    Option.is_some (find_solvable ())
 
   (** Find a unification problem to solve. *)
   let pop_opt () =
-    let rec find_and_remove_opt f = function
-      | x::l when f x -> Some x, l
-      | x::l ->
-        let y, l = find_and_remove_opt f l in
-        y, x::l
-      | [] -> None, []
-    in
-    let pb, rem = find_and_remove_opt solvable !deferred in
-    deferred := rem;
-    pb
+    Option.map
+      (fun n ->
+         let pb = IntMap.find n !state.problems in
+         state := { problems = IntMap.remove n !state.problems; candidates = IntSet.remove n !state.candidates };
+         pb
+      ) (find_solvable ())
 
   let pop () =
     Option.get @@ pop_opt ()
 
   (** Save the state of unification. *)
-  let save () = !trail, !deferred
+  let save () = !trail, !state
 
   (** Restore a saved state of unification: metavariables solved since then are unsolved again. *)
-  let restore (tr, d) =
+  let restore (tr, s) =
     while !trail != tr do
       (List.hd !trail : V.meta).value <- None;
       trail := List.tl !trail
     done;
-    deferred := d
+    (* The problems which were stuck when saving are stuck again since the metavariables solved since then are not anymore. *)
+    state := s
+
+  (** Start again with no deferred problems: returns the current ones, which should be given back to [resume]. *)
+  let suspend () =
+    let s = !state in
+    state := { problems = IntMap.empty; candidates = IntSet.empty };
+    s
+
+  (** Add back the deferred problems returned by [suspend]. *)
+  let resume s =
+    state := { problems = IntMap.union (fun _ _ _ -> assert false) s.problems !state.problems; candidates = IntSet.union s.candidates !state.candidates }
 end
 
 exception Unification
@@ -556,11 +617,11 @@ let finalize_unify () =
   solve_deferred ();
   if not @@ Unification.is_empty () then
     let pb =
-      List.rev !Unification.deferred
+      List.rev (Unification.deferred ())
       |> List.map (fun (pos,k,t,u) -> Printf.sprintf "- %s: %s vs %s" (Pos.opt_to_string pos) (V.to_string k t) (V.to_string k u))
       |> String.concat "\n"
     in
-    failwith @@ Printf.sprintf "%d unsolved unification problems:\n%s" (List.length !Unification.deferred) pb
+    failwith @@ Printf.sprintf "%d unsolved unification problems:\n%s" (List.length (Unification.deferred ())) pb
 
 let unify_base = unify
 
@@ -982,11 +1043,11 @@ and infer k env ctx (t:term) : term * value =
     Eq (a, t, u), Type l
   | App (t, icit, u) ->
     (
-      let pos = T.Position.find_opt t in
       let rec insert_implicits t a =
         match V.force a with
         | Pi (Implicit, c, a, b) ->
-          let m = check k env (Context.crisp ~crispness:c ctx) (T.mk ?pos (Meta (`Fresh None))) a in
+          (* The metavariable is not given a position: those would all be registered under the same key (see [T.Position]), making lookups linear. *)
+          let m = check k env (Context.crisp ~crispness:c ctx) (Meta (`Fresh None)) a in
           let mv = V.eval env m in
           insert_implicits (T.App (t, Implicit, m)) (V.capp b mv)
         | _ -> t, a
@@ -1202,10 +1263,9 @@ and import_module ?pos m =
                let decls = Module.parse_file fname in
                let env, ctx = toplevel () in
                let current = !V.Origin.current in
-               let deferred = !Unification.deferred in
+               let deferred = Unification.suspend () in
                V.Origin.current := m;
-               Unification.deferred := [];
-               Fun.protect ~finally:(fun () -> V.Origin.current := current; Unification.deferred := deferred @ !Unification.deferred)
+               Fun.protect ~finally:(fun () -> V.Origin.current := current; Unification.resume deferred)
                  (fun () ->
                     let _,tm,ty = check_decls 0 env ctx decls in
                     if List.mem_assoc m tm then failwith @@ Printf.sprintf "%s: module %s contains a field %s, this is expected to cause problems" (Pos.opt_to_string pos) m m;
