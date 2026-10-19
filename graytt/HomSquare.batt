@@ -351,3 +351,28 @@ comp-v {A} sA {a} {b} {c} {d} {e} {f} {f1} {f2} {f1'} {f2'} {g} {h} {h'} σ τ =
   comp-v-cone sA (cone-of x y P) σ' τ'
     (trans (cong {top-leftᵣ x ≡ bottom-leftᵣ y} (λ p . trans p (sq-pa τ')) (arr-htpy-glue (topᵣ x) P 𝕀0)) (hom-path-src E))
     (trans (cong {top-rightᵣ x ≡ bottom-rightᵣ y} (λ p . trans p (sq-pb τ')) (arr-htpy-glue (topᵣ x) P 𝕀1)) (hom-path-tgt E))
+
+--
+-- Identity squares
+--
+
+-- a constant arrow, with its endpoints moved along the same path, is an identity
+private
+const-hom : {A ∷ U} {x a : A} (p : x ≡ a) → ((λ t . x) , p , p) ≡{hom a a} Hom.id a
+const-hom {A} {x} refl = refl
+
+-- The horizontal identity on f: the square constant in the horizontal direction, whose left and
+-- right sides are f and bottom and top sides are identities.
+id-h : {A ∷ U} {a c : A} (f : hom a c) → square f f (Hom.id a) (Hom.id c)
+id-h {A} {a} {c} f =
+  (of-arrᵣ (λ i . hom-cell f) ,
+   hom-src f , hom-src f , hom-tgt f , hom-tgt f ,
+   hom-eta f , hom-eta f , const-hom (hom-src f) , const-hom (hom-tgt f))
+
+-- The vertical identity on g: the square constant in the vertical direction, whose bottom and
+-- top sides are g and left and right sides are identities.
+id-v : {A ∷ U} {a b : A} (g : hom a b) → square (Hom.id a) (Hom.id b) g g
+id-v {A} {a} {b} g =
+  (of-arrᵣ (λ i . λ j . hom-cell g i) ,
+   hom-src g , hom-tgt g , hom-src g , hom-tgt g ,
+   const-hom (hom-src g) , const-hom (hom-tgt g) , hom-eta g , hom-eta g)
