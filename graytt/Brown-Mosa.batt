@@ -7,3 +7,37 @@
 open import Interval
 open import Cube
 open import Connection
+open import Stdlib
+open import Hom
+open import Segal
+open import Composition
+open import Unitality
+open import HomSquare
+
+--
+-- From horizontal maps to top-right maps
+--
+-- A horizontal map from f to g is a square whose bottom and top sides are identities, and a
+-- top-right map from f to g is a square whose left and bottom sides are identities, f and g being
+-- its top and right sides, which meet at its top-right corner:
+--
+--      b ──id b──→ b            a ────f───→ b
+--      ↑           ↑            ↑           ↑
+--      f     σ     g           id a  h→tr σ g
+--      │           │            │           │
+--      a ──id a──→ a            a ──id a──→ a
+--
+
+-- The top-right map of a horizontal map: precomposition with the connection of f, moved along the
+-- unit laws.
+h→tr : {A ∷ U} (sA : is-segalᵣ A) {a b : A} {f g : hom a b} → square f g (Hom.id a) (Hom.id b) → square (Hom.id a) g (Hom.id a) f
+h→tr {A} sA {a} {b} {f} {g} σ =
+  subst (squares-lr (Hom.id a) g) (cong2 pair (comp-homᵣ-lunit A sA (Hom.id a)) (comp-homᵣ-runit A sA f))
+    (comp-h sA (connection-tr f) σ)
+
+-- The horizontal map of a top-right map: postcomposition (vertically) with the connection of f,
+-- moved along the unit laws.
+tr→h : {A ∷ U} (sA : is-segalᵣ A) {a b : A} {f g : hom a b} → square (Hom.id a) g (Hom.id a) f → square f g (Hom.id a) (Hom.id b)
+tr→h {A} sA {a} {b} {f} {g} τ =
+  subst (squares-bt (Hom.id a) (Hom.id b)) (cong2 pair (comp-homᵣ-lunit A sA f) (comp-homᵣ-runit A sA g))
+    (comp-v sA τ (connection-bl f))
