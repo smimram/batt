@@ -53,7 +53,11 @@ and global =
     name : string; (** name, only used for printing *)
     value : t Lazy.t; (** value of the definition *)
     inline : bool; (** whether the definition is always unfolded (used for builtins) *)
+    origin : origin; (** where the definition was created *)
   }
+
+(** The origin of a global definition or an opaque constant: the module where it was created along with its index among the ones of the module. Contrarily to identifiers, it does not depend on the session, which is used for separate compilation. *)
+and origin = string * int
 
 (** A closure. *)
 and closure = var * (term[@opaque]) * (environment[@opaque])
@@ -81,12 +85,17 @@ module Meta = struct
 
   (* Backward compatibility. *)
   module Dynarray = struct
-    type 'a t = 'a array ref
-    let create () : 'a t = ref [||]
-    let length (a : 'a t) = Array.length !a
-    let to_list (a : 'a t) = Array.to_list !a
-    let add_last (a : 'a t) x = a := Array.append !a [|x|]
-    let get (a : 'a t) i = Array.get !a i
+    (* The array is doubled when full, so that adding is constant time amortized. *)
+    type 'a t = { mutable data : 'a array; mutable length : int }
+    let create () : 'a t = { data = [||]; length = 0 }
+    let length (a : 'a t) = a.length
+    let to_list (a : 'a t) = List.init a.length (Array.get a.data)
+    let add_last (a : 'a t) x =
+      if a.length = Array.length a.data then
+        a.data <- Array.init (max 16 (2 * a.length)) (fun i -> if i < a.length then a.data.(i) else x);
+      a.data.(a.length) <- x;
+      a.length <- a.length + 1
+    let get (a : 'a t) i = assert (i < a.length); Array.get a.data i
   end
 
   let variables = Dynarray.create ()
@@ -104,25 +113,82 @@ module Meta = struct
     Dynarray.get variables id
 end
 
+(** Origins. *)
+module Origin = struct
+  type t = origin
+
+  (** Module currently being checked (the empty string for builtins and files given on the command line). *)
+  let current = ref ""
+
+  (** Number of global definitions and opaque constants created so far in each module. *)
+  let counters : ([`Global | `Opaque] * string, int) Hashtbl.t = Hashtbl.create 100
+
+  (** Origin for a new global definition or opaque constant in the current module. *)
+  let fresh kind : t =
+    let m = !current in
+    let n = Option.value ~default:0 @@ Hashtbl.find_opt counters (kind, m) in
+    Hashtbl.replace counters (kind, m) (n+1);
+    m, n
+
+  (** Start numbering again the global definitions and opaque constants of a module (the ones created before are thus shadowed). *)
+  let reset m =
+    Hashtbl.remove counters (`Global, m);
+    Hashtbl.remove counters (`Opaque, m)
+
+  (** Number of global definitions or opaque constants created so far in a module. *)
+  let count kind m =
+    Option.value ~default:0 @@ Hashtbl.find_opt counters (kind, m)
+end
+
 (** Global definitions. *)
 module Global = struct
   type t = global
 
   let definitions = Meta.Dynarray.create ()
 
+  (** Identifiers of global definitions given by their origin. *)
+  let origins : (origin, int) Hashtbl.t = Hashtbl.create 100
+
   (** Register a new global definition. *)
   let fresh ?(inline=false) name value =
-    let g = { id = Meta.Dynarray.length definitions; name; value; inline } in
+    let origin = Origin.fresh `Global in
+    let g = { id = Meta.Dynarray.length definitions; name; value; inline; origin } in
     Meta.Dynarray.add_last definitions g;
+    Hashtbl.add origins origin g.id;
     g
 
   (** Get global definition with given id. *)
   let get id =
     Meta.Dynarray.get definitions id
+
+  (** Get the identifier of the global definition with given origin. *)
+  let of_origin o =
+    Hashtbl.find origins o
 end
 
-(** Counter for abstract constants. *)
-let abstract = ref (-1)
+(** Opaque constants (postulates and abstract definitions). *)
+module Opaque = struct
+  (** Origins of the opaque constants, indexed by their identifier. *)
+  let origin = Meta.Dynarray.create ()
+
+  (** Identifiers of opaque constants given by their origin. *)
+  let origins : (origin, int) Hashtbl.t = Hashtbl.create 100
+
+  (** Identifier for a new opaque constant. *)
+  let fresh () =
+    let o = Origin.fresh `Opaque in
+    let n = Meta.Dynarray.length origin in
+    Meta.Dynarray.add_last origin o;
+    Hashtbl.add origins o n;
+    n
+
+  (** Get the origin of the opaque constant with given identifier. *)
+  let origin n = Meta.Dynarray.get origin n
+
+  (** Get the identifier of the opaque constant with given origin. *)
+  let of_origin o =
+    Hashtbl.find origins o
+end
 
 (** Evaluate a term to a value. *)
 let rec eval (env:environment) : Term.t -> t = function

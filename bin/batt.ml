@@ -18,6 +18,7 @@ let () =
          "--de-bruijn", Arg.Set Common.de_bruijn, " Use de Bruijn indices";
          "--no-colors", Arg.Clear Terminal.enable_colors, " Disable colors";
          "--no-builtins", Arg.Clear Common.builtins, " Disable builtins";
+         "--no-cache", Arg.Clear Common.cache, " Do not use nor write cached modules (.batto files)";
        ]
     )
     (fun s -> files := s :: !files) "batt [options] files";

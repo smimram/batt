@@ -138,7 +138,18 @@ g = bool-not
 ```
 
 A file is checked only once, even if imported several times, and cyclic imports
-are rejected.
+are rejected. A module is checked independently of the file importing it: it
+only sees the builtins and what it imports itself.
+
+Once checked, an imported module `Foo.batt` is cached in `Foo.batto`, next to
+it, and later imports load it from there instead of checking it again. This
+file starts with a YAML header recording what the cache depends on: the
+digest (MD5) of the source, the digests of the sources of all the modules it
+depends on (transitively), and the digest of the `batt` binary. The cache is
+ignored, and rewritten, as soon as one of those changes. Modules containing
+holes or unsolved metavariables are not cached, and neither are the files
+given on the command line, which are always checked. The `--no-cache` option
+disables reading and writing `.batto` files.
 
 ### Private and local definitions
 
