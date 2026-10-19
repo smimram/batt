@@ -5,6 +5,7 @@
 --
 
 open import Sigma
+open import Equivalence
 
 -- free paths
 path ∷ U → U

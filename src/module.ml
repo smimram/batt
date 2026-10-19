@@ -23,18 +23,14 @@ let parse_file fname =
        parse_lexbuf lexbuf
     )
 
-(** Open module with given name. *)
-let parse ?pos name =
+(** Find the file of the module with given name. *)
+let find ?pos name =
   let dirs = Common.include_directories () in
   let fname = name ^ ".batt" in
-  let fname =
-    match List.find_map (fun dir ->
-        let f = Filename.concat dir fname in
-        if Sys.file_exists f then Some f else None) dirs
-    with
-    | Some f -> f
-    | None ->
-      failwith @@ Printf.sprintf "%s: could not find library file %s (in %s)" (Pos.opt_to_string pos) fname (String.concat ", " dirs)
-  in
-  Common.print "Include %s...\n%!" fname;
-  parse_file fname
+  match List.find_map (fun dir ->
+      let f = Filename.concat dir fname in
+      if Sys.file_exists f then Some f else None) dirs
+  with
+  | Some f -> f
+  | None ->
+    failwith @@ Printf.sprintf "%s: could not find library file %s (in %s)" (Pos.opt_to_string pos) fname (String.concat ", " dirs)

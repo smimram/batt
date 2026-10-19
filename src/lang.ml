@@ -544,13 +544,16 @@ let unify ~pos k (t:value) (u:value) =
     unify k t u
   done
 
-(** Make sure that there are no unification problems left. *)
-let finalize_unify () =
-  (* Solve what can be. *)
+(** Solve the deferred unification problems which can be. *)
+let solve_deferred () =
   while Unification.has_solvable () do
     let pos, k, t, u = Unification.pop () in
     unify ~pos k t u
-  done;
+  done
+
+(** Make sure that there are no unification problems left. *)
+let finalize_unify () =
+  solve_deferred ();
   if not @@ Unification.is_empty () then
     let pb =
       List.rev !Unification.deferred
@@ -582,8 +585,65 @@ let fresh_meta ?pos env =
   let vars = aux [] 0 env in
   T.apps (T.Meta (`Generated m.id)) vars
 
+(** Toplevel environment and context, which contain the builtins. *)
+let toplevel =
+  let toplevel = lazy (
+    let env = ref ([] : V.environment) in
+    let ctx = ref Context.empty in
+    let add ?(crispness=T.Crisp) x a t =
+      (* Builtins are inlined global definitions, so that they can be referred to directly (and not by looking them up in the environment). *)
+      let g = V.Global.fresh ~inline:true x (Lazy.from_val t) in
+      env := (x, V.Def (g, [], g.value)) :: !env;
+      ctx := Context.ext ~crispness !ctx x a
+    in
+    let current = !V.Origin.current in
+    V.Origin.current := "";
+    if !Common.builtins then
+      (
+        let type0 = V.Type 0 in
+        (* add "Type" type1 type0; *)
+        (* add "U" type1 type0; *)
+        add "TYPE" (V.Type 2) (V.Type 1);
+        let empty = V.IndType (`Empty, []) in
+        add "empty" type0 empty;
+        let unit = V.IndType (`Unit, []) in
+        add "unit" type0 unit;
+        let bool = V.IndType (`Bool, []) in
+        add "bool" type0 bool;
+        let nat = V.IndType (`Nat, []) in
+        add "nat" type0 nat;
+        (* The successor function (constructors are always fully applied, so we eta-expand). *)
+        add "succ" (V.Pi (Explicit, Normal, IndType (`Nat, []), ("_", IndType (`Nat, []), []))) (V.eval [] @@ Abs (Explicit, "n", IndTerm (`Succ, [Var "n"])));
+        (* Lists. *)
+        let list a = T.IndType (`List, [a]) in
+        add "list" (V.eval [] @@ Pi (Explicit, Normal, "_", Type 0, Type 0)) (V.eval [] @@ Abs (Explicit, "A", list (Var "A")));
+        add "cons"
+          (V.eval [] @@ Pi (Implicit, Normal, "A", Type 0, Pi (Explicit, Normal, "_", Var "A", Pi (Explicit, Normal, "_", list (Var "A"), list (Var "A")))))
+          (V.eval [] @@ Abs (Implicit, "A", T.abss ["x"; "l"] (IndTerm (`Cons, [Var "x"; Var "l"]))));
+      );
+    V.Origin.current := current;
+    !env, !ctx
+  )
+  in
+  fun () -> Lazy.force toplevel
+
+(** A module loaded in the current session. *)
+type modul =
+  {
+    global : V.global; (** the global definition of the module *)
+    ty : value; (** its type *)
+    digest : string; (** digest of its source *)
+    dependencies : string list; (** modules it depends on (transitively, in loading order) *)
+  }
+
+(** Modules loaded in the current session. *)
+let modules : (string, modul) Hashtbl.t = Hashtbl.create 100
+
 (** Modules currently being imported, most recent first (used to detect cyclic imports). *)
 let importing = ref ([] : string list)
+
+(** Dependencies of the module being imported, most recent first. *)
+let dependencies = ref ([] : string list)
 
 (** Crispness of a let with given qualifiers (other qualifiers only make sense for declarations). *)
 let let_crispness ~t q =
@@ -787,7 +847,7 @@ let rec check k env ctx (t:term) (a:value) : term =
     J r
   | Opaque o, a ->
     (* This is before implicit abstraction insertion so that the postulate gets its full type. *)
-    let o = match o with Some o -> o | None -> incr V.abstract; `Postulate !V.abstract in
+    let o = match o with Some o -> o | None -> `Postulate (V.Opaque.fresh ()) in
     important "\nPOSTULATE %s %s\n%!" (T.string_of_opaque o) (string_of_value k env a);
     Opaque (Some o)
   | _, Pi (Implicit, _, _, (x, _, _)) ->
@@ -972,28 +1032,9 @@ and infer k env ctx (t:term) : term * value =
     let t = fresh_meta ?pos env in
     t, a
   | Import m ->
-    let module_type m =
-      match Context.assoc_opt m ctx with
-      | None -> None
-      | Some a ->
-        match V.force a with
-        | RecordType _ -> Some a
-        | _ -> None
-    in
-    (
-      match module_type m with
-      | Some a ->
-        warning "\nmodule %s apparently already imported, ignoring\n" m;
-        Var m, a
-      | None ->
-        if List.mem m !importing then error ~t "cyclic import of module %s (%s)" m (String.concat " -> " (List.rev (m :: !importing)));
-        let pos = T.Position.find_opt t in
-        let decls = Module.parse ?pos m in
-        importing := m :: !importing;
-        let _,tm,ty = Fun.protect ~finally:(fun () -> importing := List.tl !importing) (fun () -> check_decls k env ctx decls) in
-        if List.mem_assoc m tm then error ~t "module %s contains a field %s, this is expected to cause problems" m m;
-        T.Record (`Recursive, tm), V.RecordType ty
-    )
+    if List.mem m !importing then error ~t "cyclic import of module %s (%s)" m (String.concat " -> " (List.rev (m :: !importing)));
+    let md = import_module ?pos:(T.Position.find_opt t) m in
+    T.Global (m, md.global.id), md.ty
   | RecordDecls decls ->
     let _,tm,ty = check_decls k env ctx decls in
     T.Record (`Recursive, tm), V.RecordType ty
@@ -1070,8 +1111,7 @@ and check_decls k env ctx (decls:T.decls) =
         if List.mem T.Abstract q then
           (
             (* The definition is elaborated to a fresh opaque constant so that it does not reduce, including when imported from another module. *)
-            incr V.abstract;
-            T.Opaque (Some (`Abstract (x, !V.abstract)))
+            T.Opaque (Some (`Abstract (x, V.Opaque.fresh ())))
           )
         else
           match t with
@@ -1081,6 +1121,7 @@ and check_decls k env ctx (decls:T.decls) =
             (* Toplevel definitions are elaborated to global definitions, which are only unfolded when needed. *)
             let env = !env in
             let g = V.Global.fresh x (lazy (V.eval env t)) in
+            Cache.register g t env;
             T.Global (x, g.id)
       in
       tm := (x,t) :: !tm;
@@ -1118,39 +1159,86 @@ and check_decls k env ctx (decls:T.decls) =
   let ty = List.rev !ty in
   (!env,!ctx),tm,ty
 
-let check_decls_toplevel decls =
-  let env = ref ([] : V.environment) in
-  let ctx = ref Context.empty in
-  let add ?(crispness=T.Crisp) x a t =
-    (* Builtins are inlined global definitions, so that they can be referred to directly (and not by looking them up in the environment). *)
-    let g = V.Global.fresh ~inline:true x (Lazy.from_val t) in
-    env := (x, V.Def (g, [], g.value)) :: !env;
-    ctx := Context.ext ~crispness !ctx x a
+(** Type of a module loaded in the current session. *)
+and module_type m = (Hashtbl.find modules m).ty
+
+(** Import a module: it is loaded from the cache when possible, and checked (in the toplevel environment) otherwise. *)
+and import_module ?pos m =
+  let md =
+    match Hashtbl.find_opt modules m with
+    | Some md -> md
+    | None ->
+      if List.mem m !importing then failwith @@ Printf.sprintf "%s: cyclic import of module %s (%s)" (Pos.opt_to_string pos) m (String.concat " -> " (List.rev (m :: !importing)));
+      (* Cached modules may refer to builtins. *)
+      ignore (toplevel ());
+      let fname = Module.find ?pos m in
+      let digest = Cache.digest fname in
+      let cache = Cache.filename fname in
+      let parent_dependencies = !dependencies in
+      importing := m :: !importing;
+      dependencies := [];
+      let md =
+        Fun.protect ~finally:(fun () -> importing := List.tl !importing; dependencies := parent_dependencies)
+          (fun () ->
+             let cached =
+               if not !Common.cache then None else
+                 match Cache.read cache with
+                 | Some (h, payload) when h.digest = digest ->
+                   (* The modules we depend on are imported (and thus validated) first. *)
+                   if List.for_all (fun (m', d) -> (import_module m').digest = d) h.dependencies then
+                     try
+                       let global, ty = Cache.load ~module_type m (Lazy.force payload) in
+                       Common.print "Load %s\n%!" cache;
+                       Some { global; ty; digest; dependencies = List.map fst h.dependencies }
+                     with e -> debug "Could not load %s: %s\n" cache (Printexc.to_string e); None
+                   else None
+                 | _ -> None
+             in
+             match cached with
+             | Some md -> md
+             | None ->
+               Common.print "Include %s...\n%!" fname;
+               let decls = Module.parse_file fname in
+               let env, ctx = toplevel () in
+               let current = !V.Origin.current in
+               let deferred = !Unification.deferred in
+               V.Origin.current := m;
+               Unification.deferred := [];
+               Fun.protect ~finally:(fun () -> V.Origin.current := current; Unification.deferred := deferred @ !Unification.deferred)
+                 (fun () ->
+                    let _,tm,ty = check_decls 0 env ctx decls in
+                    if List.mem_assoc m tm then failwith @@ Printf.sprintf "%s: module %s contains a field %s, this is expected to cause problems" (Pos.opt_to_string pos) m m;
+                    solve_deferred ();
+                    let record = T.Record (`Recursive, tm) in
+                    let global = V.Global.fresh m (lazy (V.eval env record)) in
+                    Cache.register global record env;
+                    let ty = V.RecordType ty in
+                    let dependencies = List.rev !dependencies in
+                    if !Common.cache then
+                      (
+                        if not (Unification.is_empty ()) then warning "\nNot caching module %s: unsolved unification problems\n" m
+                        else
+                          let h : Cache.header = { source = fname; digest; dependencies = List.map (fun m -> m, (Hashtbl.find modules m).digest) dependencies } in
+                          try Cache.save ~module_type cache h m global ty with
+                          | Cache.Not_cacheable s -> warning "\nNot caching module %s: %s\n" m s
+                          | Sys_error s -> debug "Could not write %s: %s\n" cache s
+                          | e -> warning "\nNot caching module %s: %s\n" m (Printexc.to_string e)
+                      );
+                    Cache.forget m;
+                    { global; ty; digest; dependencies }
+                 )
+          )
+      in
+      Hashtbl.add modules m md;
+      md
   in
-  if !Common.builtins then
-    (
-      let type0 = V.Type 0 in
-      (* add "Type" type1 type0; *)
-      (* add "U" type1 type0; *)
-      add "TYPE" (V.Type 2) (V.Type 1);
-      let empty = V.IndType (`Empty, []) in
-      add "empty" type0 empty;
-      let unit = V.IndType (`Unit, []) in
-      add "unit" type0 unit;
-      let bool = V.IndType (`Bool, []) in
-      add "bool" type0 bool;
-      let nat = V.IndType (`Nat, []) in
-      add "nat" type0 nat;
-      (* The successor function (constructors are always fully applied, so we eta-expand). *)
-      add "succ" (V.Pi (Explicit, Normal, IndType (`Nat, []), ("_", IndType (`Nat, []), []))) (V.eval [] @@ Abs (Explicit, "n", IndTerm (`Succ, [Var "n"])));
-      (* Lists. *)
-      let list a = T.IndType (`List, [a]) in
-      add "list" (V.eval [] @@ Pi (Explicit, Normal, "_", Type 0, Type 0)) (V.eval [] @@ Abs (Explicit, "A", list (Var "A")));
-      add "cons"
-        (V.eval [] @@ Pi (Implicit, Normal, "A", Type 0, Pi (Explicit, Normal, "_", Var "A", Pi (Explicit, Normal, "_", list (Var "A"), list (Var "A")))))
-        (V.eval [] @@ Abs (Implicit, "A", T.abss ["x"; "l"] (IndTerm (`Cons, [Var "x"; Var "l"]))));
-    );
-  ignore @@ check_decls 0 !env !ctx decls
+  (* Record the dependencies of the module being imported. *)
+  List.iter (fun m -> if not (List.mem m !dependencies) then dependencies := m :: !dependencies) (md.dependencies @ [m]);
+  md
+
+let check_decls_toplevel decls =
+  let env, ctx = toplevel () in
+  ignore @@ check_decls 0 env ctx decls
 
 let check_meta () =
   let m =

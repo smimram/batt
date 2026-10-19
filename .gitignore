@@ -8,3 +8,5 @@ rendering.md
 .vscode/agda.code-snippets
 CLAUDE.md
 documentation/site
+*.batto
+*.batto.tmp
