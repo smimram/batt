@@ -6,15 +6,24 @@
 
 open import Prop
 open import PropTrunc
+open import Funext
+
+-- Build from is-prop (A is inferred)
+hprop ∷ {A : U} → is-prop A → hProp
+hprop {A} pA = (A , pA)
 
 -- The proof that an hProp is a proposition
-is-prop-type ∷ (A : hProp) → is-prop ⟨ A ⟩
-is-prop-type (A , p) = p
+is-prop-hprop ∷ (A : hProp) → is-prop ⟨ A ⟩
+is-prop-hprop (A , p) = p
 
 -- Conjunction
 and ∷ hProp → hProp → hProp
-and A B = (⟨ A ⟩ × ⟨ B ⟩ , is-prop-prod (is-prop-type A) (is-prop-type B))
+and A B = (⟨ A ⟩ × ⟨ B ⟩ , is-prop-prod (is-prop-hprop A) (is-prop-hprop B))
 
 -- Disjunction
 or ∷ hProp → hProp → hProp
 or A B = (PropTrunc.or ⟨ A ⟩ ⟨ B ⟩ , is-prop-trunc _)
+
+-- Implication
+implies ∷ hProp → hProp → hProp
+implies A B = (⟨ A ⟩ → ⟨ B ⟩ , is-prop-→ (is-prop-hprop B))
