@@ -38,4 +38,5 @@ open import Pushout-up
 open import FreeEquiv-up
 open import Complete-univalent
 open import HomSquare
+open import Exchange
 open import Hom2

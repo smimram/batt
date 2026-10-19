@@ -83,7 +83,6 @@ side-t : {A ∷ U} (β : boundary A) → hom (tl β) (tr β)
 side-t β = Product.snd (Product.snd (Product.snd (snd _ (snd _ (snd _ (snd _ β))))))
 
 -- induction on boundaries: it is enough to consider boundaries given by their components
-private
 bdry-ind : {A ∷ U} (P : boundary A → TYPE) →
   ((a b c d : A) (f1 : hom a c) (f2 : hom b d) (g : hom a b) (h : hom c d) → P (a , b , c , d , f1 , f2 , g , h)) →
   (β : boundary A) → P β
@@ -217,7 +216,6 @@ bdry-right : {A ∷ U} → boundary A → Homs.total A
 bdry-right β = (br β , tr β , side-r β)
 
 -- induction on the paths between arrows, seen as homs with free endpoints
-private
 tot-ind : {A ∷ U} {r : arrᵣ A} (P : (l : arrᵣ A) → Homs.of-arr r ≡ Homs.of-arr l → U) → P r refl →
   {l : arrᵣ A} (E : Homs.of-arr r ≡ Homs.of-arr l) → P l E
 tot-ind {A} {r} P p {l} E = J (Homs.of-arr r) (λ t E . P (Homs.to-arr t) (trans E (sym (Homs.of-arr-retr t)))) p E
@@ -900,7 +898,6 @@ fam-sq-of-arr {A} Φ =
   cong {postᵣ {𝕀} {T} {T} (λ w . Homs.of-arr (Homs.to-arr w)) Θ ≡ Θ} (λ r . subst {𝕀 →ᵣ T} F r (of-arrᵣ (postᵣ (Homs.to-arr {A}) Θ) , refl)) R0
 
 -- the boundary of a family over C, with given endpoints
-private
 bdry-st : {A C ∷ U} (s t : C → A) (Φ : 𝕀 →ᵣ C) → hom (s (Φ 𝕀0)) (t (Φ 𝕀0)) → hom (s (Φ 𝕀1)) (t (Φ 𝕀1)) → boundary A
 bdry-st s t Φ m n = (s (Φ 𝕀0) , s (Φ 𝕀1) , t (Φ 𝕀0) , t (Φ 𝕀1) , m , n , (postᵣ s Φ , refl , refl) , (postᵣ t Φ , refl , refl))
 
@@ -966,3 +963,53 @@ comp-v-runit {A} sA σ =
         (trans (cong (subst squares (cong2 (bdry-st srcᵣ tgtᵣ (to-arrᵣ y)) (H (leftᵣ y)) (H (rightᵣ y)))) (comp-v-cone-β sA (postᵣ pair-id (to-arrᵣ y))))
           (trans (fam-sq-htpy srcᵣ tgtᵣ H (to-arrᵣ y)) (fam-sq-of-arr (to-arrᵣ y)))))
     σ
+
+--
+-- Composites along 2-simplices
+--
+-- The squares given by the edges of a 2-simplex of arrows (horizontally) or by a family of
+-- 2-simplices (vertically) compose to the square given by the long edge, along the composites of
+-- the edges of the 2-simplices on the boundary (comp-simplex2).
+--
+
+-- The horizontal composite of the squares given by the first two edges of a 2-simplex Ξ in arrᵣ A
+-- is the one given by its long edge.
+comp-h-simplex : {A ∷ U} (sA : is-segalᵣ A) (Ξ : simplex 2 →ᵣ arrᵣ A) →
+  path-over squares
+    (cong2 (bdry-lr (Ξ (Simplex2.edge₀₁ 𝕀0)) (Ξ (Simplex2.edge₁₂ 𝕀1)))
+      (comp-simplex2 sA (postᵣ {simplex 2} {arrᵣ A} {A} srcᵣ Ξ)) (comp-simplex2 sA (postᵣ {simplex 2} {arrᵣ A} {A} tgtᵣ Ξ)))
+    (comp-h sA (of-arrᵣ (λ i . Ξ (Simplex2.edge₀₁ i)) , refl) (of-arrᵣ (λ i . Ξ (Simplex2.edge₁₂ i)) , refl))
+    (of-arrᵣ (λ i . Ξ (Simplex2.edge₀₂ i)) , refl)
+comp-h-simplex {A} sA Ξ =
+  let sA' : is-segalᵣ (arrᵣ A) = is-segal-arrᵣ sA in
+  let u : hom (Ξ (Simplex2.edge₀₁ 𝕀0)) (Ξ (Simplex2.edge₀₁ 𝕀1)) = simplex2-hom₀₁ Ξ in
+  let v : hom (Ξ (Simplex2.edge₁₂ 𝕀0)) (Ξ (Simplex2.edge₁₂ 𝕀1)) = simplex2-hom₁₂ Ξ in
+  let cs : (p ∷ arrᵣ A → A) →
+      cong (hom-map {arrᵣ A} {A} p {Ξ (Simplex2.edge₀₁ 𝕀0)} {Ξ (Simplex2.edge₁₂ 𝕀1)}) (comp-simplex2 sA' Ξ)
+      ≡ trans (hom-map-comp (arrᵣ A) A p sA' sA u v) (comp-simplex2 sA (postᵣ {simplex 2} {arrᵣ A} {A} p Ξ)) =
+    λ p . sym (trans (cong {_ ≡ _} {_ ≡ _} (λ r . trans r (comp-simplex2 sA (postᵣ {simplex 2} {arrᵣ A} {A} p Ξ))) (hom-map-comp-edges (arrᵣ A) A p sA' sA Ξ))
+                (trans-sym-trans-cancel (cong (hom-map {arrᵣ A} {A} p {Ξ (Simplex2.edge₀₁ 𝕀0)} {Ξ (Simplex2.edge₁₂ 𝕀1)}) (comp-simplex2 sA' Ξ))
+                  (comp-simplex2 sA (postᵣ {simplex 2} {arrᵣ A} {A} p Ξ)))) in
+  of-hom-move (hom-map-comp (arrᵣ A) A srcᵣ sA' sA u v) (hom-map-comp (arrᵣ A) A tgtᵣ sA' sA u v) (comp-simplex2 sA' Ξ)
+    (comp-simplex2 sA (postᵣ {simplex 2} {arrᵣ A} {A} srcᵣ Ξ)) (comp-simplex2 sA (postᵣ {simplex 2} {arrᵣ A} {A} tgtᵣ Ξ))
+    (cs srcᵣ) (cs tgtᵣ)
+
+-- the composable pair of the first two edges of a 2-simplex
+private
+simplex2-pair : {A ∷ U} → (simplex 2 →ᵣ A) → cell-pairs A
+simplex2-pair c = ((λ j . c (Simplex2.edge₀₁ j)) , (λ j . c (Simplex2.edge₁₂ j)) , refl)
+
+-- The vertical composite of the squares given by the first two edges of a family Φ of 2-simplices
+-- is the one given by their long edges.
+comp-v-simplex : {A ∷ U} (sA : is-segalᵣ A) (Φ : 𝕀 →ᵣ (simplex 2 →ᵣ A)) →
+  path-over squares
+    (cong2 (bdry-st {A} {simplex 2 →ᵣ A} (λ c . c (Simplex2.edge₀₁ 𝕀0)) (λ c . c (Simplex2.edge₁₂ 𝕀1)) Φ) (comp-simplex2 sA (Φ 𝕀0)) (comp-simplex2 sA (Φ 𝕀1)))
+    (comp-v sA (of-arrᵣ (λ i . λ j . Φ i (Simplex2.edge₀₁ j)) , refl) (of-arrᵣ (λ i . λ j . Φ i (Simplex2.edge₁₂ j)) , refl))
+    (of-arrᵣ (λ i . λ j . Φ i (Simplex2.edge₀₂ j)) , refl)
+comp-v-simplex {A} sA Φ =
+  let s : (simplex 2 →ᵣ A) → A = λ c . c (Simplex2.edge₀₁ 𝕀0) in
+  let t : (simplex 2 →ᵣ A) → A = λ c . c (Simplex2.edge₁₂ 𝕀1) in
+  trans (cong (subst squares (cong2 (bdry-st s t Φ) (comp-simplex2 sA (Φ 𝕀0)) (comp-simplex2 sA (Φ 𝕀1))))
+           (comp-v-cone-β sA (postᵣ simplex2-pair Φ)))
+    (trans (fam-sq-htpy s t (λ c . comp-simplex2 sA c) Φ)
+      (fam-sq-of-arr (λ i . λ j . Φ i (Simplex2.edge₀₂ j))))
