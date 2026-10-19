@@ -19,6 +19,7 @@ let () =
          "--no-colors", Arg.Clear Terminal.enable_colors, " Disable colors";
          "--no-builtins", Arg.Clear Common.builtins, " Disable builtins";
          "--no-cache", Arg.Clear Common.cache, " Do not use nor write cached modules (.batto files)";
+         "--no-stats", Arg.Clear Common.stats, " Do not display statistics at the end";
        ]
     )
     (fun s -> files := s :: !files) "batt [options] files";
@@ -32,7 +33,7 @@ let () =
       ) files;
     Lang.finalize_unify ();
     Lang.check_meta ();
-    Lang.print_stats ()
+    if !Common.stats then Lang.print_stats ()
   with
   | Failure err ->
     let bt = Printexc.raw_backtrace_to_string @@ Printexc.get_raw_backtrace () in
