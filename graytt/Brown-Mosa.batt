@@ -13,9 +13,10 @@ open import Segal
 open import Composition
 open import Unitality
 open import HomSquare
+open import Exchange
 
 --
--- From horizontal maps to top-right maps
+-- Horizontal maps and top-right maps
 --
 -- A horizontal map from f to g is a square whose bottom and top sides are identities, and a
 -- top-right map from f to g is a square whose left and bottom sides are identities, f and g being
@@ -27,17 +28,291 @@ open import HomSquare
 --      │           │            │           │
 --      a ──id a──→ a            a ──id a──→ a
 --
+-- They correspond to each other by composing with the connections of f (h→tr, tr→h), and those
+-- form an equivalence (is-equiv-h→tr): the composites of a connection of f with the other one are
+-- identities (the zigzag identities, given by families of 2-simplices, comp-h-simplex and
+-- comp-v-simplex), and the exchange law moves the connections next to each other.
+--
+-- The composites are moved along unit laws given by degenerate 2-simplices. Those of the zigzag
+-- identities differ from the ones of Unitality.batt for one side of each composite (the degenerate
+-- 2-simplex being f (x₁ ∨ x₂) or f (x₂ ∧ x₁) instead of f x₁ or f x₂, which are equal only up to
+-- the inequality x₁ ≥ x₂ of the 2-simplex), so that we use them in the definitions (runit-max,
+-- lunit-min).
+--
 
--- The top-right map of a horizontal map: precomposition with the connection of f, moved along the
+-- the right unit law given by the degenerate 2-simplex (x₁ , x₂) ↦ f (x₁ ∨ x₂)
+private
+runit-max-at : {A ∷ U} (sA : is-segalᵣ A) (k : arrᵣ A) {a : A} (α : srcᵣ k ≡ a) {b : A} (β : tgtᵣ k ≡ b) →
+  comp-homᵣ sA (k , α , β) (Hom.id b) ≡ (k , α , β)
+runit-max-at {A} sA k {a} α {b} β =
+  J (srcᵣ k) (λ a α . comp-homᵣ sA (k , α , β) (Hom.id b) ≡ (k , α , β))
+    (J (tgtᵣ k) (λ b β . comp-homᵣ sA (k , refl , β) (Hom.id b) ≡ (k , refl , β))
+      (comp-simplex2 sA (λ y . k (Simplex2.fst y 𝕀∨ Simplex2.snd y))) β) α
+
+runit-max : {A ∷ U} (sA : is-segalᵣ A) {a b : A} (f : hom a b) → comp-homᵣ sA f (Hom.id b) ≡ f
+runit-max {A} sA {a} {b} (k , e) =
+  let h : (e : (srcᵣ k ≡ a) × (tgtᵣ k ≡ b)) → comp-homᵣ sA (k , e) (Hom.id b) ≡ (k , e) = fun (α , β) → runit-max-at sA k α β in
+  h e
+
+-- the left unit law given by the degenerate 2-simplex (x₁ , x₂) ↦ f (x₂ ∧ x₁)
+private
+lunit-min-at : {A ∷ U} (sA : is-segalᵣ A) (k : arrᵣ A) {a : A} (α : srcᵣ k ≡ a) {b : A} (β : tgtᵣ k ≡ b) →
+  comp-homᵣ sA (Hom.id a) (k , α , β) ≡ (k , α , β)
+lunit-min-at {A} sA k {a} α {b} β =
+  J (srcᵣ k) (λ a α . comp-homᵣ sA (Hom.id a) (k , α , β) ≡ (k , α , β))
+    (J (tgtᵣ k) (λ b β . comp-homᵣ sA (Hom.id (srcᵣ k)) (k , refl , β) ≡ (k , refl , β))
+      (comp-simplex2 sA (λ y . k (Simplex2.snd y 𝕀∧ Simplex2.fst y))) β) α
+
+lunit-min : {A ∷ U} (sA : is-segalᵣ A) {a b : A} (f : hom a b) → comp-homᵣ sA (Hom.id a) f ≡ f
+lunit-min {A} sA {a} {b} (k , e) =
+  let h : (e : (srcᵣ k ≡ a) × (tgtᵣ k ≡ b)) → comp-homᵣ sA (Hom.id a) (k , e) ≡ (k , e) = fun (α , β) → lunit-min-at sA k α β in
+  h e
+
+-- The top-right map of a horizontal map: precomposition with the connection of f, moved along
 -- unit laws.
 h→tr : {A ∷ U} (sA : is-segalᵣ A) {a b : A} {f g : hom a b} → square f g (Hom.id a) (Hom.id b) → square (Hom.id a) g (Hom.id a) f
 h→tr {A} sA {a} {b} {f} {g} σ =
-  subst (squares-lr (Hom.id a) g) (cong2 pair (comp-homᵣ-lunit A sA (Hom.id a)) (comp-homᵣ-runit A sA f))
+  subst (squares-lr (Hom.id a) g) (cong2 pair (comp-homᵣ-lunit A sA (Hom.id a)) (runit-max sA f))
     (comp-h sA (connection-tr f) σ)
 
 -- The horizontal map of a top-right map: postcomposition (vertically) with the connection of f,
--- moved along the unit laws.
+-- moved along unit laws.
 tr→h : {A ∷ U} (sA : is-segalᵣ A) {a b : A} {f g : hom a b} → square (Hom.id a) g (Hom.id a) f → square f g (Hom.id a) (Hom.id b)
 tr→h {A} sA {a} {b} {f} {g} τ =
-  subst (squares-bt (Hom.id a) (Hom.id b)) (cong2 pair (comp-homᵣ-lunit A sA f) (comp-homᵣ-runit A sA g))
+  subst (squares-bt (Hom.id a) (Hom.id b)) (cong2 pair (lunit-min sA f) (comp-homᵣ-runit A sA g))
     (comp-v sA τ (connection-bl f))
+
+--
+-- h→tr and tr→h are inverse to each other
+--
+
+-- transporting over the bottom and top sides, or the left and right sides, is transporting over
+-- the boundary
+private
+sq-lr : {A ∷ U} {a b c d : A} (f1 : hom a c) (f2 : hom b d) {g g' : hom a b} (p : g ≡ g') {h h' : hom c d} (q : h ≡ h')
+  (σ : square f1 f2 g h) → subst (squares-lr f1 f2) (cong2 pair p q) σ ≡ subst squares (cong2 {hom a b} {hom c d} {boundary A} (λ m n . (a , b , c , d , f1 , f2 , m , n)) p q) σ
+sq-lr {A} {a} {b} {c} {d} f1 f2 {g} p {h} q σ =
+  J g (λ g' p . subst (squares-lr f1 f2) (cong2 pair p q) σ ≡ subst squares (cong2 {hom a b} {hom c d} {boundary A} (λ m n . (a , b , c , d , f1 , f2 , m , n)) p q) σ)
+    (J h (λ h' q . subst (squares-lr f1 f2) (cong2 pair refl q) σ ≡ subst squares (cong2 {hom a b} {hom c d} {boundary A} (λ m n . (a , b , c , d , f1 , f2 , m , n)) refl q) σ) refl q)
+    p
+
+private
+sq-bt : {A ∷ U} {a b c d : A} (g : hom a b) (h : hom c d) {f1 f1' : hom a c} (p : f1 ≡ f1') {f2 f2' : hom b d} (q : f2 ≡ f2')
+  (σ : square f1 f2 g h) → subst (squares-bt g h) (cong2 pair p q) σ ≡ subst squares (cong2 {hom a c} {hom b d} {boundary A} (λ l r . (a , b , c , d , l , r , g , h)) p q) σ
+sq-bt {A} {a} {b} {c} {d} g h {f1} p {f2} q σ =
+  J f1 (λ f1' p . subst (squares-bt g h) (cong2 pair p q) σ ≡ subst squares (cong2 {hom a c} {hom b d} {boundary A} (λ l r . (a , b , c , d , l , r , g , h)) p q) σ)
+    (J f2 (λ f2' q . subst (squares-bt g h) (cong2 pair refl q) σ ≡ subst squares (cong2 {hom a c} {hom b d} {boundary A} (λ l r . (a , b , c , d , l , r , g , h)) refl q) σ) refl q)
+    p
+
+-- transporting back and forth along the sides
+private
+cancel-lr-bt : {A ∷ U} {a b c d : A} {L L' : hom a c} (pl : L' ≡ L) {R R' : hom b d} (pr : R' ≡ R)
+  {B B' : hom a b} (pb : B' ≡ B) {T T' : hom c d} (pt : T' ≡ T) (σ : square L R B T) →
+  subst squares (cong2 {hom a c} {hom b d} {boundary A} (λ l r . (a , b , c , d , l , r , B , T)) pl pr)
+    (subst squares (cong2 {hom a b} {hom c d} {boundary A} (λ m n . (a , b , c , d , L' , R' , m , n)) pb pt)
+      (subst squares (cong2 {hom a c} {hom b d} {boundary A} (λ l r . (a , b , c , d , l , r , B' , T')) (sym pl) (sym pr))
+        (subst squares (cong2 {hom a b} {hom c d} {boundary A} (λ m n . (a , b , c , d , L , R , m , n)) (sym pb) (sym pt)) σ)))
+  ≡ σ
+cancel-lr-bt {A} {a} {b} {c} {d} pl pr pb pt =
+  J' {hom a c} (λ L' L pl . {R R' : hom b d} (pr : R' ≡ R) {B B' : hom a b} (pb : B' ≡ B) {T T' : hom c d} (pt : T' ≡ T) (σ : square L R B T) →
+      subst squares (cong2 {hom a c} {hom b d} {boundary A} (λ l r . (a , b , c , d , l , r , B , T)) pl pr)
+        (subst squares (cong2 {hom a b} {hom c d} {boundary A} (λ m n . (a , b , c , d , L' , R' , m , n)) pb pt)
+          (subst squares (cong2 {hom a c} {hom b d} {boundary A} (λ l r . (a , b , c , d , l , r , B' , T')) (sym pl) (sym pr))
+            (subst squares (cong2 {hom a b} {hom c d} {boundary A} (λ m n . (a , b , c , d , L , R , m , n)) (sym pb) (sym pt)) σ)))
+      ≡ σ)
+    (λ L {R} {R'} pr .
+      J' {hom b d} (λ R' R pr . {B B' : hom a b} (pb : B' ≡ B) {T T' : hom c d} (pt : T' ≡ T) (σ : square L R B T) →
+          subst squares (cong2 {hom a c} {hom b d} {boundary A} (λ l r . (a , b , c , d , l , r , B , T)) refl pr)
+            (subst squares (cong2 {hom a b} {hom c d} {boundary A} (λ m n . (a , b , c , d , L , R' , m , n)) pb pt)
+              (subst squares (cong2 {hom a c} {hom b d} {boundary A} (λ l r . (a , b , c , d , l , r , B' , T')) refl (sym pr))
+                (subst squares (cong2 {hom a b} {hom c d} {boundary A} (λ m n . (a , b , c , d , L , R , m , n)) (sym pb) (sym pt)) σ)))
+          ≡ σ)
+        (λ R {B} {B'} pb .
+          J' {hom a b} (λ B' B pb . {T T' : hom c d} (pt : T' ≡ T) (σ : square L R B T) →
+              subst squares (cong2 {hom a b} {hom c d} {boundary A} (λ m n . (a , b , c , d , L , R , m , n)) pb pt)
+                (subst squares (cong2 {hom a b} {hom c d} {boundary A} (λ m n . (a , b , c , d , L , R , m , n)) (sym pb) (sym pt)) σ)
+              ≡ σ)
+            (λ B {T} {T'} pt .
+              J' {hom c d} (λ T' T pt . (σ : square L R B T) →
+                  subst squares (cong2 {hom a b} {hom c d} {boundary A} (λ m n . (a , b , c , d , L , R , m , n)) refl pt)
+                    (subst squares (cong2 {hom a b} {hom c d} {boundary A} (λ m n . (a , b , c , d , L , R , m , n)) refl (sym pt)) σ)
+                  ≡ σ)
+                (λ T σ . refl) pt)
+            pb)
+        pr)
+    pl pr pb pt
+
+-- tr→h after h→tr, for a hom given by an arrow k
+private
+tr→h-h→tr-arr : {A ∷ U} (sA : is-segalᵣ A) (k : arrᵣ A) {g : hom (srcᵣ k) (tgtᵣ k)} (σ : square (arr-hom k) g (Hom.id (srcᵣ k)) (Hom.id (tgtᵣ k))) →
+  tr→h sA (h→tr sA σ) ≡ σ
+tr→h-h→tr-arr {A} sA k {g} σ =
+  let a : A = srcᵣ k in
+  let b : A = tgtᵣ k in
+  let ia : hom a a = Hom.id a in
+  let ib : hom b b = Hom.id b in
+  let f : hom a b = arr-hom k in
+  let T : square ia f ia f = connection-tr f in
+  let B : square f ib f ib = connection-bl f in
+  let I : square ib ib ib ib = id-h ib in
+  let X1 : square ia g (comp-homᵣ sA ia ia) (comp-homᵣ sA f ib) = comp-h sA T σ in
+  let lia : comp-homᵣ sA ia ia ≡ ia = comp-homᵣ-lunit A sA ia in
+  let rib : comp-homᵣ sA ib ib ≡ ib = comp-homᵣ-runit A sA ib in
+  let lib : comp-homᵣ sA ib ib ≡ ib = comp-homᵣ-lunit A sA ib in
+  let rf : comp-homᵣ sA f ib ≡ f = comp-homᵣ-runit A sA f in
+  let r'f : comp-homᵣ sA f ib ≡ f = runit-max sA f in
+  let l'f : comp-homᵣ sA ia f ≡ f = lunit-min sA f in
+  let rg : comp-homᵣ sA g ib ≡ g = comp-homᵣ-runit A sA g in
+  -- the unfolding of the definitions
+  let E0 : tr→h sA (h→tr sA σ) ≡ _ =
+    trans (sq-bt ia ib l'f rg (comp-v sA (h→tr sA σ) B))
+      (cong (subst squares _) (cong {square ia g ia f} (λ z . comp-v sA z B) (sq-lr ia g lia r'f X1))) in
+  -- the connection B is the composite of B and an identity
+  let Ξ : simplex 2 →ᵣ arrᵣ A = λ y . λ j . k ((Simplex2.fst y 𝕀∨ Simplex2.snd y) 𝕀∨ j) in
+  let E1 : B ≡ _ = sym (comp-h-simplex sA Ξ) in
+  let E2 : _ = comp-v-subst sA X1 (comp-h sA B I) lia r'f rib in
+  let E3 : _ = exchange sA T σ B I in
+  -- the zigzag identity for the connections
+  let Φ : 𝕀 →ᵣ (simplex 2 →ᵣ A) = λ i . λ y . k ((i 𝕀∨ Simplex2.snd y) 𝕀∧ Simplex2.fst y) in
+  let E4 : comp-v sA T B ≡ _ =
+    from-path-over2 (bdry-st {A} {simplex 2 →ᵣ A} (λ c . c (Simplex2.edge₀₁ 𝕀0)) (λ c . c (Simplex2.edge₁₂ 𝕀1)) Φ)
+      (comp-simplex2 sA (Φ 𝕀0)) (comp-simplex2 sA (Φ 𝕀1)) _ _ (comp-v-simplex sA Φ) in
+  -- the unit laws for σ
+  let E5 : comp-v sA σ I ≡ _ =
+    from-path-over2 (λ l r . (a , a , b , b , l , r , ia , ib)) rf rg _ _
+      (trans (sym (sq-bt ia ib rf rg (comp-v sA σ I))) (comp-v-runit sA σ)) in
+  let E6 : _ = comp-h-subst sA (id-h f) σ (sym l'f) (sym rf) (sym rg) in
+  let E7 : comp-h sA (id-h f) σ ≡ _ =
+    from-path-over2 (λ m n . (a , a , b , b , f , g , m , n)) lia lib _ _
+      (trans (sym (sq-lr f g lia lib (comp-h sA (id-h f) σ))) (comp-h-lunit sA σ)) in
+  trans E0
+    (trans (cong (subst squares _)
+             (trans (cong {square f ib f ib} (λ z . comp-v sA (subst squares (cong2 {hom a a} {hom a b} {boundary A} (λ m n . (a , a , a , b , ia , g , m , n)) lia r'f) X1) z) E1)
+               (trans E2
+                 (cong (subst squares _)
+                   (trans E3 (trans (cong2 (comp-h sA) E4 E5) (trans E6 (cong (subst squares _) E7))))))))
+      (cancel-lr-bt l'f rg lia rib σ))
+
+-- transporting back and forth along the sides, the other way round
+private
+cancel-bt-lr : {A ∷ U} {a b c d : A} {L L' : hom a c} (pl : L' ≡ L) {R R' : hom b d} (pr : R' ≡ R)
+  {B B' : hom a b} (pb : B' ≡ B) {T T' : hom c d} (pt : T' ≡ T) (σ : square L R B T) →
+  subst squares (cong2 {hom a b} {hom c d} {boundary A} (λ m n . (a , b , c , d , L , R , m , n)) pb pt)
+    (subst squares (cong2 {hom a c} {hom b d} {boundary A} (λ l r . (a , b , c , d , l , r , B' , T')) pl pr)
+      (subst squares (cong2 {hom a b} {hom c d} {boundary A} (λ m n . (a , b , c , d , L' , R' , m , n)) (sym pb) (sym pt))
+        (subst squares (cong2 {hom a c} {hom b d} {boundary A} (λ l r . (a , b , c , d , l , r , B , T)) (sym pl) (sym pr)) σ)))
+  ≡ σ
+cancel-bt-lr {A} {a} {b} {c} {d} pl pr pb pt =
+  J' {hom a c} (λ L' L pl . {R R' : hom b d} (pr : R' ≡ R) {B B' : hom a b} (pb : B' ≡ B) {T T' : hom c d} (pt : T' ≡ T) (σ : square L R B T) →
+      subst squares (cong2 {hom a b} {hom c d} {boundary A} (λ m n . (a , b , c , d , L , R , m , n)) pb pt)
+        (subst squares (cong2 {hom a c} {hom b d} {boundary A} (λ l r . (a , b , c , d , l , r , B' , T')) pl pr)
+          (subst squares (cong2 {hom a b} {hom c d} {boundary A} (λ m n . (a , b , c , d , L' , R' , m , n)) (sym pb) (sym pt))
+            (subst squares (cong2 {hom a c} {hom b d} {boundary A} (λ l r . (a , b , c , d , l , r , B , T)) (sym pl) (sym pr)) σ)))
+      ≡ σ)
+    (λ L {R} {R'} pr .
+      J' {hom b d} (λ R' R pr . {B B' : hom a b} (pb : B' ≡ B) {T T' : hom c d} (pt : T' ≡ T) (σ : square L R B T) →
+          subst squares (cong2 {hom a b} {hom c d} {boundary A} (λ m n . (a , b , c , d , L , R , m , n)) pb pt)
+            (subst squares (cong2 {hom a c} {hom b d} {boundary A} (λ l r . (a , b , c , d , l , r , B' , T')) refl pr)
+              (subst squares (cong2 {hom a b} {hom c d} {boundary A} (λ m n . (a , b , c , d , L , R' , m , n)) (sym pb) (sym pt))
+                (subst squares (cong2 {hom a c} {hom b d} {boundary A} (λ l r . (a , b , c , d , l , r , B , T)) refl (sym pr)) σ)))
+          ≡ σ)
+        (λ R {B} {B'} pb .
+          J' {hom a b} (λ B' B pb . {T T' : hom c d} (pt : T' ≡ T) (σ : square L R B T) →
+              subst squares (cong2 {hom a b} {hom c d} {boundary A} (λ m n . (a , b , c , d , L , R , m , n)) pb pt)
+                (subst squares (cong2 {hom a b} {hom c d} {boundary A} (λ m n . (a , b , c , d , L , R , m , n)) (sym pb) (sym pt)) σ)
+              ≡ σ)
+            (λ B {T} {T'} pt .
+              J' {hom c d} (λ T' T pt . (σ : square L R B T) →
+                  subst squares (cong2 {hom a b} {hom c d} {boundary A} (λ m n . (a , b , c , d , L , R , m , n)) refl pt)
+                    (subst squares (cong2 {hom a b} {hom c d} {boundary A} (λ m n . (a , b , c , d , L , R , m , n)) refl (sym pt)) σ)
+                  ≡ σ)
+                (λ T σ . refl) pt)
+            pb)
+        pr)
+    pl pr pb pt
+
+-- h→tr after tr→h, for a hom given by an arrow k
+private
+h→tr-tr→h-arr : {A ∷ U} (sA : is-segalᵣ A) (k : arrᵣ A) {g : hom (srcᵣ k) (tgtᵣ k)} (τ : square (Hom.id (srcᵣ k)) g (Hom.id (srcᵣ k)) (arr-hom k)) →
+  h→tr sA (tr→h sA τ) ≡ τ
+h→tr-tr→h-arr {A} sA k {g} τ =
+  let a : A = srcᵣ k in
+  let b : A = tgtᵣ k in
+  let ia : hom a a = Hom.id a in
+  let ib : hom b b = Hom.id b in
+  let f : hom a b = arr-hom k in
+  let T : square ia f ia f = connection-tr f in
+  let B : square f ib f ib = connection-bl f in
+  let I : square ia ia ia ia = id-v ia in
+  let Y1 : square (comp-homᵣ sA ia f) (comp-homᵣ sA g ib) ia ib = comp-v sA τ B in
+  let lia : comp-homᵣ sA ia ia ≡ ia = comp-homᵣ-lunit A sA ia in
+  let ria : comp-homᵣ sA ia ia ≡ ia = comp-homᵣ-runit A sA ia in
+  let lf : comp-homᵣ sA ia f ≡ f = comp-homᵣ-lunit A sA f in
+  let r'f : comp-homᵣ sA f ib ≡ f = runit-max sA f in
+  let l'f : comp-homᵣ sA ia f ≡ f = lunit-min sA f in
+  let rg : comp-homᵣ sA g ib ≡ g = comp-homᵣ-runit A sA g in
+  -- the unfolding of the definitions
+  let F0 : h→tr sA (tr→h sA τ) ≡ _ =
+    trans (sq-lr ia g lia r'f (comp-h sA T (tr→h sA τ)))
+      (cong (subst squares _) (cong {square f g ia ib} (λ z . comp-h sA T z) (sq-bt ia ib l'f rg Y1))) in
+  -- the connection T is the composite of an identity and T
+  let Φ : 𝕀 →ᵣ (simplex 2 →ᵣ A) = λ i . λ y . k (i 𝕀∧ (Simplex2.snd y 𝕀∧ Simplex2.fst y)) in
+  let F1 : T ≡ _ = sym (comp-v-simplex sA Φ) in
+  let F2 : _ = comp-h-subst sA (comp-v sA I T) Y1 lia l'f rg in
+  let F3 : _ = sym (exchange sA I τ T B) in
+  -- the unit law for τ
+  let F4 : comp-h sA I τ ≡ _ =
+    from-path-over2 (λ m n . (a , a , a , b , ia , g , m , n)) lia lf _ _
+      (trans (sym (sq-lr ia g lia lf (comp-h sA I τ))) (comp-h-lunit sA τ)) in
+  -- the zigzag identity for the connections
+  let Ξ : simplex 2 →ᵣ arrᵣ A = λ y . λ j . k ((Simplex2.fst y 𝕀∧ j) 𝕀∨ Simplex2.snd y) in
+  let F5 : comp-h sA T B ≡ _ =
+    from-path-over2 (bdry-lr (Ξ (Simplex2.edge₀₁ 𝕀0)) (Ξ (Simplex2.edge₁₂ 𝕀1)))
+      (comp-simplex2 sA (postᵣ {simplex 2} {arrᵣ A} {A} srcᵣ Ξ)) (comp-simplex2 sA (postᵣ {simplex 2} {arrᵣ A} {A} tgtᵣ Ξ)) _ _ (comp-h-simplex sA Ξ) in
+  let F6 : _ = comp-v-subst sA τ (id-v f) (sym lia) (sym lf) (sym r'f) in
+  -- the other unit law for τ
+  let F7 : comp-v sA τ (id-v f) ≡ _ =
+    from-path-over2 (λ l r . (a , a , a , b , l , r , ia , f)) ria rg _ _
+      (trans (sym (sq-bt ia f ria rg (comp-v sA τ (id-v f)))) (comp-v-runit sA τ)) in
+  trans F0
+    (trans (cong (subst squares _)
+             (trans (cong {square ia f ia f} (λ z . comp-h sA z (subst squares (cong2 {hom a b} {hom a b} {boundary A} (λ l r . (a , a , b , b , l , r , ia , ib)) l'f rg) Y1)) F1)
+               (trans F2
+                 (cong (subst squares _)
+                   (trans F3 (trans (cong2 (comp-v sA) F4 F5) (trans F6 (cong (subst squares _) F7))))))))
+      (cancel-bt-lr lia rg lia r'f τ))
+
+-- tr→h after h→tr is the identity
+tr→h-h→tr : {A ∷ U} (sA : is-segalᵣ A) {a b : A} {f g : hom a b} (σ : square f g (Hom.id a) (Hom.id b)) → tr→h sA (h→tr sA σ) ≡ σ
+tr→h-h→tr {A} sA {a} {b} {f} {g} σ =
+  let P : (a b : A) (f g : hom a b) → square f g (Hom.id a) (Hom.id b) → U = λ a b f g σ . tr→h sA (h→tr sA σ) ≡ σ in
+  let h : (f : hom a b) {g : hom a b} (σ : square f g (Hom.id a) (Hom.id b)) → P a b f g σ = λ (k , e) .
+    let h' : (e : (srcᵣ k ≡ a) × (tgtᵣ k ≡ b)) {g : hom a b} (σ : square (k , e) g (Hom.id a) (Hom.id b)) → P a b (k , e) g σ = λ (α , β) .
+      J (srcᵣ k) (λ a α . {g : hom a b} (σ : square (k , α , β) g (Hom.id a) (Hom.id b)) → P a b (k , α , β) g σ)
+        (J (tgtᵣ k) (λ b β . {g : hom (srcᵣ k) b} (σ : square (k , refl , β) g (Hom.id (srcᵣ k)) (Hom.id b)) → P (srcᵣ k) b (k , refl , β) g σ)
+          (λ {g} σ . tr→h-h→tr-arr sA k σ) β)
+        α in
+    h' e in
+  h f σ
+
+-- h→tr after tr→h is the identity
+h→tr-tr→h : {A ∷ U} (sA : is-segalᵣ A) {a b : A} {f g : hom a b} (τ : square (Hom.id a) g (Hom.id a) f) → h→tr sA (tr→h sA τ) ≡ τ
+h→tr-tr→h {A} sA {a} {b} {f} {g} τ =
+  let P : (a b : A) (f g : hom a b) → square (Hom.id a) g (Hom.id a) f → U = λ a b f g τ . h→tr sA (tr→h sA τ) ≡ τ in
+  let h : (f : hom a b) {g : hom a b} (τ : square (Hom.id a) g (Hom.id a) f) → P a b f g τ = λ (k , e) .
+    let h' : (e : (srcᵣ k ≡ a) × (tgtᵣ k ≡ b)) {g : hom a b} (τ : square (Hom.id a) g (Hom.id a) (k , e)) → P a b (k , e) g τ = λ (α , β) .
+      J (srcᵣ k) (λ a α . {g : hom a b} (τ : square (Hom.id a) g (Hom.id a) (k , α , β)) → P a b (k , α , β) g τ)
+        (J (tgtᵣ k) (λ b β . {g : hom (srcᵣ k) b} (τ : square (Hom.id (srcᵣ k)) g (Hom.id (srcᵣ k)) (k , refl , β)) → P (srcᵣ k) b (k , refl , β) g τ)
+          (λ {g} τ . h→tr-tr→h-arr sA k τ) β)
+        α in
+    h' e in
+  h f τ
+
+-- Horizontal maps and top-right maps are equivalent.
+is-equiv-h→tr : {A ∷ U} (sA : is-segalᵣ A) {a b : A} {f g : hom a b} → is-equiv (h→tr sA {a} {b} {f} {g})
+is-equiv-h→tr {A} sA {a} {b} {f} {g} =
+  ((tr→h sA , λ τ . h→tr-tr→h sA τ) , (tr→h sA , λ σ . tr→h-h→tr sA σ))
+
+is-equiv-tr→h : {A ∷ U} (sA : is-segalᵣ A) {a b : A} {f g : hom a b} → is-equiv (tr→h sA {a} {b} {f} {g})
+is-equiv-tr→h {A} sA {a} {b} {f} {g} =
+  ((h→tr sA , λ σ . tr→h-h→tr sA σ) , (h→tr sA , λ τ . h→tr-tr→h sA τ))

@@ -43,7 +43,6 @@ grid-sq : {A ∷ U} (Θ : simplex 2 →ᵣ (simplex 2 →ᵣ A)) (e e' ∷ 𝕀 
 grid-sq Θ e e' = of-arrᵣ (λ i . λ j . Θ (e i) (e' j))
 
 -- vertical composition commutes with transporting along the bottom and top sides
-private
 comp-v-subst : {A ∷ U} (sA : is-segalᵣ A) {a b c d c' d' : A} {f1 : hom a c} {f2 : hom b d} {f1' : hom c c'} {f2' : hom d d'}
   {g : hom a b} {h : hom c d} {k : hom c' d'} (σ : square f1 f2 g h) (τ : square f1' f2' h k)
   {g' : hom a b} (p : g ≡ g') {h' : hom c d} (q : h ≡ h') {k' : hom c' d'} (r : k ≡ k') →
@@ -68,7 +67,6 @@ comp-v-subst {A} sA {a} {b} {c} {d} {c'} {d'} {f1} {f2} {f1'} {f2'} {g} {h} {k} 
     p
 
 -- horizontal composition commutes with transporting along the left and right sides
-private
 comp-h-subst : {A ∷ U} (sA : is-segalᵣ A) {a b e c d f : A} {f1 : hom a c} {f2 : hom b d} {f3 : hom e f}
   {g : hom a b} {g' : hom b e} {h : hom c d} {h' : hom d f} (σ : square f1 f2 g h) (τ : square f2 f3 g' h')
   {f1' : hom a c} (p : f1 ≡ f1') {f2' : hom b d} (q : f2 ≡ f2') {f3' : hom e f} (r : f3 ≡ f3') →
