@@ -1,0 +1,8 @@
+-- See Main.batt.
+postulate p ∷ U
+
+abstract a ∷ U
+a = ⊤
+
+d ∷ U
+d = ⊤

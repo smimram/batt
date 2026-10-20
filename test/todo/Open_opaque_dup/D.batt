@@ -1,0 +1,3 @@
+-- See Main.batt.
+open import B
+open import C
