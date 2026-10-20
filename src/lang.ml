@@ -1200,7 +1200,8 @@ and check_decls k env ctx (decls:T.decls) =
       env := (x, V.eval !env t) :: !env;
       ctx := Context.ext ~crispness:c !ctx x a;
       (* Private declarations are kept in the record (later fields might refer to them) but not in its type, so that they cannot be accessed. *)
-      if not (List.mem T.Private q) then ty := (x,q,a) :: !ty
+      (* Shadowed fields are removed from the type: they cannot be accessed anyway, and otherwise modules re-exporting opened modules accumulate them (and [open] declares each of them again). *)
+      if not (List.mem T.Private q) then ty := (x,q,a) :: List.filter (fun (y,_,_) -> y <> x) !ty
     | Open t ->
       let t0 = t in
       let t, a = infer k !env !ctx t in
