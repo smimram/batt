@@ -28,7 +28,7 @@ J' P r {x} refl = r x
   -- J' D R p P r
 
 -- Path induction with a motive in TYPE
-J-TYPE : {X : Type} (x : X) (P : (y : X) → x ≡ y → TYPE) → P x refl → {y : X} (p : x ≡ y) → P y p
+J-TYPE ∷ {X : Type} (x : X) (P : (y : X) → x ≡ y → TYPE) → P x refl → {y : X} (p : x ≡ y) → P y p
 J-TYPE x P r refl = r
 
 sym ∷ {A : Type} {x y : A} → x ≡ y → y ≡ x

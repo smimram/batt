@@ -69,50 +69,50 @@ Square = record
   -- coordinates are swapped.
 
   -- cartesian squares, a square s corresponds to the arrow i ↦ (j ↦ s (i , j))
-  of-arr : {A ∷ U} → arr (arr A) → square A
+  of-arr ∷ {A ∷ U} → arr (arr A) → square A
   of-arr f (i , j) = f i j
 
-  to-arr : {A ∷ U} → square A → arr (arr A)
+  to-arr ∷ {A ∷ U} → square A → arr (arr A)
   to-arr s i j = s (i , j)
 
   -- lax squares, a square s corresponds to the arrow i ↦ (j ↦ s (j ⊗ i))
-  of-arrₗ : {A ∷ U} → arrₗ (arrₗ A) → squareₗ A
+  of-arrₗ ∷ {A ∷ U} → arrₗ (arrₗ A) → squareₗ A
   of-arrₗ f (i ⊗ j) = f j i
 
-  to-arrₗ : {A ∷ U} → squareₗ A → arrₗ (arrₗ A)
+  to-arrₗ ∷ {A ∷ U} → squareₗ A → arrₗ (arrₗ A)
   to-arrₗ s i j = s (j ⊗ i)
 
   -- oplax squares, a square s corresponds to the arrow i ↦ (j ↦ s (i ⊗ j))
-  of-arrᵣ : {A ∷ U} → arrᵣ (arrᵣ A) → squareᵣ A
+  of-arrᵣ ∷ {A ∷ U} → arrᵣ (arrᵣ A) → squareᵣ A
   of-arrᵣ f (i ⊗ j) = f i j
 
-  to-arrᵣ : {A ∷ U} → squareᵣ A → arrᵣ (arrᵣ A)
+  to-arrᵣ ∷ {A ∷ U} → squareᵣ A → arrᵣ (arrᵣ A)
   to-arrᵣ s i j = s (i ⊗ j)
 
   -- sides of oplax squares, the horizontal direction being the first variable and the vertical
   -- one the second (going up)
-  leftᵣ : {A ∷ U} → squareᵣ A → arrᵣ A
+  leftᵣ ∷ {A ∷ U} → squareᵣ A → arrᵣ A
   leftᵣ s i = s (𝕀0 ⊗ i)
 
-  rightᵣ : {A ∷ U} → squareᵣ A → arrᵣ A
+  rightᵣ ∷ {A ∷ U} → squareᵣ A → arrᵣ A
   rightᵣ s i = s (𝕀1 ⊗ i)
 
-  bottomᵣ : {A ∷ U} → squareᵣ A → arrᵣ A
+  bottomᵣ ∷ {A ∷ U} → squareᵣ A → arrᵣ A
   bottomᵣ s i = s (i ⊗ 𝕀0)
 
-  topᵣ : {A ∷ U} → squareᵣ A → arrᵣ A
+  topᵣ ∷ {A ∷ U} → squareᵣ A → arrᵣ A
   topᵣ s i = s (i ⊗ 𝕀1)
 
   -- corners of oplax squares
-  bottom-leftᵣ : {A ∷ U} → squareᵣ A → A
+  bottom-leftᵣ ∷ {A ∷ U} → squareᵣ A → A
   bottom-leftᵣ s = s (𝕀0 ⊗ 𝕀0)
 
-  bottom-rightᵣ : {A ∷ U} → squareᵣ A → A
+  bottom-rightᵣ ∷ {A ∷ U} → squareᵣ A → A
   bottom-rightᵣ s = s (𝕀1 ⊗ 𝕀0)
 
-  top-leftᵣ : {A ∷ U} → squareᵣ A → A
+  top-leftᵣ ∷ {A ∷ U} → squareᵣ A → A
   top-leftᵣ s = s (𝕀0 ⊗ 𝕀1)
 
-  top-rightᵣ : {A ∷ U} → squareᵣ A → A
+  top-rightᵣ ∷ {A ∷ U} → squareᵣ A → A
   top-rightᵣ s = s (𝕀1 ⊗ 𝕀1)
 end

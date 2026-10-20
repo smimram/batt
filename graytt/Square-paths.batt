@@ -1,0 +1,125 @@
+--
+-- Moving squares along paths between their sides
+--
+-- A square with sides l, r, g, h (left, right, bottom, top) can be moved along paths l ≡ l',
+-- r ≡ r', g ≡ g', h ≡ h' (sq-move). Moves compose (sq-move-trans), can be undone (sq-move-inv,
+-- sq-move-sym), only depend on the paths up to paths (sq-move-path), and commute with horizontal
+-- and vertical composition when the shared side is moved along the same path (comp-h-move,
+-- comp-v-move). The laws of squares (HomSquare.batt), stated as paths over the laws of
+-- composition on the sides, are paths from moved squares (lr-move, bt-move, bdry-lr-move,
+-- bdry-st-move).
+--
+-- No postulate.
+--
+
+open import Stdlib
+open import Hom
+open import Segal
+open import Composition
+open import HomSquare
+
+-- moving a square along paths between its sides
+sq-move ∷ {A ∷ U} {a b c d : A} {l l' : hom a c} → l ≡ l' → {r r' : hom b d} → r ≡ r' →
+  {g g' : hom a b} → g ≡ g' → {h h' : hom c d} → h ≡ h' → square l r g h → square l' r' g' h'
+sq-move {A} {a} {b} {c} {d} {l} refl {r} refl {g} refl {h} refl σ = σ
+
+-- moving twice is moving along the composites
+sq-move-trans ∷ {A ∷ U} {a b c d : A} {l l' : hom a c} {r r' : hom b d} {g g' : hom a b} {h h' : hom c d}
+  (pl : l ≡ l') (pr : r ≡ r') (pg : g ≡ g') (ph : h ≡ h') (σ : square l r g h)
+  {l'' : hom a c} (ql : l' ≡ l'') {r'' : hom b d} (qr : r' ≡ r'') {g'' : hom a b} (qg : g' ≡ g'') {h'' : hom c d} (qh : h' ≡ h'') →
+  sq-move ql qr qg qh (sq-move pl pr pg ph σ) ≡ sq-move (trans pl ql) (trans pr qr) (trans pg qg) (trans ph qh) σ
+sq-move-trans pl pr pg ph σ refl refl refl refl = refl
+
+-- moving along equal paths
+sq-move-path ∷ {A ∷ U} {a b c d : A} {l l' : hom a c} {r r' : hom b d} {g g' : hom a b} {h h' : hom c d} (σ : square l r g h)
+  (pl : l ≡ l') {pl' : l ≡ l'} (el : pl ≡ pl') (pr : r ≡ r') {pr' : r ≡ r'} (er : pr ≡ pr')
+  (pg : g ≡ g') {pg' : g ≡ g'} (eg : pg ≡ pg') (ph : h ≡ h') {ph' : h ≡ h'} (eh : ph ≡ ph') →
+  sq-move pl pr pg ph σ ≡ sq-move pl' pr' pg' ph' σ
+sq-move-path σ pl refl pr refl pg refl ph refl = refl
+
+-- moving back
+sq-move-inv ∷ {A ∷ U} {a b c d : A} {l l' : hom a c} (pl : l ≡ l') {r r' : hom b d} (pr : r ≡ r')
+  {g g' : hom a b} (pg : g ≡ g') {h h' : hom c d} (ph : h ≡ h') (σ : square l r g h) →
+  sq-move (sym pl) (sym pr) (sym pg) (sym ph) (sq-move pl pr pg ph σ) ≡ σ
+sq-move-inv {A} {a} {b} {c} {d} {l} refl {r} refl {g} refl {h} refl σ = refl
+
+sq-move-sym ∷ {A ∷ U} {a b c d : A} {l l' : hom a c} {r r' : hom b d} {g g' : hom a b} {h h' : hom c d}
+  (pl : l ≡ l') (pr : r ≡ r') (pg : g ≡ g') (ph : h ≡ h') (σ : square l r g h) (τ : square l' r' g' h') →
+  sq-move pl pr pg ph σ ≡ τ → σ ≡ sq-move (sym pl) (sym pr) (sym pg) (sym ph) τ
+sq-move-sym pl pr pg ph σ τ e =
+  trans (sym (sq-move-inv pl pr pg ph σ)) (cong (sq-move (sym pl) (sym pr) (sym pg) (sym ph)) e)
+
+-- horizontal composition commutes with moving, the shared side being moved along the same path
+comp-h-move ∷ {A ∷ U} (sA : is-segalᵣ A) {a b e c d f : A}
+  {f1 f1' : hom a c} (p1 : f1 ≡ f1') {f2 f2' : hom b d} (p2 : f2 ≡ f2') {f3 f3' : hom e f} (p3 : f3 ≡ f3')
+  {g G : hom a b} (pg : g ≡ G) {h H : hom c d} (ph : h ≡ H) {g' G' : hom b e} (pg' : g' ≡ G') {h' H' : hom d f} (ph' : h' ≡ H')
+  (σ : square f1 f2 g h) (τ : square f2 f3 g' h') →
+  comp-h sA (sq-move p1 p2 pg ph σ) (sq-move p2 p3 pg' ph' τ)
+  ≡ sq-move p1 p3 (cong2 {hom a b} {hom b e} {hom a e} (λ m n . comp-homᵣ sA m n) pg pg')
+      (cong2 {hom c d} {hom d f} {hom c f} (λ m n . comp-homᵣ sA m n) ph ph') (comp-h sA σ τ)
+comp-h-move sA {a} {b} {e} {c} {d} {f} {f1} refl {f2} refl {f3} refl {g} refl {h} refl {g'} refl {h'} refl σ τ = refl
+
+-- vertical composition commutes with moving, the shared side being moved along the same path
+comp-v-move ∷ {A ∷ U} (sA : is-segalᵣ A) {a b c d e f : A}
+  {f1 F1 : hom a c} (p1 : f1 ≡ F1) {f2 F2 : hom b d} (p2 : f2 ≡ F2) {f1' F1' : hom c e} (p1' : f1' ≡ F1') {f2' F2' : hom d f} (p2' : f2' ≡ F2')
+  {g G : hom a b} (pg : g ≡ G) {h H : hom c d} (ph : h ≡ H) {h' H' : hom e f} (ph' : h' ≡ H')
+  (σ : square f1 f2 g h) (τ : square f1' f2' h h') →
+  comp-v sA (sq-move p1 p2 pg ph σ) (sq-move p1' p2' ph ph' τ)
+  ≡ sq-move (cong2 {hom a c} {hom c e} {hom a e} (λ m n . comp-homᵣ sA m n) p1 p1')
+      (cong2 {hom b d} {hom d f} {hom b f} (λ m n . comp-homᵣ sA m n) p2 p2') pg ph' (comp-v sA σ τ)
+comp-v-move sA {a} {b} {c} {d} {e} {f} {f1} refl {f2} refl {f1'} refl {f2'} refl {g} refl {h} refl {h'} refl σ τ = refl
+
+--
+-- The laws of squares as paths from moved squares
+--
+
+-- paths over the bottom and top sides
+lr-move ∷ {A ∷ U} {a b c d : A} {f1 : hom a c} {f2 : hom b d} {g g' : hom a b} (p : g ≡ g') {h h' : hom c d} (q : h ≡ h')
+  (σ : square f1 f2 g h) → subst (squares-lr f1 f2) (cong2 pair p q) σ ≡ sq-move refl refl p q σ
+lr-move {A} {a} {b} {c} {d} {f1} {f2} {g} refl {h} refl σ = refl
+
+-- paths over the left and right sides
+bt-move ∷ {A ∷ U} {a b c d : A} {g : hom a b} {h : hom c d} {f1 f1' : hom a c} (p : f1 ≡ f1') {f2 f2' : hom b d} (q : f2 ≡ f2')
+  (σ : square f1 f2 g h) → subst (squares-bt g h) (cong2 pair p q) σ ≡ sq-move p q refl refl σ
+bt-move {A} {a} {b} {c} {d} {g} {h} {f1} refl {f2} refl σ = refl
+
+-- paths over boundaries with given vertical sides
+bdry-lr-move ∷ {A ∷ U} (l r : arrᵣ A) {g g' : hom (srcᵣ l) (srcᵣ r)} (p : g ≡ g') {h h' : hom (tgtᵣ l) (tgtᵣ r)} (q : h ≡ h')
+  (σ : squares (bdry-lr l r g h)) → subst squares (cong2 (bdry-lr l r) p q) σ ≡ sq-move refl refl p q σ
+bdry-lr-move l r {g} refl {h} refl σ = refl
+
+-- paths over boundaries of families
+bdry-st-move ∷ {A C ∷ U} (s t : C → A) (Φ : 𝕀 →ᵣ C) {m m' : hom (s (Φ 𝕀0)) (t (Φ 𝕀0))} (p : m ≡ m')
+  {n n' : hom (s (Φ 𝕀1)) (t (Φ 𝕀1))} (q : n ≡ n') (σ : squares (bdry-st s t Φ m n)) →
+  subst squares (cong2 (bdry-st s t Φ) p q) σ ≡ sq-move p q refl refl σ
+bdry-st-move s t Φ {m} refl {n} refl σ = refl
+
+--
+-- Paths between squares with a free bottom side
+--
+
+squares-g-path ∷ {A ∷ U} {a b c d : A} {l : hom a c} {r : hom b d} {h : hom c d} {g g' : hom a b} (p : g ≡ g')
+  (σ : square l r g h) (σ' : square l r g' h) → sq-move refl refl p refl σ ≡ σ' →
+  (g , σ) ≡{Σ (g'' : hom a b) . square l r g'' h} (g' , σ')
+squares-g-path {A} {a} {b} {c} {d} {l} {r} {h} {g} refl σ σ' e =
+  cong {square l r g h} {Σ (g'' : hom a b) . square l r g'' h} (λ z . (g , z)) e
+
+-- moving the bottom side after the top side
+sq-move-g-h ∷ {A ∷ U} {a b c d : A} {l : hom a c} {r : hom b d} {g g' : hom a b} (p : g ≡ g') {h h' : hom c d} (q : h ≡ h')
+  (σ : square l r g h) → sq-move refl refl p refl (sq-move refl refl refl q σ) ≡ sq-move refl refl p q σ
+sq-move-g-h {A} {a} {b} {c} {d} {l} {r} {g} refl {h} q σ = refl
+
+--
+-- Paths between squares with a free top side
+--
+
+squares-h-path ∷ {A ∷ U} {a b c d : A} {l : hom a c} {r : hom b d} {g : hom a b} {h h' : hom c d} (p : h ≡ h')
+  (σ : square l r g h) (σ' : square l r g h') → sq-move refl refl refl p σ ≡ σ' →
+  (h , σ) ≡{Σ (h'' : hom c d) . square l r g h''} (h' , σ')
+squares-h-path {A} {a} {b} {c} {d} {l} {r} {g} {h} refl σ σ' e =
+  cong {square l r g h} {Σ (h'' : hom c d) . square l r g h''} (λ z . (h , z)) e
+
+-- moving the top side after the bottom side
+sq-move-h-g ∷ {A ∷ U} {a b c d : A} {l : hom a c} {r : hom b d} {g g' : hom a b} (p : g ≡ g') {h h' : hom c d} (q : h ≡ h')
+  (σ : square l r g h) → sq-move refl refl refl q (sq-move refl refl p refl σ) ≡ sq-move refl refl p q σ
+sq-move-h-g {A} {a} {b} {c} {d} {l} {r} {g} p {h} refl σ = refl

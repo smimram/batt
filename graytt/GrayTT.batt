@@ -40,3 +40,7 @@ open import Complete-univalent
 open import HomSquare
 open import Exchange
 open import Hom2
+open import Square-paths
+open import Square-hom
+open import Fold-square
+open import Cofold-square

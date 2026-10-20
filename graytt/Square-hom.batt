@@ -1,0 +1,262 @@
+--
+-- Homs between arrows are squares
+--
+-- For arrows l and r of A, a hom u : hom l r in 𝕀 →ᵣ A is the square of A with left and right
+-- sides l and r, and bottom and top sides the images of u by srcᵣ and tgtᵣ (of-hom, HomSquare.batt):
+--
+--   is-equiv-hom→square : hom l r ≃ Σ h . Σ g . square l r g h
+--
+-- Proof: on total spaces over (l , r), both sides are oplax squares of A. Homs with free
+-- endpoints are arrows of 𝕀 →ᵣ A, which are squares by currying. Squares with free sides are
+-- squares with a free boundary, since a boundary is determined by its left and right sides, seen
+-- as arrows, and its bottom and top sides (bdry-lr); squares with a free boundary are the oplax
+-- squares, the boundary being contractible.
+--
+-- No postulate.
+--
+
+open import Stdlib
+open import Hom
+open import HomSquare
+
+open Square
+
+-- a hom between arrows as a square
+hom→square ∷ {A ∷ U} (l r : arrᵣ A) →
+  hom l r → Σ (h : hom (tgtᵣ l) (tgtᵣ r)) . Σ (g : hom (srcᵣ l) (srcᵣ r)) . square (arr-hom l) (arr-hom r) g h
+hom→square l r u = (hom-map tgtᵣ u , hom-map srcᵣ u , of-hom u)
+
+--
+-- Total spaces over pairs of arrows
+--
+
+private
+tot-base ∷ (A ∷ U) → U
+tot-base A = arrᵣ A × arrᵣ A
+
+private
+tot-homs ∷ {A ∷ U} → tot-base A → U
+tot-homs {A} z = hom {arrᵣ A} (Product.fst z) (Product.snd z)
+
+private
+tot-sides ∷ {A ∷ U} → tot-base A → U
+tot-sides {A} z = hom (tgtᵣ (Product.fst z)) (tgtᵣ (Product.snd z)) × hom (srcᵣ (Product.fst z)) (srcᵣ (Product.snd z))
+
+private
+tot-squares ∷ {A ∷ U} → tot-base A → U
+tot-squares {A} z =
+  Σ (h : hom (tgtᵣ (Product.fst z)) (tgtᵣ (Product.snd z))) . Σ (g : hom (srcᵣ (Product.fst z)) (srcᵣ (Product.snd z))) .
+    square (arr-hom (Product.fst z)) (arr-hom (Product.snd z)) g h
+
+private
+tot-hom→square ∷ {A ∷ U} (z : tot-base A) → tot-homs z → tot-squares z
+tot-hom→square {A} z u = hom→square (Product.fst z) (Product.snd z) u
+
+--
+-- Homs with free endpoints are arrows, hence squares
+--
+
+private
+homs→arr ∷ {A ∷ U} → (Σ (z : tot-base A) . tot-homs z) → arrᵣ (arrᵣ A)
+homs→arr {A} (z , u) = hom-cell u
+
+private
+arr→homs ∷ {A ∷ U} → arrᵣ (arrᵣ A) → Σ (z : tot-base A) . tot-homs z
+arr→homs {A} W = ((srcᵣ W , tgtᵣ W) , (W , refl , refl))
+
+private
+arr→homs-at ∷ {A ∷ U} (W : arrᵣ (arrᵣ A)) {l : arrᵣ A} (p : srcᵣ W ≡ l) {r : arrᵣ A} (q : tgtᵣ W ≡ r) →
+  arr→homs W ≡{Σ (z : tot-base A) . tot-homs z} ((l , r) , (W , p , q))
+arr→homs-at W refl refl = refl
+
+private
+is-equiv-homs→arr ∷ {A ∷ U} → is-equiv (homs→arr {A})
+is-equiv-homs→arr {A} =
+  let retr : (x : Σ (z : tot-base A) . tot-homs z) → arr→homs (homs→arr x) ≡ x = fun (z , u) →
+    let h1 : (z : tot-base A) (u : tot-homs z) → arr→homs (homs→arr (z , u)) ≡{Σ (z : tot-base A) . tot-homs z} (z , u) = fun (l , r) →
+      fun (W , e) →
+        let h3 : (e : (srcᵣ W ≡ l) × (tgtᵣ W ≡ r)) → arr→homs W ≡{Σ (z : tot-base A) . tot-homs z} ((l , r) , (W , e)) =
+          fun (p , q) → arr→homs-at W p q in
+        h3 e in
+    h1 z u in
+  ((arr→homs , λ W . refl) , (arr→homs , retr))
+
+private
+is-equiv-of-arrᵣ ∷ {A ∷ U} → is-equiv (of-arrᵣ {A})
+is-equiv-of-arrᵣ {A} = ((to-arrᵣ , λ s . refl) , (to-arrᵣ , λ W . refl))
+
+--
+-- Squares with free sides are squares with a free boundary
+--
+
+-- a boundary given by its left and right sides, as homs with free endpoints, and its top and
+-- bottom sides
+private
+sides-bdry ∷ (A ∷ U) → U
+sides-bdry A =
+  Σ (LR : Homs.total A × Homs.total A) .
+    hom (Homs.tgt (Product.fst LR)) (Homs.tgt (Product.snd LR)) × hom (Homs.src (Product.fst LR)) (Homs.src (Product.snd LR))
+
+private
+sides→bdry ∷ {A ∷ U} → sides-bdry A → boundary A
+sides→bdry {A} x =
+  let L : Homs.total A = Product.fst (fst _ x) in
+  let R : Homs.total A = Product.snd (fst _ x) in
+  (Homs.src L , Homs.src R , Homs.tgt L , Homs.tgt R , Homs.to-hom L , Homs.to-hom R , Product.snd (snd _ x) , Product.fst (snd _ x))
+
+private
+bdry→sides ∷ {A ∷ U} → boundary A → sides-bdry A
+bdry→sides {A} β = bdry-ind (λ _ . sides-bdry A) (λ a b c d f1 f2 g h . (((a , c , f1) , (b , d , f2)) , (h , g))) β
+
+private
+is-equiv-sides→bdry ∷ {A ∷ U} → is-equiv (sides→bdry {A})
+is-equiv-sides→bdry {A} =
+  let sec : (β : boundary A) → sides→bdry (bdry→sides β) ≡ β =
+    λ β . bdry-ind (λ β . sides→bdry (bdry→sides β) ≡ β) (λ a b c d f1 f2 g h . refl) β in
+  let retr : (x : sides-bdry A) → bdry→sides (sides→bdry x) ≡ x = fun (LR , hg) →
+    let h1 : (LR : Homs.total A × Homs.total A) (hg : hom (Homs.tgt (Product.fst LR)) (Homs.tgt (Product.snd LR)) × hom (Homs.src (Product.fst LR)) (Homs.src (Product.snd LR))) →
+        bdry→sides (sides→bdry (LR , hg)) ≡ (LR , hg) = fun (L , R) →
+      let h2 : (L : Homs.total A) (R : Homs.total A) (hg : hom (Homs.tgt L) (Homs.tgt R) × hom (Homs.src L) (Homs.src R)) →
+          bdry→sides (sides→bdry ((L , R) , hg)) ≡ ((L , R) , hg) = fun (a , L1) →
+        fun (b , R1) →
+          let h3 : (L1 : Σ (c : A) . hom a c) (R1 : Σ (d : A) . hom b d) (hg : hom (Homs.tgt (a , L1)) (Homs.tgt (b , R1)) × hom a b) →
+              bdry→sides (sides→bdry (((a , L1) , (b , R1)) , hg)) ≡ (((a , L1) , (b , R1)) , hg) = fun (c , f1) →
+            fun (d , f2) → fun (h , g) → refl in
+          h3 L1 R1 in
+      h2 L R in
+    h1 LR hg in
+  ((bdry→sides , sec) , (bdry→sides , retr))
+
+-- the left and right sides of a boundary, seen as arrows
+private
+arrs→sides ∷ {A ∷ U} → tot-base A → Homs.total A × Homs.total A
+arrs→sides {A} z = (Homs.of-arr (Product.fst z) , Homs.of-arr (Product.snd z))
+
+private
+is-equiv-arrs→sides ∷ {A ∷ U} → is-equiv (arrs→sides {A})
+is-equiv-arrs→sides {A} =
+  let e : is-equiv (Homs.of-arr {A}) = ((Homs.to-arr {A} , Homs.of-arr-retr {A}) , (Homs.to-arr {A} , λ f . refl)) in
+  is-equiv-htpy {tot-base A} {Homs.total A × Homs.total A} {prod-map (Homs.of-arr {A}) (Homs.of-arr {A})} {arrs→sides {A}}
+    (fun (l , r) → refl) (is-equiv-prod-map (Homs.of-arr {A}) (Homs.of-arr {A}) e e)
+
+-- the boundary given by two arrows and two sides
+private
+tot-bdry ∷ {A ∷ U} → (Σ (z : tot-base A) . tot-sides z) → boundary A
+tot-bdry {A} x = bdry-lr (Product.fst (fst _ x)) (Product.snd (fst _ x)) (Product.snd (snd _ x)) (Product.fst (snd _ x))
+
+private
+is-equiv-tot-bdry ∷ {A ∷ U} → is-equiv (tot-bdry {A})
+is-equiv-tot-bdry {A} =
+  let Q : Homs.total A × Homs.total A → U = λ LR .
+    hom (Homs.tgt (Product.fst LR)) (Homs.tgt (Product.snd LR)) × hom (Homs.src (Product.fst LR)) (Homs.src (Product.snd LR)) in
+  is-equiv-htpy {Σ (z : tot-base A) . tot-sides z} {boundary A} {λ x . sides→bdry (Σ-base arrs→sides Q x)} {tot-bdry {A}}
+    (fun (z , hg) → refl)
+    (is-equiv-circ sides→bdry (Σ-base arrs→sides Q) (is-equiv-sides→bdry {A}) (is-equiv-Σ-base arrs→sides (is-equiv-arrs→sides {A}) Q))
+
+-- reassociating
+private
+tot-squares→bdry ∷ {A ∷ U} → (Σ (z : tot-base A) . tot-squares z) → Σ (x : Σ (z : tot-base A) . tot-sides z) . squares (tot-bdry x)
+tot-squares→bdry {A} x =
+  let z : tot-base A = fst _ x in
+  let y : tot-squares z = snd _ x in
+  ((z , (fst _ y , fst _ (snd _ y))) , snd _ (snd _ y))
+
+private
+bdry→tot-squares ∷ {A ∷ U} → (Σ (x : Σ (z : tot-base A) . tot-sides z) . squares (tot-bdry x)) → Σ (z : tot-base A) . tot-squares z
+bdry→tot-squares {A} x =
+  let z : tot-base A = fst _ (fst _ x) in
+  let hg : tot-sides z = snd _ (fst _ x) in
+  (z , (Product.fst hg , (Product.snd hg , snd _ x)))
+
+private
+is-equiv-tot-squares→bdry ∷ {A ∷ U} → is-equiv (tot-squares→bdry {A})
+is-equiv-tot-squares→bdry {A} =
+  let sec : (x : Σ (x : Σ (z : tot-base A) . tot-sides z) . squares (tot-bdry x)) → tot-squares→bdry (bdry→tot-squares x) ≡ x =
+    fun (zhg , s) →
+      let h1 : (zhg : Σ (z : tot-base A) . tot-sides z) (s : squares (tot-bdry zhg)) →
+          tot-squares→bdry (bdry→tot-squares (zhg , s)) ≡{Σ (x : Σ (z : tot-base A) . tot-sides z) . squares (tot-bdry x)} (zhg , s) =
+        fun (z , hg) →
+          let h2 : (hg : tot-sides z) (s : squares (tot-bdry (z , hg))) →
+              tot-squares→bdry (bdry→tot-squares ((z , hg) , s)) ≡{Σ (x : Σ (z : tot-base A) . tot-sides z) . squares (tot-bdry x)} ((z , hg) , s) =
+            fun (h , g) → λ s . refl in
+          h2 hg in
+      h1 zhg s in
+  let retr : (x : Σ (z : tot-base A) . tot-squares z) → bdry→tot-squares (tot-squares→bdry x) ≡ x =
+    fun (z , y) →
+      let h1 : (y : tot-squares z) → bdry→tot-squares (tot-squares→bdry (z , y)) ≡{Σ (z : tot-base A) . tot-squares z} (z , y) =
+        fun (h , y') →
+          let h2 : (y' : Σ (g : hom (srcᵣ (Product.fst z)) (srcᵣ (Product.snd z))) . square (arr-hom (Product.fst z)) (arr-hom (Product.snd z)) g h) →
+              bdry→tot-squares (tot-squares→bdry (z , (h , y'))) ≡{Σ (z : tot-base A) . tot-squares z} (z , (h , y')) =
+            fun (g , s) → refl in
+          h2 y' in
+      h1 y in
+  ((bdry→tot-squares , sec) , (bdry→tot-squares , retr))
+
+-- squares with a free boundary are oplax squares
+private
+bdry-squares→square ∷ {A ∷ U} → (Σ (β : boundary A) . squares β) → squareᵣ A
+bdry-squares→square {A} x = fst _ (snd _ x)
+
+private
+square→bdry-squares-at ∷ {A ∷ U} (s : squareᵣ A) {β : boundary A} (e : bdry s ≡ β) →
+  (bdry s , (s , refl)) ≡{Σ (β : boundary A) . squares β} (β , (s , e))
+square→bdry-squares-at s refl = refl
+
+private
+is-equiv-bdry-squares→square ∷ {A ∷ U} → is-equiv (bdry-squares→square {A})
+is-equiv-bdry-squares→square {A} =
+  let inv : squareᵣ A → Σ (β : boundary A) . squares β = λ s . (bdry s , (s , refl)) in
+  let retr : (x : Σ (β : boundary A) . squares β) → inv (bdry-squares→square x) ≡ x = fun (β , y) →
+    let h : (y : squares β) → inv (bdry-squares→square (β , y)) ≡{Σ (β : boundary A) . squares β} (β , y) =
+      fun (s , e) → square→bdry-squares-at s e in
+    h y in
+  ((inv , λ s . refl) , (inv , retr))
+
+-- the oplax square underlying a square with free sides
+private
+tot-squares→square ∷ {A ∷ U} → (Σ (z : tot-base A) . tot-squares z) → squareᵣ A
+tot-squares→square {A} x = fst _ (snd _ (snd _ (snd _ x)))
+
+private
+is-equiv-tot-squares→square ∷ {A ∷ U} → is-equiv (tot-squares→square {A})
+is-equiv-tot-squares→square {A} =
+  let f1 : (Σ (z : tot-base A) . tot-squares z) → Σ (x : Σ (z : tot-base A) . tot-sides z) . squares (tot-bdry x) = tot-squares→bdry in
+  let f2 : (Σ (x : Σ (z : tot-base A) . tot-sides z) . squares (tot-bdry x)) → Σ (β : boundary A) . squares β = Σ-base tot-bdry squares in
+  is-equiv-htpy {Σ (z : tot-base A) . tot-squares z} {squareᵣ A} {λ x . bdry-squares→square (f2 (f1 x))} {tot-squares→square {A}}
+    (fun (z , y) →
+      let h1 : (y : tot-squares z) → bdry-squares→square (f2 (f1 (z , y))) ≡ tot-squares→square (z , y) = fun (h , y') →
+        let h2 : (y' : Σ (g : hom (srcᵣ (Product.fst z)) (srcᵣ (Product.snd z))) . square (arr-hom (Product.fst z)) (arr-hom (Product.snd z)) g h) →
+            bdry-squares→square (f2 (f1 (z , (h , y')))) ≡ tot-squares→square (z , (h , y')) = fun (g , s) → refl in
+        h2 y' in
+      h1 y)
+    (is-equiv-circ bdry-squares→square (λ x . f2 (f1 x)) (is-equiv-bdry-squares→square {A})
+      (is-equiv-circ f2 f1 (is-equiv-Σ-base tot-bdry (is-equiv-tot-bdry {A}) squares) (is-equiv-tot-squares→bdry {A})))
+
+--
+-- The equivalence
+--
+
+-- the oplax square underlying the square of a hom is the hom itself
+private
+of-hom-cell-at ∷ {A ∷ U} (W : arrᵣ (arrᵣ A)) {l : arrᵣ A} (p : srcᵣ W ≡ l) {r : arrᵣ A} (q : tgtᵣ W ≡ r) →
+  fst _ (of-hom {A} {l} {r} (W , p , q)) ≡ of-arrᵣ W
+of-hom-cell-at W refl refl = refl
+
+private
+is-equiv-tot-hom→square ∷ {A ∷ U} → is-equiv (tot {tot-base A} {tot-homs} {tot-squares} tot-hom→square)
+is-equiv-tot-hom→square {A} =
+  let F : (Σ (z : tot-base A) . tot-homs z) → Σ (z : tot-base A) . tot-squares z = tot {tot-base A} {tot-homs} {tot-squares} tot-hom→square in
+  let H : (x : Σ (z : tot-base A) . tot-homs z) → of-arrᵣ (homs→arr x) ≡ tot-squares→square (F x) = fun (z , u) →
+    let h1 : (z : tot-base A) (u : tot-homs z) → of-arrᵣ (homs→arr (z , u)) ≡ tot-squares→square (F (z , u)) = fun (l , r) →
+      fun (W , e) →
+        let h3 : (e : (srcᵣ W ≡ l) × (tgtᵣ W ≡ r)) → of-arrᵣ W ≡ fst _ (of-hom {A} {l} {r} (W , e)) =
+          fun (p , q) → sym (of-hom-cell-at W p q) in
+        h3 e in
+    h1 z u in
+  is-equiv-cancel-l tot-squares→square F (is-equiv-tot-squares→square {A})
+    (is-equiv-htpy {Σ (z : tot-base A) . tot-homs z} {squareᵣ A} {λ x . of-arrᵣ (homs→arr x)} {λ x . tot-squares→square (F x)} H
+      (is-equiv-circ of-arrᵣ homs→arr (is-equiv-of-arrᵣ {A}) (is-equiv-homs→arr {A})))
+
+is-equiv-hom→square ∷ {A ∷ U} (l r : arrᵣ A) → is-equiv (hom→square l r)
+is-equiv-hom→square {A} l r =
+  is-equiv-tot-fibrewise {tot-base A} {tot-homs} {tot-squares} tot-hom→square (is-equiv-tot-hom→square {A}) (l , r)
