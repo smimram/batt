@@ -80,7 +80,7 @@ oplax⁎⁎-right {X} {Y} (f, u) = snd (λ_. f (right X) ≡ right Y) u
 
 -- bipointed homotopies of bipointed maps
 
-ho⁎⁎ : {X' Y' ∷ U⁎⁎} (f' g' : map⁎⁎ X' Y') → U
+ho⁎⁎ ∷ {X' Y' ∷ U⁎⁎} (f' g' : map⁎⁎ X' Y') → U
 ho⁎⁎ {X'} {Y'} f' g' =
   let X : U = ⟨ X' ⟩ in
   let Y : U = ⟨ Y' ⟩ in

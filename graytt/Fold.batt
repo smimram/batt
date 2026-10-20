@@ -14,16 +14,22 @@
 --   fold lemma       : Γ_t is ev₁-cocartesian                  (fold-lemma)
 --   dual fold lemma  : Γ'_t is ev₀-cartesian                   (dual-fold-lemma)
 --
--- Both are postulated here, in the precise form needed for the Yoneda lemma for covariant
--- families: the fold lemma identifies the cocartesian lift of an arrow f of A at the identity of
--- the coslice (the connection Γ_f), and the dual fold lemma gives representability of the fibre
--- by its cocartesian lift.
+-- These are the forms needed for the Yoneda lemma for covariant families: the fold lemma
+-- identifies the cocartesian lift of an arrow f of A at the identity of the coslice (the
+-- connection Γ_f), and the dual fold lemma gives representability of the fibre by its
+-- cocartesian lift.
 --
--- The dual fold lemma is a conjecture: it is not a formal consequence of the fold
--- lemma, since no involution of 𝕀 exchanging ∧ and ∨ is assumed, and the mirror proof puts the
--- spine in the left factor of ⊗, where currying is not available.
+-- The fold lemma is proved: a hom from t to y in 𝕀 →ᵣ C is a square with left side t and right
+-- side y (Square-hom.batt), the gap map of Γ_t becomes horizontal composition with the connection
+-- square on t, and this is an equivalence over each top side (Fold-square.batt), by two round
+-- trips given by the exchange law.
 --
--- Postulates introduced: fold-lemma, dual-fold-lemma.
+-- The dual fold lemma is still postulated. The mirror proof, composing with the coconnection on
+-- the right and unfolding with the square w (i , i ∧ j) of a 2-simplex below, is not formalised
+-- yet (Cofold-square.batt contains its identifications of composites of squares).
+--
+-- Postulates: dual-fold-lemma; the fold lemma depends on those of the exchange law
+-- (objectwise-equiv, univalence, truncation, is-set-𝕀).
 --
 
 open import Stdlib
@@ -31,6 +37,7 @@ open import Hom
 open import Segal
 open import Fibration
 open import Connection
+import Fold-hom
 
 --
 -- The (co)connection lies over the arrow itself, judgmentally
@@ -71,11 +78,15 @@ is-prop-dual-fold-stmt {C} sC t =
     (λ x' . is-prop-is-equiv (cart-gap {arrᵣ C} {C} (is-segal-arrᵣ {C} sC) sC (srcᵣ {C}) {t} {λ j . tgtᵣ t} (coconn-hom {C} t) x'))
 
 --
+-- The fold lemma (proved in Fold-hom.batt)
+--
+
+abstract fold-lemma ∷ {C ∷ U} (sC : is-segalᵣ C) (t : arrᵣ C) → fold-stmt {C} sC t
+fold-lemma {C} sC t = Fold-hom.fold-cocartesian sC t
+
+--
 -- Postulates
 --
 
--- the fold lemma: the connection Γ_t is ev₁-cocartesian, for every arrow t of an oplax-Segal type
-postulate fold-lemma ∷ {C ∷ U} (sC : is-segalᵣ C) (t : arrᵣ C) → fold-stmt {C} sC t
-
--- [conjecture] the dual fold lemma: the coconnection Γ'_t is ev₀-cartesian
+-- the dual fold lemma: the coconnection Γ'_t is ev₀-cartesian (not formalised yet)
 postulate dual-fold-lemma ∷ {C ∷ U} (sC : is-segalᵣ C) (t : arrᵣ C) → dual-fold-stmt {C} sC t

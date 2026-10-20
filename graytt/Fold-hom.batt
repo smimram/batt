@@ -1,0 +1,138 @@
+--
+-- The fold lemma: the connection Γ_t is ev₁-cocartesian
+--
+-- A hom from t to an arrow y of C in 𝕀 →ᵣ C is a square with left side t and right side y
+-- (Square-hom.batt), and its composite with Γ_t is its horizontal composite with the connection
+-- square on t. Under this identification, the gap map of Γ_t is folding of squares (fold-sq,
+-- Fold-square.batt) over each top side, an equivalence.
+--
+-- This file is imported qualified by Fold.batt, so that the square library does not leak into
+-- the files using the fold lemma.
+--
+-- Postulates: those of the exchange law (objectwise-equiv, univalence, truncation, is-set-𝕀).
+--
+
+open import Stdlib
+open import Hom
+open import Segal
+open import Composition
+open import Functoriality
+open import Fibration
+open import Connection
+open import HomSquare
+open import Square-paths
+open import Square-hom
+open import Fold-square
+
+open Square
+
+--
+-- The fold lemma
+--
+-- A hom from t to an arrow y of C is a square with left side t and right side y (Square-hom.batt),
+-- and its composite with Γ_t is its horizontal composite with the connection on t. Under this
+-- identification, the gap map of Γ_t is folding of squares (fold-sq, Fold-square.batt), over each
+-- top side k : t 1 → y 1, which is an equivalence.
+--
+
+-- squares from t to y, and from the identity on t 0 to y, with given top side k
+private
+fold-dom ∷ {C ∷ U} (t y : arrᵣ C) → hom (tgtᵣ t) (tgtᵣ y) → U
+fold-dom {C} t y k = Σ (g : hom (srcᵣ t) (srcᵣ y)) . square (cell-hom t) (arr-hom y) g k
+
+private
+fold-cod ∷ {C ∷ U} (sC : is-segalᵣ C) (t y : arrᵣ C) → hom (tgtᵣ t) (tgtᵣ y) → U
+fold-cod {C} sC t y k = Σ (g : hom (srcᵣ t) (srcᵣ y)) . square (Hom.id (srcᵣ t)) (arr-hom y) g (comp-homᵣ sC (cell-hom t) k)
+
+private
+fold-tot ∷ {C ∷ U} (sC : is-segalᵣ C) (t y : arrᵣ C) →
+  (Σ (k : hom (tgtᵣ t) (tgtᵣ y)) . fold-dom t y k) → Σ (k : hom (tgtᵣ t) (tgtᵣ y)) . fold-cod sC t y k
+fold-tot {C} sC t y = tot {hom (tgtᵣ t) (tgtᵣ y)} {fold-dom t y} {fold-cod sC t y} (λ k . fold-sq sC (cell-hom t) k (arr-hom y))
+
+-- the square of Γ_t is the connection square on t
+private
+fold-conn-square ∷ {C ∷ U} (t : arrᵣ C) → of-hom {C} {λ j . srcᵣ t} {t} (conn-hom {C} t) ≡ connection-tr (cell-hom t)
+fold-conn-square t = refl
+
+-- the target of the gap map of Γ_t at y, as squares from the identity on t 0 to y
+private
+fold-pb→squares ∷ {C ∷ U} (sC : is-segalᵣ C) (t y : arrᵣ C) →
+  cocart-pb {arrᵣ C} {C} sC tgtᵣ {λ j . srcᵣ t} {t} (conn-hom {C} t) y →
+  Σ (k : hom (tgtᵣ t) (tgtᵣ y)) . Σ (g : hom (srcᵣ t) (srcᵣ y)) . square (Hom.id (srcᵣ t)) (arr-hom y) g (comp-homᵣ sC (cell-hom t) k)
+fold-pb→squares sC t y x =
+  let ke : Σ (k : hom (tgtᵣ t) (tgtᵣ y)) . hom-map tgtᵣ (fst _ x) ≡ comp-homᵣ sC (cell-hom t) k = snd _ x in
+  (fst _ ke , (hom-map srcᵣ (fst _ x) , sq-move refl refl refl (snd _ ke) (of-hom (fst _ x))))
+
+-- contracting the top side
+private
+fold-contract-top ∷ {C ∷ U} {a b c d : C} {l : hom a b} {r : hom c d} {g : hom a c} {h : hom b d}
+  (σ : square l r g h) {m : hom b d} (e : h ≡ m) →
+  ((h , (g , σ)) , e) ≡{Σ (x : Σ (h' : hom b d) . Σ (g' : hom a c) . square l r g' h') . fst _ x ≡ m} ((m , (g , sq-move refl refl refl e σ)) , refl)
+fold-contract-top σ refl = refl
+
+private
+is-equiv-fold-pb→squares ∷ {C ∷ U} (sC : is-segalᵣ C) (t y : arrᵣ C) → is-equiv (fold-pb→squares sC t y)
+is-equiv-fold-pb→squares {C} sC t y =
+  let a : C = srcᵣ t in
+  let T : hom a (tgtᵣ t) = cell-hom t in
+  let S : U = Σ (h' : hom a (tgtᵣ y)) . Σ (g' : hom a (srcᵣ y)) . square (Hom.id a) (arr-hom y) g' h' in
+  let Q : S → U = λ x . Σ (k : hom (tgtᵣ t) (tgtᵣ y)) . fst _ x ≡ comp-homᵣ sC T k in
+  let B : U = Σ (k : hom (tgtᵣ t) (tgtᵣ y)) . Σ (g : hom a (srcᵣ y)) . square (Hom.id a) (arr-hom y) g (comp-homᵣ sC T k) in
+  let f2 : (Σ (x : S) . Q x) → B = λ x .
+    (fst _ (snd _ x) , (fst _ (snd _ (fst _ x)) , sq-move refl refl refl (snd _ (snd _ x)) (snd _ (snd _ (fst _ x))))) in
+  let g2 : B → Σ (x : S) . Q x = λ y . ((comp-homᵣ sC T (fst _ y) , snd _ y) , (fst _ y , refl)) in
+  let sec : (z : B) → f2 (g2 z) ≡ z = fun (k , y') →
+    let h : (y' : Σ (g : hom a (srcᵣ y)) . square (Hom.id a) (arr-hom y) g (comp-homᵣ sC T k)) → f2 (g2 (k , y')) ≡{B} (k , y') =
+      fun (g , τ) → refl in
+    h y' in
+  let retr : (z : Σ (x : S) . Q x) → g2 (f2 z) ≡ z = fun (x , q) →
+    let h1 : (x : S) (q : Q x) → g2 (f2 (x , q)) ≡{Σ (x : S) . Q x} (x , q) = fun (h' , y') →
+      let h2 : (y' : Σ (g' : hom a (srcᵣ y)) . square (Hom.id a) (arr-hom y) g' h') (q : Q (h' , y')) →
+          g2 (f2 ((h' , y') , q)) ≡{Σ (x : S) . Q x} ((h' , y') , q) = fun (g' , τ) → fun (k , e) →
+        cong {Σ (x : S) . fst _ x ≡ comp-homᵣ sC T k} {Σ (x : S) . Q x} (λ w . (fst _ w , (k , snd _ w)))
+          (sym (fold-contract-top τ e)) in
+      h2 y' in
+    h1 x q in
+  let e2 : is-equiv f2 = is-iso→is-equiv f2 (g2 , sec , retr) in
+  let α : hom {arrᵣ C} (λ j . a) y → S = hom→square (λ j . a) y in
+  is-equiv-htpy {cocart-pb {arrᵣ C} {C} sC tgtᵣ {λ j . a} {t} (conn-hom {C} t) y} {B}
+    {λ x . f2 (Σ-base α Q x)} {fold-pb→squares sC t y}
+    (fun (h , ke) → refl)
+    (is-equiv-circ f2 (Σ-base α Q) e2 (is-equiv-Σ-base α (is-equiv-hom→square (λ j . a) y) Q))
+
+-- the gap map of Γ_t is folding of squares
+private
+fold-gap-square ∷ {C ∷ U} (sC : is-segalᵣ C) (t y : arrᵣ C) (u : hom {arrᵣ C} t y) →
+  fold-pb→squares sC t y (cocart-gap {arrᵣ C} {C} (is-segal-arrᵣ sC) sC tgtᵣ {λ j . srcᵣ t} {t} (conn-hom {C} t) y u)
+  ≡ fold-tot sC t y (hom→square t y u)
+fold-gap-square {C} sC t y u =
+  let sX : is-segalᵣ (arrᵣ C) = is-segal-arrᵣ sC in
+  let f0 : hom {arrᵣ C} (λ j . srcᵣ t) t = conn-hom {C} t in
+  let ps : hom-map srcᵣ (comp-homᵣ sX f0 u) ≡ comp-homᵣ sC (hom-map srcᵣ f0) (hom-map srcᵣ u) = hom-map-comp (arrᵣ C) C srcᵣ sX sC f0 u in
+  let pt : hom-map tgtᵣ (comp-homᵣ sX f0 u) ≡ comp-homᵣ sC (hom-map tgtᵣ f0) (hom-map tgtᵣ u) = hom-map-comp (arrᵣ C) C tgtᵣ sX sC f0 u in
+  let O : squares (hom-bdry (comp-homᵣ sX f0 u)) = of-hom (comp-homᵣ sX f0 u) in
+  cong {Σ (g : hom (srcᵣ t) (srcᵣ y)) . square (Hom.id (srcᵣ t)) (arr-hom y) g (comp-homᵣ sC (cell-hom t) (hom-map tgtᵣ u))}
+       {Σ (k : hom (tgtᵣ t) (tgtᵣ y)) . Σ (g : hom (srcᵣ t) (srcᵣ y)) . square (Hom.id (srcᵣ t)) (arr-hom y) g (comp-homᵣ sC (cell-hom t) k)}
+       (λ z . (hom-map tgtᵣ u , z))
+    (squares-g-path ps (sq-move refl refl refl pt O) (comp-h sC (connection-tr (cell-hom t)) (of-hom u))
+      (trans (sq-move-g-h ps pt O)
+        (sym (trans (comp-h-gen-β sC f0 u) (bdry-lr-move (λ j . srcᵣ t) y ps pt O)))))
+
+-- the fold lemma: Γ_t is ev₁-cocartesian
+fold-cocartesian ∷ {C ∷ U} (sC : is-segalᵣ C) (t : arrᵣ C) →
+  is-cocartesian {arrᵣ C} {C} (is-segal-arrᵣ {C} sC) sC (tgtᵣ {C}) {λ j . srcᵣ t} {t} (conn-hom {C} t)
+fold-cocartesian {C} sC t y =
+  let gap : hom {arrᵣ C} t y → cocart-pb {arrᵣ C} {C} sC tgtᵣ {λ j . srcᵣ t} {t} (conn-hom {C} t) y =
+    cocart-gap {arrᵣ C} {C} (is-segal-arrᵣ sC) sC tgtᵣ {λ j . srcᵣ t} {t} (conn-hom {C} t) y in
+  let F : (Σ (k : hom (tgtᵣ t) (tgtᵣ y)) . fold-dom t y k) → Σ (k : hom (tgtᵣ t) (tgtᵣ y)) . fold-cod sC t y k = fold-tot sC t y in
+  let eF : is-equiv F =
+    is-equiv-tot {hom (tgtᵣ t) (tgtᵣ y)} {fold-dom t y} {fold-cod sC t y} (λ k . fold-sq sC (cell-hom t) k (arr-hom y))
+      (λ k . is-equiv-fold-sq sC (cell-hom t) k (arr-hom y)) in
+  let β : cocart-pb {arrᵣ C} {C} sC tgtᵣ {λ j . srcᵣ t} {t} (conn-hom {C} t) y →
+          Σ (k : hom (tgtᵣ t) (tgtᵣ y)) . Σ (g : hom (srcᵣ t) (srcᵣ y)) . square (Hom.id (srcᵣ t)) (arr-hom y) g (comp-homᵣ sC (cell-hom t) k) =
+    fold-pb→squares sC t y in
+  is-equiv-cancel-l β gap (is-equiv-fold-pb→squares sC t y)
+    (is-equiv-htpy {hom {arrᵣ C} t y} {Σ (k : hom (tgtᵣ t) (tgtᵣ y)) . Σ (g : hom (srcᵣ t) (srcᵣ y)) . square (Hom.id (srcᵣ t)) (arr-hom y) g (comp-homᵣ sC (cell-hom t) k)} {λ u . F (hom→square t y u)} {λ u . β (gap u)}
+      (λ u . sym (fold-gap-square sC t y u))
+      (is-equiv-circ F (hom→square t y) eF (is-equiv-hom→square t y)))
+

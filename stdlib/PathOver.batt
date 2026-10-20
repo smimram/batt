@@ -4,5 +4,5 @@
 
 open import Equality
 
-path-over : {A : Type} (B : A → Type) {x y : A} (p : x ≡ y) (x' : B x) (y' : B y) → Type
+path-over ∷ {A : Type} (B : A → Type) {x y : A} (p : x ≡ y) (x' : B x) (y' : B y) → Type
 path-over B p x' y' = subst B p x' ≡ y'

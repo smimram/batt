@@ -39,12 +39,12 @@ open Square
 --
 
 -- the square of a primitive grid along a horizontal and a vertical edge of Δ²
-grid-sq : {A ∷ U} (Θ : simplex 2 →ᵣ (simplex 2 →ᵣ A)) (e e' ∷ 𝕀 → simplex 2) → squareᵣ A
+grid-sq ∷ {A ∷ U} (Θ : simplex 2 →ᵣ (simplex 2 →ᵣ A)) (e e' ∷ 𝕀 → simplex 2) → squareᵣ A
 grid-sq Θ e e' = of-arrᵣ (λ i . λ j . Θ (e i) (e' j))
 
 -- vertical composition commutes with transporting along the bottom and top sides
 private
-comp-v-subst : {A ∷ U} (sA : is-segalᵣ A) {a b c d c' d' : A} {f1 : hom a c} {f2 : hom b d} {f1' : hom c c'} {f2' : hom d d'}
+comp-v-subst ∷ {A ∷ U} (sA : is-segalᵣ A) {a b c d c' d' : A} {f1 : hom a c} {f2 : hom b d} {f1' : hom c c'} {f2' : hom d d'}
   {g : hom a b} {h : hom c d} {k : hom c' d'} (σ : square f1 f2 g h) (τ : square f1' f2' h k)
   {g' : hom a b} (p : g ≡ g') {h' : hom c d} (q : h ≡ h') {k' : hom c' d'} (r : k ≡ k') →
   comp-v sA (subst squares (cong2 {hom a b} {hom c d} {boundary A} (λ m n . (a , b , c , d , f1 , f2 , m , n)) p q) σ)
@@ -69,7 +69,7 @@ comp-v-subst {A} sA {a} {b} {c} {d} {c'} {d'} {f1} {f2} {f1'} {f2'} {g} {h} {k} 
 
 -- horizontal composition commutes with transporting along the left and right sides
 private
-comp-h-subst : {A ∷ U} (sA : is-segalᵣ A) {a b e c d f : A} {f1 : hom a c} {f2 : hom b d} {f3 : hom e f}
+comp-h-subst ∷ {A ∷ U} (sA : is-segalᵣ A) {a b e c d f : A} {f1 : hom a c} {f2 : hom b d} {f3 : hom e f}
   {g : hom a b} {g' : hom b e} {h : hom c d} {h' : hom d f} (σ : square f1 f2 g h) (τ : square f2 f3 g' h')
   {f1' : hom a c} (p : f1 ≡ f1') {f2' : hom b d} (q : f2 ≡ f2') {f3' : hom e f} (r : f3 ≡ f3') →
   comp-h sA (subst squares (cong2 {hom a c} {hom b d} {boundary A} (λ l r . (a , b , c , d , l , r , g , h)) p q) σ)
@@ -94,7 +94,7 @@ comp-h-subst {A} sA {a} {b} {e} {c} {d} {f} {f1} {f2} {f3} {g} {g'} {h} {h'} σ 
 
 -- transporting along the left and right sides commutes with transporting along the bottom and top sides
 private
-subst-lr-bt : {A ∷ U} {a b c d : A} {L L' : hom a c} (pl : L ≡ L') {R R' : hom b d} (pr : R ≡ R')
+subst-lr-bt ∷ {A ∷ U} {a b c d : A} {L L' : hom a c} (pl : L ≡ L') {R R' : hom b d} (pr : R ≡ R')
   {B B' : hom a b} (pb : B ≡ B') {T T' : hom c d} (pt : T ≡ T') (σ : square L R B T) →
   subst squares (cong2 {hom a b} {hom c d} {boundary A} (λ m n . (a , b , c , d , L' , R' , m , n)) pb pt)
     (subst squares (cong2 {hom a c} {hom b d} {boundary A} (λ l r . (a , b , c , d , l , r , B , T)) pl pr) σ)
@@ -115,7 +115,7 @@ subst-lr-bt {A} {a} {b} {c} {d} {L} {L'} pl {R} {R'} pr {B} pb {T} pt σ =
 -- The exchange law for primitive grids: both composites are the square of Θ along the long edges,
 -- moved along the composites of the edges of the 2-simplices on its boundary, the left and right
 -- ones and the bottom and top ones in either order.
-exchange-grid : {A ∷ U} (sA : is-segalᵣ A) (Θ : simplex 2 →ᵣ (simplex 2 →ᵣ A)) →
+exchange-grid ∷ {A ∷ U} (sA : is-segalᵣ A) (Θ : simplex 2 →ᵣ (simplex 2 →ᵣ A)) →
   comp-v sA (comp-h sA (grid-sq Θ Simplex2.edge₀₁ Simplex2.edge₀₁ , refl) (grid-sq Θ Simplex2.edge₁₂ Simplex2.edge₀₁ , refl))
     (comp-h sA (grid-sq Θ Simplex2.edge₀₁ Simplex2.edge₁₂ , refl) (grid-sq Θ Simplex2.edge₁₂ Simplex2.edge₁₂ , refl))
   ≡ comp-h sA (comp-v sA (grid-sq Θ Simplex2.edge₀₁ Simplex2.edge₀₁ , refl) (grid-sq Θ Simplex2.edge₀₁ Simplex2.edge₁₂ , refl))
@@ -160,94 +160,94 @@ exchange-grid {A} sA Θ =
 
 -- the components of a composable pair of homs
 private
-pr-x : {A ∷ U} → pairs A → A
+pr-x ∷ {A ∷ U} → pairs A → A
 pr-x w = fst _ w
 
 private
-pr-y : {A ∷ U} → pairs A → A
+pr-y ∷ {A ∷ U} → pairs A → A
 pr-y w = fst _ (snd _ w)
 
 private
-pr-z : {A ∷ U} → pairs A → A
+pr-z ∷ {A ∷ U} → pairs A → A
 pr-z w = fst _ (snd _ (snd _ w))
 
 private
-pr-u : {A ∷ U} (w : pairs A) → hom (pr-x w) (pr-y w)
+pr-u ∷ {A ∷ U} (w : pairs A) → hom (pr-x w) (pr-y w)
 pr-u w = Product.fst (snd _ (snd _ (snd _ w)))
 
 private
-pr-v : {A ∷ U} (w : pairs A) → hom (pr-y w) (pr-z w)
+pr-v ∷ {A ∷ U} (w : pairs A) → hom (pr-y w) (pr-z w)
 pr-v w = Product.snd (snd _ (snd _ (snd _ w)))
 
 -- the rest of the boundary of a row above a composable pair of homs
-row-rest : (A ∷ U) → pairs A → U
+row-rest ∷ (A ∷ U) → pairs A → U
 row-rest A w = Σ (c : A) . Σ (d : A) . Σ (f : A) . hom (pr-x w) c × hom (pr-y w) d × hom (pr-z w) f × hom c d × hom d f
 
 -- the boundary of a row
-row-bdry : (A ∷ U) → U
+row-bdry ∷ (A ∷ U) → U
 row-bdry A = Σ (w : pairs A) . row-rest A w
 
 -- the components of the boundary of a row
 private
-rw-c : {A ∷ U} → row-bdry A → A
+rw-c ∷ {A ∷ U} → row-bdry A → A
 rw-c r = fst _ (snd _ r)
 
 private
-rw-d : {A ∷ U} → row-bdry A → A
+rw-d ∷ {A ∷ U} → row-bdry A → A
 rw-d r = fst _ (snd _ (snd _ r))
 
 private
-rw-f : {A ∷ U} → row-bdry A → A
+rw-f ∷ {A ∷ U} → row-bdry A → A
 rw-f r = fst _ (snd _ (snd _ (snd _ r)))
 
 private
-rw-f1 : {A ∷ U} (r : row-bdry A) → hom (pr-x (fst _ r)) (rw-c r)
+rw-f1 ∷ {A ∷ U} (r : row-bdry A) → hom (pr-x (fst _ r)) (rw-c r)
 rw-f1 r = Product.fst (snd _ (snd _ (snd _ (snd _ r))))
 
 private
-rw-f2 : {A ∷ U} (r : row-bdry A) → hom (pr-y (fst _ r)) (rw-d r)
+rw-f2 ∷ {A ∷ U} (r : row-bdry A) → hom (pr-y (fst _ r)) (rw-d r)
 rw-f2 r = Product.fst (Product.snd (snd _ (snd _ (snd _ (snd _ r)))))
 
 private
-rw-f3 : {A ∷ U} (r : row-bdry A) → hom (pr-z (fst _ r)) (rw-f r)
+rw-f3 ∷ {A ∷ U} (r : row-bdry A) → hom (pr-z (fst _ r)) (rw-f r)
 rw-f3 r = Product.fst (Product.snd (Product.snd (snd _ (snd _ (snd _ (snd _ r))))))
 
 private
-rw-h : {A ∷ U} (r : row-bdry A) → hom (rw-c r) (rw-d r)
+rw-h ∷ {A ∷ U} (r : row-bdry A) → hom (rw-c r) (rw-d r)
 rw-h r = Product.fst (Product.snd (Product.snd (Product.snd (snd _ (snd _ (snd _ (snd _ r)))))))
 
 private
-rw-h' : {A ∷ U} (r : row-bdry A) → hom (rw-d r) (rw-f r)
+rw-h' ∷ {A ∷ U} (r : row-bdry A) → hom (rw-d r) (rw-f r)
 rw-h' r = Product.snd (Product.snd (Product.snd (Product.snd (snd _ (snd _ (snd _ (snd _ r)))))))
 
 -- the boundaries of the left and right squares of a row, and its top sides
-row-left : {A ∷ U} → row-bdry A → boundary A
+row-left ∷ {A ∷ U} → row-bdry A → boundary A
 row-left r = (pr-x (fst _ r) , pr-y (fst _ r) , rw-c r , rw-d r , rw-f1 r , rw-f2 r , pr-u (fst _ r) , rw-h r)
 
-row-right : {A ∷ U} → row-bdry A → boundary A
+row-right ∷ {A ∷ U} → row-bdry A → boundary A
 row-right r = (pr-y (fst _ r) , pr-z (fst _ r) , rw-d r , rw-f r , rw-f2 r , rw-f3 r , pr-v (fst _ r) , rw-h' r)
 
-row-top : {A ∷ U} → row-bdry A → pairs A
+row-top ∷ {A ∷ U} → row-bdry A → pairs A
 row-top r = (rw-c r , rw-d r , rw-f r , rw-h r , rw-h' r)
 
 -- the squares of a row
-row-squares : {A ∷ U} → row-bdry A → U
+row-squares ∷ {A ∷ U} → row-bdry A → U
 row-squares r = squares (row-left r) × squares (row-right r)
 
 -- the row given by a 2-simplex of arrows, and its squares
-row-of : {A ∷ U} → (simplex 2 →ᵣ arrᵣ A) → row-bdry A
+row-of ∷ {A ∷ U} → (simplex 2 →ᵣ arrᵣ A) → row-bdry A
 row-of {A} Ξ =
   (edges-2 (postᵣ {simplex 2} {arrᵣ A} {A} srcᵣ Ξ) ,
    (Ξ (Simplex2.edge₀₁ 𝕀0) 𝕀1 , Ξ (Simplex2.edge₁₂ 𝕀0) 𝕀1 , Ξ (Simplex2.edge₁₂ 𝕀1) 𝕀1 ,
     arr-hom (Ξ (Simplex2.edge₀₁ 𝕀0)) , arr-hom (Ξ (Simplex2.edge₁₂ 𝕀0)) , arr-hom (Ξ (Simplex2.edge₁₂ 𝕀1)) ,
     simplex2-hom₀₁ (postᵣ {simplex 2} {arrᵣ A} {A} tgtᵣ Ξ) , simplex2-hom₁₂ (postᵣ {simplex 2} {arrᵣ A} {A} tgtᵣ Ξ)))
 
-row-sq : {A ∷ U} (Ξ : simplex 2 →ᵣ arrᵣ A) → row-squares (row-of Ξ)
+row-sq ∷ {A ∷ U} (Ξ : simplex 2 →ᵣ arrᵣ A) → row-squares (row-of Ξ)
 row-sq {A} Ξ = ((of-arrᵣ (λ i . Ξ (Simplex2.edge₀₁ i)) , refl) , (of-arrᵣ (λ i . Ξ (Simplex2.edge₁₂ i)) , refl))
 
 -- induction on the boundaries of rows: it is enough to consider the ones given by their components
 private
-row-bdry-ind : {A ∷ U} (P : row-bdry A → TYPE) →
+row-bdry-ind ∷ {A ∷ U} (P : row-bdry A → TYPE) →
   ((a b e : A) (g : hom a b) (g' : hom b e) (c d f : A) (f1 : hom a c) (f2 : hom b d) (f3 : hom e f) (h : hom c d) (h' : hom d f) →
    P ((a , b , e , g , g') , (c , d , f , f1 , f2 , f3 , h , h'))) →
   (r : row-bdry A) → P r
@@ -278,7 +278,7 @@ row-bdry-ind {A} P k (w , rest) =
 
 -- the motive of row induction, for two squares glued along a path between their vertical sides
 private
-row-Q : {A ∷ U} (P : (r : row-bdry A) → row-squares r → U) (β : boundary A) → squares β → (β' : boundary A) → squares β' →
+row-Q ∷ {A ∷ U} (P : (r : row-bdry A) → row-squares r → U) (β : boundary A) → squares β → (β' : boundary A) → squares β' →
   bdry-right β ≡ bdry-left β' → U
 row-Q {A} P β σ β' τ E =
   bdry-ind (λ β . squares β → (β' : boundary A) → squares β' → bdry-right β ≡ bdry-left β' → U)
@@ -294,13 +294,13 @@ row-Q {A} P β σ β' τ E =
 
 -- the row given by two homs between arrows
 private
-row-hom : {A ∷ U} {l r r' : arrᵣ A} → hom l r → hom r r' → row-bdry A
+row-hom ∷ {A ∷ U} {l r r' : arrᵣ A} → hom l r → hom r r' → row-bdry A
 row-hom {A} {l} {r} {r'} u v =
   ((srcᵣ l , srcᵣ r , srcᵣ r' , hom-map srcᵣ u , hom-map srcᵣ v) ,
    (tgtᵣ l , tgtᵣ r , tgtᵣ r' , arr-hom l , arr-hom r , arr-hom r' , hom-map tgtᵣ u , hom-map tgtᵣ v))
 
 -- Induction on rows: it is enough to consider the rows given by 2-simplices of arrows.
-row-ind : {A ∷ U} (sA : is-segalᵣ A) (P : (r : row-bdry A) → row-squares r → U) →
+row-ind ∷ {A ∷ U} (sA : is-segalᵣ A) (P : (r : row-bdry A) → row-squares r → U) →
   ((Ξ : simplex 2 →ᵣ arrᵣ A) → P (row-of Ξ) (row-sq Ξ)) → (r : row-bdry A) (s : row-squares r) → P r s
 row-ind {A} sA P k r s =
   let sA' : is-segalᵣ (arrᵣ A) = is-segal-arrᵣ sA in
@@ -339,33 +339,33 @@ row-ind {A} sA P k r s =
 --
 
 -- the boundary of a grid
-grid-bdry : (A ∷ U) → U
+grid-bdry ∷ (A ∷ U) → U
 grid-bdry A = Σ (r : row-bdry A) . row-rest A (row-top r)
 
 -- its upper row
-grid-upper : {A ∷ U} → grid-bdry A → row-bdry A
+grid-upper ∷ {A ∷ U} → grid-bdry A → row-bdry A
 grid-upper γ = (row-top (fst _ γ) , snd _ γ)
 
 -- the squares of a grid
-grid-squares : {A ∷ U} → grid-bdry A → U
+grid-squares ∷ {A ∷ U} → grid-bdry A → U
 grid-squares γ = row-squares (fst _ γ) × row-squares (grid-upper γ)
 
 -- the grid given by a primitive grid, and its squares
-grid-of : {A ∷ U} → (simplex 2 →ᵣ (simplex 2 →ᵣ A)) → grid-bdry A
+grid-of ∷ {A ∷ U} → (simplex 2 →ᵣ (simplex 2 →ᵣ A)) → grid-bdry A
 grid-of {A} Θ = (row-of (λ s . λ j . Θ s (Simplex2.edge₀₁ j)) , snd _ (row-of (λ s . λ j . Θ s (Simplex2.edge₁₂ j))))
 
-grid-sqs : {A ∷ U} (Θ : simplex 2 →ᵣ (simplex 2 →ᵣ A)) → grid-squares (grid-of Θ)
+grid-sqs ∷ {A ∷ U} (Θ : simplex 2 →ᵣ (simplex 2 →ᵣ A)) → grid-squares (grid-of Θ)
 grid-sqs {A} Θ = (row-sq (λ s . λ j . Θ s (Simplex2.edge₀₁ j)) , row-sq (λ s . λ j . Θ s (Simplex2.edge₁₂ j)))
 
 -- the paths between images by an equivalence are images of paths
 private
-fib-snd-path : {S T : U} (e : S → T) {z : T} {a : S} (E : e a ≡ z) {w : fib e z} (P : (a , E) ≡{fib e z} w) →
+fib-snd-path ∷ {S T : U} (e : S → T) {z : T} {a : S} (E : e a ≡ z) {w : fib e z} (P : (a , E) ≡{fib e z} w) →
   E ≡ trans (cong e (cong {fib e z} {S} (λ w . fst _ w) P)) (snd _ w)
 fib-snd-path {S} {T} e {z} {a} E {w} P =
   J {fib e z} (a , E) (λ w P . E ≡ trans (cong e (cong {fib e z} {S} (λ w . fst _ w) P)) (snd _ w)) (sym (trans-refl-l E)) P
 
 private
-emb-ind : {S T : U} (e : S → T) (ee : is-equiv e) {a b : S} (R : e a ≡ e b → U) → ((Q : a ≡ b) → R (cong e Q)) → (E : e a ≡ e b) → R E
+emb-ind ∷ {S T : U} (e : S → T) (ee : is-equiv e) {a b : S} (R : e a ≡ e b → U) → ((Q : a ≡ b) → R (cong e Q)) → (E : e a ≡ e b) → R E
 emb-ind {S} {T} e ee {a} {b} R k E =
   let c : is-contr (fib e (e b)) = is-contr-fib e ee (e b) in
   let P : (a , E) ≡{fib e (e b)} (b , refl) = is-contr-eq c (a , E) (b , refl) in
@@ -374,20 +374,20 @@ emb-ind {S} {T} e ee {a} {b} R k E =
 -- oplax cones over Δ² for tgtᵣ and srcᵣ: a lower and an upper 2-simplex of arrows, glued along a
 -- homotopy
 private
-cone2 : (A ∷ U) → U
+cone2 ∷ (A ∷ U) → U
 cone2 A = pullback-coneᵣ (simplex 2) {arrᵣ A} {arrᵣ A} {A} tgtᵣ srcᵣ
 
 private
-c2-lower : {A ∷ U} → cone2 A → simplex 2 →ᵣ arrᵣ A
+c2-lower ∷ {A ∷ U} → cone2 A → simplex 2 →ᵣ arrᵣ A
 c2-lower {A} κ = pullback-coneᵣ-fst (simplex 2) {arrᵣ A} {arrᵣ A} {A} tgtᵣ srcᵣ κ
 
 private
-c2-upper : {A ∷ U} → cone2 A → simplex 2 →ᵣ arrᵣ A
+c2-upper ∷ {A ∷ U} → cone2 A → simplex 2 →ᵣ arrᵣ A
 c2-upper {A} κ = pullback-coneᵣ-snd (simplex 2) {arrᵣ A} {arrᵣ A} {A} tgtᵣ srcᵣ κ
 
 -- the path between the top of the lower 2-simplex and the bottom of the upper one
 private
-c2-path : {A ∷ U} (κ : cone2 A) → postᵣ {simplex 2} {arrᵣ A} {A} tgtᵣ (c2-lower κ) ≡ postᵣ {simplex 2} {arrᵣ A} {A} srcᵣ (c2-upper κ)
+c2-path ∷ {A ∷ U} (κ : cone2 A) → postᵣ {simplex 2} {arrᵣ A} {A} tgtᵣ (c2-lower κ) ≡ postᵣ {simplex 2} {arrᵣ A} {A} srcᵣ (c2-upper κ)
 c2-path {A} κ =
   trans (sym (Product.fst (snd (pullback-coneᵣ-paths (simplex 2) {arrᵣ A} {arrᵣ A} {A} tgtᵣ srcᵣ) κ)))
     (trans (path-eq (Funext.funextᵣ (simplex 2) A (pullback-coneᵣ-htpy (simplex 2) {arrᵣ A} {arrᵣ A} {A} tgtᵣ srcᵣ κ)))
@@ -395,31 +395,31 @@ c2-path {A} κ =
 
 -- the homotopy of a path between 2-simplices, and its endpoints
 private
-s2-htpy : {A ∷ U} {f k : simplex 2 →ᵣ A} → f ≡ k → simplex 2 →ᵣ path A
+s2-htpy ∷ {A ∷ U} {f k : simplex 2 →ᵣ A} → f ≡ k → simplex 2 →ᵣ path A
 s2-htpy {A} {f} {k} P = Funext.happlyᵣ (simplex 2) A (f , k , P)
 
 private
-s2-htpy-src : {A ∷ U} (f : simplex 2 →ᵣ A) {k : simplex 2 →ᵣ A} (P : f ≡ k) → postᵣ {simplex 2} {path A} {A} path-src (s2-htpy P) ≡ f
+s2-htpy-src ∷ {A ∷ U} (f : simplex 2 →ᵣ A) {k : simplex 2 →ᵣ A} (P : f ≡ k) → postᵣ {simplex 2} {path A} {A} path-src (s2-htpy P) ≡ f
 s2-htpy-src {A} f {k} P = J f (λ k P . postᵣ {simplex 2} {path A} {A} path-src (s2-htpy P) ≡ f) refl P
 
 private
-s2-htpy-tgt : {A ∷ U} (f : simplex 2 →ᵣ A) {k : simplex 2 →ᵣ A} (P : f ≡ k) → postᵣ {simplex 2} {path A} {A} path-tgt (s2-htpy P) ≡ k
+s2-htpy-tgt ∷ {A ∷ U} (f : simplex 2 →ᵣ A) {k : simplex 2 →ᵣ A} (P : f ≡ k) → postᵣ {simplex 2} {path A} {A} path-tgt (s2-htpy P) ≡ k
 s2-htpy-tgt {A} f {k} P = J f (λ k P . postᵣ {simplex 2} {path A} {A} path-tgt (s2-htpy P) ≡ k) refl P
 
 -- the cone of two 2-simplices of arrows glued along a path
 private
-cone2-of : {A ∷ U} (Ξ0 Ξ1 : simplex 2 →ᵣ arrᵣ A) → postᵣ {simplex 2} {arrᵣ A} {A} tgtᵣ Ξ0 ≡ postᵣ {simplex 2} {arrᵣ A} {A} srcᵣ Ξ1 → cone2 A
+cone2-of ∷ {A ∷ U} (Ξ0 Ξ1 : simplex 2 →ᵣ arrᵣ A) → postᵣ {simplex 2} {arrᵣ A} {A} tgtᵣ Ξ0 ≡ postᵣ {simplex 2} {arrᵣ A} {A} srcᵣ Ξ1 → cone2 A
 cone2-of {A} Ξ0 Ξ1 P =
   ((Ξ0 , Ξ1 , s2-htpy P) , s2-htpy-src (postᵣ {simplex 2} {arrᵣ A} {A} tgtᵣ Ξ0) P , s2-htpy-tgt (postᵣ {simplex 2} {arrᵣ A} {A} tgtᵣ Ξ0) P)
 
 -- the injectivity of a map with a retraction sends refl to refl
 private
-retraction-inj-refl : {X Y : U} (f : X → Y) (r : retraction f) (x : X) → retraction-inj f r {x} {x} refl ≡ refl
+retraction-inj-refl ∷ {X Y : U} (f : X → Y) (r : retraction f) (x : X) → retraction-inj f r {x} {x} refl ≡ refl
 retraction-inj-refl {X} {Y} f (g , η) x = trans (cong (trans (sym (η x))) (trans-refl-l (η x))) (trans-sym-l (η x))
 
 -- the funext path of a constant homotopy is refl
 private
-funext-cst : {A ∷ U} (f : simplex 2 →ᵣ A) → path-eq (Funext.funextᵣ (simplex 2) A (λ a . (f a , f a , refl))) ≡ refl
+funext-cst ∷ {A ∷ U} (f : simplex 2 →ᵣ A) → path-eq (Funext.funextᵣ (simplex 2) A (λ a . (f a , f a , refl))) ≡ refl
 funext-cst {A} f =
   let e ∷ is-equiv (postᵣ {simplex 2} (path-src {A})) = postᵣ-equiv (simplex 2) (path-src {A}) (is-equiv-path-src A) in
   cong (cong (postᵣ {simplex 2} (path-tgt {A})))
@@ -427,7 +427,7 @@ funext-cst {A} f =
 
 -- the path of the cone of a path is that path
 private
-c2-path-of : {A ∷ U} (f : simplex 2 →ᵣ A) {k : simplex 2 →ᵣ A} (P : f ≡ k) →
+c2-path-of ∷ {A ∷ U} (f : simplex 2 →ᵣ A) {k : simplex 2 →ᵣ A} (P : f ≡ k) →
   trans (sym (s2-htpy-src f P)) (trans (path-eq (Funext.funextᵣ (simplex 2) A (s2-htpy P))) (s2-htpy-tgt f P)) ≡ P
 c2-path-of {A} f {k} P =
   J f (λ k P . trans (sym (s2-htpy-src f P)) (trans (path-eq (Funext.funextᵣ (simplex 2) A (s2-htpy P))) (s2-htpy-tgt f P)) ≡ P)
@@ -435,7 +435,7 @@ c2-path-of {A} f {k} P =
 
 -- cone induction over Δ²: cones are 2-simplices of composable pairs of cells
 private
-cone2-ind : {A ∷ U} (Q : cone2 A → U) → ((Ψ : simplex 2 →ᵣ cell-pairs A) → Q (pullback→coneᵣ (simplex 2) {arrᵣ A} {arrᵣ A} {A} tgtᵣ srcᵣ Ψ)) →
+cone2-ind ∷ {A ∷ U} (Q : cone2 A → U) → ((Ψ : simplex 2 →ᵣ cell-pairs A) → Q (pullback→coneᵣ (simplex 2) {arrᵣ A} {arrᵣ A} {A} tgtᵣ srcᵣ Ψ)) →
   (κ : cone2 A) → Q κ
 cone2-ind {A} Q q κ =
   let f : (simplex 2 →ᵣ cell-pairs A) → cone2 A = pullback→coneᵣ (simplex 2) {arrᵣ A} {arrᵣ A} {A} tgtᵣ srcᵣ in
@@ -444,22 +444,22 @@ cone2-ind {A} Q q κ =
 
 -- the composable pair of the first two edges of a 2-simplex, and a filler of a composable pair
 private
-simplex2-cells : {A ∷ U} → (simplex 2 →ᵣ A) → cell-pairs A
+simplex2-cells ∷ {A ∷ U} → (simplex 2 →ᵣ A) → cell-pairs A
 simplex2-cells c = ((λ j . c (Simplex2.edge₀₁ j)) , (λ j . c (Simplex2.edge₁₂ j)) , refl)
 
 private
-cells-fill : {A ∷ U} (sA : is-segalᵣ A) → cell-pairs A → simplex 2 →ᵣ A
+cells-fill ∷ {A ∷ U} (sA : is-segalᵣ A) → cell-pairs A → simplex 2 →ᵣ A
 cells-fill {A} sA c = section-map (edges-2 {A}) (is-equiv-sec (edges-2 {A}) (is-equiv-edges-2 A sA)) (cells→pair c)
 
 private
-cells-fill-sec : {A ∷ U} (sA : is-segalᵣ A) (c : cell-pairs A) → simplex2-cells (cells-fill sA c) ≡ c
+cells-fill-sec ∷ {A ∷ U} (sA : is-segalᵣ A) (c : cell-pairs A) → simplex2-cells (cells-fill sA c) ≡ c
 cells-fill-sec {A} sA c =
   trans (cong (pair→cells {A}) (snd (is-section (edges-2 {A})) (is-equiv-sec (edges-2 {A}) (is-equiv-edges-2 A sA)) (cells→pair c)))
     (snd _ (is-equiv-ret (cells→pair {A}) (is-equiv-cells→pair {A})) c)
 
 -- induction on 2-simplices of composable pairs of cells: they are given by primitive grids
 private
-cells-ind : {A ∷ U} (sA : is-segalᵣ A) (Q : (simplex 2 →ᵣ cell-pairs A) → U) →
+cells-ind ∷ {A ∷ U} (sA : is-segalᵣ A) (Q : (simplex 2 →ᵣ cell-pairs A) → U) →
   ((Θ : simplex 2 →ᵣ (simplex 2 →ᵣ A)) → Q (postᵣ simplex2-cells Θ)) → (Ψ : simplex 2 →ᵣ cell-pairs A) → Q Ψ
 cells-ind {A} sA Q k Ψ =
   subst Q
@@ -470,7 +470,7 @@ cells-ind {A} sA Q k Ψ =
 -- the statement for the upper row, generalized along a path between its bottom sides and the top
 -- sides of the lower row given by Ξ0
 private
-upper-Q : {A ∷ U} (P : (γ : grid-bdry A) → grid-squares γ → U) (Ξ0 : simplex 2 →ᵣ arrᵣ A)
+upper-Q ∷ {A ∷ U} (P : (γ : grid-bdry A) → grid-squares γ → U) (Ξ0 : simplex 2 →ᵣ arrᵣ A)
   (w : pairs A) → row-top (row-of Ξ0) ≡ w → (rest : row-rest A w) → row-squares (w , rest) → U
 upper-Q {A} P Ξ0 w Eb rest s =
   J-TYPE (row-top (row-of Ξ0)) (λ w _ . (rest : row-rest A w) → row-squares (w , rest) → U)
@@ -478,12 +478,12 @@ upper-Q {A} P Ξ0 w Eb rest s =
 
 -- the same for the upper row given by Ξ1, glued along a path between the top of Ξ0 and the bottom of Ξ1
 private
-upper-S : {A ∷ U} (P : (γ : grid-bdry A) → grid-squares γ → U) (Ξ0 Ξ1 : simplex 2 →ᵣ arrᵣ A) →
+upper-S ∷ {A ∷ U} (P : (γ : grid-bdry A) → grid-squares γ → U) (Ξ0 Ξ1 : simplex 2 →ᵣ arrᵣ A) →
   postᵣ {simplex 2} {arrᵣ A} {A} tgtᵣ Ξ0 ≡ postᵣ {simplex 2} {arrᵣ A} {A} srcᵣ Ξ1 → U
 upper-S {A} P Ξ0 Ξ1 Q = upper-Q P Ξ0 (fst _ (row-of Ξ1)) (cong (edges-2 {A}) Q) (snd _ (row-of Ξ1)) (row-sq Ξ1)
 
 -- Induction on grids: it is enough to consider the grids given by primitive grids.
-grid-ind : {A ∷ U} (sA : is-segalᵣ A) (P : (γ : grid-bdry A) → grid-squares γ → U) →
+grid-ind ∷ {A ∷ U} (sA : is-segalᵣ A) (P : (γ : grid-bdry A) → grid-squares γ → U) →
   ((Θ : simplex 2 →ᵣ (simplex 2 →ᵣ A)) → P (grid-of Θ) (grid-sqs Θ)) → (γ : grid-bdry A) (s : grid-squares γ) → P γ s
 grid-ind {A} sA P k (r0 , r1) (s0 , s1) =
   let pc : (simplex 2 →ᵣ cell-pairs A) → cone2 A = pullback→coneᵣ (simplex 2) {arrᵣ A} {arrᵣ A} {A} tgtᵣ srcᵣ in
@@ -514,14 +514,14 @@ grid-ind {A} sA P k (r0 , r1) (s0 , s1) =
 
 -- the statement of the exchange law for a grid
 private
-exchange-stmt : {A ∷ U} (sA : is-segalᵣ A) (γ : grid-bdry A) → grid-squares γ → U
+exchange-stmt ∷ {A ∷ U} (sA : is-segalᵣ A) (γ : grid-bdry A) → grid-squares γ → U
 exchange-stmt {A} sA γ s =
   comp-v sA (comp-h sA (Product.fst (Product.fst s)) (Product.snd (Product.fst s))) (comp-h sA (Product.fst (Product.snd s)) (Product.snd (Product.snd s)))
   ≡ comp-h sA (comp-v sA (Product.fst (Product.fst s)) (Product.fst (Product.snd s))) (comp-v sA (Product.snd (Product.fst s)) (Product.snd (Product.snd s)))
 
 -- The exchange law: for a 2×2 grid of squares, composing its rows and then the composites, or its
 -- columns and then the composites, gives the same square.
-exchange : {A ∷ U} (sA : is-segalᵣ A) {a b e c d f c' d' f' : A}
+exchange ∷ {A ∷ U} (sA : is-segalᵣ A) {a b e c d f c' d' f' : A}
   {f1 : hom a c} {f2 : hom b d} {f3 : hom e f} {f1' : hom c c'} {f2' : hom d d'} {f3' : hom f f'}
   {g : hom a b} {g' : hom b e} {h : hom c d} {h' : hom d f} {k : hom c' d'} {k' : hom d' f'}
   (σ00 : square f1 f2 g h) (σ10 : square f2 f3 g' h') (σ01 : square f1' f2' h k) (σ11 : square f2' f3' h' k') →
