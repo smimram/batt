@@ -519,6 +519,17 @@ exchange-stmt {A} sA γ s =
 
 -- The exchange law: for a 2×2 grid of squares, composing its rows and then the composites, or its
 -- columns and then the composites, gives the same square.
+--
+--      c' ───k───→ d' ───k'───→ f'
+--      ↑           ↑            ↑
+--      f1'   σ01   f2'   σ11    f3'
+--      │           │            │
+--      c ────h───→ d ────h'───→ f
+--      ↑           ↑            ↑
+--      f1    σ00   f2    σ10    f3
+--      │           │            │
+--      a ────g───→ b ────g'───→ e
+--
 exchange ∷ {A ∷ U} (sA : is-segalᵣ A) {a b e c d f c' d' f' : A}
   {f1 : hom a c} {f2 : hom b d} {f3 : hom e f} {f1' : hom c c'} {f2' : hom d d'} {f3' : hom f f'}
   {g : hom a b} {g' : hom b e} {h : hom c d} {h' : hom d f} {k : hom c' d'} {k' : hom d' f'}
