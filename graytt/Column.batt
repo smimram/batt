@@ -64,3 +64,20 @@ is-column-connection {A} sA {a} {b} {d} t k =
     k1 w1 in
   is-equiv-htpy {col-dom t k} {col-cod (Hom.id a) (comp-homᵣ sA t k)} {T} {col-map sA (connection-tr t) k} H
     (is-equiv-tot {A} {λ x . Σ (m : hom a x) . Σ (h : hom x d) . S x m h} {λ x . Σ (m : hom a x) . Σ (h : hom x d) . S' x m h} G eG)
+
+-- the connection of an arrow, as a family of arrows
+conn-fam ∷ {A ∷ U} → arrᵣ A → 𝕀 →ᵣ arrᵣ A
+conn-fam {A} f = λ i . λ j . f (i 𝕀∧ j)
+
+-- its square is a column
+private
+is-column-conn-fam ∷ {A ∷ U} (sA : is-segalᵣ A) (f : arrᵣ A) {e : A} (n : hom (tgtᵣ f) e) →
+  is-column sA (fam-sq (postᵣ (Homs.of-arr {A}) (conn-fam f))) n
+is-column-conn-fam {A} sA f {e} n =
+  subst {squares (fam-bdry (postᵣ (Homs.of-arr {A}) (conn-fam f)))} (λ σ . is-column sA σ n)
+    (sym (fam-sq-of-arr (conn-fam f))) (is-column-connection sA (arr-hom f) n)
+
+-- and so is the square of any family with a path to it
+is-column-conn-path ∷ {A ∷ U} (sA : is-segalᵣ A) (f : arrᵣ A) {Φ : 𝕀 →ᵣ arrᵣ A} (E : conn-fam f ≡ Φ) {e : A}
+  (n : hom (tgtᵣ (Φ 𝕀1)) e) → is-column sA (fam-sq (postᵣ (Homs.of-arr {A}) Φ)) n
+is-column-conn-path {A} sA f refl n = is-column-conn-fam sA f n

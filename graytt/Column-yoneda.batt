@@ -1,0 +1,548 @@
+--
+-- A Yoneda argument for columns
+--
+-- Let Θ be a square with left and bottom sides identities, right side r and top side t (both
+-- x → d), which is a column at the identity of d (Column.batt). Then t and r are equal as 1-cells,
+-- as soon as the arrows of X form a univalent type (key-identity).
+--
+-- Proof. Let θ' be the vertical composite of Θ with the coconnection Γ'_t: a square from id ; t to
+-- r ; id, with identities as bottom and top sides. Composing horizontally with θ' is an equivalence
+-- on the squares with a given left side and identity bottom side (comp-θ'-equiv): by the exchange
+-- law, it is cofolding along Γ'_t (Cofold-square.batt) followed by composing vertically with Θ,
+-- up to the vertical unit law. By transport, it remains an equivalence on the squares whose bottom
+-- side is in the connected component of the identity; there, the usual Yoneda argument shows that
+-- θ' has an inverse for horizontal composition (θ'-inverse), the associativity and unit laws of
+-- squares holding on total spaces. Squares with given vertical sides are homs between arrows, so
+-- θ' gives an isomorphism of arrᵣ X, hence a path.
+--
+-- Postulates: those of the exchange law (objectwise-equiv, univalence, truncation, is-set-𝕀).
+--
+
+open import Stdlib
+open import Hom
+open import Segal
+open import Composition
+open import Unitality
+open import Associativity
+open import HomSquare
+open import Exchange
+open import Square-paths
+open import Cofold-square
+open import Column
+open import Rezk
+open import Univalent
+open import Complete-univalent
+open import Square-hom
+
+--
+-- Squares with given vertical sides
+--
+
+-- the squares with vertical sides l and r, the horizontal sides being free
+Sq ∷ {A ∷ U} {a b c d : A} (l : hom a c) (r : hom b d) → U
+Sq {A} {a} {b} {c} {d} l r = Σ (k : hom a b × hom c d) . squares-lr l r k
+
+-- their horizontal composition and identities
+sq-comp ∷ {A ∷ U} (sA : is-segalᵣ A) {a b e c d f : A} {l : hom a c} {m : hom b d} {r : hom e f} →
+  Sq l m → Sq m r → Sq l r
+sq-comp {A} sA {a} {b} {e} {c} {d} {f} {l} {m} {r} x y =
+  ((comp-homᵣ sA (Product.fst (fst _ x)) (Product.fst (fst _ y)) , comp-homᵣ sA (Product.snd (fst _ x)) (Product.snd (fst _ y))) ,
+   comp-h sA (snd _ x) (snd _ y))
+
+sq-id ∷ {A ∷ U} {a c : A} (l : hom a c) → Sq l l
+sq-id {A} {a} {c} l = ((Hom.id a , Hom.id c) , id-h l)
+
+-- associativity and unit laws, on total spaces
+sq-assoc ∷ {A ∷ U} (sA : is-segalᵣ A) {a b e k c d f m : A} {f1 : hom a c} {f2 : hom b d} {f3 : hom e f} {f4 : hom k m}
+  (x : Sq f1 f2) (y : Sq f2 f3) (z : Sq f3 f4) → sq-comp sA (sq-comp sA x y) z ≡ sq-comp sA x (sq-comp sA y z)
+sq-assoc {A} sA {a} {b} {e} {k} {c} {d} {f} {m} {f1} {f2} {f3} {f4} x y z =
+  let P : Sq f1 f2 → Sq f2 f3 → Sq f3 f4 → U = λ x y z . sq-comp sA (sq-comp sA x y) z ≡ sq-comp sA x (sq-comp sA y z) in
+  let kx : (x : Sq f1 f2) → P x y z = fun (gx , σ) →
+    let kx2 : (gx : hom a b × hom c d) (σ : squares-lr f1 f2 gx) → P (gx , σ) y z = fun (g1 , h1) → λ σ .
+      let ky : (y : Sq f2 f3) → P ((g1 , h1) , σ) y z = fun (gy , τ) →
+        let ky2 : (gy : hom b e × hom d f) (τ : squares-lr f2 f3 gy) → P ((g1 , h1) , σ) (gy , τ) z = fun (g2 , h2) → λ τ .
+          let kz : (z : Sq f3 f4) → P ((g1 , h1) , σ) ((g2 , h2) , τ) z = fun (gz , υ) →
+            let kz2 : (gz : hom e k × hom f m) (υ : squares-lr f3 f4 gz) → P ((g1 , h1) , σ) ((g2 , h2) , τ) (gz , υ) =
+              fun (g3 , h3) → λ υ .
+                Σ-path-join {hom a k × hom c m} {squares-lr f1 f4}
+                  (cong2 pair (comp-homᵣ-assoc A sA g1 g2 g3) (comp-homᵣ-assoc A sA h1 h2 h3))
+                  (comp-h-assoc sA σ τ υ) in
+            kz2 gz υ in
+          kz z in
+        ky2 gy τ in
+      ky y in
+    kx2 gx σ in
+  kx x
+
+sq-lunit ∷ {A ∷ U} (sA : is-segalᵣ A) {a b c d : A} {l : hom a c} {r : hom b d} (x : Sq l r) → sq-comp sA (sq-id l) x ≡ x
+sq-lunit {A} sA {a} {b} {c} {d} {l} {r} x =
+  let k1 : (x : Sq l r) → sq-comp sA (sq-id l) x ≡ x = fun (k , σ) →
+    let k2 : (k : hom a b × hom c d) (σ : squares-lr l r k) → sq-comp sA (sq-id l) (k , σ) ≡{Sq l r} (k , σ) = fun (g , h) → λ σ .
+      Σ-path-join {hom a b × hom c d} {squares-lr l r}
+        (cong2 pair (comp-homᵣ-lunit A sA g) (comp-homᵣ-lunit A sA h)) (comp-h-lunit sA σ) in
+    k2 k σ in
+  k1 x
+
+sq-runit ∷ {A ∷ U} (sA : is-segalᵣ A) {a b c d : A} {l : hom a c} {r : hom b d} (x : Sq l r) → sq-comp sA x (sq-id r) ≡ x
+sq-runit {A} sA {a} {b} {c} {d} {l} {r} x =
+  let k1 : (x : Sq l r) → sq-comp sA x (sq-id r) ≡ x = fun (k , σ) →
+    let k2 : (k : hom a b × hom c d) (σ : squares-lr l r k) → sq-comp sA (k , σ) (sq-id r) ≡{Sq l r} (k , σ) = fun (g , h) → λ σ .
+      Σ-path-join {hom a b × hom c d} {squares-lr l r}
+        (cong2 pair (comp-homᵣ-runit A sA g) (comp-homᵣ-runit A sA h)) (comp-h-runit sA σ) in
+    k2 k σ in
+  k1 x
+
+--
+-- Moving squares
+--
+
+-- moving the sides of a square is an equivalence
+private
+is-equiv-sq-move ∷ {A ∷ U} {a b c d : A} {l l' : hom a c} (pl : l ≡ l') {r r' : hom b d} (pr : r ≡ r')
+  {g g' : hom a b} (pg : g ≡ g') {h h' : hom c d} (ph : h ≡ h') → is-equiv (sq-move pl pr pg ph)
+is-equiv-sq-move {A} {a} {b} {c} {d} {l} refl {r} refl {g} refl {h} refl = is-equiv-id (square l r g h)
+
+-- a column stays a column when its horizontal sides move
+private
+is-column-move ∷ {A ∷ U} (sA : is-segalᵣ A) {a b c d e : A} {l : hom a c} {r : hom b d} {g g' : hom a b} (pg : g ≡ g')
+  {t t' : hom c d} (pt : t ≡ t') (Θ : square l r g t) (k : hom d e) →
+  is-column sA (sq-move refl refl pg pt Θ) k → is-column sA Θ k
+is-column-move {A} sA {a} {b} {c} {d} {e} {l} {r} {g} refl {t} refl Θ k col = col
+
+-- a map of Σ-types over an equivalence of the bases, which is an equivalence, is fibrewise one
+private
+Σ-map-fibrewise ∷ {B B' : U} {P : B → U} {Q : B' → U} (β : B → B') (φ : (b : B) → P b → Q (β b)) → is-equiv β →
+  is-equiv {Σ (b : B) . P b} {Σ (b' : B') . Q b'} (λ w . (β (fst _ w) , φ (fst _ w) (snd _ w))) → (b : B) → is-equiv (φ b)
+Σ-map-fibrewise {B} {B'} {P} {Q} β φ eβ e b =
+  let T : (Σ (b : B) . P b) → Σ (b : B) . Q (β b) = tot {B} {P} {λ b . Q (β b)} φ in
+  let eT : is-equiv T =
+    is-equiv-cancel-l (Σ-base β Q) T (is-equiv-Σ-base β eβ Q)
+      (is-equiv-htpy {Σ (b : B) . P b} {Σ (b' : B') . Q b'} {λ w . (β (fst _ w) , φ (fst _ w) (snd _ w))}
+        {λ w . Σ-base β Q (T w)} (fun (b , p) → refl) e) in
+  is-equiv-tot-fibrewise {B} {P} {λ b . Q (β b)} φ eT b
+
+-- composing vertically with a column, for a given left side of the upper square
+private
+col-fibre ∷ {X ∷ U} (sX : is-segalᵣ X) {x b d e : X} {r : hom b d} {g : hom x b} {t : hom x d} (Θ : square (Hom.id x) r g t)
+  (k : hom d e) {y : X} (m : hom x y) → (Σ (h : hom y e) . square m k t h) →
+  Σ (h : hom y e) . square (comp-homᵣ sX (Hom.id x) m) (comp-homᵣ sX r k) g h
+col-fibre {X} sX Θ k m w = (fst _ w , comp-v sX Θ (snd _ w))
+
+private
+is-equiv-col-fibre ∷ {X ∷ U} (sX : is-segalᵣ X) {x b d e : X} {r : hom b d} {g : hom x b} {t : hom x d} (Θ : square (Hom.id x) r g t)
+  (k : hom d e) → is-column sX Θ k → {y : X} (m : hom x y) → is-equiv (col-fibre sX Θ k m)
+is-equiv-col-fibre {X} sX {x} {b} {d} {e} {r} {g} {t} Θ k col {y} m =
+  let D : X → U = λ y . Σ (m : hom x y) . Σ (h : hom y e) . square m k t h in
+  let C' : X → U = λ y . Σ (m : hom x y) . Σ (h : hom y e) . square m (comp-homᵣ sX r k) g h in
+  let inner : (y : X) → D y → C' y = λ y w . (comp-homᵣ sX (Hom.id x) (fst _ w) , col-fibre sX Θ k (fst _ w) (snd _ w)) in
+  let einner : (y : X) → is-equiv (inner y) =
+    is-equiv-tot-fibrewise {X} {D} {C'} inner
+      (is-equiv-htpy {col-dom t k} {col-cod g (comp-homᵣ sX r k)} {col-map sX Θ k} {tot {X} {D} {C'} inner}
+        (fun (y , w) → refl) col) in
+  let eβ : is-equiv (comp-homᵣ sX {x} {x} {y} (Hom.id x)) =
+    is-equiv-htpy {hom x y} {hom x y} {λ m . m} {comp-homᵣ sX {x} {x} {y} (Hom.id x)} (λ m . sym (comp-homᵣ-lunit X sX m))
+      (is-equiv-id (hom x y)) in
+  Σ-map-fibrewise {hom x y} {hom x y} {λ m . Σ (h : hom y e) . square m k t h}
+    {λ m' . Σ (h : hom y e) . square m' (comp-homᵣ sX r k) g h}
+    (comp-homᵣ sX {x} {x} {y} (Hom.id x)) (λ m . col-fibre sX Θ k m) eβ (einner y) m
+
+--
+-- Composing with the comparison square
+--
+
+-- the comparison square θ', from id ; t to r ; id
+private
+θ'-sq ∷ {X ∷ U} (sX : is-segalᵣ X) {x d : X} {r t : hom x d} (Θ : square (Hom.id x) r (Hom.id x) t) →
+  square (comp-homᵣ sX (Hom.id x) t) (comp-homᵣ sX r (Hom.id d)) (Hom.id x) (Hom.id d)
+θ'-sq {X} sX {x} {d} {r} {t} Θ = comp-v sX Θ (connection-bl t)
+
+-- composing horizontally with it, for a left side L and a bottom side g
+private
+comp-θ' ∷ {X ∷ U} (sX : is-segalᵣ X) {x d : X} {r t : hom x d} (Θ : square (Hom.id x) r (Hom.id x) t)
+  {y : X} (L : hom x y) (g : hom x x) →
+  (Σ (h : hom y d) . square L (comp-homᵣ sX (Hom.id x) t) g h) →
+  Σ (h : hom y d) . square L (comp-homᵣ sX r (Hom.id d)) (comp-homᵣ sX g (Hom.id x)) h
+comp-θ' {X} sX {x} {d} {r} {t} Θ L g w = (comp-homᵣ sX (fst _ w) (Hom.id d) , comp-h sX (snd _ w) (θ'-sq sX Θ))
+
+-- composing vertically with the identity square below
+private
+lift-left ∷ {X ∷ U} (sX : is-segalᵣ X) {x d : X} (t : hom x d) {y : X} (m : hom x y) →
+  (Σ (h : hom y d) . square m t (Hom.id x) h) → Σ (h : hom y d) . square (comp-homᵣ sX (Hom.id x) m) (comp-homᵣ sX (Hom.id x) t) (Hom.id x) h
+lift-left {X} sX {x} {d} t m w = (fst _ w , comp-v sX (id-v (Hom.id x)) (snd _ w))
+
+private
+is-equiv-lift-left ∷ {X ∷ U} (sX : is-segalᵣ X) {x d : X} (t : hom x d) {y : X} (m : hom x y) → is-equiv (lift-left sX t m)
+is-equiv-lift-left {X} sX {x} {d} t {y} m =
+  let pm : comp-homᵣ sX (Hom.id x) m ≡ m = comp-homᵣ-lunit X sX m in
+  let pt : comp-homᵣ sX (Hom.id x) t ≡ t = comp-homᵣ-lunit X sX t in
+  let M : (Σ (h : hom y d) . square (comp-homᵣ sX (Hom.id x) m) (comp-homᵣ sX (Hom.id x) t) (Hom.id x) h) →
+          Σ (h : hom y d) . square m t (Hom.id x) h =
+    tot {hom y d} {λ h . square (comp-homᵣ sX (Hom.id x) m) (comp-homᵣ sX (Hom.id x) t) (Hom.id x) h}
+      {λ h . square m t (Hom.id x) h} (λ h . sq-move pm pt refl refl) in
+  let eM : is-equiv M =
+    is-equiv-tot {hom y d} {λ h . square (comp-homᵣ sX (Hom.id x) m) (comp-homᵣ sX (Hom.id x) t) (Hom.id x) h}
+      {λ h . square m t (Hom.id x) h} (λ h . sq-move pm pt refl refl) (λ h . is-equiv-sq-move pm pt refl refl) in
+  let htpy : (w : Σ (h : hom y d) . square m t (Hom.id x) h) → w ≡ M (lift-left sX t m w) = fun (h , σ) →
+    cong {square m t (Hom.id x) h} {Σ (h : hom y d) . square m t (Hom.id x) h} (λ τ . (h , τ))
+      (sym (trans (sym (bt-move pm pt (comp-v sX (id-v (Hom.id x)) σ))) (comp-v-lunit sX σ))) in
+  is-equiv-cancel-l M (lift-left sX t m) eM
+    (is-equiv-htpy {Σ (h : hom y d) . square m t (Hom.id x) h} {Σ (h : hom y d) . square m t (Hom.id x) h}
+      {λ w . w} {λ w . M (lift-left sX t m w)} htpy (is-equiv-id (Σ (h : hom y d) . square m t (Hom.id x) h)))
+
+-- the column with an identity square on its left
+private
+Θ-left ∷ {X ∷ U} (sX : is-segalᵣ X) {x d : X} {r t : hom x d} (Θ : square (Hom.id x) r (Hom.id x) t) →
+  square (Hom.id x) r (comp-homᵣ sX (Hom.id x) (Hom.id x)) (comp-homᵣ sX (Hom.id x) t)
+Θ-left {X} sX {x} {d} {r} {t} Θ = comp-h sX (id-v (Hom.id x)) Θ
+
+private
+is-column-Θ-left ∷ {X ∷ U} (sX : is-segalᵣ X) {x d : X} {r t : hom x d} (Θ : square (Hom.id x) r (Hom.id x) t) {e : X}
+  (k : hom d e) → is-column sX Θ k → is-column sX (Θ-left sX Θ) k
+is-column-Θ-left {X} sX {x} {d} {r} {t} Θ k col =
+  let p : comp-homᵣ sX (Hom.id x) (Hom.id x) ≡ Hom.id x = comp-homᵣ-lunit X sX (Hom.id x) in
+  let q : comp-homᵣ sX (Hom.id x) t ≡ t = comp-homᵣ-lunit X sX t in
+  let E : sq-move refl refl p q (Θ-left sX Θ) ≡ Θ = trans (sym (lr-move p q (Θ-left sX Θ))) (comp-h-lunit sX Θ) in
+  is-column-move sX p q (Θ-left sX Θ) k
+    (subst {square (Hom.id x) r (Hom.id x) t} (λ σ . is-column sX σ k) (sym E) col)
+
+-- cofolding, then composing vertically with the column
+private
+col-fold ∷ {X ∷ U} (sX : is-segalᵣ X) {x d : X} {r t : hom x d} (Θ : square (Hom.id x) r (Hom.id x) t)
+  {y : X} (m : hom x y) → (Σ (h : hom y d) . square m t (Hom.id x) h) →
+  Σ (h : hom y d) . square (comp-homᵣ sX (Hom.id x) m) (comp-homᵣ sX r (Hom.id d)) (comp-homᵣ sX (Hom.id x) (Hom.id x)) h
+col-fold {X} sX {x} {d} {r} {t} Θ m w = col-fibre sX (Θ-left sX Θ) (Hom.id d) m (cofold-sq sX (Hom.id x) t m w)
+
+private
+is-equiv-col-fold ∷ {X ∷ U} (sX : is-segalᵣ X) {x d : X} {r t : hom x d} (Θ : square (Hom.id x) r (Hom.id x) t)
+  (col : is-column sX Θ (Hom.id d)) {y : X} (m : hom x y) → is-equiv (col-fold sX Θ m)
+is-equiv-col-fold {X} sX {x} {d} {r} {t} Θ col m =
+  is-equiv-circ (col-fibre sX (Θ-left sX Θ) (Hom.id d) m) (cofold-sq sX (Hom.id x) t m)
+    (is-equiv-col-fibre sX (Θ-left sX Θ) (Hom.id d) (is-column-Θ-left sX Θ (Hom.id d) col) m)
+    (is-equiv-cofold-sq sX (Hom.id x) t m)
+
+-- by the exchange law, this is composing with θ' after the identity square
+private
+col-fold-exchange ∷ {X ∷ U} (sX : is-segalᵣ X) {x d : X} {r t : hom x d} (Θ : square (Hom.id x) r (Hom.id x) t)
+  {y : X} (m : hom x y) (w : Σ (h : hom y d) . square m t (Hom.id x) h) →
+  col-fold sX Θ m w ≡ comp-θ' sX Θ (comp-homᵣ sX (Hom.id x) m) (Hom.id x) (lift-left sX t m w)
+col-fold-exchange {X} sX {x} {d} {r} {t} Θ {y} m w =
+  let k : (w : Σ (h : hom y d) . square m t (Hom.id x) h) →
+      col-fold sX Θ m w ≡ comp-θ' sX Θ (comp-homᵣ sX (Hom.id x) m) (Hom.id x) (lift-left sX t m w) = fun (h , σ) →
+    cong {square (comp-homᵣ sX (Hom.id x) m) (comp-homᵣ sX r (Hom.id d)) (comp-homᵣ sX (Hom.id x) (Hom.id x)) (comp-homᵣ sX h (Hom.id d))}
+      {Σ (h' : hom y d) . square (comp-homᵣ sX (Hom.id x) m) (comp-homᵣ sX r (Hom.id d)) (comp-homᵣ sX (Hom.id x) (Hom.id x)) h'}
+      (λ τ . (comp-homᵣ sX h (Hom.id d) , τ))
+      (exchange sX (id-v (Hom.id x)) Θ σ (connection-bl t)) in
+  k w
+
+-- composing with θ' is an equivalence, for any left side L, with the identity as bottom side
+private
+comp-θ'-equiv-id ∷ {X ∷ U} (sX : is-segalᵣ X) {x d : X} {r t : hom x d} (Θ : square (Hom.id x) r (Hom.id x) t)
+  (col : is-column sX Θ (Hom.id d)) {y : X} (L : hom x y) → is-equiv (comp-θ' sX Θ L (Hom.id x))
+comp-θ'-equiv-id {X} sX {x} {d} {r} {t} Θ col {y} L =
+  let e0 : is-equiv (comp-θ' sX Θ (comp-homᵣ sX (Hom.id x) L) (Hom.id x)) =
+    is-equiv-cancel-r (comp-θ' sX Θ (comp-homᵣ sX (Hom.id x) L) (Hom.id x)) (lift-left sX t L) (is-equiv-lift-left sX t L)
+      (is-equiv-htpy {Σ (h : hom y d) . square L t (Hom.id x) h}
+        {Σ (h : hom y d) . square (comp-homᵣ sX (Hom.id x) L) (comp-homᵣ sX r (Hom.id d)) (comp-homᵣ sX (Hom.id x) (Hom.id x)) h}
+        {col-fold sX Θ L} {λ w . comp-θ' sX Θ (comp-homᵣ sX (Hom.id x) L) (Hom.id x) (lift-left sX t L w)}
+        (col-fold-exchange sX Θ L) (is-equiv-col-fold sX Θ col L)) in
+  subst {hom x y} (λ L' . is-equiv (comp-θ' sX Θ L' (Hom.id x))) (comp-homᵣ-lunit X sX L) e0
+
+-- and with any bottom side in the connected component of the identity
+private
+comp-θ'-equiv ∷ {X ∷ U} (sX : is-segalᵣ X) {x d : X} {r t : hom x d} (Θ : square (Hom.id x) r (Hom.id x) t)
+  (col : is-column sX Θ (Hom.id d)) {y : X} (L : hom x y) (g : hom x x) → ‖ Hom.id x ≡ g ‖ → is-equiv (comp-θ' sX Θ L g)
+comp-θ'-equiv {X} sX {x} {d} {r} {t} Θ col {y} L g =
+  PropTrunc.rec' {Hom.id x ≡ g} {is-equiv (comp-θ' sX Θ L g)} (is-prop-is-equiv (comp-θ' sX Θ L g))
+    (λ p . subst {hom x x} (λ g' . is-equiv (comp-θ' sX Θ L g')) p (comp-θ'-equiv-id sX Θ col L))
+
+--
+-- The Yoneda argument
+--
+-- On the squares whose bottom side is in the connected component of the identity, composing with
+-- θ' is an equivalence, onto the squares whose bottom side is in the component of id ; id
+-- (comp-θ'-comp-equiv). The two total maps are fibred over these components, and paths between
+-- their points are paths of squares, the component data being propositions.
+--
+
+private
+trunc-fmap ∷ {P Q : U} (f : P → Q) → ‖ P ‖ → ‖ Q ‖
+trunc-fmap {P} {Q} f = PropTrunc.rec' {P} {‖ Q ‖} (is-prop-trunc Q) (λ p . | f p |)
+
+-- the squares with left side L, right side id ; t and bottom side in the component of the identity
+private
+comp-dom ∷ {X ∷ U} (sX : is-segalᵣ X) {x d : X} (t : hom x d) {y : X} (L : hom x y) → U
+comp-dom {X} sX {x} {d} t {y} L =
+  Σ (gc : Σ (g : hom x x) . ‖ Hom.id x ≡ g ‖) . Σ (h : hom y d) . square L (comp-homᵣ sX (Hom.id x) t) (fst _ gc) h
+
+private
+comp-cod ∷ {X ∷ U} (sX : is-segalᵣ X) {x d : X} (r : hom x d) {y : X} (L : hom x y) → U
+comp-cod {X} sX {x} {d} r {y} L =
+  Σ (gc : Σ (g : hom x x) . ‖ comp-homᵣ sX (Hom.id x) (Hom.id x) ≡ g ‖) . Σ (h : hom y d) . square L (comp-homᵣ sX r (Hom.id d)) (fst _ gc) h
+
+private
+comp-base ∷ {X ∷ U} (sX : is-segalᵣ X) (x : X) →
+  (Σ (g : hom x x) . ‖ Hom.id x ≡ g ‖) → Σ (g : hom x x) . ‖ comp-homᵣ sX (Hom.id x) (Hom.id x) ≡ g ‖
+comp-base {X} sX x gc =
+  (comp-homᵣ sX (fst _ gc) (Hom.id x) ,
+   trunc-fmap {Hom.id x ≡ fst _ gc} {comp-homᵣ sX (Hom.id x) (Hom.id x) ≡ comp-homᵣ sX (fst _ gc) (Hom.id x)}
+     (cong {hom x x} {hom x x} (λ g . comp-homᵣ sX g (Hom.id x))) (snd _ gc))
+
+private
+is-equiv-comp-base ∷ {X ∷ U} (sX : is-segalᵣ X) (x : X) → is-equiv (comp-base sX x)
+is-equiv-comp-base {X} sX x =
+  let runit-x : (g : hom x x) → comp-homᵣ sX g (Hom.id x) ≡ g = λ g . comp-homᵣ-runit X sX g in
+  let f : hom x x → hom x x = λ g . comp-homᵣ sX g (Hom.id x) in
+  let ef : is-equiv f = is-equiv-htpy {hom x x} {hom x x} {λ g . g} {f} (λ g . sym (runit-x g)) (is-equiv-id (hom x x)) in
+  let Q : hom x x → U = λ g' . ‖ comp-homᵣ sX (Hom.id x) (Hom.id x) ≡ g' ‖ in
+  let φ : (g : hom x x) → ‖ Hom.id x ≡ g ‖ → Q (f g) = λ g .
+    trunc-fmap {Hom.id x ≡ g} {comp-homᵣ sX (Hom.id x) (Hom.id x) ≡ f g} (cong f) in
+  let ψ : (g : hom x x) → Q (f g) → ‖ Hom.id x ≡ g ‖ = λ g .
+    trunc-fmap {comp-homᵣ sX (Hom.id x) (Hom.id x) ≡ f g} {Hom.id x ≡ g} (λ p . trans (sym (runit-x (Hom.id x))) (trans p (runit-x g))) in
+  let eφ : (g : hom x x) → is-equiv (φ g) = λ g .
+    is-equiv-prop (is-prop-trunc (Hom.id x ≡ g)) (is-prop-trunc (comp-homᵣ sX (Hom.id x) (Hom.id x) ≡ f g)) (φ g) (ψ g) in
+  is-equiv-htpy {Σ (g : hom x x) . ‖ Hom.id x ≡ g ‖} {Σ (g : hom x x) . Q g}
+    {λ w . Σ-base f Q (tot {hom x x} {λ g . ‖ Hom.id x ≡ g ‖} {λ g . Q (f g)} φ w)} {comp-base sX x}
+    (fun (g , c) → refl)
+    (is-equiv-circ (Σ-base f Q) (tot {hom x x} {λ g . ‖ Hom.id x ≡ g ‖} {λ g . Q (f g)} φ) (is-equiv-Σ-base f ef Q)
+      (is-equiv-tot {hom x x} {λ g . ‖ Hom.id x ≡ g ‖} {λ g . Q (f g)} φ eφ))
+
+-- composing with θ', on these components
+private
+comp-θ'-comp ∷ {X ∷ U} (sX : is-segalᵣ X) {x d : X} {r t : hom x d} (Θ : square (Hom.id x) r (Hom.id x) t)
+  {y : X} (L : hom x y) → comp-dom sX t L → comp-cod sX r L
+comp-θ'-comp {X} sX {x} {d} {r} {t} Θ L w =
+  (comp-base sX x (fst _ w) , comp-θ' sX Θ L (fst _ (fst _ w)) (snd _ w))
+
+private
+comp-θ'-comp-equiv ∷ {X ∷ U} (sX : is-segalᵣ X) {x d : X} {r t : hom x d} (Θ : square (Hom.id x) r (Hom.id x) t)
+  (col : is-column sX Θ (Hom.id d)) {y : X} (L : hom x y) → is-equiv (comp-θ'-comp sX Θ L)
+comp-θ'-comp-equiv {X} sX {x} {d} {r} {t} Θ col {y} L =
+  let B : U = Σ (g : hom x x) . ‖ Hom.id x ≡ g ‖ in
+  let B' : U = Σ (g : hom x x) . ‖ comp-homᵣ sX (Hom.id x) (Hom.id x) ≡ g ‖ in
+  let P : B → U = λ gc . Σ (h : hom y d) . square L (comp-homᵣ sX (Hom.id x) t) (fst _ gc) h in
+  let Q : B' → U = λ gc . Σ (h : hom y d) . square L (comp-homᵣ sX r (Hom.id d)) (fst _ gc) h in
+  let φ : (gc : B) → P gc → Q (comp-base sX x gc) = λ gc . comp-θ' sX Θ L (fst _ gc) in
+  is-equiv-htpy {Σ (gc : B) . P gc} {Σ (gc : B') . Q gc}
+    {λ w . Σ-base (comp-base sX x) Q (tot {B} {P} {λ gc . Q (comp-base sX x gc)} φ w)} {comp-θ'-comp sX Θ L}
+    (fun (gc , w) → refl)
+    (is-equiv-circ (Σ-base (comp-base sX x) Q) (tot {B} {P} {λ gc . Q (comp-base sX x gc)} φ)
+      (is-equiv-Σ-base (comp-base sX x) (is-equiv-comp-base sX x) Q)
+      (is-equiv-tot {B} {P} {λ gc . Q (comp-base sX x gc)} φ
+        (λ gc . comp-θ'-equiv sX Θ col L (fst _ gc) (snd _ gc))))
+
+-- forgetting the components
+private
+dom→sq ∷ {X ∷ U} (sX : is-segalᵣ X) {x d : X} (t : hom x d) {y : X} (L : hom x y) →
+  comp-dom sX t L → Sq L (comp-homᵣ sX (Hom.id x) t)
+dom→sq {X} sX {x} {d} t {y} L w = ((fst _ (fst _ w) , fst _ (snd _ w)) , snd _ (snd _ w))
+
+private
+cod→sq ∷ {X ∷ U} (sX : is-segalᵣ X) {x d : X} (r : hom x d) {y : X} (L : hom x y) →
+  comp-cod sX r L → Sq L (comp-homᵣ sX r (Hom.id d))
+cod→sq {X} sX {x} {d} r {y} L w = ((fst _ (fst _ w) , fst _ (snd _ w)) , snd _ (snd _ w))
+
+-- points of the components with the same square are equal
+private
+cod-path ∷ {X ∷ U} (sX : is-segalᵣ X) {x d : X} (r : hom x d) {y : X} (L : hom x y) (u v : comp-cod sX r L) →
+  cod→sq sX r L u ≡ cod→sq sX r L v → u ≡ v
+cod-path {X} sX {x} {d} r {y} L u v e =
+  let Pr : hom x x → U = λ g . ‖ comp-homᵣ sX (Hom.id x) (Hom.id x) ≡ g ‖ in
+  let S : U = Sq L (comp-homᵣ sX r (Hom.id d)) in
+  let R : comp-cod sX r L → Σ (s : S) . Pr (Product.fst (fst _ s)) = λ w . (cod→sq sX r L w , snd _ (fst _ w)) in
+  let R' : (Σ (s : S) . Pr (Product.fst (fst _ s))) → comp-cod sX r L = λ w .
+    ((Product.fst (fst _ (fst _ w)) , snd _ w) , (Product.snd (fst _ (fst _ w)) , snd _ (fst _ w))) in
+  let rr : (w : comp-cod sX r L) → R' (R w) ≡ w = fun (gc , w2) →
+    let k1 : (gc : Σ (g : hom x x) . Pr g) (w2 : Σ (h : hom y d) . square L (comp-homᵣ sX r (Hom.id d)) (fst _ gc) h) →
+        R' (R (gc , w2)) ≡{comp-cod sX r L} (gc , w2) = fun (g , c) → fun (h , σ) → refl in
+    k1 gc w2 in
+  retraction-inj R (R' , rr)
+    (subtype-path {S} (λ s . Pr (Product.fst (fst _ s))) (λ s . is-prop-trunc (comp-homᵣ sX (Hom.id x) (Hom.id x) ≡ Product.fst (fst _ s)))
+      e (snd _ (fst _ u)) (snd _ (fst _ v)))
+
+-- the comparison square, with its horizontal sides
+θ'-tot ∷ {X ∷ U} (sX : is-segalᵣ X) {x d : X} {r t : hom x d} (Θ : square (Hom.id x) r (Hom.id x) t) →
+  Sq (comp-homᵣ sX (Hom.id x) t) (comp-homᵣ sX r (Hom.id d))
+θ'-tot {X} sX {x} {d} {r} {t} Θ = ((Hom.id x , Hom.id d) , θ'-sq sX Θ)
+
+-- θ' is invertible
+θ'-inverse ∷ {X ∷ U} (sX : is-segalᵣ X) {x d : X} {r t : hom x d} (Θ : square (Hom.id x) r (Hom.id x) t)
+  (col : is-column sX Θ (Hom.id d)) →
+  Σ (v : Sq (comp-homᵣ sX r (Hom.id d)) (comp-homᵣ sX (Hom.id x) t)) .
+    (sq-comp sX (θ'-tot sX Θ) v ≡ sq-id (comp-homᵣ sX (Hom.id x) t)) × (sq-comp sX v (θ'-tot sX Θ) ≡ sq-id (comp-homᵣ sX r (Hom.id d)))
+θ'-inverse {X} sX {x} {d} {r} {t} Θ col =
+  let tL : hom x d = comp-homᵣ sX (Hom.id x) t in
+  let rR : hom x d = comp-homᵣ sX r (Hom.id d) in
+  let θs : Sq tL rR = θ'-tot sX Θ in
+  let ll : comp-homᵣ sX (Hom.id x) (Hom.id x) ≡ Hom.id x = comp-homᵣ-lunit X sX (Hom.id x) in
+  -- a left inverse, by surjectivity at rR
+  let F1 : comp-dom sX t rR → comp-cod sX r rR = comp-θ'-comp sX Θ rR in
+  let e1 : is-equiv F1 = comp-θ'-comp-equiv sX Θ col rR in
+  let target : comp-cod sX r rR = ((Hom.id x , | ll |) , (Hom.id d , id-h rR)) in
+  let s1 : section F1 = is-equiv-sec F1 e1 in
+  let dv : comp-dom sX t rR = section-map F1 s1 target in
+  let v : Sq rR tL = dom→sq sX t rR dv in
+  let left : sq-comp sX v θs ≡ sq-id rR = cong (cod→sq sX r rR) (snd _ s1 target) in
+  -- a right inverse, by injectivity at tL
+  let F2 : comp-dom sX t tL → comp-cod sX r tL = comp-θ'-comp sX Θ tL in
+  let e2 : is-equiv F2 = comp-θ'-comp-equiv sX Θ col tL in
+  let gv : hom x x = fst _ (fst _ dv) in
+  let cv : ‖ Hom.id x ≡ gv ‖ = snd _ (fst _ dv) in
+  let w1 : comp-dom sX t tL =
+    ((comp-homᵣ sX (Hom.id x) gv ,
+      trunc-fmap {Hom.id x ≡ gv} {Hom.id x ≡ comp-homᵣ sX (Hom.id x) gv} (λ p . trans p (sym (comp-homᵣ-lunit X sX gv))) cv) ,
+     (comp-homᵣ sX (Hom.id d) (fst _ (snd _ dv)) , comp-h sX (θ'-sq sX Θ) (snd _ (snd _ dv)))) in
+  let r0 : Hom.id x ≡ Hom.id x = refl in
+  let w2 : comp-dom sX t tL = ((Hom.id x , | r0 |) , (Hom.id d , id-h tL)) in
+  let sqp : cod→sq sX r tL (F2 w1) ≡ cod→sq sX r tL (F2 w2) =
+    trans (sq-assoc sX θs v θs)
+      (trans (cong {Sq rR rR} {Sq tL rR} (λ z . sq-comp sX θs z) left)
+        (trans (sq-runit sX θs) (sym (sq-lunit sX θs)))) in
+  let inj : w1 ≡ w2 = retraction-inj F2 (is-equiv-ret F2 e2) (cod-path sX r tL (F2 w1) (F2 w2) sqp) in
+  (v , (cong (dom→sq sX t tL) inj , left))
+
+--
+-- Squares with given vertical sides are homs between arrows
+--
+
+-- a hom between arrows, as a square
+hom→Sq ∷ {X ∷ U} {l r : arrᵣ X} → hom l r → Sq (arr-hom l) (arr-hom r)
+hom→Sq {X} {l} {r} u = ((hom-map srcᵣ u , hom-map tgtᵣ u) , of-hom u)
+
+private
+is-equiv-hom→Sq ∷ {X ∷ U} (l r : arrᵣ X) → is-equiv (hom→Sq {X} {l} {r})
+is-equiv-hom→Sq {X} l r =
+  let S1 : U = Σ (h : hom (tgtᵣ l) (tgtᵣ r)) . Σ (g : hom (srcᵣ l) (srcᵣ r)) . square (arr-hom l) (arr-hom r) g h in
+  let S2 : U = Sq (arr-hom l) (arr-hom r) in
+  let ro : S1 → S2 = λ w . ((fst _ (snd _ w) , fst _ w) , snd _ (snd _ w)) in
+  let ro' : S2 → S1 = λ w . (Product.snd (fst _ w) , (Product.fst (fst _ w) , snd _ w)) in
+  let sec : (w : S2) → ro (ro' w) ≡ w = fun (k , σ) →
+    let k1 : (k : hom (srcᵣ l) (srcᵣ r) × hom (tgtᵣ l) (tgtᵣ r)) (σ : squares-lr (arr-hom l) (arr-hom r) k) →
+        ro (ro' (k , σ)) ≡{S2} (k , σ) = fun (g , h) → λ σ . refl in
+    k1 k σ in
+  let retr : (w : S1) → ro' (ro w) ≡ w = fun (h , w') →
+    let k1 : (w' : Σ (g : hom (srcᵣ l) (srcᵣ r)) . square (arr-hom l) (arr-hom r) g h) → ro' (ro (h , w')) ≡{S1} (h , w') =
+      fun (g , σ) → refl in
+    k1 w' in
+  is-equiv-htpy {hom l r} {S2} {λ u . ro (hom→square l r u)} {hom→Sq {X} {l} {r}} (λ u . refl)
+    (is-equiv-circ ro (hom→square l r) (is-iso→is-equiv ro (ro' , (sec , retr))) (is-equiv-hom→square l r))
+
+-- transporting over the horizontal sides is transporting over the boundary
+private
+subst-lr-bdry ∷ {X ∷ U} (l r : arrᵣ X) {g g' : hom (srcᵣ l) (srcᵣ r)} (β : g ≡ g') {h h' : hom (tgtᵣ l) (tgtᵣ r)} (τ : h ≡ h')
+  (σ : square (arr-hom l) (arr-hom r) g h) →
+  subst (squares-lr (arr-hom l) (arr-hom r)) (cong2 pair β τ) σ ≡ subst squares (cong2 (bdry-lr l r) β τ) σ
+subst-lr-bdry {X} l r {g} refl {h} refl σ = refl
+
+-- composition and identities
+hom→Sq-comp ∷ {X ∷ U} (sX : is-segalᵣ X) {l m r : arrᵣ X} (u : hom l m) (v : hom m r) →
+  sq-comp sX (hom→Sq u) (hom→Sq v) ≡ hom→Sq (comp-homᵣ (is-segal-arrᵣ sX) u v)
+hom→Sq-comp {X} sX {l} {m} {r} u v =
+  let sV : is-segalᵣ (arrᵣ X) = is-segal-arrᵣ sX in
+  let c : hom l r = comp-homᵣ sV u v in
+  let β : hom-map srcᵣ c ≡ comp-homᵣ sX (hom-map srcᵣ u) (hom-map srcᵣ v) = hom-map-comp (arrᵣ X) X srcᵣ sV sX u v in
+  let τ : hom-map tgtᵣ c ≡ comp-homᵣ sX (hom-map tgtᵣ u) (hom-map tgtᵣ v) = hom-map-comp (arrᵣ X) X tgtᵣ sV sX u v in
+  let S : U = Sq (arr-hom l) (arr-hom r) in
+  let P1 : sq-comp sX (hom→Sq u) (hom→Sq v) ≡{S}
+      ((comp-homᵣ sX (hom-map srcᵣ u) (hom-map srcᵣ v) , comp-homᵣ sX (hom-map tgtᵣ u) (hom-map tgtᵣ v)) , comp-of-hom sX u v) =
+    cong {square (arr-hom l) (arr-hom r) (comp-homᵣ sX (hom-map srcᵣ u) (hom-map srcᵣ v)) (comp-homᵣ sX (hom-map tgtᵣ u) (hom-map tgtᵣ v))} {S}
+      (λ σ . ((comp-homᵣ sX (hom-map srcᵣ u) (hom-map srcᵣ v) , comp-homᵣ sX (hom-map tgtᵣ u) (hom-map tgtᵣ v)) , σ))
+      (comp-h-gen-β sX u v) in
+  let P2 : hom→Sq c ≡{S}
+      ((comp-homᵣ sX (hom-map srcᵣ u) (hom-map srcᵣ v) , comp-homᵣ sX (hom-map tgtᵣ u) (hom-map tgtᵣ v)) , comp-of-hom sX u v) =
+    Σ-path-join {hom (srcᵣ l) (srcᵣ r) × hom (tgtᵣ l) (tgtᵣ r)} {squares-lr (arr-hom l) (arr-hom r)}
+      (cong2 pair β τ) (subst-lr-bdry l r β τ (of-hom c)) in
+  trans P1 (sym P2)
+
+hom→Sq-id ∷ {X ∷ U} (l : arrᵣ X) → sq-id (arr-hom l) ≡ hom→Sq (Hom.id l)
+hom→Sq-id {X} l = refl
+
+--
+-- An invertible square between arrows gives a path
+--
+
+private
+sq-iso→path-arr ∷ {X ∷ U} (rX : is-rezkᵣ X) {l r : arrᵣ X} (θ : Sq (arr-hom l) (arr-hom r)) (v : Sq (arr-hom r) (arr-hom l)) →
+  sq-comp (rezk-segalᵣ rX) θ v ≡ sq-id (arr-hom l) → sq-comp (rezk-segalᵣ rX) v θ ≡ sq-id (arr-hom r) → l ≡ r
+sq-iso→path-arr {X} rX {l} {r} θ v e1 e2 =
+  let sX : is-segalᵣ X = rezk-segalᵣ rX in
+  let sV : is-segalᵣ (arrᵣ X) = is-segal-arrᵣ sX in
+  let sl : section (hom→Sq {X} {l} {r}) = is-equiv-sec (hom→Sq {X} {l} {r}) (is-equiv-hom→Sq l r) in
+  let sr : section (hom→Sq {X} {r} {l}) = is-equiv-sec (hom→Sq {X} {r} {l}) (is-equiv-hom→Sq r l) in
+  let u : hom l r = section-map (hom→Sq {X} {l} {r}) sl θ in
+  let w : hom r l = section-map (hom→Sq {X} {r} {l}) sr v in
+  let eu : hom→Sq u ≡ θ = snd _ sl θ in
+  let ew : hom→Sq w ≡ v = snd _ sr v in
+  let p1 : comp-homᵣ sV u w ≡ Hom.id l =
+    retraction-inj (hom→Sq {X} {l} {l}) (is-equiv-ret (hom→Sq {X} {l} {l}) (is-equiv-hom→Sq l l))
+      (trans (sym (hom→Sq-comp sX u w))
+        (trans (cong2 {Sq (arr-hom l) (arr-hom r)} {Sq (arr-hom r) (arr-hom l)} {Sq (arr-hom l) (arr-hom l)} (λ a b . sq-comp sX a b) eu ew) (trans e1 (hom→Sq-id l)))) in
+  let p2 : comp-homᵣ sV w u ≡ Hom.id r =
+    retraction-inj (hom→Sq {X} {r} {r}) (is-equiv-ret (hom→Sq {X} {r} {r}) (is-equiv-hom→Sq r r))
+      (trans (sym (hom→Sq-comp sX w u))
+        (trans (cong2 {Sq (arr-hom r) (arr-hom l)} {Sq (arr-hom l) (arr-hom r)} {Sq (arr-hom r) (arr-hom r)} (λ a b . sq-comp sX a b) ew eu) (trans e2 (hom→Sq-id r)))) in
+  let i : iso sV l r = (u , ((w , p1) , (w , p2))) in
+  section-map (idtoiso sV {l} {r}) (is-equiv-sec (idtoiso sV {l} {r}) (is-univalent-arrᵣ rX l r)) i
+
+private
+sq-iso→path-r ∷ {X ∷ U} (rX : is-rezkᵣ X) (l : arrᵣ X) (r : arrᵣ X) {b : X} (β : srcᵣ r ≡ b) {d : X} (δ : tgtᵣ r ≡ d)
+  (θ : Sq (arr-hom l) (r , β , δ)) (v : Sq (r , β , δ) (arr-hom l)) →
+  sq-comp (rezk-segalᵣ rX) θ v ≡ sq-id (arr-hom l) → sq-comp (rezk-segalᵣ rX) v θ ≡ sq-id (r , β , δ) → l ≡ r
+sq-iso→path-r {X} rX l r refl refl θ v e1 e2 = sq-iso→path-arr rX θ v e1 e2
+
+private
+sq-iso→path-l ∷ {X ∷ U} (rX : is-rezkᵣ X) (l : arrᵣ X) {a : X} (α : srcᵣ l ≡ a) {c : X} (γ : tgtᵣ l ≡ c) {b d : X} (R : hom b d)
+  (θ : Sq (l , α , γ) R) (v : Sq R (l , α , γ)) →
+  sq-comp (rezk-segalᵣ rX) θ v ≡ sq-id (l , α , γ) → sq-comp (rezk-segalᵣ rX) v θ ≡ sq-id R → l ≡ hom-cell R
+sq-iso→path-l {X} rX l refl refl {b} {d} R =
+  let P : hom b d → U = λ R . (θ : Sq (arr-hom l) R) (v : Sq R (arr-hom l)) →
+       sq-comp (rezk-segalᵣ rX) θ v ≡ sq-id (arr-hom l) → sq-comp (rezk-segalᵣ rX) v θ ≡ sq-id R → l ≡ hom-cell R in
+  let k : (R : hom b d) → P R = fun (r , e) →
+    let k2 : (e : (srcᵣ r ≡ b) × (tgtᵣ r ≡ d)) → P (r , e) = fun (β , δ) → sq-iso→path-r rX l r β δ in
+    k2 e in
+  k R
+
+-- a square with an inverse for horizontal composition identifies its vertical sides
+sq-iso→path ∷ {X ∷ U} (rX : is-rezkᵣ X) {a b c d : X} (L : hom a c) (R : hom b d) (θ : Sq L R) (v : Sq R L) →
+  sq-comp (rezk-segalᵣ rX) θ v ≡ sq-id L → sq-comp (rezk-segalᵣ rX) v θ ≡ sq-id R → hom-cell L ≡ hom-cell R
+sq-iso→path {X} rX {a} {b} {c} {d} L R =
+  let P : hom a c → U = λ L . (θ : Sq L R) (v : Sq R L) →
+       sq-comp (rezk-segalᵣ rX) θ v ≡ sq-id L → sq-comp (rezk-segalᵣ rX) v θ ≡ sq-id R → hom-cell L ≡ hom-cell R in
+  let k : (L : hom a c) → P L = fun (l , e) →
+    let k2 : (e : (srcᵣ l ≡ a) × (tgtᵣ l ≡ c)) → P (l , e) = fun (α , γ) → sq-iso→path-l rX l α γ R in
+    k2 e in
+  k L
+
+--
+-- The key identity
+--
+
+key-identity ∷ {X ∷ U} (rX : is-rezkᵣ X) {x d : X} {r t : hom x d} (Θ : square (Hom.id x) r (Hom.id x) t) →
+  is-column (rezk-segalᵣ rX) Θ (Hom.id d) → hom-cell t ≡ hom-cell r
+key-identity {X} rX {x} {d} {r} {t} Θ col =
+  let sX : is-segalᵣ X = rezk-segalᵣ rX in
+  let tL : hom x d = comp-homᵣ sX (Hom.id x) t in
+  let rR : hom x d = comp-homᵣ sX r (Hom.id d) in
+  let inv : Σ (v : Sq rR tL) . (sq-comp sX (θ'-tot sX Θ) v ≡ sq-id tL) × (sq-comp sX v (θ'-tot sX Θ) ≡ sq-id rR) =
+    θ'-inverse sX Θ col in
+  let P : hom-cell (comp-homᵣ sX (Hom.id x) t) ≡ hom-cell (comp-homᵣ sX r (Hom.id d)) =
+    sq-iso→path rX (comp-homᵣ sX (Hom.id x) t) (comp-homᵣ sX r (Hom.id d)) (θ'-tot sX Θ) (fst _ inv)
+      (Product.fst (snd _ inv)) (Product.snd (snd _ inv)) in
+  trans (sym (comp-homᵣ-lunit-cell X sX t)) (trans P (comp-homᵣ-runit-cell X sX r))
+
+-- the same, for a square whose left and bottom sides are identities up to paths
+private
+key-identity-bot ∷ {X ∷ U} (rX : is-rezkᵣ X) (x : X) {bg : Σ (y : X) . hom x y} (EG : (x , Hom.id x) ≡{Σ (y : X) . hom x y} bg)
+  {d : X} (R : hom (fst _ bg) d) (T : hom x d) (Θ : square (Hom.id x) R (snd _ bg) T) →
+  is-column (rezk-segalᵣ rX) Θ (Hom.id d) → hom-cell T ≡ hom-cell R
+key-identity-bot {X} rX x refl R T Θ col = key-identity rX Θ col
+
+key-identity-gen ∷ {X ∷ U} (rX : is-rezkᵣ X) (x : X) {lL : Homs.total X} (EL : (x , x , Hom.id x) ≡{Homs.total X} lL)
+  {bg : Σ (y : X) . hom (Homs.src lL) y} (EG : (Homs.src lL , Hom.id (Homs.src lL)) ≡{Σ (y : X) . hom (Homs.src lL) y} bg)
+  {d : X} (R : hom (fst _ bg) d) (T : hom (Homs.tgt lL) d) (Θ : square (Homs.to-hom lL) R (snd _ bg) T) →
+  is-column (rezk-segalᵣ rX) Θ (Hom.id d) → hom-cell T ≡ hom-cell R
+key-identity-gen {X} rX x refl EG R T Θ col = key-identity-bot rX x EG R T Θ col
+
+-- an arrow with a path from a constant arrow is an identity up to a path, in the homs out of its source
+const-arr-path ∷ {X ∷ U} (z : X) {φ : arrᵣ X} (Q : (λ i . z) ≡{arrᵣ X} φ) →
+  (srcᵣ φ , Hom.id (srcᵣ φ)) ≡{Σ (y : X) . hom (srcᵣ φ) y} (tgtᵣ φ , arr-hom φ)
+const-arr-path {X} z refl = refl

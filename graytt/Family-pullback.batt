@@ -251,3 +251,138 @@ families-pb-fib-top {C} T T' pc G lc =
       (is-equiv-circ flip (families-pb-glued T T' pc G) eflip (is-equiv-families-pb-glued T T' pc G)) in
   is-equiv-tot-fibrewise {𝕀 →ᵣ B} {λ l . fib F l} {λ l . fib b (r l)} tf
     (is-equiv-cancel-r T1 (fib-total F) (is-equiv-fib-total F) e1) lc
+
+--
+-- Families with a given end
+--
+-- For a family in the total spaces, its family of points of C and its end; the four maps of the
+-- square at the level of families, with these ends, form a cube whose top face (the families) and
+-- bottom face (the ends) are pullbacks. Hence if the maps on the families with a given end above
+-- a family lc of C are equivalences on the side of pb-tot', so they are on the side of pb-tot
+-- (families-pb-ends): pasting the cube, the maps on the fibres of the horizontal maps compose.
+--
+
+-- the families at the end of a family of C
+end-fam ∷ {C ∷ U} (T ∷ C → U) → (𝕀 →ᵣ C) → U
+end-fam {C} T l = T (l 𝕀1)
+
+end-map ∷ {C ∷ U} (T T' ∷ C → U) (pc ∷ (c : C) → T c → T' c) (l : 𝕀 →ᵣ C) → end-fam T l → end-fam T' l
+end-map {C} T T' pc l = pc (l 𝕀1)
+
+end-dfam ∷ {C ∷ U} (T' ∷ C → U) (G ∷ (c : C) → T' c → U) (l : 𝕀 →ᵣ C) → end-fam T' l → U
+end-dfam {C} T' G l = G (l 𝕀1)
+
+-- the point of C of a point of the total spaces
+pb-c ∷ {C ∷ U} (T T' ∷ C → U) (pc ∷ (c : C) → T c → T' c) (G ∷ (c : C) → T' c → U) → pb-tot T T' pc G → C
+pb-c {C} T T' pc G x = fst _ x
+
+pb-c' ∷ {C ∷ U} (T' ∷ C → U) (G ∷ (c : C) → T' c → U) → pb-tot' T' G → C
+pb-c' {C} T' G x = fst _ x
+
+pb-base-c ∷ {C ∷ U} (T ∷ C → U) → pb-base T → C
+pb-base-c {C} T x = fst _ x
+
+-- the family of points of C and the end of a family
+pb-ends ∷ {C ∷ U} (T T' ∷ C → U) (pc ∷ (c : C) → T c → T' c) (G ∷ (c : C) → T' c → U) → (𝕀 →ᵣ pb-tot T T' pc G) →
+  pb-tot (end-fam T) (end-fam T') (end-map T T' pc) (end-dfam T' G)
+pb-ends {C} T T' pc G Ψ = (postᵣ (pb-c T T' pc G) Ψ , snd _ (Ψ 𝕀1))
+
+pb-ends' ∷ {C ∷ U} (T' ∷ C → U) (G ∷ (c : C) → T' c → U) → (𝕀 →ᵣ pb-tot' T' G) → pb-tot' (end-fam T') (end-dfam T' G)
+pb-ends' {C} T' G Ψ = (postᵣ (pb-c' T' G) Ψ , snd _ (Ψ 𝕀1))
+
+pb-base-ends ∷ {C ∷ U} (T ∷ C → U) → (𝕀 →ᵣ pb-base T) → pb-base (end-fam T)
+pb-base-ends {C} T Φ = (postᵣ (pb-base-c T) Φ , snd _ (Φ 𝕀1))
+
+-- the maps induced on the families with a given end
+pb-ends-fib ∷ {C ∷ U} (T T' ∷ C → U) (pc ∷ (c : C) → T c → T' c) (G ∷ (c : C) → T' c → U)
+  (e : pb-tot (end-fam T) (end-fam T') (end-map T T' pc) (end-dfam T' G)) →
+  fib (pb-ends T T' pc G) e →
+  fib (pb-base-ends T) (pb-pr (end-fam T) (end-fam T') (end-map T T' pc) (end-dfam T' G) e)
+pb-ends-fib {C} T T' pc G e =
+  base-fib-map {𝕀 →ᵣ pb-tot T T' pc G} {𝕀 →ᵣ pb-base T}
+    {pb-tot (end-fam T) (end-fam T') (end-map T T' pc) (end-dfam T' G)} {pb-base (end-fam T)}
+    (postᵣ (pb-pr T T' pc G)) (pb-ends T T' pc G) (pb-base-ends T)
+    (pb-pr (end-fam T) (end-fam T') (end-map T T' pc) (end-dfam T' G)) (λ Ψ . refl) e
+
+pb-ends-fib' ∷ {C ∷ U} (T' ∷ C → U) (G ∷ (c : C) → T' c → U) (e : pb-tot' (end-fam T') (end-dfam T' G)) →
+  fib (pb-ends' T' G) e → fib (pb-base-ends T') (pb-pr' (end-fam T') (end-dfam T' G) e)
+pb-ends-fib' {C} T' G e =
+  base-fib-map {𝕀 →ᵣ pb-tot' T' G} {𝕀 →ᵣ pb-base T'} {pb-tot' (end-fam T') (end-dfam T' G)} {pb-base (end-fam T')}
+    (postᵣ (pb-pr' T' G)) (pb-ends' T' G) (pb-base-ends T') (pb-pr' (end-fam T') (end-dfam T' G)) (λ Ψ . refl) e
+
+-- the cube: the maps on the fibres of the horizontal maps compose
+private
+pb-cube-htpy ∷ {C ∷ U} (T T' ∷ C → U) (pc ∷ (c : C) → T c → T' c) (G ∷ (c : C) → T' c → U)
+  (x : 𝕀 →ᵣ pb-tot T T' pc G) {t : 𝕀 →ᵣ pb-base T} (q : postᵣ (pb-pr T T' pc G) x ≡ t) →
+  top-fib-map {pb-tot (end-fam T) (end-fam T') (end-map T T' pc) (end-dfam T' G)} {pb-base (end-fam T)}
+      {pb-tot' (end-fam T') (end-dfam T' G)} {pb-base (end-fam T')}
+      (pb-pr (end-fam T) (end-fam T') (end-map T T' pc) (end-dfam T' G))
+      (pb-map (end-fam T) (end-fam T') (end-map T T' pc) (end-dfam T' G))
+      (pb-base-map (end-fam T) (end-fam T') (end-map T T' pc))
+      (pb-pr' (end-fam T') (end-dfam T' G)) (λ x . refl) (pb-base-ends T t)
+    (top-fib-map {𝕀 →ᵣ pb-tot T T' pc G} {𝕀 →ᵣ pb-base T}
+       {pb-tot (end-fam T) (end-fam T') (end-map T T' pc) (end-dfam T' G)} {pb-base (end-fam T)}
+       (postᵣ (pb-pr T T' pc G)) (pb-ends T T' pc G) (pb-base-ends T)
+       (pb-pr (end-fam T) (end-fam T') (end-map T T' pc) (end-dfam T' G)) (λ Ψ . refl) t (x , q))
+  ≡ top-fib-map {𝕀 →ᵣ pb-tot' T' G} {𝕀 →ᵣ pb-base T'} {pb-tot' (end-fam T') (end-dfam T' G)} {pb-base (end-fam T')}
+      (postᵣ (pb-pr' T' G)) (pb-ends' T' G) (pb-base-ends T') (pb-pr' (end-fam T') (end-dfam T' G)) (λ Ψ . refl)
+      (postᵣ (pb-base-map T T' pc) t)
+    (top-fib-map {𝕀 →ᵣ pb-tot T T' pc G} {𝕀 →ᵣ pb-base T} {𝕀 →ᵣ pb-tot' T' G} {𝕀 →ᵣ pb-base T'}
+       (postᵣ (pb-pr T T' pc G)) (postᵣ (pb-map T T' pc G)) (postᵣ (pb-base-map T T' pc)) (postᵣ (pb-pr' T' G))
+       (λ Ψ . refl) t (x , q))
+pb-cube-htpy {C} T T' pc G x refl = refl
+
+families-pb-ends ∷ {C ∷ U} (T T' ∷ C → U) (pc ∷ (c : C) → T c → T' c) (G ∷ (c : C) → T' c → U) (lc : 𝕀 →ᵣ C) →
+  ((e' : pb-tot' (end-fam T') (end-dfam T' G)) → fst _ e' ≡ lc → is-equiv (pb-ends-fib' T' G e')) →
+  (e : pb-tot (end-fam T) (end-fam T') (end-map T T' pc) (end-dfam T' G)) → fst _ e ≡ lc →
+  is-equiv (pb-ends-fib T T' pc G e)
+families-pb-ends {C} T T' pc G lc hA =
+  let Te ∷ (𝕀 →ᵣ C) → U = end-fam T in
+  let T'e ∷ (𝕀 →ᵣ C) → U = end-fam T' in
+  let pce ∷ (l : 𝕀 →ᵣ C) → Te l → T'e l = end-map T T' pc in
+  let Ge ∷ (l : 𝕀 →ᵣ C) → T'e l → U = end-dfam T' G in
+  let SX ∷ U = 𝕀 →ᵣ pb-tot T T' pc G in
+  let TX ∷ U = 𝕀 →ᵣ pb-base T in
+  let SA ∷ U = 𝕀 →ᵣ pb-tot' T' G in
+  let TA ∷ U = 𝕀 →ᵣ pb-base T' in
+  let EX ∷ U = pb-tot Te T'e pce Ge in
+  let HX ∷ U = pb-base Te in
+  let EA ∷ U = pb-tot' T'e Ge in
+  let HA ∷ U = pb-base T'e in
+  let FX : SX → TX = postᵣ (pb-pr T T' pc G) in
+  let FA : SA → TA = postᵣ (pb-pr' T' G) in
+  let bX : EX → HX = pb-pr Te T'e pce Ge in
+  let bA : EA → HA = pb-pr' T'e Ge in
+  let σA : HA → 𝕀 →ᵣ C = pb-base-c T'e in
+  let σX : HX → 𝕀 →ᵣ C = pb-base-c Te in
+  let hA-top : (t' : TA) → σA (pb-base-ends T' t') ≡ lc →
+      is-equiv (top-fib-map {SA} {TA} {EA} {HA} FA (pb-ends' T' G) (pb-base-ends T') bA (λ Ψ . refl) t') =
+    square-fibres-top {SA} {TA} {EA} {HA} {𝕀 →ᵣ C} FA (pb-ends' T' G) (pb-base-ends T') bA (λ Ψ . refl) σA lc hA in
+  let hX-top : (t : TX) → σX (pb-base-ends T t) ≡ lc →
+      is-equiv (top-fib-map {SX} {TX} {EX} {HX} FX (pb-ends T T' pc G) (pb-base-ends T) bX (λ Ψ . refl) t) = λ t o .
+    let ψX : fib FX t → fib bX (pb-base-ends T t) =
+      top-fib-map {SX} {TX} {EX} {HX} FX (pb-ends T T' pc G) (pb-base-ends T) bX (λ Ψ . refl) t in
+    let ψbot : fib bX (pb-base-ends T t) → fib bA (pb-base-map Te T'e pce (pb-base-ends T t)) =
+      top-fib-map {EX} {HX} {EA} {HA} bX (pb-map Te T'e pce Ge) (pb-base-map Te T'e pce) bA (λ x . refl) (pb-base-ends T t) in
+    let ψtop : fib FX t → fib FA (postᵣ (pb-base-map T T' pc) t) =
+      top-fib-map {SX} {TX} {SA} {TA} FX (postᵣ (pb-map T T' pc G)) (postᵣ (pb-base-map T T' pc)) FA (λ Ψ . refl) t in
+    let ψA : fib FA (postᵣ (pb-base-map T T' pc) t) → fib bA (pb-base-ends T' (postᵣ (pb-base-map T T' pc) t)) =
+      top-fib-map {SA} {TA} {EA} {HA} FA (pb-ends' T' G) (pb-base-ends T') bA (λ Ψ . refl) (postᵣ (pb-base-map T T' pc) t) in
+    let e1 : is-equiv (λ w . ψA (ψtop w)) =
+      is-equiv-circ ψA ψtop (hA-top (postᵣ (pb-base-map T T' pc) t) o) (families-pb-fib-top T T' pc G t) in
+    let e2 : is-equiv (λ w . ψbot (ψX w)) =
+      is-equiv-htpy {fib FX t} {fib bA (pb-base-map Te T'e pce (pb-base-ends T t))} {λ w . ψA (ψtop w)} {λ w . ψbot (ψX w)}
+        (fun (x , q) → sym (pb-cube-htpy T T' pc G x q)) e1 in
+    is-equiv-cancel-l ψbot ψX (pb-fib-top Te T'e pce Ge (pb-base-ends T t)) e2 in
+  square-fibres-base {SX} {TX} {EX} {HX} {𝕀 →ᵣ C} FX (pb-ends T T' pc G) (pb-base-ends T) bX (λ Ψ . refl) σX lc hX-top
+
+-- a map over C, at the ends of the families of C
+end-tot ∷ {C ∷ U} {P Q : C → U} (f : (c : C) → P c → Q c) → (Σ (l : 𝕀 →ᵣ C) . P (l 𝕀1)) → Σ (l : 𝕀 →ᵣ C) . Q (l 𝕀1)
+end-tot {C} {P} {Q} f w = (fst _ w , f (fst _ w 𝕀1) (snd _ w))
+
+is-equiv-end-tot ∷ {C ∷ U} {P Q : C → U} (f : (c : C) → P c → Q c) → is-equiv (tot {C} {P} {Q} f) → is-equiv (end-tot {C} {P} {Q} f)
+is-equiv-end-tot {C} {P} {Q} f e =
+  is-equiv-htpy {Σ (l : 𝕀 →ᵣ C) . P (l 𝕀1)} {Σ (l : 𝕀 →ᵣ C) . Q (l 𝕀1)}
+    {tot {𝕀 →ᵣ C} {λ l . P (l 𝕀1)} {λ l . Q (l 𝕀1)} (λ l . f (l 𝕀1))} {end-tot {C} {P} {Q} f} (fun (l , x) → refl)
+    (is-equiv-tot {𝕀 →ᵣ C} {λ l . P (l 𝕀1)} {λ l . Q (l 𝕀1)} (λ l . f (l 𝕀1))
+      (λ l . is-equiv-tot-fibrewise {C} {P} {Q} f e (l 𝕀1)))

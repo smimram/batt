@@ -10,9 +10,11 @@
 -- Π^cocart_{x : A} hom a x → F x, as soon as every yon u is cocartesian (yoneda). It suffices that
 -- yon u sends connections to cocartesian 1-cells (yon-is-cocartesian-from-conn). This holds for
 -- representable families F = hom b, whence hom b a ≃ Π^cocart_{x : A} hom a x → hom b x
--- (yoneda-hom).
+-- (yoneda-hom), and for any covariant family F whose total space is oplax-Rezk, the pushforwards
+-- along the initial segments of f being the cocartesian lift of f (Lift-column.batt), whence
+-- F a ≃ Π^cocart_{x : A} hom a x → F x (yoneda-covariant).
 --
--- Postulates relied on: fold-lemma, objectwise-equiv, pushout-up, univalence, truncation, is-set-𝕀.
+-- Postulates relied on: objectwise-equiv, pushout-up, univalence, truncation, is-set-𝕀.
 --
 
 open import Stdlib
@@ -27,6 +29,7 @@ open import Fibration
 open import Covariant
 open import Coslice
 open import Codomain
+import Lift-column
 open import Connection
 open import Cocartesian-map
 open import Hom-family
@@ -306,3 +309,23 @@ yoneda-hom ∷ {A ∷ U} (rA : is-rezkᵣ A) (a b ∷ A) → hom {A} b a ≃ hom
 yoneda-hom {A} rA a b =
   yoneda {A} a (hom-family {A} b) (rezk-segalᵣ {A} rA) (is-segalᵣ-hom-family {A} (rezk-segalᵣ {A} rA) b)
     (hom-family-covariant {A} rA b) (yon-hom-is-cocartesian {A} rA a b)
+
+--
+-- Covariant families with an oplax-Rezk total space
+--
+-- Y := tot (yon u) sends the connection Γ̄_f to the 1-cell of the pushforwards (f_{≤ i})_! u, which
+-- is the cocartesian lift of f at u (Lift-column.lift-targets-cocartesian).
+--
+
+yon-conn-cocart-covariant ∷ {A ∷ U} (rA ∷ is-rezkᵣ A) (a ∷ A) (F ∷ A → U) (rF ∷ is-rezkᵣ (Σ (x : A) . F x))
+  (cF : is-covariant {A} F (rezk-segalᵣ {A} rA) (rezk-segalᵣ rF)) (u : F a) →
+  yon-conn-cocart {A} a F (rezk-segalᵣ {A} rA) (rezk-segalᵣ rF) cF u
+yon-conn-cocart-covariant {A} rA a F rF cF u f p = Lift-column.lift-targets-cocartesian {A} rA F rF cF {a} u f p
+
+-- the Yoneda lemma: F a ≃ Π^cocart_{x : A} hom a x → F x
+yoneda-covariant ∷ {A ∷ U} (rA ∷ is-rezkᵣ A) (a ∷ A) (F ∷ A → U) (rF ∷ is-rezkᵣ (Σ (x : A) . F x))
+  (cF : is-covariant {A} F (rezk-segalᵣ {A} rA) (rezk-segalᵣ rF)) →
+  F a ≃ cocart-fibrewise-map {A} (hom-family {A} a) F (rezk-segalᵣ {A} rA) (is-segalᵣ-hom-family {A} (rezk-segalᵣ {A} rA) a) (rezk-segalᵣ rF)
+yoneda-covariant {A} rA a F rF cF =
+  yoneda {A} a F (rezk-segalᵣ {A} rA) (rezk-segalᵣ rF) cF
+    (λ u . yon-is-cocartesian-from-conn {A} rA a F (rezk-segalᵣ rF) cF u (yon-conn-cocart-covariant {A} rA a F rF cF u))

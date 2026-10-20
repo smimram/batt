@@ -1,0 +1,282 @@
+--
+-- Columns of squares as oplax families of homs
+--
+-- For a crisp r : B → A and a family lc : 𝕀 →ᵣ B, the squares whose bottom side is the image of lc,
+-- with a given right side n : r (lc 1) → z (col-dom), are the oplax families over lc of homs out of
+-- the points r b ending at n (col-fib, an equivalence on every fibre of the end map fam-ends).
+-- For k : B → arrᵣ A, composing vertically with the square of the family of arrows k lc
+-- corresponds to the pointwise composition of pairs (col-map-fib): so the square is a column at n
+-- iff pointwise composition is an equivalence on the families of pairs over lc ending at n
+-- (is-column→fib, fib→is-column).
+--
+-- Postulates: those of the exchange law (objectwise-equiv, univalence, truncation, is-set-𝕀).
+--
+
+open import Stdlib
+open import Hom
+open import Segal
+open import Composition
+open import Square-fibres
+open import HomSquare
+open import Column
+
+--
+-- Squares with a given bottom side
+--
+
+-- the squares with bottom side t, and free top, left and right sides
+private
+bot-squares ∷ {A ∷ U} (c d : A) (t : hom c d) → U
+bot-squares {A} c d t = Σ (en : Σ (e : A) . hom d e) . col-dom {A} {c} {d} {fst _ en} t (snd _ en)
+
+private
+bot-squares' ∷ {A ∷ U} → Homs.total A → U
+bot-squares' {A} T = bot-squares {A} (Homs.src T) (Homs.tgt T) (Homs.to-hom T)
+
+-- the bottom side of a square
+private
+sq-bottom ∷ {A ∷ U} → (Σ (β : boundary A) . squares β) → Homs.total A
+sq-bottom {A} y = bdry-bottom (fst _ y)
+
+-- a square, as a square with its bottom side
+private
+sq→bot ∷ {A ∷ U} (y : Σ (β : boundary A) . squares β) → bot-squares' (sq-bottom y)
+sq→bot {A} y =
+  bdry-ind {A} (λ β . squares β → bot-squares' (bdry-bottom β))
+    (λ a b c d f1 f2 g h σ . ((d , f2) , (c , (f1 , (h , σ))))) (fst _ y) (snd _ y)
+
+private
+bot→sq ∷ {A ∷ U} → (Σ (T : Homs.total A) . bot-squares' T) → Σ (β : boundary A) . squares β
+bot→sq {A} w =
+  let T : Homs.total A = fst _ w in
+  let q : bot-squares' T = snd _ w in
+  let e : A = fst _ (fst _ q) in
+  let n : hom (Homs.tgt T) e = snd _ (fst _ q) in
+  let x : A = fst _ (snd _ q) in
+  let m : hom (Homs.src T) x = fst _ (snd _ (snd _ q)) in
+  let h : hom x e = fst _ (snd _ (snd _ (snd _ q))) in
+  ((Homs.src T , Homs.tgt T , x , e , m , n , Homs.to-hom T , h) , snd _ (snd _ (snd _ (snd _ q))))
+
+private
+is-equiv-sq→bot-tot ∷ {A ∷ U} → is-equiv {Σ (β : boundary A) . squares β} {Σ (T : Homs.total A) . bot-squares' T}
+  (λ y . (sq-bottom y , sq→bot y))
+is-equiv-sq→bot-tot {A} =
+  let Sq : U = Σ (β : boundary A) . squares β in
+  let Bt : U = Σ (T : Homs.total A) . bot-squares' T in
+  let f : Sq → Bt = λ y . (sq-bottom y , sq→bot y) in
+  let retr : (y : Sq) → bot→sq (f y) ≡ y = fun (β , σ) →
+    bdry-ind {A} (λ β . (σ : squares β) → bot→sq (f (β , σ)) ≡{Sq} (β , σ)) (λ a b c d f1 f2 g h σ . refl) β σ in
+  let sec : (w : Bt) → f (bot→sq w) ≡ w = fun (T , q) →
+    let k1 : (T : Homs.total A) (q : bot-squares' T) → f (bot→sq (T , q)) ≡{Bt} (T , q) = fun (c , T') → λ q .
+      let k2 : (T' : Σ (d : A) . hom c d) (q : bot-squares' (c , T')) → f (bot→sq ((c , T') , q)) ≡{Bt} ((c , T') , q) = fun (d , t) → fun (en , q1) →
+        let k3 : (en : Σ (e : A) . hom d e) (q1 : col-dom {A} {c} {d} {fst _ en} t (snd _ en)) →
+            f (bot→sq ((c , d , t) , (en , q1))) ≡{Bt} ((c , d , t) , (en , q1)) = fun (e , n) → fun (x , q3) →
+          let k5 : (q3 : Σ (m : hom c x) . Σ (h : hom x e) . square m n t h) →
+              f (bot→sq ((c , d , t) , ((e , n) , (x , q3)))) ≡{Bt} ((c , d , t) , ((e , n) , (x , q3))) = fun (m , q4) →
+            let k6 : (q4 : Σ (h : hom x e) . square m n t h) →
+                f (bot→sq ((c , d , t) , ((e , n) , (x , m , q4)))) ≡{Bt} ((c , d , t) , ((e , n) , (x , m , q4))) = fun (h , σ) → refl in
+            k6 q4 in
+          k5 q3 in
+        k3 en q1 in
+      k2 T' q in
+    k1 T q in
+  is-iso→is-equiv f (bot→sq , (sec , retr))
+
+-- squares with bottom side t on the nose, as squares whose bottom side is t up to a path
+private
+bot→sq-over ∷ {A ∷ U} (c d : A) (t : hom c d) → bot-squares c d t →
+  Σ (y : Σ (β : boundary A) . squares β) . (c , d , t) ≡{Homs.total A} bdry-bottom (fst _ y)
+bot→sq-over {A} c d t q = (bot→sq ((c , d , t) , q) , refl)
+
+private
+is-equiv-bot→sq-over ∷ {A ∷ U} (c d : A) (t : hom c d) → is-equiv (bot→sq-over c d t)
+is-equiv-bot→sq-over {A} c d t =
+  let Sq : U = Σ (β : boundary A) . squares β in
+  let T : Homs.total A = (c , d , t) in
+  let flip : (Σ (y : Sq) . T ≡ sq-bottom y) → fib (sq-bottom {A}) T =
+    tot {Sq} {λ y . T ≡ sq-bottom y} {λ y . sq-bottom y ≡ T} (λ y . sym {Homs.total A} {T} {sq-bottom y}) in
+  let eflip : is-equiv flip =
+    is-equiv-tot {Sq} {λ y . T ≡ sq-bottom y} {λ y . sq-bottom y ≡ T} (λ y . sym {Homs.total A} {T} {sq-bottom y})
+      (λ y . is-equiv-sym {Homs.total A} {T} {sq-bottom y}) in
+  let fom : fib (sq-bottom {A}) T → bot-squares' T =
+    fib-over-map {Sq} {Homs.total A} {bot-squares'} (sq-bottom {A}) (sq→bot {A}) T in
+  let efom : is-equiv fom =
+    is-equiv-fib-over-map {Sq} {Homs.total A} {bot-squares'} (sq-bottom {A}) (sq→bot {A}) (is-equiv-sq→bot-tot {A}) T in
+  let htpy : (q : bot-squares c d t) → q ≡ fom (flip (bot→sq-over c d t q)) = fun (en , q2) →
+    let k1 : (en : Σ (e : A) . hom d e) (q2 : col-dom {A} {c} {d} {fst _ en} t (snd _ en)) →
+        (en , q2) ≡{bot-squares c d t} fom (flip (bot→sq-over c d t (en , q2))) = fun (e , n) → fun (x , q3) →
+      let k3 : (q3 : Σ (m : hom c x) . Σ (h : hom x e) . square m n t h) →
+          ((e , n) , (x , q3)) ≡{bot-squares c d t} fom (flip (bot→sq-over c d t ((e , n) , (x , q3)))) = fun (m , q4) →
+        let k4 : (q4 : Σ (h : hom x e) . square m n t h) →
+            ((e , n) , (x , m , q4)) ≡{bot-squares c d t} fom (flip (bot→sq-over c d t ((e , n) , (x , m , q4)))) = fun (h , σ) → refl in
+        k4 q4 in
+      k3 q3 in
+    k1 en q2 in
+  is-equiv-cancel-l (λ w . fom (flip w)) (bot→sq-over c d t) (is-equiv-circ fom flip efom eflip)
+    (is-equiv-htpy {bot-squares c d t} {bot-squares c d t} {λ q . q} {λ q . fom (flip (bot→sq-over c d t q))} htpy
+      (is-equiv-id (bot-squares c d t)))
+
+--
+-- Families of homs out of the points r b
+--
+
+-- the families of B together with a hom out of the image of the end of the family
+ends ∷ {A B ∷ U} (r ∷ B → A) → U
+ends {A} {B} r = Σ (lc : 𝕀 →ᵣ B) . Σ (z : A) . hom (r (lc 𝕀1)) z
+
+-- the family of B and the end of a family of homs out of the points r b
+fam-ends ∷ {A B ∷ U} (r ∷ B → A) → (𝕀 →ᵣ homs-from r) → ends r
+fam-ends {A} {B} r Ψ =
+  (postᵣ (fst {B} (λ b . Σ (z : A) . hom (r b) z)) Ψ , snd _ (Ψ 𝕀1))
+
+-- the bottom side of the column of a family
+private
+fam-bottom ∷ {A B ∷ U} (r ∷ B → A) (lc : 𝕀 →ᵣ B) → hom (r (lc 𝕀0)) (r (lc 𝕀1))
+fam-bottom {A} {B} r lc = arr-hom (postᵣ r lc)
+
+-- the squares with bottom side the image of the family and the right side at the end
+private
+col-at ∷ {A B ∷ U} (r ∷ B → A) → ends r → U
+col-at {A} {B} r e =
+  col-dom {A} {r (fst _ e 𝕀0)} {r (fst _ e 𝕀1)} {fst _ (snd _ e)} (fam-bottom r (fst _ e)) (snd _ (snd _ e))
+
+-- the square of a family of homs
+private
+fam-col ∷ {A B ∷ U} (r ∷ B → A) (Ψ : 𝕀 →ᵣ homs-from r) → col-at r (fam-ends r Ψ)
+fam-col {A} {B} r Ψ =
+  let G : 𝕀 →ᵣ Homs.total A = postᵣ (homs-from→homs r) Ψ in
+  (Homs.tgt (G 𝕀0) , (Homs.to-hom (G 𝕀0) , (arr-hom (postᵣ (Homs.tgt {A}) G) , fam-sq G)))
+
+-- on total spaces, this is an equivalence
+private
+fam-col-tot ∷ {A B ∷ U} (r ∷ B → A) → (𝕀 →ᵣ homs-from r) → Σ (e : ends r) . col-at r e
+fam-col-tot {A} {B} r Ψ = (fam-ends r Ψ , fam-col r Ψ)
+
+private
+fam-bot-tot ∷ {A B ∷ U} (r ∷ B → A) → (𝕀 →ᵣ homs-from r) →
+  Σ (lc : 𝕀 →ᵣ B) . bot-squares (r (lc 𝕀0)) (r (lc 𝕀1)) (fam-bottom r lc)
+fam-bot-tot {A} {B} r Ψ =
+  let G : 𝕀 →ᵣ Homs.total A = postᵣ (homs-from→homs r) Ψ in
+  (postᵣ (fst {B} (λ b . Σ (z : A) . hom (r b) z)) Ψ , (snd _ (Ψ 𝕀1) , fam-col r Ψ))
+
+private
+is-equiv-fam-bot-tot ∷ {A B ∷ U} (r ∷ B → A) → is-equiv (fam-bot-tot r)
+is-equiv-fam-bot-tot {A} {B} r =
+  let Bt : (𝕀 →ᵣ B) → U = λ lc . bot-squares (r (lc 𝕀0)) (r (lc 𝕀1)) (fam-bottom r lc) in
+  let st : (Σ (lc : 𝕀 →ᵣ B) . Bt lc) → Σ (lc : 𝕀 →ᵣ B) . squares-over r lc =
+    tot {𝕀 →ᵣ B} {Bt} {squares-over r} (λ lc . bot→sq-over (r (lc 𝕀0)) (r (lc 𝕀1)) (fam-bottom r lc)) in
+  let est : is-equiv st =
+    is-equiv-tot {𝕀 →ᵣ B} {Bt} {squares-over r} (λ lc . bot→sq-over (r (lc 𝕀0)) (r (lc 𝕀1)) (fam-bottom r lc))
+      (λ lc . is-equiv-bot→sq-over (r (lc 𝕀0)) (r (lc 𝕀1)) (fam-bottom r lc)) in
+  is-equiv-cancel-l st (fam-bot-tot r) est
+    (is-equiv-htpy {𝕀 →ᵣ homs-from r} {Σ (lc : 𝕀 →ᵣ B) . squares-over r lc}
+      {homs-from→squares-tot r} {λ Ψ . st (fam-bot-tot r Ψ)} (λ Ψ . refl) (is-equiv-homs-from→squares-tot r))
+
+private
+is-equiv-fam-col-tot ∷ {A B ∷ U} (r ∷ B → A) → is-equiv (fam-col-tot r)
+is-equiv-fam-col-tot {A} {B} r =
+  let Bt : (𝕀 →ᵣ B) → U = λ lc . bot-squares (r (lc 𝕀0)) (r (lc 𝕀1)) (fam-bottom r lc) in
+  let S1 : U = Σ (lc : 𝕀 →ᵣ B) . Bt lc in
+  let S2 : U = Σ (e : ends r) . col-at r e in
+  let assoc : S1 → S2 = λ w . ((fst _ w , fst _ (snd _ w)) , snd _ (snd _ w)) in
+  let assoc' : S2 → S1 = λ w . (fst _ (fst _ w) , (snd _ (fst _ w) , snd _ w)) in
+  let sec : (w : S2) → assoc (assoc' w) ≡ w = fun (e , q) →
+    let k1 : (e : ends r) (q : col-at r e) → assoc (assoc' (e , q)) ≡{S2} (e , q) = fun (lc , e') → λ q . refl in
+    k1 e q in
+  let retr : (w : S1) → assoc' (assoc w) ≡ w = fun (lc , q) →
+    let k1 : (q : Bt lc) → assoc' (assoc (lc , q)) ≡{S1} (lc , q) = fun (en , w) → refl in
+    k1 q in
+  is-equiv-htpy {𝕀 →ᵣ homs-from r} {S2} {λ Ψ . assoc (fam-bot-tot r Ψ)} {fam-col-tot r} (λ Ψ . refl)
+    (is-equiv-circ assoc (fam-bot-tot r) (is-iso→is-equiv assoc (assoc' , (sec , retr))) (is-equiv-fam-bot-tot r))
+
+-- the families ending at a given point are the squares with that right side
+private
+col-fib ∷ {A B ∷ U} (r ∷ B → A) (e : ends r) → fib (fam-ends r) e → col-at r e
+col-fib {A} {B} r e = fib-over-map {𝕀 →ᵣ homs-from r} {ends r} {col-at r} (fam-ends r) (fam-col r) e
+
+private
+is-equiv-col-fib ∷ {A B ∷ U} (r ∷ B → A) (e : ends r) → is-equiv (col-fib r e)
+is-equiv-col-fib {A} {B} r e =
+  is-equiv-fib-over-map {𝕀 →ᵣ homs-from r} {ends r} {col-at r} (fam-ends r) (fam-col r) (is-equiv-fam-col-tot r) e
+
+--
+-- Vertical composition with the square of a family of arrows
+--
+
+-- pointwise composition of pairs
+pairs-at-comp ∷ {A B ∷ U} (sA : is-segalᵣ A) (k ∷ B → arrᵣ A) → pairs-at k → homs-from (λ b . srcᵣ (k b))
+pairs-at-comp {A} {B} sA k w =
+  (fst _ w , (fst _ (snd _ w) , comp-homᵣ sA (arr-hom (k (fst _ w))) (snd _ (snd _ w))))
+
+-- and at the ends
+ends-comp ∷ {A B ∷ U} (sA : is-segalᵣ A) (k ∷ B → arrᵣ A) → ends (λ b . tgtᵣ (k b)) → ends (λ b . srcᵣ (k b))
+ends-comp {A} {B} sA k e =
+  (fst _ e , (fst _ (snd _ e) , comp-homᵣ sA (arr-hom (k (fst _ e 𝕀1))) (snd _ (snd _ e))))
+
+-- the map induced on the families over lc with a given end
+pairs-fib-comp ∷ {A B ∷ U} (sA : is-segalᵣ A) (k ∷ B → arrᵣ A) (e : ends (λ b . tgtᵣ (k b))) →
+  fib (fam-ends (λ b . tgtᵣ (k b))) e → fib (fam-ends (λ b . srcᵣ (k b))) (ends-comp sA k e)
+pairs-fib-comp {A} {B} sA k e =
+  base-fib-map {𝕀 →ᵣ pairs-at k} {𝕀 →ᵣ homs-from (λ b . srcᵣ (k b))} {ends (λ b . tgtᵣ (k b))} {ends (λ b . srcᵣ (k b))}
+    (postᵣ (pairs-at-comp sA k)) (fam-ends (λ b . tgtᵣ (k b))) (fam-ends (λ b . srcᵣ (k b))) (ends-comp sA k) (λ Ψ . refl) e
+
+-- the square of the family of arrows
+fam-arr-sq ∷ {A B ∷ U} (k ∷ B → arrᵣ A) (lc : 𝕀 →ᵣ B) →
+  square (arr-hom (k (lc 𝕀0))) (arr-hom (k (lc 𝕀1))) (fam-bottom (λ b . srcᵣ (k b)) lc) (fam-bottom (λ b . tgtᵣ (k b)) lc)
+fam-arr-sq {A} {B} k lc = fam-sq (postᵣ (λ b . Homs.of-arr {A} (k b)) lc)
+
+-- composing with it is pointwise composition
+private
+col-map-fib-at ∷ {A B ∷ U} (sA : is-segalᵣ A) (k ∷ B → arrᵣ A) (Ψ : 𝕀 →ᵣ pairs-at k) {e : ends (λ b . tgtᵣ (k b))}
+  (q : fam-ends (λ b . tgtᵣ (k b)) Ψ ≡ e) →
+  col-fib (λ b . srcᵣ (k b)) (ends-comp sA k e) (pairs-fib-comp sA k e (Ψ , q))
+  ≡ col-map sA (fam-arr-sq k (fst _ e)) (snd _ (snd _ e)) (col-fib (λ b . tgtᵣ (k b)) e (Ψ , q))
+col-map-fib-at {A} {B} sA k Ψ refl =
+  let r ∷ B → A = λ b . tgtᵣ (k b) in
+  let lc : 𝕀 →ᵣ B = postᵣ (fst {B} (λ b . Σ (z : A) . hom (r b) z)) Ψ in
+  let Ψ' : 𝕀 →ᵣ pairs A = postᵣ (pairs-at→pairs k) Ψ in
+  let G : 𝕀 →ᵣ Homs.total A = postᵣ (homs-from→homs r) Ψ in
+  let z0 : A = Homs.tgt (G 𝕀0) in
+  let z1 : A = Homs.tgt (G 𝕀1) in
+  let n : hom (r (lc 𝕀1)) z1 = Homs.to-hom (G 𝕀1) in
+  let m : hom (srcᵣ (k (lc 𝕀0))) z0 = comp-homᵣ sA (arr-hom (k (lc 𝕀0))) (Homs.to-hom (G 𝕀0)) in
+  let h : hom z0 z1 = arr-hom (postᵣ (Homs.tgt {A}) G) in
+  cong {square m (comp-homᵣ sA (arr-hom (k (lc 𝕀1))) n) (fam-bottom (λ b . srcᵣ (k b)) lc) h}
+       {col-cod {A} {srcᵣ (k (lc 𝕀0))} {srcᵣ (k (lc 𝕀1))} {z1} (fam-bottom (λ b . srcᵣ (k b)) lc) (comp-homᵣ sA (arr-hom (k (lc 𝕀1))) n)}
+    (λ σ . (z0 , (m , (h , σ)))) (sym (comp-v-pairs sA Ψ'))
+
+private
+col-map-fib ∷ {A B ∷ U} (sA : is-segalᵣ A) (k ∷ B → arrᵣ A) (e : ends (λ b . tgtᵣ (k b)))
+  (w : fib (fam-ends (λ b . tgtᵣ (k b))) e) →
+  col-fib (λ b . srcᵣ (k b)) (ends-comp sA k e) (pairs-fib-comp sA k e w)
+  ≡ col-map sA (fam-arr-sq k (fst _ e)) (snd _ (snd _ e)) (col-fib (λ b . tgtᵣ (k b)) e w)
+col-map-fib {A} {B} sA k e w = col-map-fib-at sA k (fst _ w) (snd _ w)
+
+-- the square of the family is a column at n iff pointwise composition is an equivalence on the
+-- families over lc ending at n
+is-column→fib ∷ {A B ∷ U} (sA : is-segalᵣ A) (k ∷ B → arrᵣ A) (e : ends (λ b . tgtᵣ (k b))) →
+  is-column sA (fam-arr-sq k (fst _ e)) (snd _ (snd _ e)) → is-equiv (pairs-fib-comp sA k e)
+is-column→fib {A} {B} sA k e ec =
+  let P : U = fib (fam-ends (λ b . tgtᵣ (k b))) e in
+  let cf' : fib (fam-ends (λ b . srcᵣ (k b))) (ends-comp sA k e) → col-at (λ b . srcᵣ (k b)) (ends-comp sA k e) =
+    col-fib (λ b . srcᵣ (k b)) (ends-comp sA k e) in
+  is-equiv-cancel-l cf' (pairs-fib-comp sA k e) (is-equiv-col-fib (λ b . srcᵣ (k b)) (ends-comp sA k e))
+    (is-equiv-htpy {P} {col-at (λ b . srcᵣ (k b)) (ends-comp sA k e)}
+      {λ w . col-map sA (fam-arr-sq k (fst _ e)) (snd _ (snd _ e)) (col-fib (λ b . tgtᵣ (k b)) e w)}
+      {λ w . cf' (pairs-fib-comp sA k e w)} (λ w . sym (col-map-fib sA k e w))
+      (is-equiv-circ (col-map sA (fam-arr-sq k (fst _ e)) (snd _ (snd _ e))) (col-fib (λ b . tgtᵣ (k b)) e)
+        ec (is-equiv-col-fib (λ b . tgtᵣ (k b)) e)))
+
+fib→is-column ∷ {A B ∷ U} (sA : is-segalᵣ A) (k ∷ B → arrᵣ A) (e : ends (λ b . tgtᵣ (k b))) →
+  is-equiv (pairs-fib-comp sA k e) → is-column sA (fam-arr-sq k (fst _ e)) (snd _ (snd _ e))
+fib→is-column {A} {B} sA k e ep =
+  let P : U = fib (fam-ends (λ b . tgtᵣ (k b))) e in
+  let cf' : fib (fam-ends (λ b . srcᵣ (k b))) (ends-comp sA k e) → col-at (λ b . srcᵣ (k b)) (ends-comp sA k e) =
+    col-fib (λ b . srcᵣ (k b)) (ends-comp sA k e) in
+  is-equiv-cancel-r (col-map sA (fam-arr-sq k (fst _ e)) (snd _ (snd _ e))) (col-fib (λ b . tgtᵣ (k b)) e)
+    (is-equiv-col-fib (λ b . tgtᵣ (k b)) e)
+    (is-equiv-htpy {P} {col-at (λ b . srcᵣ (k b)) (ends-comp sA k e)}
+      {λ w . cf' (pairs-fib-comp sA k e w)}
+      {λ w . col-map sA (fam-arr-sq k (fst _ e)) (snd _ (snd _ e)) (col-fib (λ b . tgtᵣ (k b)) e w)}
+      (col-map-fib sA k e)
+      (is-equiv-circ cf' (pairs-fib-comp sA k e) (is-equiv-col-fib (λ b . srcᵣ (k b)) (ends-comp sA k e)) ep))

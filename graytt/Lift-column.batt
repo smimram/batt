@@ -1,0 +1,152 @@
+--
+-- Lifts of initial segments
+--
+-- For a covariant family F over an oplax-Rezk type A with Σ F oplax-Rezk, a point u of F a and an
+-- arrow f of A out of a, let ℓ_i be the cocartesian lift at u of the initial segment f_{≤i} of f.
+-- The targets of the ℓ_i, i.e. the pushforwards (f_{≤i})_! u, form a cocartesian 1-cell
+-- (lift-targets-cocartesian): it is the last lift ℓ_1, the cocartesian lift of f.
+--
+-- Proof. The family ℓ is an oplax family of cocartesian 1-cells, over the connection of f in A,
+-- with constant source (a , u) and first cell the identity (by uniqueness of lifts). Its square is
+-- a column (cocart-column, the connection being a column), with left and bottom sides identities up
+-- to paths; so its top side, the family of targets, is its right side ℓ_1 (key-identity-gen).
+--
+-- Postulates: objectwise-equiv, pushout-up, univalence, truncation, is-set-𝕀.
+--
+
+open import Stdlib
+open import Hom
+open import Segal
+open import Rezk
+open import Fibration
+open import Iso
+open import Covariant
+open import Connection
+open import HomSquare
+open import Column
+open import Column-families
+open import Cocart-column
+open import Column-yoneda
+
+-- the family of their cocartesian lifts
+lift-fam ∷ {A ∷ U} (F ∷ A → U) (sA ∷ is-segalᵣ A) (sF ∷ is-segalᵣ (Σ (x : A) . F x)) (c : is-covariant {A} F sA sF)
+  {a : A} (u : F a) (f : arrᵣ A) (p : srcᵣ f ≡ a) → 𝕀 →ᵣ cocart-cell {Σ (x : A) . F x} {A} sF sA (fst F)
+lift-fam {A} F sA sF c {a} u f p = λ i . cocart-lift {A} F sA sF c {a} {f i} (conn f i , p , refl) u
+
+-- the pushforwards along the initial segments
+push-fam ∷ {A ∷ U} (F ∷ A → U) (sA ∷ is-segalᵣ A) (sF ∷ is-segalᵣ (Σ (x : A) . F x)) (c : is-covariant {A} F sA sF)
+  {a : A} (u : F a) (f : arrᵣ A) (p : srcᵣ f ≡ a) → 𝕀 →ᵣ Σ (x : A) . F x
+push-fam {A} F sA sF c {a} u f p = λ i . (f i , push {A} F sA sF c {a} {f i} (conn f i , p , refl) u)
+
+--
+-- The data of the lifts
+--
+
+-- the image of a cocartesian cell in the pullback, written with projections
+private
+ccl ∷ {X A ∷ U} (sX : is-segalᵣ X) (sA : is-segalᵣ A) (p ∷ X → A) →
+  cocart-cell {X} {A} sX sA p → pullback {X} {arrᵣ A} {A} p (λ g . srcᵣ g)
+ccl {X} {A} sX sA p w = (fst _ w 𝕀0 , (postᵣ {𝕀} {X} {A} p (fst _ w) , refl))
+
+private
+ccl-htpy ∷ {X A ∷ U} (sX : is-segalᵣ X) (sA : is-segalᵣ A) (p ∷ X → A) (w : cocart-cell {X} {A} sX sA p) →
+  ccl sX sA p w ≡ cocart-cell-lift {X} {A} sX sA p w
+ccl-htpy {X} {A} sX sA p (f , cf) = refl
+
+-- the lifts lie over the data
+private
+lift-fam-data ∷ {A ∷ U} (F ∷ A → U) (sA ∷ is-segalᵣ A) (sF ∷ is-segalᵣ (Σ (x : A) . F x)) (c : is-covariant {A} F sA sF)
+  {a : A} (u : F a) (f : arrᵣ A) (p : srcᵣ f ≡ a) →
+  postᵣ (ccl sF sA (fst F)) (lift-fam F sA sF c u f p)
+  ≡ (λ i . cocart-lift-data {A} F {a} {f i} (conn f i , p , refl) u)
+lift-fam-data {A} F sA sF c {a} u f p =
+  let X ∷ U = Σ (x : A) . F x in
+  let P ∷ U = pullback {X} {arrᵣ A} {A} (fst F) (λ g . srcᵣ g) in
+  let L : cocart-cell {X} {A} sF sA (fst F) → P = cocart-cell-lift {X} {A} sF sA (fst F) in
+  let s : section L = is-equiv-sec L c in
+  let D : 𝕀 →ᵣ P = λ i . cocart-lift-data {A} F {a} {f i} (conn f i , p , refl) u in
+  let H : (y : P) → ccl sF sA (fst F) (section-map L s y) ≡ y = λ y .
+    trans (ccl-htpy sF sA (fst F) (section-map L s y)) (snd _ s y) in
+  cong {P → P} {𝕀 →ᵣ P} (λ φ . postᵣ {𝕀} {P} {P} φ D)
+    (funext-htpy {P} {λ _ . P} (λ y . ccl sF sA (fst F) (section-map L s y)) (λ y . y) H)
+
+-- the source family is constant
+private
+pb-pt ∷ {X A ∷ U} (p ∷ X → A) → pullback {X} {arrᵣ A} {A} p (λ g . srcᵣ g) → X
+pb-pt {X} {A} p w = fst _ w
+
+private
+pb-arr ∷ {X A ∷ U} (p ∷ X → A) → pullback {X} {arrᵣ A} {A} p (λ g . srcᵣ g) → arrᵣ A
+pb-arr {X} {A} p w = fst _ (snd _ w)
+
+-- the first lift is the identity, by uniqueness of lifts
+private
+const-src-path ∷ {A ∷ U} {w z : A} (q : w ≡ z) →
+  ((λ _ . z) , refl) ≡{Σ (g : arrᵣ A) . z ≡ srcᵣ g} ((λ _ . w) , sym q)
+const-src-path {A} {w} refl = refl
+
+private
+lift-fam-0 ∷ {A ∷ U} (F ∷ A → U) (sA ∷ is-segalᵣ A) (sF ∷ is-segalᵣ (Σ (x : A) . F x)) (c : is-covariant {A} F sA sF)
+  {a : A} (u : F a) (f : arrᵣ A) (p : srcᵣ f ≡ a) →
+  fst _ (lift-fam F sA sF c u f p 𝕀0) ≡{arrᵣ (Σ (x : A) . F x)} (λ _ . (a , u))
+lift-fam-0 {A} F sA sF c {a} u f p =
+  let X ∷ U = Σ (x : A) . F x in
+  let P ∷ U = pullback {X} {arrᵣ A} {A} (fst F) (λ g . srcᵣ g) in
+  let L : cocart-cell {X} {A} sF sA (fst F) → P = cocart-cell-lift {X} {A} sF sA (fst F) in
+  let d : P = cocart-lift-data {A} F {a} {f 𝕀0} (conn f 𝕀0 , p , refl) u in
+  let idc : cocart-cell {X} {A} sF sA (fst F) =
+    ((λ _ . (a , u)) , is-cocartesian-iso {X} {A} sF sA (fst F) {(a , u)} {(a , u)} (Hom.id {X} (a , u)) (is-iso-id {X} sF (a , u))) in
+  let q : L idc ≡ d =
+    cong {Σ (g : arrᵣ A) . a ≡ srcᵣ g} {P} (λ w . ((a , u) , w)) (const-src-path {A} {f 𝕀0} {a} p) in
+  cong {fib L d} {arrᵣ X} (λ w . fst _ (fst _ w))
+    (is-contr-eq (is-contr-fib L c d)
+      (cocart-lift {A} F sA sF c {a} {f 𝕀0} (conn f 𝕀0 , p , refl) u , cocart-lift-over {A} F sA sF c {a} {f 𝕀0} (conn f 𝕀0 , p , refl) u)
+      (idc , q))
+
+-- a point of a Σ-type is its first component transported
+private
+Σ-subst-path ∷ {A : U} (F : A → U) (w : Σ (x : A) . F x) {x : A} (e : fst F w ≡ x) → w ≡{Σ (x : A) . F x} (x , subst F e (snd F w))
+Σ-subst-path {A} F (y , v) refl = refl
+
+--
+-- The targets of the lifts
+--
+
+lift-targets-cocartesian ∷ {A ∷ U} (rA ∷ is-rezkᵣ A) (F ∷ A → U) (rF ∷ is-rezkᵣ (Σ (x : A) . F x))
+  (c : is-covariant {A} F (rezk-segalᵣ rA) (rezk-segalᵣ rF)) {a : A} (u : F a) (f : arrᵣ A) (p : srcᵣ f ≡ a) →
+  is-cocartesian {Σ (x : A) . F x} {A} (rezk-segalᵣ rF) (rezk-segalᵣ rA) (fst F)
+    (cell-hom {Σ (x : A) . F x} (push-fam F (rezk-segalᵣ rA) (rezk-segalᵣ rF) c u f p))
+lift-targets-cocartesian {A} rA F rF c {a} u f p =
+  let sA ∷ is-segalᵣ A = rezk-segalᵣ rA in
+  let sF ∷ is-segalᵣ (Σ (x : A) . F x) = rezk-segalᵣ rF in
+  let X ∷ U = Σ (x : A) . F x in
+  let C ∷ U = cocart-cell {X} {A} sF sA (fst F) in
+  let P ∷ U = pullback {X} {arrᵣ A} {A} (fst F) (λ g . srcᵣ g) in
+  let kX ∷ C → arrᵣ X = cocart-cell-arr {X} {A} sF sA (fst F) in
+  let kA ∷ C → arrᵣ A = cc-kA {X} {A} sF sA (fst F) in
+  let lc : 𝕀 →ᵣ C = lift-fam F sA sF c u f p in
+  let Dp : postᵣ (ccl sF sA (fst F)) lc ≡ (λ i . cocart-lift-data {A} F {a} {f i} (conn f i , p , refl) u) = lift-fam-data F sA sF c u f p in
+  -- the image of the family is the connection of f, and its source family is constant
+  let EA : postᵣ kA lc ≡ conn-fam f = cong {𝕀 →ᵣ P} {𝕀 →ᵣ arrᵣ A} (λ φ . postᵣ (pb-arr {X} {A} (fst F)) φ) Dp in
+  let EB : postᵣ (λ w . srcᵣ (kX w)) lc ≡ (λ _ . (a , u)) = cong {𝕀 →ᵣ P} {𝕀 →ᵣ X} (λ φ . postᵣ (pb-pt {X} {A} (fst F)) φ) Dp in
+  -- the square of the family is a column
+  let hA : (e0 : ends (λ w . tgtᵣ (kA w))) → fst _ e0 ≡ lc → is-column sA (fam-arr-sq kA (fst _ e0)) (snd _ (snd _ e0)) = λ e0 o0 .
+    is-column-conn-path sA f (sym (trans (cong {𝕀 →ᵣ C} {𝕀 →ᵣ arrᵣ A} (λ l . postᵣ kA l) o0) EA)) (snd _ (snd _ e0)) in
+  let d : X = tgtᵣ (kX (lc 𝕀1)) in
+  let col : is-column sF (fam-arr-sq kX lc) (Hom.id d) = cocart-column sF sA (fst F) lc hA (lc , (d , Hom.id d)) refl in
+  -- its left and bottom sides are identities, up to paths
+  let l0 : arrᵣ X = kX (lc 𝕀0) in
+  let EL : ((a , u) , (a , u) , Hom.id {X} (a , u)) ≡{Homs.total X} Homs.of-arr l0 =
+    cong {arrᵣ X} {Homs.total X} (Homs.of-arr {X}) (sym (lift-fam-0 F sA sF c u f p)) in
+  let bot-fam : arrᵣ X = postᵣ (λ w . srcᵣ (kX w)) lc in
+  let EG : (srcᵣ bot-fam , Hom.id (srcᵣ bot-fam)) ≡{Σ (y : X) . hom (srcᵣ bot-fam) y} (tgtᵣ bot-fam , arr-hom bot-fam) = const-arr-path {X} (a , u) {bot-fam} (sym EB) in
+  let top-fam : arrᵣ X = postᵣ (λ w . tgtᵣ (kX w)) lc in
+  let K : top-fam ≡ kX (lc 𝕀1) =
+    key-identity-gen {X} rF (a , u) EL EG (arr-hom (kX (lc 𝕀1))) (arr-hom top-fam) (fam-arr-sq kX lc) col in
+  -- the targets of the lifts are the pushforwards
+  let H : 𝕀 →ᵣ path X = λ i .
+    (top-fam i , push-fam F sA sF c u f p i ,
+     Σ-subst-path F (top-fam i)
+       (lift-tgt {A} F sA sF {a} {f i} (conn f i , p , refl) u (lc i) (cocart-lift-over {A} F sA sF c {a} {f i} (conn f i , p , refl) u))) in
+  let Q : top-fam ≡ push-fam F sA sF c u f p = htpyᵣ→path 𝕀 X H in
+  is-cocartesian-cell-path {X} {A} sF sA (fst F) {push-fam F sA sF c u f p} {kX (lc 𝕀1)} (trans (sym Q) K) (snd _ (lc 𝕀1))

@@ -44,3 +44,11 @@ open import Square-paths
 open import Square-hom
 open import Fold-square
 open import Cofold-square
+open import Vfold-square
+open import Square-fibres
+open import Family-pullback
+open import Column
+open import Column-families
+open import Cocart-column
+open import Column-yoneda
+open import Lift-column

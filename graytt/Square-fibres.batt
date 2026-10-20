@@ -227,3 +227,50 @@ square-fibres-base {S} {T} {E} {E'} {Λ} F r s b H σ l0 ht e o =
   let eB : is-equiv B = is-equiv-cancel-l C B (is-equiv-tot-cod F r s b H σ l0) eCB in
   is-equiv-tot-fibrewise {EO} {λ eo . fib r (fst _ eo)} {λ eo . fib s (b (fst _ eo))}
     (λ eo . base-fib-map F r s b H (fst _ eo)) eB (e , o)
+
+--
+-- Precomposing a square
+--
+-- Precomposing a square with maps γS : S0 → S and γE : E0 → E of its domain and base (commuting
+-- with the vertical maps along K), the maps on the fibres of the vertical maps factor through the
+-- maps induced by γS on these fibres (base-fib-map-pre); when γS and γE are equivalences, those of
+-- the precomposed square are equivalences iff those of the square are (base-fib-pre-equiv, -inv).
+--
+
+base-fib-map-pre ∷ {S0 S T E0 E E' : U} (F : S → T) (r : S → E) (s : T → E') (b : E → E') (H : (x : S) → s (F x) ≡ b (r x))
+  (γS : S0 → S) (r0 : S0 → E0) (γE : E0 → E) (K : (x : S0) → r (γS x) ≡ γE (r0 x)) (e0 : E0) (w : fib r0 e0) →
+  base-fib-map {S0} {T} {E0} {E'} (λ x . F (γS x)) r0 s (λ e . b (γE e)) (λ x . trans (H (γS x)) (cong b (K x))) e0 w
+  ≡ base-fib-map F r s b H (γE e0) (fib-map-over-equiv r0 r γS γE K e0 w)
+base-fib-map-pre {S0} {S} {T} {E0} {E} {E'} F r s b H γS r0 γE K e0 w =
+  let k : (x : S0) {e0 : E0} (q : r0 x ≡ e0) →
+      base-fib-map {S0} {T} {E0} {E'} (λ x . F (γS x)) r0 s (λ e . b (γE e)) (λ x . trans (H (γS x)) (cong b (K x))) e0 (x , q)
+      ≡{fib s (b (γE e0))} base-fib-map F r s b H (γE e0) (fib-map-over-equiv r0 r γS γE K e0 (x , q)) = λ x . fun refl → refl in
+  let k1 : (w : fib r0 e0) →
+      base-fib-map {S0} {T} {E0} {E'} (λ x . F (γS x)) r0 s (λ e . b (γE e)) (λ x . trans (H (γS x)) (cong b (K x))) e0 w
+      ≡ base-fib-map F r s b H (γE e0) (fib-map-over-equiv r0 r γS γE K e0 w) = fun (x , q) → k x q in
+  k1 w
+
+base-fib-pre-equiv ∷ {S0 S T E0 E E' : U} (F : S → T) (r : S → E) (s : T → E') (b : E → E') (H : (x : S) → s (F x) ≡ b (r x))
+  (γS : S0 → S) (r0 : S0 → E0) (γE : E0 → E) (K : (x : S0) → r (γS x) ≡ γE (r0 x)) →
+  is-equiv γS → is-equiv γE → (e0 : E0) → is-equiv (base-fib-map F r s b H (γE e0)) →
+  is-equiv (base-fib-map {S0} {T} {E0} {E'} (λ x . F (γS x)) r0 s (λ e . b (γE e)) (λ x . trans (H (γS x)) (cong b (K x))) e0)
+base-fib-pre-equiv {S0} {S} {T} {E0} {E} {E'} F r s b H γS r0 γE K eS eE e0 eb =
+  is-equiv-htpy {fib r0 e0} {fib s (b (γE e0))}
+    {λ w . base-fib-map F r s b H (γE e0) (fib-map-over-equiv r0 r γS γE K e0 w)}
+    {base-fib-map {S0} {T} {E0} {E'} (λ x . F (γS x)) r0 s (λ e . b (γE e)) (λ x . trans (H (γS x)) (cong b (K x))) e0}
+    (λ w . sym (base-fib-map-pre F r s b H γS r0 γE K e0 w))
+    (is-equiv-circ (base-fib-map F r s b H (γE e0)) (fib-map-over-equiv r0 r γS γE K e0) eb
+      (is-equiv-fib-map-over-equiv r0 r γS γE K eS eE e0))
+
+base-fib-pre-equiv-inv ∷ {S0 S T E0 E E' : U} (F : S → T) (r : S → E) (s : T → E') (b : E → E') (H : (x : S) → s (F x) ≡ b (r x))
+  (γS : S0 → S) (r0 : S0 → E0) (γE : E0 → E) (K : (x : S0) → r (γS x) ≡ γE (r0 x)) →
+  is-equiv γS → is-equiv γE → (e0 : E0) →
+  is-equiv (base-fib-map {S0} {T} {E0} {E'} (λ x . F (γS x)) r0 s (λ e . b (γE e)) (λ x . trans (H (γS x)) (cong b (K x))) e0) →
+  is-equiv (base-fib-map F r s b H (γE e0))
+base-fib-pre-equiv-inv {S0} {S} {T} {E0} {E} {E'} F r s b H γS r0 γE K eS eE e0 ep =
+  is-equiv-cancel-r (base-fib-map F r s b H (γE e0)) (fib-map-over-equiv r0 r γS γE K e0)
+    (is-equiv-fib-map-over-equiv r0 r γS γE K eS eE e0)
+    (is-equiv-htpy {fib r0 e0} {fib s (b (γE e0))}
+      {base-fib-map {S0} {T} {E0} {E'} (λ x . F (γS x)) r0 s (λ e . b (γE e)) (λ x . trans (H (γS x)) (cong b (K x))) e0}
+      {λ w . base-fib-map F r s b H (γE e0) (fib-map-over-equiv r0 r γS γE K e0 w)}
+      (base-fib-map-pre F r s b H γS r0 γE K e0) ep)

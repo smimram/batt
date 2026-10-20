@@ -1172,24 +1172,13 @@ is-equiv-fam-sq-tot {A} =
     (is-equiv-htpy {𝕀 →ᵣ T} {squareᵣ A} {g} {λ L . bdry-squares→square (fam-sq-tot L)} H eg)
 
 --
--- Squares glued above a family
+-- Squares above a family
 --
--- The squares glued above the square of a family L of homs (along a path from its top side to
--- their bottom side) are the families of composable pairs whose first homs are L
--- (is-equiv-pairs-over→above), and their vertical composite with the square of L is the square
--- of the family of composites (comp-v-pairs-over). On total spaces, a family of composable pairs
--- is a pair of families glued along a path between their rows, by the oplax universal property of
--- pullbacks and oplax function extensionality.
+-- For r : B → A, the oplax families of homs out of the points r b are the squares whose bottom side
+-- is the image of a family of B (is-equiv-homs-from→squares-tot): a family of such homs is a family
+-- of B and a family of homs glued along a path between their images, by the oplax universal
+-- property of pullbacks and oplax function extensionality.
 --
-
--- the squares above the square of a family of homs, glued along a path to its top side
-above ∷ {A ∷ U} → (𝕀 →ᵣ Homs.total A) → U
-above {A} L = Σ (y : Σ (β : boundary A) . squares β) . bdry-top (fam-bdry L) ≡ bdry-bottom (fst _ y)
-
--- their vertical composite with the square of the family
-comp-v-above ∷ {A ∷ U} (sA : is-segalᵣ A) (L : 𝕀 →ᵣ Homs.total A) → above L → Σ (β : boundary A) . squares β
-comp-v-above {A} sA L x =
-  (comp-bdry-v sA (fam-bdry L) (fst _ (fst _ x)) (snd _ x) , comp-v-gen sA (fam-sq L) (snd _ (fst _ x)) (snd _ x))
 
 -- homs out of the point r b of an element b of B
 homs-from ∷ {A B ∷ U} (r ∷ B → A) → U
@@ -1203,12 +1192,6 @@ pairs-at→pairs ∷ {A B ∷ U} (k ∷ B → arrᵣ A) → pairs-at k → pairs
 pairs-at→pairs {A} {B} k w =
   let b : B = fst _ w in
   (srcᵣ (k b) , tgtᵣ (k b) , fst _ (snd _ w) , arr-hom (k b) , snd _ (snd _ w))
-
--- the family of second homs of a family of such pairs gives a square above the square of the
--- family of first homs
-pairs-at→above ∷ {A B ∷ U} (k ∷ B → arrᵣ A) (Ψ : 𝕀 →ᵣ pairs-at k) →
-  above (postᵣ (λ b . Homs.of-arr {A} (k b)) (postᵣ (fst {B} (λ b . Σ (z : A) . hom (tgtᵣ (k b)) z)) Ψ))
-pairs-at→above {A} {B} k Ψ = (fam-sq-tot (postᵣ (pair-snd {A}) (postᵣ (pairs-at→pairs k) Ψ)) , refl)
 
 -- the underlying hom
 homs-from→homs ∷ {A B ∷ U} (r ∷ B → A) → homs-from r → Homs.total A
@@ -1304,19 +1287,20 @@ is-equiv-homs-from→glued {A} {B} r =
   is-equiv-cancel-l h (homs-from→glued r) eh
     (is-equiv-htpy {𝕀 →ᵣ homs-from r} {Ht} {f} {λ Ψ . h (homs-from→glued r Ψ)} (λ Ψ . refl) ef)
 
--- the total map: families of pairs as squares above the squares of families
-private
-pairs-at→above-tot ∷ {A B ∷ U} (k ∷ B → arrᵣ A) → (𝕀 →ᵣ pairs-at k) →
-  Σ (lc : 𝕀 →ᵣ B) . above (postᵣ (λ b . Homs.of-arr {A} (k b)) lc)
-pairs-at→above-tot {A} {B} k Ψ = (postᵣ (fst {B} (λ b . Σ (z : A) . hom (tgtᵣ (k b)) z)) Ψ , pairs-at→above k Ψ)
+-- the squares whose bottom side is the image of a family lc of B
+squares-over ∷ {A B ∷ U} (r ∷ B → A) (lc : 𝕀 →ᵣ B) → U
+squares-over {A} {B} r lc = Σ (y : Σ (β : boundary A) . squares β) . Homs.of-arr {A} (postᵣ r lc) ≡ bdry-bottom (fst _ y)
 
-private
-is-equiv-pairs-at→above-tot ∷ {A B ∷ U} (k ∷ B → arrᵣ A) → is-equiv (pairs-at→above-tot k)
-is-equiv-pairs-at→above-tot {A} {B} k =
+-- the total map: families of homs out of the points r b as squares over the families of B
+homs-from→squares-tot ∷ {A B ∷ U} (r ∷ B → A) → (𝕀 →ᵣ homs-from r) → Σ (lc : 𝕀 →ᵣ B) . squares-over r lc
+homs-from→squares-tot {A} {B} r Ψ =
+  (postᵣ (fst {B} (λ b . Σ (z : A) . hom (r b) z)) Ψ , (fam-sq-tot (postᵣ (homs-from→homs r) Ψ) , refl))
+
+is-equiv-homs-from→squares-tot ∷ {A B ∷ U} (r ∷ B → A) → is-equiv (homs-from→squares-tot r)
+is-equiv-homs-from→squares-tot {A} {B} r =
   let T ∷ U = Homs.total A in
   let Sq : U = Σ (β : boundary A) . squares β in
-  let r ∷ B → A = λ b . tgtᵣ (k b) in
-  let ab : (𝕀 →ᵣ B) → U = λ lc . above (postᵣ (λ b . Homs.of-arr {A} (k b)) lc) in
+  let ab : (𝕀 →ᵣ B) → U = λ lc . squares-over r lc in
   let eof : is-equiv (Homs.of-arr {A}) = ((Homs.to-arr {A} , Homs.of-arr-retr {A}) , (Homs.to-arr {A} , λ f . refl)) in
   let g : (lc : 𝕀 →ᵣ B) → (Σ (G : 𝕀 →ᵣ T) . postᵣ r lc ≡ postᵣ (Homs.src {A}) G) → ab lc = λ lc w .
     (fam-sq-tot (fst _ w) , cong (Homs.of-arr {A}) (snd _ w)) in
@@ -1334,40 +1318,11 @@ is-equiv-pairs-at→above-tot {A} {B} k =
           (λ G . ap-equiv (Homs.of-arr {A}) eof (postᵣ r lc) (postᵣ (Homs.src {A}) G)))) in
   let G2 : (Σ (lc : 𝕀 →ᵣ B) . Σ (G : 𝕀 →ᵣ T) . postᵣ r lc ≡ postᵣ (Homs.src {A}) G) → Σ (lc : 𝕀 →ᵣ B) . ab lc =
     tot {𝕀 →ᵣ B} {λ lc . Σ (G : 𝕀 →ᵣ T) . postᵣ r lc ≡ postᵣ (Homs.src {A}) G} {ab} g in
-  is-equiv-htpy {𝕀 →ᵣ pairs-at k} {Σ (lc : 𝕀 →ᵣ B) . ab lc} {λ Ψ . G2 (homs-from→glued (λ b . tgtᵣ (k b)) Ψ)} {pairs-at→above-tot k}
+  is-equiv-htpy {𝕀 →ᵣ homs-from r} {Σ (lc : 𝕀 →ᵣ B) . ab lc} {λ Ψ . G2 (homs-from→glued r Ψ)} {homs-from→squares-tot r}
     (λ Ψ . refl)
-    (is-equiv-circ G2 (homs-from→glued (λ b . tgtᵣ (k b)))
+    (is-equiv-circ G2 (homs-from→glued r)
       (is-equiv-tot {𝕀 →ᵣ B} {λ lc . Σ (G : 𝕀 →ᵣ T) . postᵣ r lc ≡ postᵣ (Homs.src {A}) G} {ab} g eg)
-      (is-equiv-homs-from→glued (λ b . tgtᵣ (k b))))
-
--- the squares above the square of the family of arrows k lc are the families of pairs over lc
-pairs-over→above ∷ {A B ∷ U} (k ∷ B → arrᵣ A) (lc : 𝕀 →ᵣ B) →
-  fib (postᵣ (fst {B} (λ b . Σ (z : A) . hom (tgtᵣ (k b)) z))) lc → above (postᵣ (λ b . Homs.of-arr {A} (k b)) lc)
-pairs-over→above {A} {B} k lc =
-  fib-over-map {𝕀 →ᵣ pairs-at k} {𝕀 →ᵣ B} {λ lc . above (postᵣ (λ b . Homs.of-arr {A} (k b)) lc)}
-    (postᵣ (fst {B} (λ b . Σ (z : A) . hom (tgtᵣ (k b)) z))) (pairs-at→above k) lc
-
-is-equiv-pairs-over→above ∷ {A B ∷ U} (k ∷ B → arrᵣ A) (lc : 𝕀 →ᵣ B) → is-equiv (pairs-over→above k lc)
-is-equiv-pairs-over→above {A} {B} k lc =
-  is-equiv-fib-over-map {𝕀 →ᵣ pairs-at k} {𝕀 →ᵣ B} {λ lc . above (postᵣ (λ b . Homs.of-arr {A} (k b)) lc)}
-    (postᵣ (fst {B} (λ b . Σ (z : A) . hom (tgtᵣ (k b)) z))) (pairs-at→above k) (is-equiv-pairs-at→above-tot k) lc
-
--- the vertical composite of a square above the square of k lc is the square of the composites
-private
-comp-v-pairs-over-at ∷ {A B ∷ U} (sA : is-segalᵣ A) (k ∷ B → arrᵣ A) (Ψ : 𝕀 →ᵣ pairs-at k) {lc : 𝕀 →ᵣ B}
-  (e : postᵣ (fst {B} (λ b . Σ (z : A) . hom (tgtᵣ (k b)) z)) Ψ ≡ lc) →
-  comp-v-above sA (postᵣ (λ b . Homs.of-arr {A} (k b)) lc)
-    (subst {𝕀 →ᵣ B} (λ lc . above (postᵣ (λ b . Homs.of-arr {A} (k b)) lc)) e (pairs-at→above k Ψ))
-  ≡ fam-sq-tot (postᵣ (pair-comp sA) (postᵣ (pairs-at→pairs k) Ψ))
-comp-v-pairs-over-at {A} {B} sA k Ψ refl =
-  cong {squares (fam-bdry (postᵣ (pair-comp sA) (postᵣ (pairs-at→pairs k) Ψ)))} {Σ (β : boundary A) . squares β}
-    (λ σ . (fam-bdry (postᵣ (pair-comp sA) (postᵣ (pairs-at→pairs k) Ψ)) , σ)) (comp-v-pairs sA (postᵣ (pairs-at→pairs k) Ψ))
-
-comp-v-pairs-over ∷ {A B ∷ U} (sA : is-segalᵣ A) (k ∷ B → arrᵣ A) (lc : 𝕀 →ᵣ B)
-  (w : fib (postᵣ (fst {B} (λ b . Σ (z : A) . hom (tgtᵣ (k b)) z))) lc) →
-  comp-v-above sA (postᵣ (λ b . Homs.of-arr {A} (k b)) lc) (pairs-over→above k lc w)
-  ≡ fam-sq-tot (postᵣ (pair-comp sA) (postᵣ (pairs-at→pairs k) (fst _ w)))
-comp-v-pairs-over {A} {B} sA k lc w = comp-v-pairs-over-at sA k (fst _ w) (snd _ w)
+      (is-equiv-homs-from→glued r))
 
 --
 -- Associativity of vertical composition
