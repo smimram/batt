@@ -917,7 +917,10 @@ let rec check k env ctx (t:term) (a:value) : term =
     important "\nPOSTULATE %s %s\n%!" (T.string_of_opaque o) (string_of_value k env a);
     Opaque (Some o)
   | _, Pi (Implicit, _, _, (x, _, _)) ->
-    (* Insert implicit abstraction. *)
+    (* Insert implicit abstraction. Its variable is in scope in t (so that implicit binders of the
+       signature can be used in the definition), unless it would shadow a variable used in t. *)
+    let fv = try T.FV.term t with _ -> T.FV.of_list (List.map fst env) in
+    let x = T.fresh_name (fun y -> List.mem_assoc y env && T.FV.mem y fv) x in
     check k env ctx (Abs (Implicit, x, t)) a
   | Pi _, Type m
   | Sigma _, Type m
