@@ -1,0 +1,9 @@
+-- When a clause is checked against a type whose head is an implicit Π, here {u : ⊤} → bool
+-- (after unfolding P), the checker inserts an implicit lambda. Its variable must not capture
+-- the clause variable u (which used to happen when it was named after the binder of the type).
+
+P ∷ U → U
+P X = {u : ⊤} → X
+
+f ∷ (u : bool) → P bool
+f u = u
