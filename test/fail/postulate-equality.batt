@@ -1,4 +1,4 @@
---  Two distinct postulates with equal arguments unify, 
+-- Two distinct postulates with equal arguments unify, 
 -- so postulate A ∷ U; postulate B ∷ U gives A ≡ B by refl. 
 -- The check in the Postulate case of unify in src/lang.ml is commented out
 
