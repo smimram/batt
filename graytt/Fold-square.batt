@@ -42,24 +42,29 @@ open Square
 -- Its restriction to Δ² (fold-nrm w) has the same edges as w, judgmentally.
 --
 
+private
 fold-pt ∷ 𝕀 → 𝕀 → simplex 2
 fold-pt u v = ((u 𝕀∨ v , v , tt) , (refl , tt))
 
+private
 fold-nrm ∷ {C ∷ U} (w : simplex 2 →ᵣ C) → simplex 2 →ᵣ C
 fold-nrm w = λ y . w (fold-pt (Simplex2.fst y) (Simplex2.snd y))
 
 -- the composite of the first two edges is the long edge, read off the restriction
+private
 fold-comp ∷ {C ∷ U} (sC : is-segalᵣ C) (w : simplex 2 →ᵣ C) →
   comp-homᵣ sC (simplex2-hom₀₁ w) (simplex2-hom₁₂ w) ≡ simplex2-hom₀₂ w
 fold-comp sC w = comp-simplex2 sC (fold-nrm w)
 
 -- the left unit law for t, read off the 2-simplex t (y₁ ∧ y₂)
+private
 fold-lunit ∷ {C ∷ U} (sC : is-segalᵣ C) (w : simplex 2 →ᵣ C) →
   comp-homᵣ sC (Hom.id (w (Simplex2.edge₀₁ 𝕀0))) (simplex2-hom₀₁ w) ≡ simplex2-hom₀₁ w
 fold-lunit sC w = comp-simplex2 sC (λ y . w (Simplex2.edge₀₁ (Simplex2.fst y 𝕀∧ Simplex2.snd y)))
 
 -- the square Y (i , j) = w (i ∨ j , i): left side t, right side the identity, bottom side the
 -- long edge, top side k
+private
 fold-Y ∷ {C ∷ U} (w : simplex 2 →ᵣ C) →
   square (simplex2-hom₀₁ w) (Hom.id (w (Simplex2.edge₁₂ 𝕀1))) (simplex2-hom₀₂ w) (simplex2-hom₁₂ w)
 fold-Y w = (of-arrᵣ (λ i . λ j . w (fold-pt (i 𝕀∨ j) i)) , refl)
@@ -69,6 +74,7 @@ fold-Y w = (of-arrᵣ (λ i . λ j . w (fold-pt (i 𝕀∨ j) i)) , refl)
 --
 
 -- Y is the composite of the coconnection on t and the vertical identity on k
+private
 fold-Y-split ∷ {C ∷ U} (sC : is-segalᵣ C) (w : simplex 2 →ᵣ C) →
   sq-move refl refl (fold-comp sC w) (comp-homᵣ-lunit C sC (simplex2-hom₁₂ w))
     (comp-h sC (connection-bl (simplex2-hom₀₁ w)) (id-v (simplex2-hom₁₂ w)))
@@ -81,6 +87,7 @@ fold-Y-split {C} sC w =
     (comp-h-simplex sC Ξ)
 
 -- the connection on t below the coconnection on t is the horizontal identity on t
+private
 fold-tr-bl ∷ {C ∷ U} (sC : is-segalᵣ C) (w : simplex 2 →ᵣ C) →
   sq-move (fold-lunit sC w) (comp-homᵣ-runit C sC (simplex2-hom₀₁ w)) refl refl
     (comp-v sC (connection-tr (simplex2-hom₀₁ w)) (connection-bl (simplex2-hom₀₁ w)))
@@ -94,6 +101,7 @@ fold-tr-bl {C} sC w =
     (comp-v-simplex sC Φ)
 
 -- the vertical identity on the identity below the connection on t is the connection on t
+private
 fold-id-tr ∷ {C ∷ U} (sC : is-segalᵣ C) (w : simplex 2 →ᵣ C) →
   sq-move (comp-homᵣ-runit C sC (Hom.id (w (Simplex2.edge₀₁ 𝕀0)))) (fold-lunit sC w) refl refl
     (comp-v sC (id-h (Hom.id (w (Simplex2.edge₀₁ 𝕀0)))) (connection-tr (simplex2-hom₀₁ w)))
@@ -107,6 +115,7 @@ fold-id-tr {C} sC w =
     (comp-v-simplex sC Φ)
 
 -- the connection on t followed by Y is the vertical identity on the long edge
+private
 fold-tr-Y ∷ {C ∷ U} (sC : is-segalᵣ C) (w : simplex 2 →ᵣ C) →
   sq-move refl refl (comp-homᵣ-lunit C sC (simplex2-hom₀₂ w)) (fold-comp sC w)
     (comp-h sC (connection-tr (simplex2-hom₀₁ w)) (fold-Y w))
@@ -128,6 +137,7 @@ fold-sq ∷ {C ∷ U} (sC : is-segalᵣ C) {a b c d : C} (t : hom a b) (k : hom 
 fold-sq sC {a} t k r (g , σ) = (comp-homᵣ sC (Hom.id a) g , comp-h sC (connection-tr t) σ)
 
 -- composing vertically with Y, on the edges of a 2-simplex
+private
 unfold-sq ∷ {C ∷ U} (sC : is-segalᵣ C) (w : simplex 2 →ᵣ C) {c : C} (r : hom c (w (Simplex2.edge₁₂ 𝕀1))) →
   (Σ (g' : hom (w (Simplex2.edge₀₁ 𝕀0)) c) . square (Hom.id (w (Simplex2.edge₀₁ 𝕀0))) r g' (comp-homᵣ sC (simplex2-hom₀₁ w) (simplex2-hom₁₂ w))) →
   Σ (g : hom (w (Simplex2.edge₀₁ 𝕀0)) c) . square (simplex2-hom₀₁ w) r g (simplex2-hom₁₂ w)
@@ -139,6 +149,7 @@ fold-cancel ∷ {T : U} {x y : T} (p : x ≡ y) → trans (trans refl (sym p)) p
 fold-cancel {T} {x} refl = refl
 
 -- unfolding a folded square: the exchange law for the grid (Γ'_t , id k ; Γ_t , σ)
+private
 unfold-fold-sq ∷ {C ∷ U} (sC : is-segalᵣ C) (w : simplex 2 →ᵣ C) {c : C} (r : hom c (w (Simplex2.edge₁₂ 𝕀1)))
   (g : hom (w (Simplex2.edge₀₁ 𝕀0)) c) (σ : square (simplex2-hom₀₁ w) r g (simplex2-hom₁₂ w)) →
   sq-move refl refl (comp-homᵣ-lunit C sC g) refl
@@ -191,6 +202,7 @@ unfold-fold-sq {C} sC w {c} r g σ =
             (trans (sym (lr-move lg lk W)) (comp-h-lunit sC σ))))))
 
 -- folding an unfolded square: the exchange law for the grid (id a , Y ; id a , τ)
+private
 fold-unfold-sq ∷ {C ∷ U} (sC : is-segalᵣ C) (w : simplex 2 →ᵣ C) {c : C} (r : hom c (w (Simplex2.edge₁₂ 𝕀1)))
   (g : hom (w (Simplex2.edge₀₁ 𝕀0)) c) (τ : square (Hom.id (w (Simplex2.edge₀₁ 𝕀0))) r g (comp-homᵣ sC (simplex2-hom₀₁ w) (simplex2-hom₁₂ w))) →
   sq-move refl refl (comp-homᵣ-lunit C sC g) refl
@@ -257,6 +269,7 @@ fold-unfold-sq {C} sC w {c} r g τ =
                (trans (trans refl (sym lg)) lg) (fold-cancel lg) (trans cw (sym cw)) (trans-sym-r cw))))))
 
 -- on the edges of a 2-simplex, folding is an equivalence
+private
 is-equiv-fold-sq-simplex ∷ {C ∷ U} (sC : is-segalᵣ C) (w : simplex 2 →ᵣ C) {c : C} (r : hom c (w (Simplex2.edge₁₂ 𝕀1))) →
   is-equiv (fold-sq sC (simplex2-hom₀₁ w) (simplex2-hom₁₂ w) r)
 is-equiv-fold-sq-simplex {C} sC w {c} r =
@@ -273,6 +286,7 @@ is-equiv-fold-sq-simplex {C} sC w {c} r =
 
 -- folding is an equivalence for every composable pair (t , k): every pair is given by the edges of
 -- a 2-simplex, up to a path
+private
 fold-sq-stmt ∷ {C ∷ U} (sC : is-segalᵣ C) → pairs C → U
 fold-sq-stmt {C} sC p =
   (c : C) (r : hom c (fst _ (snd _ (snd _ p)))) →

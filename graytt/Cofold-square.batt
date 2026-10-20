@@ -41,18 +41,22 @@ open Square
 -- The 2-simplex on the whole square
 --
 
+private
 cofold-pt ∷ 𝕀 → 𝕀 → simplex 2
 cofold-pt u v = ((u , u 𝕀∧ v , tt) , (refl , tt))
 
+private
 cofold-nrm ∷ {C ∷ U} (w : simplex 2 →ᵣ C) → simplex 2 →ᵣ C
 cofold-nrm w = λ y . w (cofold-pt (Simplex2.fst y) (Simplex2.snd y))
 
 -- the composite of the first two edges is the long edge, read off the restriction
+private
 cofold-comp ∷ {C ∷ U} (sC : is-segalᵣ C) (w : simplex 2 →ᵣ C) →
   comp-homᵣ sC (simplex2-hom₀₁ w) (simplex2-hom₁₂ w) ≡ simplex2-hom₀₂ w
 cofold-comp sC w = comp-simplex2 sC (cofold-nrm w)
 
 -- the right unit law for t, read off the 2-simplex t (y₁ ∨ y₂)
+private
 cofold-runit ∷ {C ∷ U} (sC : is-segalᵣ C) (w : simplex 2 →ᵣ C) →
   comp-homᵣ sC (simplex2-hom₁₂ w) (Hom.id (w (Simplex2.edge₁₂ 𝕀1))) ≡ simplex2-hom₁₂ w
 cofold-runit sC w = comp-simplex2 sC (λ y . w (Simplex2.edge₁₂ (Simplex2.fst y 𝕀∨ Simplex2.snd y)))
