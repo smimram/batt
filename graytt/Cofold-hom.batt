@@ -1,0 +1,156 @@
+--
+-- The dual fold lemma: the coconnection Γ'_t is ev₀-cartesian
+--
+-- A hom from an arrow y of C to t in 𝕀 →ᵣ C is a square with left side y and right side t
+-- (Square-hom.batt), and its composite with Γ'_t is its horizontal composite with the coconnection
+-- square on t. Under this identification, the gap map of Γ'_t is cofolding of squares (cofold-sq,
+-- Cofold-square.batt) over each bottom side, an equivalence.
+--
+-- This file is imported qualified by Fold.batt, so that the square library does not leak into
+-- the files using the dual fold lemma.
+--
+-- Postulates: those of the exchange law (objectwise-equiv, univalence, truncation, is-set-𝕀).
+--
+
+open import Stdlib
+open import Hom
+open import Segal
+open import Composition
+open import Functoriality
+open import Fibration
+open import Connection
+open import HomSquare
+open import Square-paths
+open import Square-hom
+open import Cofold-square
+
+open Square
+
+-- squares from y to t, and from y to the identity on t 1, with given bottom side k
+private
+cofold-dom ∷ {C ∷ U} (t y : arrᵣ C) → hom (srcᵣ y) (srcᵣ t) → U
+cofold-dom {C} t y k = Σ (h : hom (tgtᵣ y) (tgtᵣ t)) . square (arr-hom y) (cell-hom t) k h
+
+private
+cofold-cod ∷ {C ∷ U} (sC : is-segalᵣ C) (t y : arrᵣ C) → hom (srcᵣ y) (srcᵣ t) → U
+cofold-cod {C} sC t y k = Σ (h : hom (tgtᵣ y) (tgtᵣ t)) . square (arr-hom y) (Hom.id (tgtᵣ t)) (comp-homᵣ sC k (cell-hom t)) h
+
+private
+cofold-tot ∷ {C ∷ U} (sC : is-segalᵣ C) (t y : arrᵣ C) →
+  (Σ (k : hom (srcᵣ y) (srcᵣ t)) . cofold-dom t y k) → Σ (k : hom (srcᵣ y) (srcᵣ t)) . cofold-cod sC t y k
+cofold-tot {C} sC t y =
+  tot {hom (srcᵣ y) (srcᵣ t)} {cofold-dom t y} {cofold-cod sC t y} (λ k . cofold-sq sC k (cell-hom t) (arr-hom y))
+
+-- the square of Γ'_t is the coconnection square on t
+private
+cofold-coconn-square ∷ {C ∷ U} (t : arrᵣ C) → of-hom {C} {t} {λ j . tgtᵣ t} (coconn-hom {C} t) ≡ connection-bl (cell-hom t)
+cofold-coconn-square t = refl
+
+-- exchanging the top and bottom sides
+private
+sides-swap ∷ {C ∷ U} {a b c d : C} (l : hom a c) (r : hom b d) →
+  (Σ (h : hom c d) . Σ (g : hom a b) . square l r g h) → Σ (g : hom a b) . Σ (h : hom c d) . square l r g h
+sides-swap {C} {a} {b} {c} {d} l r x = (fst _ (snd _ x) , (fst _ x , snd _ (snd _ x)))
+
+private
+is-equiv-sides-swap ∷ {C ∷ U} {a b c d : C} (l : hom a c) (r : hom b d) → is-equiv (sides-swap l r)
+is-equiv-sides-swap {C} {a} {b} {c} {d} l r =
+  let S : U = Σ (h : hom c d) . Σ (g : hom a b) . square l r g h in
+  let S' : U = Σ (g : hom a b) . Σ (h : hom c d) . square l r g h in
+  let inv : S' → S = λ x . (fst _ (snd _ x) , (fst _ x , snd _ (snd _ x))) in
+  let sec : (x : S') → sides-swap l r (inv x) ≡ x = fun (g , y) →
+    let k : (y : Σ (h : hom c d) . square l r g h) → sides-swap l r (inv (g , y)) ≡{S'} (g , y) = fun (h , σ) → refl in
+    k y in
+  let retr : (x : S) → inv (sides-swap l r x) ≡ x = fun (h , y) →
+    let k : (y : Σ (g : hom a b) . square l r g h) → inv (sides-swap l r (h , y)) ≡{S} (h , y) = fun (g , σ) → refl in
+    k y in
+  is-iso→is-equiv (sides-swap l r) (inv , sec , retr)
+
+-- the target of the gap map of Γ'_t at y, as squares from y to the identity on t 1
+private
+cofold-pb→squares ∷ {C ∷ U} (sC : is-segalᵣ C) (t y : arrᵣ C) →
+  cart-pb {arrᵣ C} {C} sC srcᵣ {t} {λ j . tgtᵣ t} (coconn-hom {C} t) y →
+  Σ (k : hom (srcᵣ y) (srcᵣ t)) . Σ (h : hom (tgtᵣ y) (tgtᵣ t)) . square (arr-hom y) (Hom.id (tgtᵣ t)) (comp-homᵣ sC k (cell-hom t)) h
+cofold-pb→squares sC t y x =
+  let ke : Σ (k : hom (srcᵣ y) (srcᵣ t)) . hom-map srcᵣ (fst _ x) ≡ comp-homᵣ sC k (cell-hom t) = snd _ x in
+  (fst _ ke , (hom-map tgtᵣ (fst _ x) , sq-move refl refl (snd _ ke) refl (of-hom (fst _ x))))
+
+-- contracting the bottom side
+private
+cofold-contract-bottom ∷ {C ∷ U} {a b c d : C} {l : hom a c} {r : hom b d} {g : hom a b} {h : hom c d}
+  (σ : square l r g h) {m : hom a b} (e : g ≡ m) →
+  ((h , (g , σ)) , e) ≡{Σ (x : Σ (h' : hom c d) . Σ (g' : hom a b) . square l r g' h') . fst _ (snd _ x) ≡ m}
+    ((h , (m , sq-move refl refl e refl σ)) , refl)
+cofold-contract-bottom σ refl = refl
+
+private
+is-equiv-cofold-pb→squares ∷ {C ∷ U} (sC : is-segalᵣ C) (t y : arrᵣ C) → is-equiv (cofold-pb→squares sC t y)
+is-equiv-cofold-pb→squares {C} sC t y =
+  let b : C = tgtᵣ t in
+  let T : hom (srcᵣ t) b = cell-hom t in
+  let S : U = Σ (h' : hom (tgtᵣ y) b) . Σ (g' : hom (srcᵣ y) b) . square (arr-hom y) (Hom.id b) g' h' in
+  let Q : S → U = λ x . Σ (k : hom (srcᵣ y) (srcᵣ t)) . fst _ (snd _ x) ≡ comp-homᵣ sC k T in
+  let B : U = Σ (k : hom (srcᵣ y) (srcᵣ t)) . Σ (h : hom (tgtᵣ y) b) . square (arr-hom y) (Hom.id b) (comp-homᵣ sC k T) h in
+  let f2 : (Σ (x : S) . Q x) → B = λ x .
+    (fst _ (snd _ x) , (fst _ (fst _ x) , sq-move refl refl (snd _ (snd _ x)) refl (snd _ (snd _ (fst _ x))))) in
+  let g2 : B → Σ (x : S) . Q x = λ z . ((fst _ (snd _ z) , (comp-homᵣ sC (fst _ z) T , snd _ (snd _ z))) , (fst _ z , refl)) in
+  let sec : (z : B) → f2 (g2 z) ≡ z = fun (k , z') →
+    let h : (z' : Σ (h : hom (tgtᵣ y) b) . square (arr-hom y) (Hom.id b) (comp-homᵣ sC k T) h) → f2 (g2 (k , z')) ≡{B} (k , z') =
+      fun (h' , τ) → refl in
+    h z' in
+  let retr : (z : Σ (x : S) . Q x) → g2 (f2 z) ≡ z = fun (x , q) →
+    let h1 : (x : S) (q : Q x) → g2 (f2 (x , q)) ≡{Σ (x : S) . Q x} (x , q) = fun (h' , z') →
+      let h2 : (z' : Σ (g' : hom (srcᵣ y) b) . square (arr-hom y) (Hom.id b) g' h') (q : Q (h' , z')) →
+          g2 (f2 ((h' , z') , q)) ≡{Σ (x : S) . Q x} ((h' , z') , q) = fun (g' , τ) → fun (k , e) →
+        cong {Σ (x : S) . fst _ (snd _ x) ≡ comp-homᵣ sC k T} {Σ (x : S) . Q x} (λ w . (fst _ w , (k , snd _ w)))
+          (sym (cofold-contract-bottom τ e)) in
+      h2 z' in
+    h1 x q in
+  let e2 : is-equiv f2 = is-iso→is-equiv f2 (g2 , sec , retr) in
+  let α : hom {arrᵣ C} y (λ j . b) → S = hom→square y (λ j . b) in
+  is-equiv-htpy {cart-pb {arrᵣ C} {C} sC srcᵣ {t} {λ j . b} (coconn-hom {C} t) y} {B}
+    {λ x . f2 (Σ-base α Q x)} {cofold-pb→squares sC t y}
+    (fun (h , ke) → refl)
+    (is-equiv-circ f2 (Σ-base α Q) e2 (is-equiv-Σ-base α (is-equiv-hom→square y (λ j . b)) Q))
+
+-- the gap map of Γ'_t is cofolding of squares
+private
+cofold-gap-square ∷ {C ∷ U} (sC : is-segalᵣ C) (t y : arrᵣ C) (u : hom {arrᵣ C} y t) →
+  cofold-pb→squares sC t y (cart-gap {arrᵣ C} {C} (is-segal-arrᵣ sC) sC srcᵣ {t} {λ j . tgtᵣ t} (coconn-hom {C} t) y u)
+  ≡ cofold-tot sC t y (sides-swap (arr-hom y) (cell-hom t) (hom→square y t u))
+cofold-gap-square {C} sC t y u =
+  let sX : is-segalᵣ (arrᵣ C) = is-segal-arrᵣ sC in
+  let b : C = tgtᵣ t in
+  let f0 : hom {arrᵣ C} t (λ j . b) = coconn-hom {C} t in
+  let ps : hom-map srcᵣ (comp-homᵣ sX u f0) ≡ comp-homᵣ sC (hom-map srcᵣ u) (hom-map srcᵣ f0) = hom-map-comp (arrᵣ C) C srcᵣ sX sC u f0 in
+  let pt : hom-map tgtᵣ (comp-homᵣ sX u f0) ≡ comp-homᵣ sC (hom-map tgtᵣ u) (hom-map tgtᵣ f0) = hom-map-comp (arrᵣ C) C tgtᵣ sX sC u f0 in
+  let O : squares (hom-bdry (comp-homᵣ sX u f0)) = of-hom (comp-homᵣ sX u f0) in
+  cong {Σ (h : hom (tgtᵣ y) b) . square (arr-hom y) (Hom.id b) (comp-homᵣ sC (hom-map srcᵣ u) (cell-hom t)) h}
+       {Σ (k : hom (srcᵣ y) (srcᵣ t)) . Σ (h : hom (tgtᵣ y) b) . square (arr-hom y) (Hom.id b) (comp-homᵣ sC k (cell-hom t)) h}
+       (λ z . (hom-map srcᵣ u , z))
+    (squares-h-path pt (sq-move refl refl ps refl O) (comp-h sC (of-hom u) (connection-bl (cell-hom t)))
+      (trans (sq-move-h-g ps pt O)
+        (sym (trans (comp-h-gen-β sC u f0) (bdry-lr-move y (λ j . b) ps pt O)))))
+
+-- the dual fold lemma: Γ'_t is ev₀-cartesian
+coconn-cartesian ∷ {C ∷ U} (sC : is-segalᵣ C) (t : arrᵣ C) →
+  is-cartesian {arrᵣ C} {C} (is-segal-arrᵣ {C} sC) sC (srcᵣ {C}) {t} {λ j . tgtᵣ t} (coconn-hom {C} t)
+coconn-cartesian {C} sC t y =
+  let b : C = tgtᵣ t in
+  let gap : hom {arrᵣ C} y t → cart-pb {arrᵣ C} {C} sC srcᵣ {t} {λ j . b} (coconn-hom {C} t) y =
+    cart-gap {arrᵣ C} {C} (is-segal-arrᵣ sC) sC srcᵣ {t} {λ j . b} (coconn-hom {C} t) y in
+  let B : U = Σ (k : hom (srcᵣ y) (srcᵣ t)) . Σ (h : hom (tgtᵣ y) b) . square (arr-hom y) (Hom.id b) (comp-homᵣ sC k (cell-hom t)) h in
+  let F : (Σ (k : hom (srcᵣ y) (srcᵣ t)) . cofold-dom t y k) → Σ (k : hom (srcᵣ y) (srcᵣ t)) . cofold-cod sC t y k = cofold-tot sC t y in
+  let eF : is-equiv F =
+    is-equiv-tot {hom (srcᵣ y) (srcᵣ t)} {cofold-dom t y} {cofold-cod sC t y} (λ k . cofold-sq sC k (cell-hom t) (arr-hom y))
+      (λ k . is-equiv-cofold-sq sC k (cell-hom t) (arr-hom y)) in
+  let α : hom {arrᵣ C} y t → Σ (k : hom (srcᵣ y) (srcᵣ t)) . cofold-dom t y k =
+    λ u . sides-swap (arr-hom y) (cell-hom t) (hom→square y t u) in
+  let eα : is-equiv α =
+    is-equiv-circ (sides-swap (arr-hom y) (cell-hom t)) (hom→square y t) (is-equiv-sides-swap (arr-hom y) (cell-hom t))
+      (is-equiv-hom→square y t) in
+  let β : cart-pb {arrᵣ C} {C} sC srcᵣ {t} {λ j . b} (coconn-hom {C} t) y → B = cofold-pb→squares sC t y in
+  is-equiv-cancel-l β gap (is-equiv-cofold-pb→squares sC t y)
+    (is-equiv-htpy {hom {arrᵣ C} y t} {B} {λ u . F (α u)} {λ u . β (gap u)}
+      (λ u . sym (cofold-gap-square sC t y u))
+      (is-equiv-circ F α eF eα))

@@ -19,17 +19,15 @@
 -- connection Γ_f), and the dual fold lemma gives representability of the fibre by its
 -- cocartesian lift.
 --
--- The fold lemma is proved: a hom from t to y in 𝕀 →ᵣ C is a square with left side t and right
--- side y (Square-hom.batt), the gap map of Γ_t becomes horizontal composition with the connection
--- square on t, and this is an equivalence over each top side (Fold-square.batt), by two round
--- trips given by the exchange law.
+-- Both are proved by the same argument: a hom of 𝕀 →ᵣ C is a square (Square-hom.batt), the gap
+-- map of Γ_t (resp. Γ'_t) becomes horizontal composition with the connection (resp. coconnection)
+-- square on t, and this is an equivalence over each top (resp. bottom) side, by two round trips
+-- given by the exchange law (Fold-square.batt, Cofold-square.batt). The proofs are in Fold-hom.batt
+-- and Cofold-hom.batt, imported qualified so that the square library does not leak into the files
+-- using the fold lemmas.
 --
--- The dual fold lemma is still postulated. The mirror proof, composing with the coconnection on
--- the right and unfolding with the square w (i , i ∧ j) of a 2-simplex below, is not formalised
--- yet (Cofold-square.batt contains its identifications of composites of squares).
---
--- Postulates: dual-fold-lemma; the fold lemma depends on those of the exchange law
--- (objectwise-equiv, univalence, truncation, is-set-𝕀).
+-- Postulates: none of their own; those of the exchange law (objectwise-equiv, univalence,
+-- truncation, is-set-𝕀).
 --
 
 open import Stdlib
@@ -38,6 +36,7 @@ open import Segal
 open import Fibration
 open import Connection
 import Fold-hom
+import Cofold-hom
 
 --
 -- The (co)connection lies over the arrow itself, judgmentally
@@ -85,8 +84,8 @@ abstract fold-lemma ∷ {C ∷ U} (sC : is-segalᵣ C) (t : arrᵣ C) → fold-s
 fold-lemma {C} sC t = Fold-hom.fold-cocartesian sC t
 
 --
--- Postulates
+-- The dual fold lemma (proved in Cofold-hom.batt)
 --
 
--- the dual fold lemma: the coconnection Γ'_t is ev₀-cartesian (not formalised yet)
-postulate dual-fold-lemma ∷ {C ∷ U} (sC : is-segalᵣ C) (t : arrᵣ C) → dual-fold-stmt {C} sC t
+abstract dual-fold-lemma ∷ {C ∷ U} (sC : is-segalᵣ C) (t : arrᵣ C) → dual-fold-stmt {C} sC t
+dual-fold-lemma {C} sC t = Cofold-hom.coconn-cartesian sC t
