@@ -1,0 +1,3 @@
+-- See open-opaque.batt.
+open import open-opaque-A
+open import open-opaque-B

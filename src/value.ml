@@ -426,8 +426,9 @@ and readback k v : Term.t =
 (** String representation of a value at level [k]: [vars] are the names of the variables at levels [k-1], ..., [0]. *)
 let to_string ?vars k v = Term.to_string ?vars @@ readback k v
 
-(** Whether two values are the same global definition, or physically equal. *)
+(** Whether two values are the same global definition or opaque constant, or physically equal. *)
 let same_head t u =
   match t, u with
   | Def (g, [], _), Def (g', [], _) -> g.id = g'.id
+  | Opaque (o, []), Opaque (o', []) -> o = o'
   | _ -> t == u

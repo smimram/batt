@@ -1,0 +1,20 @@
+-- Opening a module must not re-declare the opaque constants (postulates, abstract definitions)
+-- that it re-exports when the module was loaded from its cache. Otherwise copies multiply along
+-- the import graph and are stored in the caches of modules rechecked later (in graytt, this made
+-- PropTrunc's trunc be declared 51 times when opening Fibration, and some modules take minutes).
+--
+-- `open` skips a field already bound to the same value (already_bound in src/lang.ml), as decided
+-- by V.same_head (src/value.ml), which compares opaque constants by identifier: physical equality
+-- does not suffice, since an opaque constant is a fresh value each time the record is evaluated
+-- (e.g. from a cache).
+--
+-- The test suite does not check this automatically: from this directory (d is an ordinary
+-- definition, p a postulate, a abstract), with the modules cached (run once after rm -f *.batto),
+--
+--   batt --debug open-opaque.batt | grep -cE '^DECL +p = '
+--
+-- should give 1, like for d, and should still do so after editing open-opaque-B.batt and
+-- open-opaque-C.batt so that they are rechecked against cached modules.
+
+open import open-opaque-C
+open import open-opaque-D

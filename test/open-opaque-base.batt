@@ -1,4 +1,4 @@
--- See Main.batt.
+-- See open-opaque.batt.
 postulate p ∷ U
 
 abstract a ∷ U
