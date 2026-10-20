@@ -1,0 +1,253 @@
+--
+-- Oplax families in a pulled-back family
+--
+-- For crisp families T, T' over C, a crisp fibrewise map pc : T c → T' c and a crisp family G
+-- over the total space of T', the type
+--
+--   pb-tot = Σ c . Σ (w : T c) . G c (pc c w)
+--
+-- is the pullback of the projection of pb-tot' = Σ c . Σ (w' : T' c) . G c w' along the total map
+-- of pc. Hence the maps induced by pb-map on the fibres of the projections to Σ T and Σ T' are
+-- equivalences (pb-fib-top), and oplax families of 1-cells preserve this pullback
+-- (is-equiv-families-pb-glued, from the oplax universal property of pullbacks and oplax function
+-- extensionality): the families in pb-tot above a family of Σ T are the families in pb-tot' above
+-- its image (families-pb-fib-top).
+--
+-- Postulates: objectwise-equiv, univalence (through the oplax universal property of pullbacks).
+--
+
+open import Stdlib
+open import Pullback-up
+open import Square-fibres
+
+-- the total space of T
+pb-base ∷ {C ∷ U} (T ∷ C → U) → U
+pb-base {C} T = Σ (c : C) . T c
+
+-- the pullback of G along pc
+pb-tot ∷ {C ∷ U} (T T' ∷ C → U) (pc ∷ (c : C) → T c → T' c) (G ∷ (c : C) → T' c → U) → U
+pb-tot {C} T T' pc G = Σ (c : C) . Σ (w : T c) . G c (pc c w)
+
+-- the total space of G
+pb-tot' ∷ {C ∷ U} (T' ∷ C → U) (G ∷ (c : C) → T' c → U) → U
+pb-tot' {C} T' G = Σ (c : C) . Σ (w : T' c) . G c w
+
+-- the maps of the square
+pb-pr ∷ {C ∷ U} (T T' ∷ C → U) (pc ∷ (c : C) → T c → T' c) (G ∷ (c : C) → T' c → U) → pb-tot T T' pc G → pb-base T
+pb-pr {C} T T' pc G x = (fst _ x , fst _ (snd _ x))
+
+pb-map ∷ {C ∷ U} (T T' ∷ C → U) (pc ∷ (c : C) → T c → T' c) (G ∷ (c : C) → T' c → U) → pb-tot T T' pc G → pb-tot' T' G
+pb-map {C} T T' pc G x = (fst _ x , (pc (fst _ x) (fst _ (snd _ x)) , snd _ (snd _ x)))
+
+pb-base-map ∷ {C ∷ U} (T T' ∷ C → U) (pc ∷ (c : C) → T c → T' c) → pb-base T → pb-base T'
+pb-base-map {C} T T' pc u = (fst _ u , pc (fst _ u) (snd _ u))
+
+pb-pr' ∷ {C ∷ U} (T' ∷ C → U) (G ∷ (c : C) → T' c → U) → pb-tot' T' G → pb-base T'
+pb-pr' {C} T' G x = (fst _ x , fst _ (snd _ x))
+
+--
+-- Fibres of the projections
+--
+
+-- the fibre of the projection of a total space over a point is the value of the family
+private
+pb-fib-val ∷ {C ∷ U} (T T' ∷ C → U) (pc ∷ (c : C) → T c → T' c) (G ∷ (c : C) → T' c → U) (u : pb-base T) →
+  fib (pb-pr T T' pc G) u → G (fst _ u) (pc (fst _ u) (snd _ u))
+pb-fib-val {C} T T' pc G u =
+  fib-over-map {pb-tot T T' pc G} {pb-base T} {λ u . G (fst _ u) (pc (fst _ u) (snd _ u))} (pb-pr T T' pc G)
+    (λ x . snd _ (snd _ x)) u
+
+private
+is-equiv-pb-fib-val ∷ {C ∷ U} (T T' ∷ C → U) (pc ∷ (c : C) → T c → T' c) (G ∷ (c : C) → T' c → U) (u : pb-base T) →
+  is-equiv (pb-fib-val T T' pc G u)
+is-equiv-pb-fib-val {C} T T' pc G u =
+  let Q : pb-base T → U = λ u . G (fst _ u) (pc (fst _ u) (snd _ u)) in
+  let f : pb-tot T T' pc G → Σ (u : pb-base T) . Q u = λ x . (pb-pr T T' pc G x , snd _ (snd _ x)) in
+  let g : (Σ (u : pb-base T) . Q u) → pb-tot T T' pc G = λ v . (fst _ (fst _ v) , (snd _ (fst _ v) , snd _ v)) in
+  let sec : (v : Σ (u : pb-base T) . Q u) → f (g v) ≡ v = fun (u , y) →
+    let k : (u : pb-base T) (y : Q u) → f (g (u , y)) ≡{Σ (u : pb-base T) . Q u} (u , y) = fun (c , w) → λ y . refl in
+    k u y in
+  let retr : (x : pb-tot T T' pc G) → g (f x) ≡ x = fun (c , x') →
+    let k : (x' : Σ (w : T c) . G c (pc c w)) → g (f (c , x')) ≡{pb-tot T T' pc G} (c , x') = fun (w , y) → refl in
+    k x' in
+  is-equiv-fib-over-map {pb-tot T T' pc G} {pb-base T} {Q} (pb-pr T T' pc G) (λ x . snd _ (snd _ x))
+    (is-iso→is-equiv f (g , (sec , retr))) u
+
+private
+pb-fib-val' ∷ {C ∷ U} (T' ∷ C → U) (G ∷ (c : C) → T' c → U) (u : pb-base T') →
+  fib (pb-pr' T' G) u → G (fst _ u) (snd _ u)
+pb-fib-val' {C} T' G u =
+  fib-over-map {pb-tot' T' G} {pb-base T'} {λ u . G (fst _ u) (snd _ u)} (pb-pr' T' G) (λ x . snd _ (snd _ x)) u
+
+private
+is-equiv-pb-fib-val' ∷ {C ∷ U} (T' ∷ C → U) (G ∷ (c : C) → T' c → U) (u : pb-base T') → is-equiv (pb-fib-val' T' G u)
+is-equiv-pb-fib-val' {C} T' G u =
+  is-equiv-pb-fib-val T' T' (λ c w . w) G u
+
+-- the maps induced on the fibres of the projections are equivalences
+pb-fib-top ∷ {C ∷ U} (T T' ∷ C → U) (pc ∷ (c : C) → T c → T' c) (G ∷ (c : C) → T' c → U) (u : pb-base T) →
+  is-equiv (top-fib-map {pb-tot T T' pc G} {pb-base T} {pb-tot' T' G} {pb-base T'}
+              (pb-pr T T' pc G) (pb-map T T' pc G) (pb-base-map T T' pc) (pb-pr' T' G) (λ x . refl) u)
+pb-fib-top {C} T T' pc G u =
+  let tf : fib (pb-pr T T' pc G) u → fib (pb-pr' T' G) (pb-base-map T T' pc u) =
+    top-fib-map {pb-tot T T' pc G} {pb-base T} {pb-tot' T' G} {pb-base T'}
+      (pb-pr T T' pc G) (pb-map T T' pc G) (pb-base-map T T' pc) (pb-pr' T' G) (λ x . refl) u in
+  let comm0 : (x : pb-tot T T' pc G) {u : pb-base T} (e : pb-pr T T' pc G x ≡ u) →
+      pb-fib-val' T' G (pb-base-map T T' pc u)
+        (top-fib-map {pb-tot T T' pc G} {pb-base T} {pb-tot' T' G} {pb-base T'}
+           (pb-pr T T' pc G) (pb-map T T' pc G) (pb-base-map T T' pc) (pb-pr' T' G) (λ x . refl) u (x , e))
+      ≡ pb-fib-val T T' pc G u (x , e) = λ x . fun refl → refl in
+  let comm : (w : fib (pb-pr T T' pc G) u) → pb-fib-val' T' G (pb-base-map T T' pc u) (tf w) ≡ pb-fib-val T T' pc G u w =
+    fun (x , e) → comm0 x e in
+  is-equiv-cancel-l (pb-fib-val' T' G (pb-base-map T T' pc u)) tf (is-equiv-pb-fib-val' T' G (pb-base-map T T' pc u))
+    (is-equiv-htpy {fib (pb-pr T T' pc G) u} {G (fst _ u) (pc (fst _ u) (snd _ u))}
+      {pb-fib-val T T' pc G u} {λ w . pb-fib-val' T' G (pb-base-map T T' pc u) (tf w)}
+      (λ w . sym (comm w)) (is-equiv-pb-fib-val T T' pc G u))
+
+--
+-- The pullback
+--
+
+private
+pb-tot→pb ∷ {C ∷ U} (T T' ∷ C → U) (pc ∷ (c : C) → T c → T' c) (G ∷ (c : C) → T' c → U) →
+  pb-tot T T' pc G → pullback {pb-base T} {pb-tot' T' G} {pb-base T'} (pb-base-map T T' pc) (pb-pr' T' G)
+pb-tot→pb {C} T T' pc G x = (pb-pr T T' pc G x , (pb-map T T' pc G x , refl))
+
+private
+pb-base-eta ∷ {C ∷ U} (T' ∷ C → U) (u : pb-base T') → u ≡ (fst _ u , snd _ u)
+pb-base-eta {C} T' (c , w) = refl
+
+private
+pb-sec-path ∷ {C ∷ U} (T T' ∷ C → U) (pc ∷ (c : C) → T c → T' c) (G ∷ (c : C) → T' c → U) (c : C) (w : T c)
+  {u : pb-base T'} (e : (c , pc c w) ≡{pb-base T'} u) (y : G (fst _ u) (snd _ u)) →
+  pb-tot→pb T T' pc G (c , (w , subst {pb-base T'} (λ u . G (fst _ u) (snd _ u)) (sym e) y))
+  ≡{pullback {pb-base T} {pb-tot' T' G} {pb-base T'} (pb-base-map T T' pc) (pb-pr' T' G)}
+    ((c , w) , ((fst _ u , (snd _ u , y)) , trans e (pb-base-eta T' u)))
+pb-sec-path {C} T T' pc G c w refl y = refl
+
+private
+is-equiv-pb-tot→pb ∷ {C ∷ U} (T T' ∷ C → U) (pc ∷ (c : C) → T c → T' c) (G ∷ (c : C) → T' c → U) →
+  is-equiv (pb-tot→pb T T' pc G)
+is-equiv-pb-tot→pb {C} T T' pc G =
+  let B ∷ U = pb-base T in
+  let B' ∷ U = pb-base T' in
+  let E' ∷ U = pb-tot' T' G in
+  let P : U = pullback {B} {E'} {B'} (pb-base-map T T' pc) (pb-pr' T' G) in
+  let inv : P → pb-tot T T' pc G = λ x .
+    (fst _ (fst _ x) , (snd _ (fst _ x) ,
+      subst {B'} (λ u . G (fst _ u) (snd _ u)) (sym (snd _ (snd _ x))) (snd _ (snd _ (fst _ (snd _ x)))))) in
+  let sec : (x : P) → pb-tot→pb T T' pc G (inv x) ≡ x = fun (h , x') →
+    let k1 : (h : B) (x' : Σ (v : E') . pb-base-map T T' pc h ≡ pb-pr' T' G v) → pb-tot→pb T T' pc G (inv (h , x')) ≡{P} (h , x') =
+      fun (c , w) → fun (v , e) →
+        let k2 : (v : E') (e : (c , pc c w) ≡{B'} pb-pr' T' G v) → pb-tot→pb T T' pc G (inv ((c , w) , (v , e))) ≡{P} ((c , w) , (v , e)) =
+          fun (c' , v') → λ e .
+            let k3 : (v' : Σ (w' : T' c') . G c' w') (e : (c , pc c w) ≡{B'} (c' , fst _ v')) →
+                pb-tot→pb T T' pc G (inv ((c , w) , ((c' , v') , e))) ≡{P} ((c , w) , ((c' , v') , e)) =
+              fun (w' , y) → λ e . pb-sec-path T T' pc G c w {(c' , w')} e y in
+            k3 v' e in
+        k2 v e in
+    k1 h x' in
+  let retr : (x : pb-tot T T' pc G) → inv (pb-tot→pb T T' pc G x) ≡ x = fun (c , x') →
+    let k : (x' : Σ (w : T c) . G c (pc c w)) → inv (pb-tot→pb T T' pc G (c , x')) ≡{pb-tot T T' pc G} (c , x') =
+      fun (w , y) → refl in
+    k x' in
+  is-iso→is-equiv (pb-tot→pb T T' pc G) (inv , (sec , retr))
+
+--
+-- Oplax families
+--
+
+-- a family in pb-tot is a family in Σ T and a family in pb-tot', glued along their images in Σ T'
+families-pb-glued ∷ {C ∷ U} (T T' ∷ C → U) (pc ∷ (c : C) → T c → T' c) (G ∷ (c : C) → T' c → U) →
+  (𝕀 →ᵣ pb-tot T T' pc G) →
+  Σ (lc : 𝕀 →ᵣ pb-base T) . Σ (Φ : 𝕀 →ᵣ pb-tot' T' G) . postᵣ (pb-base-map T T' pc) lc ≡ postᵣ (pb-pr' T' G) Φ
+families-pb-glued {C} T T' pc G Ψ = (postᵣ (pb-pr T T' pc G) Ψ , (postᵣ (pb-map T T' pc G) Ψ , refl))
+
+is-equiv-families-pb-glued ∷ {C ∷ U} (T T' ∷ C → U) (pc ∷ (c : C) → T c → T' c) (G ∷ (c : C) → T' c → U) →
+  is-equiv (families-pb-glued T T' pc G)
+is-equiv-families-pb-glued {C} T T' pc G =
+  let B ∷ U = pb-base T in
+  let A ∷ U = pb-base T' in
+  let Tt ∷ U = pb-tot' T' G in
+  let r ∷ B → A = pb-base-map T T' pc in
+  let src ∷ Tt → A = pb-pr' T' G in
+  let Gl : U = Σ (lc : 𝕀 →ᵣ B) . Σ (Φ : 𝕀 →ᵣ Tt) . postᵣ r lc ≡ postᵣ src Φ in
+  let Ht : U = Σ (lc : 𝕀 →ᵣ B) . Σ (Φ : 𝕀 →ᵣ Tt) . Htpyᵣ 𝕀 A (postᵣ r lc) (postᵣ src Φ) in
+  let Co : U = pullback-coneᵣ 𝕀 {B} {Tt} {A} r src in
+  let hL : (lc : 𝕀 →ᵣ B) → (Σ (Φ : 𝕀 →ᵣ Tt) . postᵣ r lc ≡ postᵣ src Φ) →
+           Σ (Φ : 𝕀 →ᵣ Tt) . Htpyᵣ 𝕀 A (postᵣ r lc) (postᵣ src Φ) = λ lc .
+    tot {𝕀 →ᵣ Tt} {λ Φ . postᵣ r lc ≡ postᵣ src Φ} {λ Φ . Htpyᵣ 𝕀 A (postᵣ r lc) (postᵣ src Φ)}
+      (λ Φ . happlyᵣ-fib 𝕀 A (postᵣ r lc) (postᵣ src Φ)) in
+  let h : Gl → Ht =
+    tot {𝕀 →ᵣ B} {λ lc . Σ (Φ : 𝕀 →ᵣ Tt) . postᵣ r lc ≡ postᵣ src Φ}
+      {λ lc . Σ (Φ : 𝕀 →ᵣ Tt) . Htpyᵣ 𝕀 A (postᵣ r lc) (postᵣ src Φ)} hL in
+  let eh : is-equiv h =
+    is-equiv-tot {𝕀 →ᵣ B} {λ lc . Σ (Φ : 𝕀 →ᵣ Tt) . postᵣ r lc ≡ postᵣ src Φ}
+      {λ lc . Σ (Φ : 𝕀 →ᵣ Tt) . Htpyᵣ 𝕀 A (postᵣ r lc) (postᵣ src Φ)} hL
+      (λ lc . is-equiv-tot {𝕀 →ᵣ Tt} {λ Φ . postᵣ r lc ≡ postᵣ src Φ}
+               {λ Φ . Htpyᵣ 𝕀 A (postᵣ r lc) (postᵣ src Φ)}
+               (λ Φ . happlyᵣ-fib 𝕀 A (postᵣ r lc) (postᵣ src Φ))
+               (λ Φ . is-equiv-happlyᵣ-fib 𝕀 A (postᵣ r lc) (postᵣ src Φ))) in
+  let c : Co → Ht = λ w .
+    (Product.fst (fst _ w) , (Product.fst (Product.snd (fst _ w)) , (Product.snd (Product.snd (fst _ w)) , snd _ w))) in
+  let c-inv : Ht → Co = λ w .
+    ((fst _ w , fst _ (snd _ w) , fst _ (snd _ (snd _ w))) , snd _ (snd _ (snd _ w))) in
+  let ec : is-equiv c =
+    is-iso→is-equiv c (c-inv ,
+      (fun (lc , w) →
+        let k1 : (w : Σ (Φ : 𝕀 →ᵣ Tt) . Htpyᵣ 𝕀 A (postᵣ r lc) (postᵣ src Φ)) → c (c-inv (lc , w)) ≡{Ht} (lc , w) = fun (Φ , w') →
+          let k2 : (w' : Htpyᵣ 𝕀 A (postᵣ r lc) (postᵣ src Φ)) → c (c-inv (lc , (Φ , w'))) ≡{Ht} (lc , (Φ , w')) =
+            fun (H , pq) → refl in
+          k2 w' in
+        k1 w) ,
+      (fun (d , pq) →
+        let k1 : (d : pullback-coneᵣ-data 𝕀 B Tt A) (pq : pullback-coneᵣ-paths 𝕀 {B} {Tt} {A} r src d) →
+            c-inv (c (d , pq)) ≡{Co} (d , pq) = fun (lc , d') →
+          let k2 : (d' : (𝕀 →ᵣ Tt) × (𝕀 →ᵣ path A)) (pq : pullback-coneᵣ-paths 𝕀 {B} {Tt} {A} r src (lc , d')) →
+              c-inv (c ((lc , d') , pq)) ≡{Co} ((lc , d') , pq) = fun (Φ , H) → λ pq . refl in
+          k2 d' in
+        k1 d pq)) in
+  let f : (𝕀 →ᵣ pb-tot T T' pc G) → Ht = λ Ψ .
+    c (pullback→coneᵣ 𝕀 {B} {Tt} {A} r src (postᵣ (pb-tot→pb T T' pc G) Ψ)) in
+  let ef : is-equiv f =
+    is-equiv-circ {𝕀 →ᵣ pb-tot T T' pc G} {Co} {Ht} c
+      (λ Ψ . pullback→coneᵣ 𝕀 {B} {Tt} {A} r src (postᵣ (pb-tot→pb T T' pc G) Ψ)) ec
+      (is-equiv-circ {𝕀 →ᵣ pb-tot T T' pc G} {𝕀 →ᵣ pullback {B} {Tt} {A} r src} {Co}
+        (pullback→coneᵣ 𝕀 {B} {Tt} {A} r src) (postᵣ {𝕀} (pb-tot→pb T T' pc G))
+        (pullback-oplax-up 𝕀 {B} {Tt} {A} r src)
+        (postᵣ-equiv 𝕀 (pb-tot→pb T T' pc G) (is-equiv-pb-tot→pb T T' pc G))) in
+  is-equiv-cancel-l h (families-pb-glued T T' pc G) eh
+    (is-equiv-htpy {𝕀 →ᵣ pb-tot T T' pc G} {Ht} {f} {λ Ψ . h (families-pb-glued T T' pc G Ψ)} (λ Ψ . refl) ef)
+
+-- the maps induced on the fibres of the projections of families are equivalences
+families-pb-fib-top ∷ {C ∷ U} (T T' ∷ C → U) (pc ∷ (c : C) → T c → T' c) (G ∷ (c : C) → T' c → U) (lc : 𝕀 →ᵣ pb-base T) →
+  is-equiv (top-fib-map {𝕀 →ᵣ pb-tot T T' pc G} {𝕀 →ᵣ pb-base T} {𝕀 →ᵣ pb-tot' T' G} {𝕀 →ᵣ pb-base T'}
+              (postᵣ (pb-pr T T' pc G)) (postᵣ (pb-map T T' pc G)) (postᵣ (pb-base-map T T' pc)) (postᵣ (pb-pr' T' G))
+              (λ Ψ . refl) lc)
+families-pb-fib-top {C} T T' pc G lc =
+  let B ∷ U = pb-base T in
+  let A ∷ U = pb-base T' in
+  let E ∷ U = pb-tot T T' pc G in
+  let Tt ∷ U = pb-tot' T' G in
+  let F : (𝕀 →ᵣ E) → 𝕀 →ᵣ B = postᵣ (pb-pr T T' pc G) in
+  let r : (𝕀 →ᵣ B) → 𝕀 →ᵣ A = postᵣ (pb-base-map T T' pc) in
+  let b : (𝕀 →ᵣ Tt) → 𝕀 →ᵣ A = postᵣ (pb-pr' T' G) in
+  let tf : (l : 𝕀 →ᵣ B) → fib F l → fib b (r l) = λ l .
+    top-fib-map {𝕀 →ᵣ E} {𝕀 →ᵣ B} {𝕀 →ᵣ Tt} {𝕀 →ᵣ A} F (postᵣ (pb-map T T' pc G)) r b (λ Ψ . refl) l in
+  let Gl : U = Σ (l : 𝕀 →ᵣ B) . Σ (Φ : 𝕀 →ᵣ Tt) . r l ≡ b Φ in
+  let flip : Gl → Σ (l : 𝕀 →ᵣ B) . fib b (r l) =
+    tot {𝕀 →ᵣ B} {λ l . Σ (Φ : 𝕀 →ᵣ Tt) . r l ≡ b Φ} {λ l . fib b (r l)}
+      (λ l . tot {𝕀 →ᵣ Tt} {λ Φ . r l ≡ b Φ} {λ Φ . b Φ ≡ r l} (λ Φ . sym {𝕀 →ᵣ A} {r l} {b Φ})) in
+  let eflip : is-equiv flip =
+    is-equiv-tot {𝕀 →ᵣ B} {λ l . Σ (Φ : 𝕀 →ᵣ Tt) . r l ≡ b Φ} {λ l . fib b (r l)}
+      (λ l . tot {𝕀 →ᵣ Tt} {λ Φ . r l ≡ b Φ} {λ Φ . b Φ ≡ r l} (λ Φ . sym {𝕀 →ᵣ A} {r l} {b Φ}))
+      (λ l . is-equiv-tot {𝕀 →ᵣ Tt} {λ Φ . r l ≡ b Φ} {λ Φ . b Φ ≡ r l} (λ Φ . sym {𝕀 →ᵣ A} {r l} {b Φ})
+               (λ Φ . is-equiv-sym {𝕀 →ᵣ A} {r l} {b Φ})) in
+  let T1 : (Σ (l : 𝕀 →ᵣ B) . fib F l) → Σ (l : 𝕀 →ᵣ B) . fib b (r l) =
+    tot {𝕀 →ᵣ B} {λ l . fib F l} {λ l . fib b (r l)} tf in
+  let e1 : is-equiv (λ Ψ . T1 (fib-total F Ψ)) =
+    is-equiv-htpy {𝕀 →ᵣ E} {Σ (l : 𝕀 →ᵣ B) . fib b (r l)}
+      {λ Ψ . flip (families-pb-glued T T' pc G Ψ)} {λ Ψ . T1 (fib-total F Ψ)} (λ Ψ . refl)
+      (is-equiv-circ flip (families-pb-glued T T' pc G) eflip (is-equiv-families-pb-glued T T' pc G)) in
+  is-equiv-tot-fibrewise {𝕀 →ᵣ B} {λ l . fib F l} {λ l . fib b (r l)} tf
+    (is-equiv-cancel-r T1 (fib-total F) (is-equiv-fib-total F) e1) lc

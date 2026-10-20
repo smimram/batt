@@ -1,0 +1,229 @@
+--
+-- Fibres of the maps of a commutative square
+--
+-- For a square
+--
+--         F
+--     S ─────▶ T
+--     │r       │s
+--     ▼        ▼
+--     E ─────▶ E'
+--         b
+--
+-- commuting along H : s ∘ F ∼ b ∘ r, the maps induced on the fibres of the vertical maps
+-- (base-fib-map e : fib r e → fib s (b e)) are equivalences iff the maps induced on the fibres
+-- of the horizontal maps (top-fib-map t : fib F t → fib b (s t)) are: both say that the square
+-- is a pullback. The statement is relative to a map σ : E' → Λ and a point l0 of Λ: the maps above
+-- the points over l0 are compared (square-fibres-top, square-fibres-base). Proof: the total maps
+-- over the points over l0 correspond under reindexing of their domains and codomains.
+--
+-- No postulate.
+--
+
+open import Stdlib
+
+-- the map induced on the fibres of the vertical maps
+base-fib-map ∷ {S T E E' : U} (F : S → T) (r : S → E) (s : T → E') (b : E → E') (H : (x : S) → s (F x) ≡ b (r x))
+  (e : E) → fib r e → fib s (b e)
+base-fib-map {S} {T} {E} {E'} F r s b H e w = (F (fst _ w) , trans (H (fst _ w)) (cong b (snd _ w)))
+
+-- the map induced on the fibres of the horizontal maps
+top-fib-map ∷ {S T E E' : U} (F : S → T) (r : S → E) (s : T → E') (b : E → E') (H : (x : S) → s (F x) ≡ b (r x))
+  (t : T) → fib F t → fib b (s t)
+top-fib-map {S} {T} {E} {E'} F r s b H t w = (r (fst _ w) , trans (sym (H (fst _ w))) (cong s (snd _ w)))
+
+private
+trans-sym-trans-l ∷ {A : U} {x y : A} (c : x ≡ y) {z : A} (o : y ≡ z) → trans (sym c) (trans c o) ≡ o
+trans-sym-trans-l {A} {x} {y} c refl = trans-sym-l c
+
+private
+trans-trans-sym-l ∷ {A : U} {x y : A} (c : y ≡ x) {z : A} (o : y ≡ z) → trans c (trans (sym c) o) ≡ o
+trans-trans-sym-l {A} {x} {y} c refl = trans-sym-r c
+
+--
+-- The total maps over the points over l0
+--
+
+private
+base-tot ∷ {S T E E' Λ : U} (F : S → T) (r : S → E) (s : T → E') (b : E → E') (H : (x : S) → s (F x) ≡ b (r x))
+  (σ : E' → Λ) (l0 : Λ) →
+  (Σ (eo : Σ (e : E) . σ (b e) ≡ l0) . fib r (fst _ eo)) → Σ (eo : Σ (e : E) . σ (b e) ≡ l0) . fib s (b (fst _ eo))
+base-tot {S} {T} {E} {E'} {Λ} F r s b H σ l0 =
+  tot {Σ (e : E) . σ (b e) ≡ l0} {λ eo . fib r (fst _ eo)} {λ eo . fib s (b (fst _ eo))}
+    (λ eo . base-fib-map F r s b H (fst _ eo))
+
+private
+top-tot ∷ {S T E E' Λ : U} (F : S → T) (r : S → E) (s : T → E') (b : E → E') (H : (x : S) → s (F x) ≡ b (r x))
+  (σ : E' → Λ) (l0 : Λ) →
+  (Σ (to : Σ (t : T) . σ (s t) ≡ l0) . fib F (fst _ to)) → Σ (to : Σ (t : T) . σ (s t) ≡ l0) . fib b (s (fst _ to))
+top-tot {S} {T} {E} {E'} {Λ} F r s b H σ l0 =
+  tot {Σ (t : T) . σ (s t) ≡ l0} {λ to . fib F (fst _ to)} {λ to . fib b (s (fst _ to))}
+    (λ to . top-fib-map F r s b H (fst _ to))
+
+-- reindexing the domains
+private
+tot-dom ∷ {S T E E' Λ : U} (F : S → T) (r : S → E) (s : T → E') (b : E → E') (H : (x : S) → s (F x) ≡ b (r x))
+  (σ : E' → Λ) (l0 : Λ) →
+  (Σ (eo : Σ (e : E) . σ (b e) ≡ l0) . fib r (fst _ eo)) → Σ (to : Σ (t : T) . σ (s t) ≡ l0) . fib F (fst _ to)
+tot-dom {S} {T} {E} {E'} {Λ} F r s b H σ l0 w =
+  let x : S = fst _ (snd _ w) in
+  ((F x , trans (cong σ (H x)) (trans (cong (λ e . σ (b e)) (snd _ (snd _ w))) (snd _ (fst _ w)))) , (x , refl))
+
+private
+tot-dom-inv ∷ {S T E E' Λ : U} (F : S → T) (r : S → E) (s : T → E') (b : E → E') (H : (x : S) → s (F x) ≡ b (r x))
+  (σ : E' → Λ) (l0 : Λ) →
+  (Σ (to : Σ (t : T) . σ (s t) ≡ l0) . fib F (fst _ to)) → Σ (eo : Σ (e : E) . σ (b e) ≡ l0) . fib r (fst _ eo)
+tot-dom-inv {S} {T} {E} {E'} {Λ} F r s b H σ l0 w =
+  let x : S = fst _ (snd _ w) in
+  ((r x , trans (sym (cong σ (H x))) (trans (cong (λ t . σ (s t)) (snd _ (snd _ w))) (snd _ (fst _ w)))) , (x , refl))
+
+private
+is-equiv-tot-dom ∷ {S T E E' Λ : U} (F : S → T) (r : S → E) (s : T → E') (b : E → E') (H : (x : S) → s (F x) ≡ b (r x))
+  (σ : E' → Λ) (l0 : Λ) → is-equiv (tot-dom F r s b H σ l0)
+is-equiv-tot-dom {S} {T} {E} {E'} {Λ} F r s b H σ l0 =
+  let D0 : U = Σ (eo : Σ (e : E) . σ (b e) ≡ l0) . fib r (fst _ eo) in
+  let D1 : U = Σ (to : Σ (t : T) . σ (s t) ≡ l0) . fib F (fst _ to) in
+  let D : D0 → D1 = tot-dom F r s b H σ l0 in
+  let D' : D1 → D0 = tot-dom-inv F r s b H σ l0 in
+  let retr0 : (x : S) {e : E} (q : r x ≡ e) (o : σ (b e) ≡ l0) → D' (D ((e , o) , (x , q))) ≡{D0} ((e , o) , (x , q)) = λ x .
+    let c : σ (s (F x)) ≡ σ (b (r x)) = cong σ (H x) in
+    let k : {e : E} (q : r x ≡ e) (o : σ (b e) ≡ l0) → D' (D ((e , o) , (x , q))) ≡{D0} ((e , o) , (x , q)) = fun refl → λ o .
+      cong {σ (b (r x)) ≡ l0} {D0} (λ o' . ((r x , o') , (x , refl)))
+        (trans (cong {σ (s (F x)) ≡ l0} {σ (b (r x)) ≡ l0} (λ a . trans (sym c) a) (trans-refl-l (trans c (trans refl o))))
+          (trans (trans-sym-trans-l c (trans refl o)) (trans-refl-l o))) in
+    k in
+  let retr : (w : D0) → D' (D w) ≡ w = fun (eo , w') →
+    let k1 : (w' : fib r (fst _ eo)) → D' (D (eo , w')) ≡ (eo , w') = fun (x , q) →
+      let k2 : (eo : Σ (e : E) . σ (b e) ≡ l0) (q : r x ≡ fst _ eo) → D' (D (eo , (x , q))) ≡{D0} (eo , (x , q)) = fun (e , o) → λ q .
+        retr0 x q o in
+      k2 eo q in
+    k1 w' in
+  let sec0 : (x : S) {t : T} (p : F x ≡ t) (o : σ (s t) ≡ l0) → D (D' ((t , o) , (x , p))) ≡{D1} ((t , o) , (x , p)) = λ x .
+    let c : σ (s (F x)) ≡ σ (b (r x)) = cong σ (H x) in
+    let k : {t : T} (p : F x ≡ t) (o : σ (s t) ≡ l0) → D (D' ((t , o) , (x , p))) ≡{D1} ((t , o) , (x , p)) = fun refl → λ o .
+      cong {σ (s (F x)) ≡ l0} {D1} (λ o' . ((F x , o') , (x , refl)))
+        (trans (cong {σ (b (r x)) ≡ l0} {σ (s (F x)) ≡ l0} (λ a . trans c a) (trans-refl-l (trans (sym c) (trans refl o))))
+          (trans (trans-trans-sym-l c (trans refl o)) (trans-refl-l o))) in
+    k in
+  let sec : (w : D1) → D (D' w) ≡ w = fun (to , w') →
+    let k1 : (w' : fib F (fst _ to)) → D (D' (to , w')) ≡ (to , w') = fun (x , p) →
+      let k2 : (to : Σ (t : T) . σ (s t) ≡ l0) (p : F x ≡ fst _ to) → D (D' (to , (x , p))) ≡{D1} (to , (x , p)) = fun (t , o) → λ p .
+        sec0 x p o in
+      k2 to p in
+    k1 w' in
+  is-iso→is-equiv D (D' , (sec , retr))
+
+-- reindexing the codomains
+private
+tot-cod ∷ {S T E E' Λ : U} (F : S → T) (r : S → E) (s : T → E') (b : E → E') (H : (x : S) → s (F x) ≡ b (r x))
+  (σ : E' → Λ) (l0 : Λ) →
+  (Σ (eo : Σ (e : E) . σ (b e) ≡ l0) . fib s (b (fst _ eo))) → Σ (to : Σ (t : T) . σ (s t) ≡ l0) . fib b (s (fst _ to))
+tot-cod {S} {T} {E} {E'} {Λ} F r s b H σ l0 w =
+  let q : s (fst _ (snd _ w)) ≡ b (fst _ (fst _ w)) = snd _ (snd _ w) in
+  ((fst _ (snd _ w) , trans (cong σ q) (snd _ (fst _ w))) , (fst _ (fst _ w) , sym q))
+
+private
+tot-cod-inv ∷ {S T E E' Λ : U} (F : S → T) (r : S → E) (s : T → E') (b : E → E') (H : (x : S) → s (F x) ≡ b (r x))
+  (σ : E' → Λ) (l0 : Λ) →
+  (Σ (to : Σ (t : T) . σ (s t) ≡ l0) . fib b (s (fst _ to))) → Σ (eo : Σ (e : E) . σ (b e) ≡ l0) . fib s (b (fst _ eo))
+tot-cod-inv {S} {T} {E} {E'} {Λ} F r s b H σ l0 w =
+  let q : b (fst _ (snd _ w)) ≡ s (fst _ (fst _ w)) = snd _ (snd _ w) in
+  ((fst _ (snd _ w) , trans (cong σ q) (snd _ (fst _ w))) , (fst _ (fst _ w) , sym q))
+
+private
+is-equiv-tot-cod ∷ {S T E E' Λ : U} (F : S → T) (r : S → E) (s : T → E') (b : E → E') (H : (x : S) → s (F x) ≡ b (r x))
+  (σ : E' → Λ) (l0 : Λ) → is-equiv (tot-cod F r s b H σ l0)
+is-equiv-tot-cod {S} {T} {E} {E'} {Λ} F r s b H σ l0 =
+  let C0 : U = Σ (eo : Σ (e : E) . σ (b e) ≡ l0) . fib s (b (fst _ eo)) in
+  let C1 : U = Σ (to : Σ (t : T) . σ (s t) ≡ l0) . fib b (s (fst _ to)) in
+  let C : C0 → C1 = tot-cod F r s b H σ l0 in
+  let C' : C1 → C0 = tot-cod-inv F r s b H σ l0 in
+  let alg : {y y' : E'} (q : y ≡ y') (o : σ y' ≡ l0) → trans (cong σ (sym q)) (trans (cong σ q) o) ≡ o = λ q o .
+    trans (cong {σ y' ≡ σ y} {σ y' ≡ l0} (λ a . trans a (trans (cong σ q) o)) (cong-sym σ q)) (trans-sym-trans-l (cong σ q) o) in
+  let retr : (w : C0) → C' (C w) ≡ w = fun (eo , w') →
+    let k1 : (w' : fib s (b (fst _ eo))) → C' (C (eo , w')) ≡ (eo , w') = fun (t , q) →
+      let k2 : (eo : Σ (e : E) . σ (b e) ≡ l0) (q : s t ≡ b (fst _ eo)) → C' (C (eo , (t , q))) ≡{C0} (eo , (t , q)) = fun (e , o) → λ q .
+        cong2 {σ (b e) ≡ l0} {s t ≡ b e} {C0} (λ o' q' . ((e , o') , (t , q'))) (alg q o) (sym-sym q) in
+      k2 eo q in
+    k1 w' in
+  let sec : (w : C1) → C (C' w) ≡ w = fun (to , w') →
+    let k1 : (w' : fib b (s (fst _ to))) → C (C' (to , w')) ≡ (to , w') = fun (e , q) →
+      let k2 : (to : Σ (t : T) . σ (s t) ≡ l0) (q : b e ≡ s (fst _ to)) → C (C' (to , (e , q))) ≡{C1} (to , (e , q)) = fun (t , o) → λ q .
+        cong2 {σ (s t) ≡ l0} {b e ≡ s t} {C1} (λ o' q' . ((t , o') , (e , q'))) (alg q o) (sym-sym q) in
+      k2 to q in
+    k1 w' in
+  is-iso→is-equiv C (C' , (sec , retr))
+
+-- the reindexings exchange the total maps
+private
+tot-comm ∷ {S T E E' Λ : U} (F : S → T) (r : S → E) (s : T → E') (b : E → E') (H : (x : S) → s (F x) ≡ b (r x))
+  (σ : E' → Λ) (l0 : Λ) (w : Σ (eo : Σ (e : E) . σ (b e) ≡ l0) . fib r (fst _ eo)) →
+  tot-cod F r s b H σ l0 (base-tot F r s b H σ l0 w) ≡ top-tot F r s b H σ l0 (tot-dom F r s b H σ l0 w)
+tot-comm {S} {T} {E} {E'} {Λ} F r s b H σ l0 w =
+  let C1 : U = Σ (to : Σ (t : T) . σ (s t) ≡ l0) . fib b (s (fst _ to)) in
+  let k0 : (x : S) {e : E} (q : r x ≡ e) (o : σ (b e) ≡ l0) →
+      tot-cod F r s b H σ l0 (base-tot F r s b H σ l0 ((e , o) , (x , q)))
+      ≡{C1} top-tot F r s b H σ l0 (tot-dom F r s b H σ l0 ((e , o) , (x , q))) = λ x .
+    let k : {e : E} (q : r x ≡ e) (o : σ (b e) ≡ l0) →
+        tot-cod F r s b H σ l0 (base-tot F r s b H σ l0 ((e , o) , (x , q)))
+        ≡{C1} top-tot F r s b H σ l0 (tot-dom F r s b H σ l0 ((e , o) , (x , q))) = fun refl → λ o .
+      cong {σ (b (r x)) ≡ l0} {C1} (λ o' . ((F x , trans (cong σ (H x)) o') , (r x , sym (H x)))) (sym (trans-refl-l o)) in
+    k in
+  let k1 : (eo : Σ (e : E) . σ (b e) ≡ l0) (w' : fib r (fst _ eo)) →
+      tot-cod F r s b H σ l0 (base-tot F r s b H σ l0 (eo , w')) ≡ top-tot F r s b H σ l0 (tot-dom F r s b H σ l0 (eo , w')) =
+    fun (e , o) → fun (x , q) → k0 x q o in
+  let k2 : (w : Σ (eo : Σ (e : E) . σ (b e) ≡ l0) . fib r (fst _ eo)) →
+      tot-cod F r s b H σ l0 (base-tot F r s b H σ l0 w) ≡ top-tot F r s b H σ l0 (tot-dom F r s b H σ l0 w) =
+    fun (eo , w') → k1 eo w' in
+  k2 w
+
+--
+-- The comparison
+--
+
+-- if the maps on the fibres of the vertical maps above the points over l0 are equivalences, so are
+-- the maps on the fibres of the horizontal maps
+square-fibres-top ∷ {S T E E' Λ : U} (F : S → T) (r : S → E) (s : T → E') (b : E → E') (H : (x : S) → s (F x) ≡ b (r x))
+  (σ : E' → Λ) (l0 : Λ) →
+  ((e : E) → σ (b e) ≡ l0 → is-equiv (base-fib-map F r s b H e)) →
+  (t : T) → σ (s t) ≡ l0 → is-equiv (top-fib-map F r s b H t)
+square-fibres-top {S} {T} {E} {E'} {Λ} F r s b H σ l0 hb t o =
+  let EO : U = Σ (e : E) . σ (b e) ≡ l0 in
+  let TO : U = Σ (t : T) . σ (s t) ≡ l0 in
+  let B : (Σ (eo : EO) . fib r (fst _ eo)) → Σ (eo : EO) . fib s (b (fst _ eo)) = base-tot F r s b H σ l0 in
+  let Tt : (Σ (to : TO) . fib F (fst _ to)) → Σ (to : TO) . fib b (s (fst _ to)) = top-tot F r s b H σ l0 in
+  let D : (Σ (eo : EO) . fib r (fst _ eo)) → Σ (to : TO) . fib F (fst _ to) = tot-dom F r s b H σ l0 in
+  let C : (Σ (eo : EO) . fib s (b (fst _ eo))) → Σ (to : TO) . fib b (s (fst _ to)) = tot-cod F r s b H σ l0 in
+  let eB : is-equiv B =
+    is-equiv-tot {EO} {λ eo . fib r (fst _ eo)} {λ eo . fib s (b (fst _ eo))}
+      (λ eo . base-fib-map F r s b H (fst _ eo)) (λ eo . hb (fst _ eo) (snd _ eo)) in
+  let eCB : is-equiv (λ w . C (B w)) = is-equiv-circ C B (is-equiv-tot-cod F r s b H σ l0) eB in
+  let eTD : is-equiv (λ w . Tt (D w)) =
+    is-equiv-htpy {Σ (eo : EO) . fib r (fst _ eo)} {Σ (to : TO) . fib b (s (fst _ to))}
+      {λ w . C (B w)} {λ w . Tt (D w)} (tot-comm F r s b H σ l0) eCB in
+  let eT : is-equiv Tt = is-equiv-cancel-r Tt D (is-equiv-tot-dom F r s b H σ l0) eTD in
+  is-equiv-tot-fibrewise {TO} {λ to . fib F (fst _ to)} {λ to . fib b (s (fst _ to))}
+    (λ to . top-fib-map F r s b H (fst _ to)) eT (t , o)
+
+-- conversely
+square-fibres-base ∷ {S T E E' Λ : U} (F : S → T) (r : S → E) (s : T → E') (b : E → E') (H : (x : S) → s (F x) ≡ b (r x))
+  (σ : E' → Λ) (l0 : Λ) →
+  ((t : T) → σ (s t) ≡ l0 → is-equiv (top-fib-map F r s b H t)) →
+  (e : E) → σ (b e) ≡ l0 → is-equiv (base-fib-map F r s b H e)
+square-fibres-base {S} {T} {E} {E'} {Λ} F r s b H σ l0 ht e o =
+  let EO : U = Σ (e : E) . σ (b e) ≡ l0 in
+  let TO : U = Σ (t : T) . σ (s t) ≡ l0 in
+  let B : (Σ (eo : EO) . fib r (fst _ eo)) → Σ (eo : EO) . fib s (b (fst _ eo)) = base-tot F r s b H σ l0 in
+  let Tt : (Σ (to : TO) . fib F (fst _ to)) → Σ (to : TO) . fib b (s (fst _ to)) = top-tot F r s b H σ l0 in
+  let D : (Σ (eo : EO) . fib r (fst _ eo)) → Σ (to : TO) . fib F (fst _ to) = tot-dom F r s b H σ l0 in
+  let C : (Σ (eo : EO) . fib s (b (fst _ eo))) → Σ (to : TO) . fib b (s (fst _ to)) = tot-cod F r s b H σ l0 in
+  let eT : is-equiv Tt =
+    is-equiv-tot {TO} {λ to . fib F (fst _ to)} {λ to . fib b (s (fst _ to))}
+      (λ to . top-fib-map F r s b H (fst _ to)) (λ to . ht (fst _ to) (snd _ to)) in
+  let eTD : is-equiv (λ w . Tt (D w)) = is-equiv-circ Tt D eT (is-equiv-tot-dom F r s b H σ l0) in
+  let eCB : is-equiv (λ w . C (B w)) =
+    is-equiv-htpy {Σ (eo : EO) . fib r (fst _ eo)} {Σ (to : TO) . fib b (s (fst _ to))}
+      {λ w . Tt (D w)} {λ w . C (B w)} (λ w . sym (tot-comm F r s b H σ l0 w)) eTD in
+  let eB : is-equiv B = is-equiv-cancel-l C B (is-equiv-tot-cod F r s b H σ l0) eCB in
+  is-equiv-tot-fibrewise {EO} {λ eo . fib r (fst _ eo)} {λ eo . fib s (b (fst _ eo))}
+    (λ eo . base-fib-map F r s b H (fst _ eo)) eB (e , o)

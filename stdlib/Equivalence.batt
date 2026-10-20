@@ -490,3 +490,89 @@ is-equiv-trans-trans ∷ {T : U} {x y : T} (p : x ≡ y) {z w : T} (r : z ≡ w)
   is-equiv {y ≡ z} {x ≡ w} (λ f . trans p (trans f r))
 is-equiv-trans-trans {T} {x} refl {z} refl =
   is-equiv-htpy {x ≡ z} {x ≡ z} {id} {λ f . trans refl (trans f refl)} (λ f . sym (trans-refl-l f)) (is-equiv-id (x ≡ z))
+
+-- a map into a Σ-type over a map π : P → B is an equivalence on the fibres of π when it is an
+-- equivalence (the fibres of π over b are sent to Q b by transport)
+fib-over-map ∷ {P B : U} {Q : B → U} (π : P → B) (G : (x : P) → Q (π x)) (b : B) → fib π b → Q b
+fib-over-map {P} {B} {Q} π G b w = subst Q (snd _ w) (G (fst _ w))
+
+private
+fib-over-tot-path ∷ {P B : U} (π : P → B) (x : P) {b : B} (e : π x ≡ b) →
+  (π x , (x , refl)) ≡{Σ (b : B) . fib π b} (b , (x , e))
+fib-over-tot-path {P} {B} π x refl = refl
+
+-- a type is the total space of the fibres of any map out of it
+fib-total ∷ {P B : U} (π : P → B) → P → Σ (b : B) . fib π b
+fib-total {P} {B} π x = (π x , (x , refl))
+
+is-equiv-fib-total ∷ {P B : U} (π : P → B) → is-equiv (fib-total π)
+is-equiv-fib-total {P} {B} π =
+  let inv : (Σ (b : B) . fib π b) → P = λ w . fst _ (snd _ w) in
+  let sec : (w : Σ (b : B) . fib π b) → fib-total π (inv w) ≡ w = fun (b , w') →
+    let h : (w' : fib π b) → fib-total π (inv (b , w')) ≡{Σ (b : B) . fib π b} (b , w') = fun (x , e) → fib-over-tot-path π x e in
+    h w' in
+  ((inv , sec) , (inv , λ x . refl))
+
+is-equiv-fib-over-map ∷ {P B : U} {Q : B → U} (π : P → B) (G : (x : P) → Q (π x)) →
+  is-equiv {P} {Σ (b : B) . Q b} (λ x . (π x , G x)) → (b : B) → is-equiv (fib-over-map {P} {B} {Q} π G b)
+is-equiv-fib-over-map {P} {B} {Q} π G e b =
+  let T : (Σ (b : B) . fib π b) → Σ (b : B) . Q b = tot {B} {fib π} {Q} (fib-over-map {P} {B} {Q} π G) in
+  is-equiv-tot-fibrewise {B} {fib π} {Q} (fib-over-map {P} {B} {Q} π G)
+    (is-equiv-cancel-r T (fib-total π) (is-equiv-fib-total π)
+      (is-equiv-htpy {P} {Σ (b : B) . Q b} {λ x . (π x , G x)} {λ x . T (fib-total π x)} (λ x . refl) e)) b
+
+-- an equivalence over a base is an equivalence on the fibres over each point of the base
+fib-map-over ∷ {P Q B : U} (πP : P → B) (πQ : Q → B) (F : P → Q) → ((x : P) → πQ (F x) ≡ πP x) → (b : B) → fib πP b → fib πQ b
+fib-map-over {P} {Q} {B} πP πQ F H b =
+  fib-over-map {P} {B} {fib πQ} πP (λ x . (F x , H x)) b
+
+is-equiv-fib-map-over ∷ {P Q B : U} (πP : P → B) (πQ : Q → B) (F : P → Q) (H : (x : P) → πQ (F x) ≡ πP x) →
+  is-equiv F → (b : B) → is-equiv (fib-map-over πP πQ F H b)
+is-equiv-fib-map-over {P} {Q} {B} πP πQ F H eF b =
+  let εQ : Q → Σ (b : B) . fib πQ b = λ y . (πQ y , (y , refl)) in
+  let invQ : (Σ (b : B) . fib πQ b) → Q = λ w . fst _ (snd _ w) in
+  let secQ : (w : Σ (b : B) . fib πQ b) → εQ (invQ w) ≡ w = fun (b , w') →
+    let h : (w' : fib πQ b) → εQ (invQ (b , w')) ≡{Σ (b : B) . fib πQ b} (b , w') = fun (y , e) → fib-over-tot-path πQ y e in
+    h w' in
+  let eεQ : is-equiv εQ = ((invQ , secQ) , (invQ , λ y . refl)) in
+  let t : (x : P) → εQ (F x) ≡{Σ (b : B) . fib πQ b} (πP x , (F x , H x)) = λ x . fib-over-tot-path πQ (F x) (H x) in
+  is-equiv-fib-over-map {P} {B} {fib πQ} πP (λ x . (F x , H x))
+    (is-equiv-htpy {P} {Σ (b : B) . fib πQ b} {λ x . εQ (F x)} {λ x . (πP x , (F x , H x))} t
+      (is-equiv-circ εQ F eεQ eF)) b
+
+-- an equivalence over an equivalence of bases is an equivalence on the fibres
+fib-map-over-equiv ∷ {P Q B B' : U} (πP : P → B) (πQ : Q → B') (F : P → Q) (b : B → B') →
+  ((x : P) → πQ (F x) ≡ b (πP x)) → (x : B) → fib πP x → fib πQ (b x)
+fib-map-over-equiv {P} {Q} {B} {B'} πP πQ F b H x w = (F (fst _ w) , trans (H (fst _ w)) (cong b (snd _ w)))
+
+is-equiv-fib-map-over-equiv ∷ {P Q B B' : U} (πP : P → B) (πQ : Q → B') (F : P → Q) (b : B → B') (H : (x : P) → πQ (F x) ≡ b (πP x)) →
+  is-equiv F → is-equiv b → (x : B) → is-equiv (fib-map-over-equiv πP πQ F b H x)
+is-equiv-fib-map-over-equiv {P} {Q} {B} {B'} πP πQ F b H eF eb x =
+  let T : (Σ (x : B) . fib πP x) → Σ (x : B) . fib πQ (b x) =
+    tot {B} {fib πP} {λ x . fib πQ (b x)} (fib-map-over-equiv πP πQ F b H) in
+  let S : (Σ (x : B) . fib πQ (b x)) → Σ (y : B') . fib πQ y = Σ-base b (fib πQ) in
+  let K : (p : P) → S (T (fib-total πP p)) ≡ fib-total πQ (F p) = λ p .
+    sym (fib-over-tot-path πQ (F p) (H p)) in
+  let eST : is-equiv (λ w . S (T w)) =
+    is-equiv-cancel-r (λ w . S (T w)) (fib-total πP) (is-equiv-fib-total πP)
+      (is-equiv-htpy {P} {Σ (y : B') . fib πQ y} {λ p . fib-total πQ (F p)} {λ p . S (T (fib-total πP p))} (λ p . sym (K p))
+        (is-equiv-circ (fib-total πQ) F (is-equiv-fib-total πQ) eF)) in
+  is-equiv-tot-fibrewise {B} {fib πP} {λ x . fib πQ (b x)} (fib-map-over-equiv πP πQ F b H)
+    (is-equiv-cancel-l S T (is-equiv-Σ-base b eb (fib πQ)) eST) x
+
+-- exchanging two independent components
+Σ-swap ∷ {S T : U} (P : S → T → U) → (Σ (s : S) . Σ (t : T) . P s t) → Σ (t : T) . Σ (s : S) . P s t
+Σ-swap {S} {T} P w = (fst _ (snd _ w) , (fst _ w , snd _ (snd _ w)))
+
+private
+Σ-swap-swap ∷ {S T : U} (P : S → T → U) (w : Σ (s : S) . Σ (t : T) . P s t) →
+  Σ-swap {T} {S} (λ t s . P s t) (Σ-swap P w) ≡ w
+Σ-swap-swap {S} {T} P (s , w') =
+  let k : (w' : Σ (t : T) . P s t) → Σ-swap {T} {S} (λ t s . P s t) (Σ-swap P (s , w')) ≡{Σ (s : S) . Σ (t : T) . P s t} (s , w') =
+    fun (t , x) → refl in
+  k w'
+
+is-equiv-Σ-swap ∷ {S T : U} (P : S → T → U) → is-equiv (Σ-swap P)
+is-equiv-Σ-swap {S} {T} P =
+  ((Σ-swap {T} {S} (λ t s . P s t) , Σ-swap-swap {T} {S} (λ t s . P s t)) ,
+   (Σ-swap {T} {S} (λ t s . P s t) , Σ-swap-swap P))

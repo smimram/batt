@@ -123,3 +123,13 @@ squares-h-path {A} {a} {b} {c} {d} {l} {r} {g} {h} refl σ σ' e =
 sq-move-h-g ∷ {A ∷ U} {a b c d : A} {l : hom a c} {r : hom b d} {g g' : hom a b} (p : g ≡ g') {h h' : hom c d} (q : h ≡ h')
   (σ : square l r g h) → sq-move refl refl refl q (sq-move refl refl p refl σ) ≡ sq-move refl refl p q σ
 sq-move-h-g {A} {a} {b} {c} {d} {l} {r} {g} p {h} refl σ = refl
+
+--
+-- Paths between squares with a free left side
+--
+
+squares-l-path ∷ {A ∷ U} {a b c d : A} {r : hom b d} {g : hom a b} {h : hom c d} {l l' : hom a c} (p : l ≡ l')
+  (σ : square l r g h) (σ' : square l' r g h) → sq-move p refl refl refl σ ≡ σ' →
+  (l , σ) ≡{Σ (l'' : hom a c) . square l'' r g h} (l' , σ')
+squares-l-path {A} {a} {b} {c} {d} {r} {g} {h} {l} refl σ σ' e =
+  cong {square l r g h} {Σ (l'' : hom a c) . square l'' r g h} (λ z . (l , z)) e

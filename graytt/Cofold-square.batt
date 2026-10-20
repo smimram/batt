@@ -61,6 +61,7 @@ cofold-runit sC w = comp-simplex2 sC (λ y . w (Simplex2.edge₁₂ (Simplex2.fs
 
 -- the square Z (i , j) = w (i , i ∧ j): left side the identity, right side t, bottom side k,
 -- top side the long edge
+private
 cofold-Z ∷ {C ∷ U} (w : simplex 2 →ᵣ C) →
   square (Hom.id (w (Simplex2.edge₀₁ 𝕀0))) (simplex2-hom₁₂ w) (simplex2-hom₀₁ w) (simplex2-hom₀₂ w)
 cofold-Z w = (of-arrᵣ (λ i . λ j . w (cofold-pt i j)) , refl)
@@ -70,6 +71,7 @@ cofold-Z w = (of-arrᵣ (λ i . λ j . w (cofold-pt i j)) , refl)
 --
 
 -- Z is the composite of the vertical identity on k and the connection on t
+private
 cofold-Z-split ∷ {C ∷ U} (sC : is-segalᵣ C) (w : simplex 2 →ᵣ C) →
   sq-move refl refl (comp-homᵣ-runit C sC (simplex2-hom₀₁ w)) (cofold-comp sC w)
     (comp-h sC (id-v (simplex2-hom₀₁ w)) (connection-tr (simplex2-hom₁₂ w)))
@@ -82,6 +84,7 @@ cofold-Z-split {C} sC w =
     (comp-h-simplex sC Ξ)
 
 -- the connection on t below the coconnection on t is the horizontal identity on t
+private
 cofold-tr-bl ∷ {C ∷ U} (sC : is-segalᵣ C) (w : simplex 2 →ᵣ C) →
   sq-move (comp-homᵣ-lunit C sC (simplex2-hom₁₂ w)) (cofold-runit sC w) refl refl
     (comp-v sC (connection-tr (simplex2-hom₁₂ w)) (connection-bl (simplex2-hom₁₂ w)))
@@ -95,6 +98,7 @@ cofold-tr-bl {C} sC w =
     (comp-v-simplex sC Φ)
 
 -- the coconnection on t below the identity is the coconnection on t
+private
 cofold-bl-id ∷ {C ∷ U} (sC : is-segalᵣ C) (w : simplex 2 →ᵣ C) →
   sq-move (cofold-runit sC w) (comp-homᵣ-lunit C sC (Hom.id (w (Simplex2.edge₁₂ 𝕀1)))) refl refl
     (comp-v sC (connection-bl (simplex2-hom₁₂ w)) (id-h (Hom.id (w (Simplex2.edge₁₂ 𝕀1)))))
@@ -108,6 +112,7 @@ cofold-bl-id {C} sC w =
     (comp-v-simplex sC Φ)
 
 -- Z followed by the coconnection on t is the vertical identity on the long edge
+private
 cofold-Z-bl ∷ {C ∷ U} (sC : is-segalᵣ C) (w : simplex 2 →ᵣ C) →
   sq-move refl refl (cofold-comp sC w) (comp-homᵣ-runit C sC (simplex2-hom₀₂ w))
     (comp-h sC (cofold-Z w) (connection-bl (simplex2-hom₁₂ w)))
@@ -129,6 +134,7 @@ cofold-sq ∷ {C ∷ U} (sC : is-segalᵣ C) {c a b x : C} (k : hom c a) (t : ho
 cofold-sq sC {c} {a} {b} k t r (h , σ) = (comp-homᵣ sC h (Hom.id b) , comp-h sC σ (connection-bl t))
 
 -- composing vertically with Z below, on the edges of a 2-simplex
+private
 uncofold-sq ∷ {C ∷ U} (sC : is-segalᵣ C) (w : simplex 2 →ᵣ C) {x : C} (r : hom (w (Simplex2.edge₀₁ 𝕀0)) x) →
   (Σ (h' : hom x (w (Simplex2.edge₁₂ 𝕀1))) . square r (Hom.id (w (Simplex2.edge₁₂ 𝕀1))) (comp-homᵣ sC (simplex2-hom₀₁ w) (simplex2-hom₁₂ w)) h') →
   Σ (h : hom x (w (Simplex2.edge₁₂ 𝕀1))) . square r (simplex2-hom₁₂ w) (simplex2-hom₀₁ w) h
@@ -141,6 +147,7 @@ cofold-cancel ∷ {T : U} {x y : T} (p : x ≡ y) → trans (trans refl (sym p))
 cofold-cancel {T} {x} refl = refl
 
 -- unfolding a cofolded square: the exchange law for the grid (σ , Γ'_t ; id k , Γ_t)
+private
 uncofold-cofold-sq ∷ {C ∷ U} (sC : is-segalᵣ C) (w : simplex 2 →ᵣ C) {x : C} (r : hom (w (Simplex2.edge₀₁ 𝕀0)) x)
   (h : hom x (w (Simplex2.edge₁₂ 𝕀1))) (σ : square r (simplex2-hom₁₂ w) (simplex2-hom₀₁ w) h) →
   sq-move refl refl refl (comp-homᵣ-runit C sC h)
@@ -195,6 +202,7 @@ uncofold-cofold-sq {C} sC w {x} r h σ =
             (trans (sym (lr-move rk rh W)) (comp-h-runit sC σ))))))
 
 -- cofolding an unfolded square: the exchange law for the grid (τ , id b ; Z , Γ'_t)
+private
 cofold-uncofold-sq ∷ {C ∷ U} (sC : is-segalᵣ C) (w : simplex 2 →ᵣ C) {x : C} (r : hom (w (Simplex2.edge₀₁ 𝕀0)) x)
   (h : hom x (w (Simplex2.edge₁₂ 𝕀1)))
   (τ : square r (Hom.id (w (Simplex2.edge₁₂ 𝕀1))) (comp-homᵣ sC (simplex2-hom₀₁ w) (simplex2-hom₁₂ w)) h) →
@@ -261,6 +269,7 @@ cofold-uncofold-sq {C} sC w {x} r h τ =
                (trans cw (sym cw)) (trans-sym-r cw) (trans (trans refl (sym rh)) rh) (cofold-cancel rh))))))
 
 -- on the edges of a 2-simplex, cofolding is an equivalence
+private
 is-equiv-cofold-sq-simplex ∷ {C ∷ U} (sC : is-segalᵣ C) (w : simplex 2 →ᵣ C) {x : C} (r : hom (w (Simplex2.edge₀₁ 𝕀0)) x) →
   is-equiv (cofold-sq sC (simplex2-hom₀₁ w) (simplex2-hom₁₂ w) r)
 is-equiv-cofold-sq-simplex {C} sC w {x} r =
@@ -276,6 +285,7 @@ is-equiv-cofold-sq-simplex {C} sC w {x} r =
   is-iso→is-equiv f (g , sec , ret)
 
 -- cofolding is an equivalence for every composable pair (k , t)
+private
 cofold-sq-stmt ∷ {C ∷ U} (sC : is-segalᵣ C) → pairs C → U
 cofold-sq-stmt {C} sC p =
   (x : C) (r : hom (fst _ p) x) →

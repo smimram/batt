@@ -1,0 +1,271 @@
+--
+-- Folding squares vertically along a connection
+--
+-- For a 2-simplex w of an oplax-Segal type C, with edges t : a → b, k : b → d and long edge
+-- l : a → d, and any hom h : c → d, composing vertically with the connection Γ_t below
+--
+--   vfold-sq : (Σ m . square m k t h) → (Σ m' . square m' (t ; k) (id a) h)
+--              (m , σ) ↦ (id a ; m , Γ_t ; σ)
+--
+-- is an equivalence (is-equiv-vfold-sq). This is the mirror image of fold-sq (Fold-square.batt),
+-- the roles of the horizontal and vertical directions being exchanged: the inverse composes
+-- horizontally with the square Y' (i , j) = w (i ∨ j , j) from l to k on the right (vfold-Y),
+-- and the two round trips are the exchange law applied to the grids
+--
+--      σ    | id k                τ    | Y'
+--      Γ_t  | Γ'_t                id a | Γ_t
+--
+-- (Γ'_t is the coconnection), the identifications of the composites of their rows and columns
+-- being read off 2-simplices of arrows by the same fillers as for fold-sq, transposed.
+--
+-- Postulates: those of the exchange law (objectwise-equiv, univalence, truncation, is-set-𝕀).
+--
+
+open import Stdlib
+open import Hom
+open import Segal
+open import Composition
+open import Unitality
+open import Composable
+open import Simplex-edges
+open import HomSquare
+open import Exchange
+open import Square-paths
+open import Fold-square
+
+open Square
+
+-- the square Y' (i , j) = w (i ∨ j , j): left side the long edge, right side k, bottom side t,
+-- top side the identity
+private
+vfold-Y ∷ {C ∷ U} (w : simplex 2 →ᵣ C) →
+  square (simplex2-hom₀₂ w) (simplex2-hom₁₂ w) (simplex2-hom₀₁ w) (Hom.id (w (Simplex2.edge₁₂ 𝕀1)))
+vfold-Y w = (of-arrᵣ (λ i . λ j . w (fold-pt i j)) , refl)
+
+--
+-- Identifications of composites of squares
+--
+
+-- Y' is the composite of the coconnection on t below the horizontal identity on k
+private
+vfold-Y-split ∷ {C ∷ U} (sC : is-segalᵣ C) (w : simplex 2 →ᵣ C) →
+  sq-move (fold-comp sC w) (comp-homᵣ-lunit C sC (simplex2-hom₁₂ w)) refl refl
+    (comp-v sC (connection-bl (simplex2-hom₀₁ w)) (id-h (simplex2-hom₁₂ w)))
+  ≡ vfold-Y w
+vfold-Y-split {C} sC w =
+  let Φ : 𝕀 →ᵣ (simplex 2 →ᵣ C) = λ i . λ y . w (fold-pt (Simplex2.fst y 𝕀∨ i) (Simplex2.snd y)) in
+  let s : (simplex 2 →ᵣ C) → C = λ c . c (Simplex2.edge₀₁ 𝕀0) in
+  let t : (simplex 2 →ᵣ C) → C = λ c . c (Simplex2.edge₁₂ 𝕀1) in
+  trans (sym (bdry-st-move s t Φ (comp-simplex2 sC (Φ 𝕀0)) (comp-simplex2 sC (Φ 𝕀1))
+                (comp-v sC (connection-bl (simplex2-hom₀₁ w)) (id-h (simplex2-hom₁₂ w)))))
+    (comp-v-simplex sC Φ)
+
+-- the connection on t followed by the coconnection on t is the vertical identity on t
+private
+vfold-tr-bl ∷ {C ∷ U} (sC : is-segalᵣ C) (w : simplex 2 →ᵣ C) →
+  sq-move refl refl (fold-lunit sC w) (comp-homᵣ-runit C sC (simplex2-hom₀₁ w))
+    (comp-h sC (connection-tr (simplex2-hom₀₁ w)) (connection-bl (simplex2-hom₀₁ w)))
+  ≡ id-v (simplex2-hom₀₁ w)
+vfold-tr-bl {C} sC w =
+  let Ξ : simplex 2 →ᵣ arrᵣ C = λ y . λ j . w (Simplex2.edge₀₁ ((j 𝕀∨ Simplex2.snd y) 𝕀∧ Simplex2.fst y)) in
+  trans (sym (bdry-lr-move (Ξ (Simplex2.edge₀₁ 𝕀0)) (Ξ (Simplex2.edge₁₂ 𝕀1))
+                (comp-simplex2 sC (postᵣ {simplex 2} {arrᵣ C} {C} srcᵣ Ξ)) (comp-simplex2 sC (postᵣ {simplex 2} {arrᵣ C} {C} tgtᵣ Ξ))
+                (comp-h sC (connection-tr (simplex2-hom₀₁ w)) (connection-bl (simplex2-hom₀₁ w)))))
+    (comp-h-simplex sC Ξ)
+
+-- the vertical identity on the identity followed by the connection on t is the connection on t
+private
+vfold-id-tr ∷ {C ∷ U} (sC : is-segalᵣ C) (w : simplex 2 →ᵣ C) →
+  sq-move refl refl (comp-homᵣ-runit C sC (Hom.id (w (Simplex2.edge₀₁ 𝕀0)))) (fold-lunit sC w)
+    (comp-h sC (id-v (Hom.id (w (Simplex2.edge₀₁ 𝕀0)))) (connection-tr (simplex2-hom₀₁ w)))
+  ≡ connection-tr (simplex2-hom₀₁ w)
+vfold-id-tr {C} sC w =
+  let Ξ : simplex 2 →ᵣ arrᵣ C = λ y . λ j . w (Simplex2.edge₀₁ ((Simplex2.fst y 𝕀∧ Simplex2.snd y) 𝕀∧ j)) in
+  trans (sym (bdry-lr-move (Ξ (Simplex2.edge₀₁ 𝕀0)) (Ξ (Simplex2.edge₁₂ 𝕀1))
+                (comp-simplex2 sC (postᵣ {simplex 2} {arrᵣ C} {C} srcᵣ Ξ)) (comp-simplex2 sC (postᵣ {simplex 2} {arrᵣ C} {C} tgtᵣ Ξ))
+                (comp-h sC (id-v (Hom.id (w (Simplex2.edge₀₁ 𝕀0)))) (connection-tr (simplex2-hom₀₁ w)))))
+    (comp-h-simplex sC Ξ)
+
+-- the connection on t below Y' is the horizontal identity on the long edge
+private
+vfold-tr-Y ∷ {C ∷ U} (sC : is-segalᵣ C) (w : simplex 2 →ᵣ C) →
+  sq-move (comp-homᵣ-lunit C sC (simplex2-hom₀₂ w)) (fold-comp sC w) refl refl
+    (comp-v sC (connection-tr (simplex2-hom₀₁ w)) (vfold-Y w))
+  ≡ id-h (simplex2-hom₀₂ w)
+vfold-tr-Y {C} sC w =
+  let Φ : 𝕀 →ᵣ (simplex 2 →ᵣ C) = λ i . λ y . w (fold-pt ((Simplex2.fst y 𝕀∧ i) 𝕀∨ Simplex2.snd y) (Simplex2.snd y)) in
+  let s : (simplex 2 →ᵣ C) → C = λ c . c (Simplex2.edge₀₁ 𝕀0) in
+  let t : (simplex 2 →ᵣ C) → C = λ c . c (Simplex2.edge₁₂ 𝕀1) in
+  trans (sym (bdry-st-move s t Φ (comp-simplex2 sC (Φ 𝕀0)) (comp-simplex2 sC (Φ 𝕀1))
+                (comp-v sC (connection-tr (simplex2-hom₀₁ w)) (vfold-Y w))))
+    (comp-v-simplex sC Φ)
+
+--
+-- Folding and unfolding
+--
+
+-- composing vertically with the connection below
+vfold-sq ∷ {C ∷ U} (sC : is-segalᵣ C) {a b c d : C} (t : hom a b) (k : hom b d) (h : hom c d) →
+  (Σ (m : hom a c) . square m k t h) → Σ (m' : hom a c) . square m' (comp-homᵣ sC t k) (Hom.id a) h
+vfold-sq sC {a} t k h (m , σ) = (comp-homᵣ sC (Hom.id a) m , comp-v sC (connection-tr t) σ)
+
+-- composing horizontally with Y' on the right, on the edges of a 2-simplex
+private
+unvfold-sq ∷ {C ∷ U} (sC : is-segalᵣ C) (w : simplex 2 →ᵣ C) {c : C} (h : hom c (w (Simplex2.edge₁₂ 𝕀1))) →
+  (Σ (m' : hom (w (Simplex2.edge₀₁ 𝕀0)) c) . square m' (comp-homᵣ sC (simplex2-hom₀₁ w) (simplex2-hom₁₂ w)) (Hom.id (w (Simplex2.edge₀₁ 𝕀0))) h) →
+  Σ (m : hom (w (Simplex2.edge₀₁ 𝕀0)) c) . square m (simplex2-hom₁₂ w) (simplex2-hom₀₁ w) h
+unvfold-sq {C} sC w h (m' , τ) =
+  (m' , sq-move refl refl (fold-lunit sC w) (comp-homᵣ-runit C sC h)
+          (comp-h sC (sq-move refl (fold-comp sC w) refl refl τ) (vfold-Y w)))
+
+-- unfolding a folded square: the exchange law for the grid (σ , id k ; Γ_t , Γ'_t)
+private
+unvfold-vfold-sq ∷ {C ∷ U} (sC : is-segalᵣ C) (w : simplex 2 →ᵣ C) {c : C} (h : hom c (w (Simplex2.edge₁₂ 𝕀1)))
+  (m : hom (w (Simplex2.edge₀₁ 𝕀0)) c) (σ : square m (simplex2-hom₁₂ w) (simplex2-hom₀₁ w) h) →
+  sq-move (comp-homᵣ-lunit C sC m) refl refl refl
+    (sq-move refl refl (fold-lunit sC w) (comp-homᵣ-runit C sC h)
+      (comp-h sC (sq-move refl (fold-comp sC w) refl refl (comp-v sC (connection-tr (simplex2-hom₀₁ w)) σ)) (vfold-Y w)))
+  ≡ σ
+unvfold-vfold-sq {C} sC w {c} h m σ =
+  let a : C = w (Simplex2.edge₀₁ 𝕀0) in
+  let b : C = w (Simplex2.edge₁₂ 𝕀0) in
+  let d : C = w (Simplex2.edge₁₂ 𝕀1) in
+  let t : hom a b = simplex2-hom₀₁ w in
+  let k : hom b d = simplex2-hom₁₂ w in
+  let L : hom a d = simplex2-hom₀₂ w in
+  let lt : comp-homᵣ sC (Hom.id a) t ≡ t = fold-lunit sC w in
+  let rt : comp-homᵣ sC t (Hom.id b) ≡ t = comp-homᵣ-runit C sC t in
+  let rh : comp-homᵣ sC h (Hom.id d) ≡ h = comp-homᵣ-runit C sC h in
+  let lm : comp-homᵣ sC (Hom.id a) m ≡ m = comp-homᵣ-lunit C sC m in
+  let lk : comp-homᵣ sC (Hom.id b) k ≡ k = comp-homᵣ-lunit C sC k in
+  let cw : comp-homᵣ sC t k ≡ L = fold-comp sC w in
+  let Γ : square (Hom.id a) t (Hom.id a) t = connection-tr t in
+  let Γ' : square t (Hom.id b) t (Hom.id b) = connection-bl t in
+  let X1 : square (comp-homᵣ sC (Hom.id a) m) (comp-homᵣ sC t k) (Hom.id a) h = comp-v sC Γ σ in
+  let Z : square (comp-homᵣ sC t k) (comp-homᵣ sC (Hom.id b) k) t (Hom.id d) = comp-v sC Γ' (id-h k) in
+  let W : square (comp-homᵣ sC (Hom.id a) m) (comp-homᵣ sC (Hom.id b) k) t h = comp-v sC (id-v t) σ in
+  let S1 : U = square (comp-homᵣ sC (Hom.id a) m) (comp-homᵣ sC (Hom.id b) k) (comp-homᵣ sC (Hom.id a) t) (comp-homᵣ sC h (Hom.id d)) in
+  let S2 : U = square (comp-homᵣ sC (Hom.id a) m) k (comp-homᵣ sC (Hom.id a) t) (comp-homᵣ sC h (Hom.id d)) in
+  -- the grid, composed by rows
+  let e4 : comp-h sC Γ Γ' ≡ sq-move refl refl (sym lt) (sym rt) (id-v t) =
+    sq-move-sym refl refl lt rt (comp-h sC Γ Γ') (id-v t) (vfold-tr-bl sC w) in
+  let e5 : comp-h sC σ (id-h k) ≡ sq-move refl refl (sym rt) (sym rh) σ =
+    sq-move-sym refl refl rt rh (comp-h sC σ (id-h k)) σ (trans (sym (lr-move rt rh (comp-h sC σ (id-h k)))) (comp-h-runit sC σ)) in
+  let rows : comp-h sC X1 Z ≡ sq-move refl refl (sym lt) (sym rh) W =
+    trans (sym (exchange sC Γ Γ' σ (id-h k)))
+      (trans (cong2 {square (Hom.id a) (Hom.id b) (comp-homᵣ sC (Hom.id a) t) (comp-homᵣ sC t (Hom.id b))}
+                    {square m k (comp-homᵣ sC t (Hom.id b)) (comp-homᵣ sC h (Hom.id d))}
+                    {S1}
+                    (λ y z . comp-v sC y z) e4 e5)
+        (comp-v-move sC refl refl refl refl (sym lt) (sym rt) (sym rh) (id-v t) σ)) in
+  -- moving the left side of the square Y'
+  let X0 : comp-h sC (sq-move refl cw refl refl X1) (vfold-Y w) ≡ sq-move refl lk refl refl (sq-move refl refl (sym lt) (sym rh) W) =
+    trans (cong {square L k t (Hom.id d)} {S2} (λ z . comp-h sC (sq-move refl cw refl refl X1) z) (sym (vfold-Y-split sC w)))
+      (trans (comp-h-move sC refl cw lk refl refl refl refl X1 Z)
+        (cong {S1} {S2} (λ y . sq-move refl lk refl refl y) rows)) in
+  -- flattening the moves
+  trans (cong {S2} {square m k t h} (λ y . sq-move lm refl refl refl (sq-move refl refl lt rh y)) X0)
+    (trans (cong {S2} {square m k t h} (λ y . sq-move lm refl refl refl (sq-move refl refl lt rh y))
+             (sq-move-trans refl refl (sym lt) (sym rh) W refl lk refl refl))
+      (trans (cong {square (comp-homᵣ sC (Hom.id a) m) k t h} {square m k t h} (λ y . sq-move lm refl refl refl y)
+               (sq-move-trans refl (trans refl lk) (sym lt) (sym rh) W refl refl lt rh))
+        (trans (sq-move-trans refl (trans refl lk) (trans (sym lt) lt) (trans (sym rh) rh) W lm refl refl refl)
+          (trans (sq-move-path W (trans refl lm) (trans-refl-l lm) (trans refl lk) (trans-refl-l lk)
+                    (trans (sym lt) lt) (trans-sym-l lt) (trans (sym rh) rh) (trans-sym-l rh))
+            (trans (sym (bt-move lm lk W)) (comp-v-lunit sC σ))))))
+
+-- folding an unfolded square: the exchange law for the grid (id a , Γ_t ; τ , Y')
+private
+vfold-unvfold-sq ∷ {C ∷ U} (sC : is-segalᵣ C) (w : simplex 2 →ᵣ C) {c : C} (h : hom c (w (Simplex2.edge₁₂ 𝕀1)))
+  (m : hom (w (Simplex2.edge₀₁ 𝕀0)) c)
+  (τ : square m (comp-homᵣ sC (simplex2-hom₀₁ w) (simplex2-hom₁₂ w)) (Hom.id (w (Simplex2.edge₀₁ 𝕀0))) h) →
+  sq-move (comp-homᵣ-lunit C sC m) refl refl refl
+    (comp-v sC (connection-tr (simplex2-hom₀₁ w))
+      (sq-move refl refl (fold-lunit sC w) (comp-homᵣ-runit C sC h)
+        (comp-h sC (sq-move refl (fold-comp sC w) refl refl τ) (vfold-Y w))))
+  ≡ τ
+vfold-unvfold-sq {C} sC w {c} h m τ =
+  let a : C = w (Simplex2.edge₀₁ 𝕀0) in
+  let b : C = w (Simplex2.edge₁₂ 𝕀0) in
+  let d : C = w (Simplex2.edge₁₂ 𝕀1) in
+  let t : hom a b = simplex2-hom₀₁ w in
+  let k : hom b d = simplex2-hom₁₂ w in
+  let L : hom a d = simplex2-hom₀₂ w in
+  let lt : comp-homᵣ sC (Hom.id a) t ≡ t = fold-lunit sC w in
+  let ra : comp-homᵣ sC (Hom.id a) (Hom.id a) ≡ Hom.id a = comp-homᵣ-runit C sC (Hom.id a) in
+  let rh : comp-homᵣ sC h (Hom.id d) ≡ h = comp-homᵣ-runit C sC h in
+  let lm : comp-homᵣ sC (Hom.id a) m ≡ m = comp-homᵣ-lunit C sC m in
+  let lL : comp-homᵣ sC (Hom.id a) L ≡ L = comp-homᵣ-lunit C sC L in
+  let cw : comp-homᵣ sC t k ≡ L = fold-comp sC w in
+  let Γ : square (Hom.id a) t (Hom.id a) t = connection-tr t in
+  let A : square (Hom.id a) (Hom.id a) (Hom.id a) (Hom.id a) = id-v (Hom.id a) in
+  let τ' : square m L (Hom.id a) h = sq-move refl cw refl refl τ in
+  let V : square m k (comp-homᵣ sC (Hom.id a) t) (comp-homᵣ sC h (Hom.id d)) = comp-h sC τ' (vfold-Y w) in
+  let G : square m k t h = sq-move refl refl lt rh V in
+  let R0 : U = square (comp-homᵣ sC (Hom.id a) m) (comp-homᵣ sC t k) (comp-homᵣ sC (Hom.id a) (Hom.id a)) (comp-homᵣ sC h (Hom.id d)) in
+  let T0 : U = square (comp-homᵣ sC (Hom.id a) m) (comp-homᵣ sC t k) (Hom.id a) h in
+  -- the grid, composed by columns
+  let b4 : comp-v sC A τ' ≡ sq-move (sym lm) (sym lL) refl refl τ' =
+    sq-move-sym lm lL refl refl (comp-v sC A τ') τ' (trans (sym (bt-move lm lL (comp-v sC A τ'))) (comp-v-lunit sC τ')) in
+  let b5 : comp-v sC Γ (vfold-Y w) ≡ sq-move (sym lL) (sym cw) refl refl (id-h L) =
+    sq-move-sym lL cw refl refl (comp-v sC Γ (vfold-Y w)) (id-h L) (vfold-tr-Y sC w) in
+  let b7 : comp-h sC τ' (id-h L) ≡ sq-move refl refl (sym ra) (sym rh) τ' =
+    sq-move-sym refl refl ra rh (comp-h sC τ' (id-h L)) τ' (trans (sym (lr-move ra rh (comp-h sC τ' (id-h L)))) (comp-h-runit sC τ')) in
+  let cols : comp-v sC (comp-h sC A Γ) V ≡ sq-move (sym lm) (sym cw) refl refl (sq-move refl refl (sym ra) (sym rh) τ') =
+    trans (exchange sC A Γ τ' (vfold-Y w))
+      (trans (cong2 {square (comp-homᵣ sC (Hom.id a) m) (comp-homᵣ sC (Hom.id a) L) (Hom.id a) h}
+                    {square (comp-homᵣ sC (Hom.id a) L) (comp-homᵣ sC t k) (Hom.id a) (Hom.id d)}
+                    {R0}
+                    (λ y z . comp-h sC y z) b4 b5)
+        (trans (comp-h-move sC (sym lm) (sym lL) (sym cw) refl refl refl refl τ' (id-h L))
+          (cong {square m L (comp-homᵣ sC (Hom.id a) (Hom.id a)) (comp-homᵣ sC h (Hom.id d))} {R0}
+                (λ y . sq-move (sym lm) (sym cw) refl refl y) b7))) in
+  -- the connection is the connection after an identity
+  let all : comp-v sC Γ G ≡ sq-move refl refl ra rh (sq-move (sym lm) (sym cw) refl refl (sq-move refl refl (sym ra) (sym rh) τ')) =
+    trans (cong {square (Hom.id a) t (Hom.id a) t} {T0} (λ y . comp-v sC y G) (sym (vfold-id-tr sC w)))
+      (trans (comp-v-move sC refl refl refl refl ra lt rh (comp-h sC A Γ) V)
+        (cong {R0} {T0} (λ y . sq-move refl refl ra rh y) cols)) in
+  -- flattening the moves
+  let tgt : U = square m (comp-homᵣ sC t k) (Hom.id a) h in
+  trans (cong {T0} {tgt} (λ y . sq-move lm refl refl refl y) all)
+    (trans (cong {square m L (comp-homᵣ sC (Hom.id a) (Hom.id a)) (comp-homᵣ sC h (Hom.id d))} {tgt}
+                 (λ y . sq-move lm refl refl refl (sq-move refl refl ra rh (sq-move (sym lm) (sym cw) refl refl y)))
+                 (sq-move-trans refl cw refl refl τ refl refl (sym ra) (sym rh)))
+      (trans (cong {R0} {tgt} (λ y . sq-move lm refl refl refl (sq-move refl refl ra rh y))
+                   (sq-move-trans refl cw (trans refl (sym ra)) (trans refl (sym rh)) τ (sym lm) (sym cw) refl refl))
+        (trans (cong {T0} {tgt} (λ y . sq-move lm refl refl refl y)
+                     (sq-move-trans (trans refl (sym lm)) (trans cw (sym cw)) (trans refl (sym ra)) (trans refl (sym rh)) τ refl refl ra rh))
+          (trans (sq-move-trans (trans refl (sym lm)) (trans cw (sym cw)) (trans (trans refl (sym ra)) ra) (trans (trans refl (sym rh)) rh) τ
+                   lm refl refl refl)
+            (sq-move-path τ (trans (trans refl (sym lm)) lm) (fold-cancel lm) (trans cw (sym cw)) (trans-sym-r cw)
+               (trans (trans refl (sym ra)) ra) (fold-cancel ra) (trans (trans refl (sym rh)) rh) (fold-cancel rh))))))
+
+-- on the edges of a 2-simplex, vertical folding is an equivalence
+private
+is-equiv-vfold-sq-simplex ∷ {C ∷ U} (sC : is-segalᵣ C) (w : simplex 2 →ᵣ C) {c : C} (h : hom c (w (Simplex2.edge₁₂ 𝕀1))) →
+  is-equiv (vfold-sq sC (simplex2-hom₀₁ w) (simplex2-hom₁₂ w) h)
+is-equiv-vfold-sq-simplex {C} sC w {c} h =
+  let a : C = w (Simplex2.edge₀₁ 𝕀0) in
+  let P : U = Σ (m : hom a c) . square m (simplex2-hom₁₂ w) (simplex2-hom₀₁ w) h in
+  let Q : U = Σ (m : hom a c) . square m (comp-homᵣ sC (simplex2-hom₀₁ w) (simplex2-hom₁₂ w)) (Hom.id a) h in
+  let f : P → Q = vfold-sq sC (simplex2-hom₀₁ w) (simplex2-hom₁₂ w) h in
+  let g : Q → P = unvfold-sq sC w h in
+  let sec : (y : Q) → f (g y) ≡ y = fun (m , τ) →
+    squares-l-path (comp-homᵣ-lunit C sC m) _ τ (vfold-unvfold-sq sC w h m τ) in
+  let ret : (y : P) → g (f y) ≡ y = fun (m , σ) →
+    squares-l-path (comp-homᵣ-lunit C sC m) _ σ (unvfold-vfold-sq sC w h m σ) in
+  is-iso→is-equiv f (g , sec , ret)
+
+-- vertical folding is an equivalence for every composable pair (t , k)
+private
+vfold-sq-stmt ∷ {C ∷ U} (sC : is-segalᵣ C) → pairs C → U
+vfold-sq-stmt {C} sC p =
+  (c : C) (h : hom c (fst _ (snd _ (snd _ p)))) →
+  is-equiv (vfold-sq sC (Product.fst (snd _ (snd _ (snd _ p)))) (Product.snd (snd _ (snd _ (snd _ p)))) h)
+
+is-equiv-vfold-sq ∷ {C ∷ U} (sC : is-segalᵣ C) {a b c d : C} (t : hom a b) (k : hom b d) (h : hom c d) → is-equiv (vfold-sq sC t k h)
+is-equiv-vfold-sq {C} sC {a} {b} {c} {d} t k h =
+  let s : section (edges-2 {C}) = is-equiv-sec (edges-2 {C}) (is-equiv-edges-2 C sC) in
+  let p0 : pairs C = (a , b , d , t , k) in
+  let w : simplex 2 →ᵣ C = section-map (edges-2 {C}) s p0 in
+  subst (vfold-sq-stmt sC) (snd (is-section (edges-2 {C})) s p0) (λ c' h' . is-equiv-vfold-sq-simplex sC w h') c h

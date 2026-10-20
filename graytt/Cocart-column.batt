@@ -1,0 +1,142 @@
+--
+-- Vertical composition with a column of cocartesian cells
+--
+-- For a crisp map p : X → A between oplax-Segal types, a cocartesian 1-cell c has an equivalence as
+-- gap map: a hom g out of its target is the same as the composite c ; g together with the image of
+-- g (cocart-gap). On total spaces, this is an equivalence between the composable pairs whose first
+-- hom is a cocartesian cell and the corresponding gap data (cocart-pairs→gaps), and hence between
+-- the oplax families of those (postᵣ-equiv). Restricted to the families over a given family ℓ of
+-- cocartesian cells, with a given hom out of the target of the last one (cocart-pairs-at), this is
+-- the gap map of the square of ℓ, composing vertically with the squares above it.
+--
+-- Postulates: univalence (through postᵣ-equiv), and those of the oplax universal property of
+-- pullbacks (objectwise-equiv).
+--
+
+open import Stdlib
+open import Hom
+open import Segal
+open import Composition
+open import Functoriality
+open import Fibration
+open import HomSquare
+
+--
+-- The gap map on composable pairs with a cocartesian first hom
+--
+
+-- composable pairs of homs whose first hom is a cocartesian 1-cell
+cocart-pairs ∷ {X A ∷ U} (sX ∷ is-segalᵣ X) (sA ∷ is-segalᵣ A) (p ∷ X → A) → U
+cocart-pairs {X} {A} sX sA p = pairs-at {X} {cocart-cell sX sA p} (cocart-cell-arr sX sA p)
+
+-- the corresponding gap data
+cocart-gaps ∷ {X A ∷ U} (sX ∷ is-segalᵣ X) (sA ∷ is-segalᵣ A) (p ∷ X → A) → U
+cocart-gaps {X} {A} sX sA p =
+  Σ (c : cocart-cell sX sA p) . Σ (z : X) . cocart-pb {X} {A} sA p {srcᵣ (fst _ c)} {tgtᵣ (fst _ c)} (cell-hom (fst _ c)) z
+
+-- the gap map
+cocart-pairs→gaps ∷ {X A ∷ U} (sX ∷ is-segalᵣ X) (sA ∷ is-segalᵣ A) (p ∷ X → A) → cocart-pairs sX sA p → cocart-gaps sX sA p
+cocart-pairs→gaps {X} {A} sX sA p w =
+  let c : cocart-cell sX sA p = fst _ w in
+  (c , (fst _ (snd _ w) ,
+        cocart-gap {X} {A} sX sA p {srcᵣ (fst _ c)} {tgtᵣ (fst _ c)} (cell-hom (fst _ c)) (fst _ (snd _ w)) (snd _ (snd _ w))))
+
+is-equiv-cocart-pairs→gaps ∷ {X A ∷ U} (sX ∷ is-segalᵣ X) (sA ∷ is-segalᵣ A) (p ∷ X → A) → is-equiv (cocart-pairs→gaps sX sA p)
+is-equiv-cocart-pairs→gaps {X} {A} sX sA p =
+  is-equiv-htpy {cocart-pairs sX sA p} {cocart-gaps sX sA p}
+    {tot {cocart-cell sX sA p} {λ c . Σ (z : X) . hom (tgtᵣ (fst _ c)) z}
+       {λ c . Σ (z : X) . cocart-pb {X} {A} sA p {srcᵣ (fst _ c)} {tgtᵣ (fst _ c)} (cell-hom (fst _ c)) z}
+       (λ c . tot {X} {λ z . hom (tgtᵣ (fst _ c)) z} {λ z . cocart-pb {X} {A} sA p {srcᵣ (fst _ c)} {tgtᵣ (fst _ c)} (cell-hom (fst _ c)) z}
+                (λ z . cocart-gap {X} {A} sX sA p {srcᵣ (fst _ c)} {tgtᵣ (fst _ c)} (cell-hom (fst _ c)) z))}
+    {cocart-pairs→gaps sX sA p}
+    (fun (c , w) → let h : (w : Σ (z : X) . hom (tgtᵣ (fst _ c)) z) →
+         tot {X} {λ z . hom (tgtᵣ (fst _ c)) z} {λ z . cocart-pb {X} {A} sA p {srcᵣ (fst _ c)} {tgtᵣ (fst _ c)} (cell-hom (fst _ c)) z}
+           (λ z . cocart-gap {X} {A} sX sA p {srcᵣ (fst _ c)} {tgtᵣ (fst _ c)} (cell-hom (fst _ c)) z) w
+         ≡ snd _ (cocart-pairs→gaps sX sA p (c , w)) = fun (z , g) → refl in
+       cong {Σ (z : X) . cocart-pb {X} {A} sA p {srcᵣ (fst _ c)} {tgtᵣ (fst _ c)} (cell-hom (fst _ c)) z} {cocart-gaps sX sA p}
+         (λ y . (c , y)) (h w))
+  (is-equiv-tot {cocart-cell sX sA p} {λ c . Σ (z : X) . hom (tgtᵣ (fst _ c)) z}
+    {λ c . Σ (z : X) . cocart-pb {X} {A} sA p {srcᵣ (fst _ c)} {tgtᵣ (fst _ c)} (cell-hom (fst _ c)) z}
+    (λ c . tot {X} {λ z . hom (tgtᵣ (fst _ c)) z} {λ z . cocart-pb {X} {A} sA p {srcᵣ (fst _ c)} {tgtᵣ (fst _ c)} (cell-hom (fst _ c)) z}
+             (λ z . cocart-gap {X} {A} sX sA p {srcᵣ (fst _ c)} {tgtᵣ (fst _ c)} (cell-hom (fst _ c)) z))
+    (λ c . is-equiv-tot {X} {λ z . hom (tgtᵣ (fst _ c)) z}
+             {λ z . cocart-pb {X} {A} sA p {srcᵣ (fst _ c)} {tgtᵣ (fst _ c)} (cell-hom (fst _ c)) z}
+             (λ z . cocart-gap {X} {A} sX sA p {srcᵣ (fst _ c)} {tgtᵣ (fst _ c)} (cell-hom (fst _ c)) z)
+             (snd _ c)))
+
+--
+-- Families over a family of cocartesian cells, with a given right end
+--
+
+-- a family of cocartesian cells together with a hom out of the target of the last one
+cocart-ends ∷ {X A ∷ U} (sX ∷ is-segalᵣ X) (sA ∷ is-segalᵣ A) (p ∷ X → A) → U
+cocart-ends {X} {A} sX sA p =
+  Σ (lc : 𝕀 →ᵣ cocart-cell sX sA p) . Σ (z : X) . hom (tgtᵣ (fst _ (lc 𝕀1))) z
+
+-- the same with gap data
+cocart-gap-ends ∷ {X A ∷ U} (sX ∷ is-segalᵣ X) (sA ∷ is-segalᵣ A) (p ∷ X → A) → U
+cocart-gap-ends {X} {A} sX sA p =
+  Σ (lc : 𝕀 →ᵣ cocart-cell sX sA p) . Σ (z : X) .
+    cocart-pb {X} {A} sA p {srcᵣ (fst _ (lc 𝕀1))} {tgtᵣ (fst _ (lc 𝕀1))} (cell-hom (fst _ (lc 𝕀1))) z
+
+-- the gap map at the end
+cocart-ends→gaps ∷ {X A ∷ U} (sX ∷ is-segalᵣ X) (sA ∷ is-segalᵣ A) (p ∷ X → A) → cocart-ends sX sA p → cocart-gap-ends sX sA p
+cocart-ends→gaps {X} {A} sX sA p e =
+  let lc : 𝕀 →ᵣ cocart-cell sX sA p = fst _ e in
+  (lc , (fst _ (snd _ e) ,
+         cocart-gap {X} {A} sX sA p {srcᵣ (fst _ (lc 𝕀1))} {tgtᵣ (fst _ (lc 𝕀1))} (cell-hom (fst _ (lc 𝕀1))) (fst _ (snd _ e)) (snd _ (snd _ e))))
+
+private
+is-equiv-cocart-ends→gaps ∷ {X A ∷ U} (sX ∷ is-segalᵣ X) (sA ∷ is-segalᵣ A) (p ∷ X → A) → is-equiv (cocart-ends→gaps sX sA p)
+is-equiv-cocart-ends→gaps {X} {A} sX sA p =
+  is-equiv-htpy {cocart-ends sX sA p} {cocart-gap-ends sX sA p}
+    {tot {𝕀 →ᵣ cocart-cell sX sA p} {λ lc . Σ (z : X) . hom (tgtᵣ (fst _ (lc 𝕀1))) z}
+       {λ lc . Σ (z : X) . cocart-pb {X} {A} sA p {srcᵣ (fst _ (lc 𝕀1))} {tgtᵣ (fst _ (lc 𝕀1))} (cell-hom (fst _ (lc 𝕀1))) z}
+       (λ lc . tot {X} {λ z . hom (tgtᵣ (fst _ (lc 𝕀1))) z}
+                 {λ z . cocart-pb {X} {A} sA p {srcᵣ (fst _ (lc 𝕀1))} {tgtᵣ (fst _ (lc 𝕀1))} (cell-hom (fst _ (lc 𝕀1))) z}
+                 (λ z . cocart-gap {X} {A} sX sA p {srcᵣ (fst _ (lc 𝕀1))} {tgtᵣ (fst _ (lc 𝕀1))} (cell-hom (fst _ (lc 𝕀1))) z))}
+    {cocart-ends→gaps sX sA p}
+    (fun (lc , w) → let h : (w : Σ (z : X) . hom (tgtᵣ (fst _ (lc 𝕀1))) z) →
+         tot {X} {λ z . hom (tgtᵣ (fst _ (lc 𝕀1))) z}
+           {λ z . cocart-pb {X} {A} sA p {srcᵣ (fst _ (lc 𝕀1))} {tgtᵣ (fst _ (lc 𝕀1))} (cell-hom (fst _ (lc 𝕀1))) z}
+           (λ z . cocart-gap {X} {A} sX sA p {srcᵣ (fst _ (lc 𝕀1))} {tgtᵣ (fst _ (lc 𝕀1))} (cell-hom (fst _ (lc 𝕀1))) z) w
+         ≡ snd _ (cocart-ends→gaps sX sA p (lc , w)) = fun (z , g) → refl in
+       cong {Σ (z : X) . cocart-pb {X} {A} sA p {srcᵣ (fst _ (lc 𝕀1))} {tgtᵣ (fst _ (lc 𝕀1))} (cell-hom (fst _ (lc 𝕀1))) z}
+         {cocart-gap-ends sX sA p} (λ y . (lc , y)) (h w))
+  (is-equiv-tot {𝕀 →ᵣ cocart-cell sX sA p} {λ lc . Σ (z : X) . hom (tgtᵣ (fst _ (lc 𝕀1))) z}
+    {λ lc . Σ (z : X) . cocart-pb {X} {A} sA p {srcᵣ (fst _ (lc 𝕀1))} {tgtᵣ (fst _ (lc 𝕀1))} (cell-hom (fst _ (lc 𝕀1))) z}
+    (λ lc . tot {X} {λ z . hom (tgtᵣ (fst _ (lc 𝕀1))) z}
+              {λ z . cocart-pb {X} {A} sA p {srcᵣ (fst _ (lc 𝕀1))} {tgtᵣ (fst _ (lc 𝕀1))} (cell-hom (fst _ (lc 𝕀1))) z}
+              (λ z . cocart-gap {X} {A} sX sA p {srcᵣ (fst _ (lc 𝕀1))} {tgtᵣ (fst _ (lc 𝕀1))} (cell-hom (fst _ (lc 𝕀1))) z))
+    (λ lc . is-equiv-tot {X} {λ z . hom (tgtᵣ (fst _ (lc 𝕀1))) z}
+              {λ z . cocart-pb {X} {A} sA p {srcᵣ (fst _ (lc 𝕀1))} {tgtᵣ (fst _ (lc 𝕀1))} (cell-hom (fst _ (lc 𝕀1))) z}
+              (λ z . cocart-gap {X} {A} sX sA p {srcᵣ (fst _ (lc 𝕀1))} {tgtᵣ (fst _ (lc 𝕀1))} (cell-hom (fst _ (lc 𝕀1))) z)
+              (snd _ (lc 𝕀1))))
+
+-- the family of cocartesian cells and the right end of a family of pairs
+cocart-pairs-end ∷ {X A ∷ U} (sX ∷ is-segalᵣ X) (sA ∷ is-segalᵣ A) (p ∷ X → A) → (𝕀 →ᵣ cocart-pairs sX sA p) → cocart-ends sX sA p
+cocart-pairs-end {X} {A} sX sA p Ψ =
+  (postᵣ (fst {cocart-cell sX sA p} (λ c . Σ (z : X) . hom (tgtᵣ (fst _ c)) z)) Ψ , snd _ (Ψ 𝕀1))
+
+-- the same for gap data
+cocart-gaps-end ∷ {X A ∷ U} (sX ∷ is-segalᵣ X) (sA ∷ is-segalᵣ A) (p ∷ X → A) → (𝕀 →ᵣ cocart-gaps sX sA p) → cocart-gap-ends sX sA p
+cocart-gaps-end {X} {A} sX sA p Ψ =
+  (postᵣ (fst {cocart-cell sX sA p} (λ c . Σ (z : X) . cocart-pb {X} {A} sA p {srcᵣ (fst _ c)} {tgtᵣ (fst _ c)} (cell-hom (fst _ c)) z)) Ψ ,
+   snd _ (Ψ 𝕀1))
+
+-- Lemma A: on the families of pairs over a family of cocartesian cells with a given right end, the
+-- pointwise gap map is an equivalence onto the families of gap data over the same family with
+-- the gap data of the right end
+cocart-column-gap ∷ {X A ∷ U} (sX ∷ is-segalᵣ X) (sA ∷ is-segalᵣ A) (p ∷ X → A) (e : cocart-ends sX sA p) →
+  fib (cocart-pairs-end sX sA p) e → fib (cocart-gaps-end sX sA p) (cocart-ends→gaps sX sA p e)
+cocart-column-gap {X} {A} sX sA p e =
+  fib-map-over-equiv (cocart-pairs-end sX sA p) (cocart-gaps-end sX sA p) (postᵣ {𝕀} (cocart-pairs→gaps sX sA p))
+    (cocart-ends→gaps sX sA p) (λ Ψ . refl) e
+
+is-equiv-cocart-column-gap ∷ {X A ∷ U} (sX ∷ is-segalᵣ X) (sA ∷ is-segalᵣ A) (p ∷ X → A) (e : cocart-ends sX sA p) →
+  is-equiv (cocart-column-gap sX sA p e)
+is-equiv-cocart-column-gap {X} {A} sX sA p e =
+  is-equiv-fib-map-over-equiv (cocart-pairs-end sX sA p) (cocart-gaps-end sX sA p) (postᵣ {𝕀} (cocart-pairs→gaps sX sA p))
+    (cocart-ends→gaps sX sA p) (λ Ψ . refl)
+    (postᵣ-equiv 𝕀 (cocart-pairs→gaps sX sA p) (is-equiv-cocart-pairs→gaps sX sA p))
+    (is-equiv-cocart-ends→gaps sX sA p) e

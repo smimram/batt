@@ -773,7 +773,6 @@ cone-bdry {A} sA κ =
    bottom-hom x , top-hom y)
 
 -- the boundary of an oplax family of homs with free endpoints
-private
 fam-bdry ∷ {A ∷ U} → (𝕀 →ᵣ Homs.total A) → boundary A
 fam-bdry {A} Θ =
   (Homs.src (Θ 𝕀0) , Homs.src (Θ 𝕀1) , Homs.tgt (Θ 𝕀0) , Homs.tgt (Θ 𝕀1) , Homs.to-hom (Θ 𝕀0) , Homs.to-hom (Θ 𝕀1) ,
@@ -785,7 +784,6 @@ fam-retr ∷ {A ∷ U} → (λ w . Homs.of-arr (Homs.to-arr w)) ≡{Homs.total A
 fam-retr {A} = funext-htpy {Homs.total A} {λ _ . Homs.total A} (λ w . Homs.of-arr (Homs.to-arr w)) (λ w . w) (λ w . Homs.of-arr-retr w)
 
 -- the square given by an oplax family of homs with free endpoints
-private
 fam-sq ∷ {A ∷ U} (Θ : 𝕀 →ᵣ Homs.total A) → squares (fam-bdry Θ)
 fam-sq {A} Θ =
   subst {𝕀 →ᵣ Homs.total A} (λ Θ . squares (fam-bdry Θ)) (cong (λ G . postᵣ {𝕀} {Homs.total A} {Homs.total A} G Θ) (fam-retr {A}))
@@ -954,7 +952,6 @@ cong-pre-funext {X} {Y} {Z} h f g H =
         (cong {(y : Y) → f y ≡ g y} {(x : X) → f (h x) ≡ g (h x)} (λ K . λ x . K (h x)) (happly-funext-htpy {Y} {λ _ . Z} f g H))))
 
 -- the square given by a family of arrows, seen as homs with free endpoints
-private
 fam-sq-of-arr ∷ {A ∷ U} (Φ : arrᵣ (arrᵣ A)) → fam-sq (postᵣ (Homs.of-arr {A}) Φ) ≡ (of-arrᵣ Φ , refl)
 fam-sq-of-arr {A} Φ =
   let T ∷ U = Homs.total A in
@@ -1084,6 +1081,293 @@ comp-v-simplex {A} sA Φ =
            (comp-v-cone-β sA (postᵣ simplex2-pair Φ)))
     (trans (fam-sq-htpy s t (λ c . comp-simplex2 sA c) Φ)
       (fam-sq-of-arr (λ i . λ j . Φ i (Simplex2.edge₀₂ j))))
+
+--
+-- Vertical composites of families of composable pairs
+--
+-- A family Ψ of composable pairs of homs (with free endpoints) gives two squares sharing their
+-- horizontal side judgmentally, the families of their first and second homs (fam-sq); their
+-- vertical composite is the square of the family of the composites (comp-v-pairs). For the edges
+-- of a family of 2-simplices this is the cone computation of comp-v-simplex; every family of pairs
+-- is the family of edges of a family of 2-simplices, up to a path.
+--
+
+-- the first and second homs of a composable pair, and their composite
+pair-fst ∷ {A ∷ U} → pairs A → Homs.total A
+pair-fst {A} p = (fst _ p , fst _ (snd _ p) , Product.fst (snd _ (snd _ (snd _ p))))
+
+pair-snd ∷ {A ∷ U} → pairs A → Homs.total A
+pair-snd {A} p = (fst _ (snd _ p) , fst _ (snd _ (snd _ p)) , Product.snd (snd _ (snd _ (snd _ p))))
+
+pair-comp ∷ {A ∷ U} (sA : is-segalᵣ A) → pairs A → Homs.total A
+pair-comp {A} sA p =
+  (fst _ p , fst _ (snd _ (snd _ p)) , comp-homᵣ sA (Product.fst (snd _ (snd _ (snd _ p)))) (Product.snd (snd _ (snd _ (snd _ p)))))
+
+-- the statement, for a family of pairs
+comp-v-pairs-stmt ∷ {A ∷ U} (sA : is-segalᵣ A) → (𝕀 →ᵣ pairs A) → U
+comp-v-pairs-stmt {A} sA Ψ =
+  comp-v sA (fam-sq (postᵣ (pair-fst {A}) Ψ)) (fam-sq (postᵣ (pair-snd {A}) Ψ)) ≡ fam-sq (postᵣ (pair-comp sA) Ψ)
+
+-- for the edges of a family of 2-simplices
+private
+comp-v-pairs-simplex ∷ {A ∷ U} (sA : is-segalᵣ A) (Ξ : 𝕀 →ᵣ (simplex 2 →ᵣ A)) →
+  comp-v-pairs-stmt sA (postᵣ (edges-2 {A}) Ξ)
+comp-v-pairs-simplex {A} sA Ξ =
+  let Θ1 : 𝕀 →ᵣ Homs.total A = postᵣ (pair-fst {A}) (postᵣ (edges-2 {A}) Ξ) in
+  let Θ2 : 𝕀 →ᵣ Homs.total A = postᵣ (pair-snd {A}) (postᵣ (edges-2 {A}) Ξ) in
+  let BC : U = squares (comp-bdry-v sA (fam-bdry Θ1) (fam-bdry Θ2) refl) in
+  trans (cong {squares (fam-bdry Θ1)} {BC} (λ y . comp-v sA y (fam-sq Θ2)) (fam-sq-of-arr (λ i . λ j . Ξ i (Simplex2.edge₀₁ j))))
+    (trans (cong {squares (fam-bdry Θ2)} {BC} (λ z . comp-v sA (of-arrᵣ (λ i . λ j . Ξ i (Simplex2.edge₀₁ j)) , refl) z)
+             (fam-sq-of-arr (λ i . λ j . Ξ i (Simplex2.edge₁₂ j))))
+      (comp-v-cone-β sA (postᵣ simplex2-pair Ξ)))
+
+comp-v-pairs ∷ {A ∷ U} (sA : is-segalᵣ A) (Ψ : 𝕀 →ᵣ pairs A) → comp-v-pairs-stmt sA Ψ
+comp-v-pairs {A} sA Ψ =
+  let s : section (edges-2 {A}) = is-equiv-sec (edges-2 {A}) (is-equiv-edges-2 A sA) in
+  let H : 𝕀 →ᵣ path (pairs A) = λ i . (edges-2 {A} (section-map (edges-2 {A}) s (Ψ i)) , Ψ i , snd _ s (Ψ i)) in
+  subst (comp-v-pairs-stmt sA) (htpyᵣ→path 𝕀 (pairs A) H)
+    (comp-v-pairs-simplex sA (postᵣ (section-map (edges-2 {A}) s) Ψ))
+
+-- squares with a free boundary are oplax squares
+bdry-squares→square ∷ {A ∷ U} → (Σ (β : boundary A) . squares β) → squareᵣ A
+bdry-squares→square {A} x = fst _ (snd _ x)
+
+private
+square→bdry-squares-at ∷ {A ∷ U} (s : squareᵣ A) {β : boundary A} (e : bdry s ≡ β) →
+  (bdry s , (s , refl)) ≡{Σ (β : boundary A) . squares β} (β , (s , e))
+square→bdry-squares-at s refl = refl
+
+is-equiv-bdry-squares→square ∷ {A ∷ U} → is-equiv (bdry-squares→square {A})
+is-equiv-bdry-squares→square {A} =
+  let inv : squareᵣ A → Σ (β : boundary A) . squares β = λ s . (bdry s , (s , refl)) in
+  let retr : (x : Σ (β : boundary A) . squares β) → inv (bdry-squares→square x) ≡ x = fun (β , y) →
+    let h : (y : squares β) → inv (bdry-squares→square (β , y)) ≡{Σ (β : boundary A) . squares β} (β , y) =
+      fun (s , e) → square→bdry-squares-at s e in
+    h y in
+  ((inv , λ s . refl) , (inv , retr))
+
+-- the first component of a transport in a Σ-type over the base of the transport
+private
+subst-fst ∷ {S T : U} (E : S → T → U) {t t' : T} (P : t ≡ t') (x : Σ (s : S) . E s t) →
+  fst _ (subst {T} (λ t . Σ (s : S) . E s t) P x) ≡ fst _ x
+subst-fst {S} {T} E {t} refl x = refl
+
+-- families of homs with free endpoints are squares with a free boundary
+fam-sq-tot ∷ {A ∷ U} → (𝕀 →ᵣ Homs.total A) → Σ (β : boundary A) . squares β
+fam-sq-tot {A} L = (fam-bdry L , fam-sq L)
+
+is-equiv-fam-sq-tot ∷ {A ∷ U} → is-equiv (fam-sq-tot {A})
+is-equiv-fam-sq-tot {A} =
+  let T ∷ U = Homs.total A in
+  let g : (𝕀 →ᵣ T) → squareᵣ A = λ L . of-arrᵣ (postᵣ (Homs.to-arr {A}) L) in
+  let eof : is-equiv (of-arrᵣ {A}) = ((to-arrᵣ , λ s . refl) , (to-arrᵣ , λ W . refl)) in
+  let eg : is-equiv g =
+    is-equiv-circ (of-arrᵣ {A}) (postᵣ {𝕀} {T} {arrᵣ A} (Homs.to-arr {A})) eof
+      (postᵣ-equiv 𝕀 (Homs.to-arr {A}) (Homs.is-equiv-to-arr {A})) in
+  let H : (L : 𝕀 →ᵣ T) → g L ≡ bdry-squares→square (fam-sq-tot L) = λ L .
+    sym (subst-fst {squareᵣ A} {𝕀 →ᵣ T} (λ y Θ . bdry y ≡ fam-bdry Θ)
+           (cong (λ G . postᵣ {𝕀} {T} {T} G L) (fam-retr {A}))
+           (of-arrᵣ (postᵣ (Homs.to-arr {A}) L) , refl)) in
+  is-equiv-cancel-l (bdry-squares→square {A}) (fam-sq-tot {A}) (is-equiv-bdry-squares→square {A})
+    (is-equiv-htpy {𝕀 →ᵣ T} {squareᵣ A} {g} {λ L . bdry-squares→square (fam-sq-tot L)} H eg)
+
+--
+-- Squares glued above a family
+--
+-- The squares glued above the square of a family L of homs (along a path from its top side to
+-- their bottom side) are the families of composable pairs whose first homs are L
+-- (is-equiv-pairs-over→above), and their vertical composite with the square of L is the square
+-- of the family of composites (comp-v-pairs-over). On total spaces, a family of composable pairs
+-- is a pair of families glued along a path between their rows, by the oplax universal property of
+-- pullbacks and oplax function extensionality.
+--
+
+-- the squares above the square of a family of homs, glued along a path to its top side
+above ∷ {A ∷ U} → (𝕀 →ᵣ Homs.total A) → U
+above {A} L = Σ (y : Σ (β : boundary A) . squares β) . bdry-top (fam-bdry L) ≡ bdry-bottom (fst _ y)
+
+-- their vertical composite with the square of the family
+comp-v-above ∷ {A ∷ U} (sA : is-segalᵣ A) (L : 𝕀 →ᵣ Homs.total A) → above L → Σ (β : boundary A) . squares β
+comp-v-above {A} sA L x =
+  (comp-bdry-v sA (fam-bdry L) (fst _ (fst _ x)) (snd _ x) , comp-v-gen sA (fam-sq L) (snd _ (fst _ x)) (snd _ x))
+
+-- homs out of the point r b of an element b of B
+homs-from ∷ {A B ∷ U} (r ∷ B → A) → U
+homs-from {A} {B} r = Σ (b : B) . Σ (z : A) . hom (r b) z
+
+-- composable pairs whose first hom is the arrow k b of an element b of B
+pairs-at ∷ {A B ∷ U} (k ∷ B → arrᵣ A) → U
+pairs-at {A} {B} k = homs-from {A} {B} (λ b . tgtᵣ (k b))
+
+pairs-at→pairs ∷ {A B ∷ U} (k ∷ B → arrᵣ A) → pairs-at k → pairs A
+pairs-at→pairs {A} {B} k w =
+  let b : B = fst _ w in
+  (srcᵣ (k b) , tgtᵣ (k b) , fst _ (snd _ w) , arr-hom (k b) , snd _ (snd _ w))
+
+-- the family of second homs of a family of such pairs gives a square above the square of the
+-- family of first homs
+pairs-at→above ∷ {A B ∷ U} (k ∷ B → arrᵣ A) (Ψ : 𝕀 →ᵣ pairs-at k) →
+  above (postᵣ (λ b . Homs.of-arr {A} (k b)) (postᵣ (fst {B} (λ b . Σ (z : A) . hom (tgtᵣ (k b)) z)) Ψ))
+pairs-at→above {A} {B} k Ψ = (fam-sq-tot (postᵣ (pair-snd {A}) (postᵣ (pairs-at→pairs k) Ψ)) , refl)
+
+-- the underlying hom
+homs-from→homs ∷ {A B ∷ U} (r ∷ B → A) → homs-from r → Homs.total A
+homs-from→homs {A} {B} r w = (r (fst _ w) , fst _ (snd _ w) , snd _ (snd _ w))
+
+-- such homs, as pairs of an element of B and a hom glued along a path
+private
+homs-from→pb ∷ {A B ∷ U} (r ∷ B → A) → homs-from r → pullback {B} {Homs.total A} {A} r (Homs.src {A})
+homs-from→pb {A} {B} r w = (fst _ w , ((r (fst _ w) , fst _ (snd _ w) , snd _ (snd _ w)) , refl))
+
+private
+pb→homs-from-path ∷ {A B ∷ U} (r ∷ B → A) (b : B) {y : A} (e : r b ≡ y) (z : A) (g : hom y z) →
+  homs-from→pb r (b , z , subst (λ w . hom w z) (sym e) g)
+  ≡{pullback {B} {Homs.total A} {A} r (Homs.src {A})} (b , ((y , z , g) , e))
+pb→homs-from-path {A} {B} r b refl z g = refl
+
+private
+is-equiv-homs-from→pb ∷ {A B ∷ U} (r ∷ B → A) → is-equiv (homs-from→pb r)
+is-equiv-homs-from→pb {A} {B} r =
+  let T ∷ U = Homs.total A in
+  let P ∷ U = pullback {B} {T} {A} r (Homs.src {A}) in
+  let inv : P → homs-from r = λ w .
+    let v : T = fst _ (snd _ w) in
+    (fst _ w , Homs.tgt v , subst (λ y . hom y (Homs.tgt v)) (sym (snd _ (snd _ w))) (Homs.to-hom v)) in
+  let sec : (w : P) → homs-from→pb r (inv w) ≡ w = fun (b , w') →
+    let h1 : (w' : Σ (v : T) . r b ≡ Homs.src v) → homs-from→pb r (inv (b , w')) ≡{P} (b , w') = fun (v , e) →
+      let h2 : (v : T) (e : r b ≡ Homs.src v) → homs-from→pb r (inv (b , (v , e))) ≡{P} (b , (v , e)) = fun (y , v') →
+        let h3 : (v' : Σ (z : A) . hom y z) (e : r b ≡ y) → homs-from→pb r (inv (b , ((y , v') , e))) ≡{P} (b , ((y , v') , e)) =
+          fun (z , g) → λ e . pb→homs-from-path r b e z g in
+        h3 v' in
+      h2 v e in
+    h1 w' in
+  let retr : (w : homs-from r) → inv (homs-from→pb r w) ≡ w = fun (b , w') →
+    let r1 : (w' : Σ (z : A) . hom (r b) z) → inv (homs-from→pb r (b , w')) ≡{homs-from r} (b , w') = fun (z , g) → refl in
+    r1 w' in
+  ((inv , sec) , (inv , retr))
+
+-- families of such homs are families of elements of B and of homs, glued along a path
+private
+homs-from→glued ∷ {A B ∷ U} (r ∷ B → A) → (𝕀 →ᵣ homs-from r) →
+  Σ (lc : 𝕀 →ᵣ B) . Σ (G : 𝕀 →ᵣ Homs.total A) . postᵣ r lc ≡ postᵣ (Homs.src {A}) G
+homs-from→glued {A} {B} r Ψ =
+  (postᵣ (fst {B} (λ b . Σ (z : A) . hom (r b) z)) Ψ ,
+   (postᵣ (homs-from→homs r) Ψ , refl))
+
+private
+is-equiv-homs-from→glued ∷ {A B ∷ U} (r ∷ B → A) → is-equiv (homs-from→glued r)
+is-equiv-homs-from→glued {A} {B} r =
+  let T ∷ U = Homs.total A in
+  let Gl : U = Σ (lc : 𝕀 →ᵣ B) . Σ (G : 𝕀 →ᵣ T) . postᵣ r lc ≡ postᵣ (Homs.src {A}) G in
+  let Ht : U = Σ (lc : 𝕀 →ᵣ B) . Σ (G : 𝕀 →ᵣ T) . Htpyᵣ 𝕀 A (postᵣ r lc) (postᵣ (Homs.src {A}) G) in
+  let Co : U = pullback-coneᵣ 𝕀 {B} {T} {A} r (Homs.src {A}) in
+  let hL : (lc : 𝕀 →ᵣ B) → (Σ (G : 𝕀 →ᵣ T) . postᵣ r lc ≡ postᵣ (Homs.src {A}) G) →
+           Σ (G : 𝕀 →ᵣ T) . Htpyᵣ 𝕀 A (postᵣ r lc) (postᵣ (Homs.src {A}) G) = λ lc .
+    tot {𝕀 →ᵣ T} {λ G . postᵣ r lc ≡ postᵣ (Homs.src {A}) G} {λ G . Htpyᵣ 𝕀 A (postᵣ r lc) (postᵣ (Homs.src {A}) G)}
+      (λ G . happlyᵣ-fib 𝕀 A (postᵣ r lc) (postᵣ (Homs.src {A}) G)) in
+  let h : Gl → Ht =
+    tot {𝕀 →ᵣ B} {λ lc . Σ (G : 𝕀 →ᵣ T) . postᵣ r lc ≡ postᵣ (Homs.src {A}) G}
+      {λ lc . Σ (G : 𝕀 →ᵣ T) . Htpyᵣ 𝕀 A (postᵣ r lc) (postᵣ (Homs.src {A}) G)} hL in
+  let eh : is-equiv h =
+    is-equiv-tot {𝕀 →ᵣ B} {λ lc . Σ (G : 𝕀 →ᵣ T) . postᵣ r lc ≡ postᵣ (Homs.src {A}) G}
+      {λ lc . Σ (G : 𝕀 →ᵣ T) . Htpyᵣ 𝕀 A (postᵣ r lc) (postᵣ (Homs.src {A}) G)} hL
+      (λ lc . is-equiv-tot {𝕀 →ᵣ T} {λ G . postᵣ r lc ≡ postᵣ (Homs.src {A}) G}
+               {λ G . Htpyᵣ 𝕀 A (postᵣ r lc) (postᵣ (Homs.src {A}) G)}
+               (λ G . happlyᵣ-fib 𝕀 A (postᵣ r lc) (postᵣ (Homs.src {A}) G))
+               (λ G . is-equiv-happlyᵣ-fib 𝕀 A (postᵣ r lc) (postᵣ (Homs.src {A}) G))) in
+  let c : Co → Ht = λ w .
+    (Product.fst (fst _ w) , (Product.fst (Product.snd (fst _ w)) , (Product.snd (Product.snd (fst _ w)) , snd _ w))) in
+  let c-inv : Ht → Co = λ w .
+    ((fst _ w , fst _ (snd _ w) , fst _ (snd _ (snd _ w))) , snd _ (snd _ (snd _ w))) in
+  let ec : is-equiv c =
+    is-iso→is-equiv c (c-inv ,
+      (fun (lc , w) →
+        let k1 : (w : Σ (G : 𝕀 →ᵣ T) . Htpyᵣ 𝕀 A (postᵣ r lc) (postᵣ (Homs.src {A}) G)) → c (c-inv (lc , w)) ≡{Ht} (lc , w) = fun (G , w') →
+          let k2 : (w' : Htpyᵣ 𝕀 A (postᵣ r lc) (postᵣ (Homs.src {A}) G)) → c (c-inv (lc , (G , w'))) ≡{Ht} (lc , (G , w')) =
+            fun (H , pq) → refl in
+          k2 w' in
+        k1 w) ,
+      (fun (d , pq) →
+        let k1 : (d : pullback-coneᵣ-data 𝕀 B T A) (pq : pullback-coneᵣ-paths 𝕀 {B} {T} {A} r (Homs.src {A}) d) →
+            c-inv (c (d , pq)) ≡{Co} (d , pq) = fun (lc , d') →
+          let k2 : (d' : (𝕀 →ᵣ T) × (𝕀 →ᵣ path A)) (pq : pullback-coneᵣ-paths 𝕀 {B} {T} {A} r (Homs.src {A}) (lc , d')) →
+              c-inv (c ((lc , d') , pq)) ≡{Co} ((lc , d') , pq) = fun (G , H) → λ pq . refl in
+          k2 d' in
+        k1 d pq)) in
+  let f : (𝕀 →ᵣ homs-from r) → Ht = λ Ψ . c (pullback→coneᵣ 𝕀 {B} {T} {A} r (Homs.src {A}) (postᵣ (homs-from→pb r) Ψ)) in
+  let ef : is-equiv f =
+    is-equiv-circ {𝕀 →ᵣ homs-from r} {Co} {Ht} c (λ Ψ . pullback→coneᵣ 𝕀 {B} {T} {A} r (Homs.src {A}) (postᵣ (homs-from→pb r) Ψ)) ec
+      (is-equiv-circ {𝕀 →ᵣ homs-from r} {𝕀 →ᵣ pullback {B} {T} {A} r (Homs.src {A})} {Co}
+        (pullback→coneᵣ 𝕀 {B} {T} {A} r (Homs.src {A})) (postᵣ {𝕀} (homs-from→pb r))
+        (pullback-oplax-up 𝕀 {B} {T} {A} r (Homs.src {A}))
+        (postᵣ-equiv 𝕀 (homs-from→pb r) (is-equiv-homs-from→pb r))) in
+  is-equiv-cancel-l h (homs-from→glued r) eh
+    (is-equiv-htpy {𝕀 →ᵣ homs-from r} {Ht} {f} {λ Ψ . h (homs-from→glued r Ψ)} (λ Ψ . refl) ef)
+
+-- the total map: families of pairs as squares above the squares of families
+private
+pairs-at→above-tot ∷ {A B ∷ U} (k ∷ B → arrᵣ A) → (𝕀 →ᵣ pairs-at k) →
+  Σ (lc : 𝕀 →ᵣ B) . above (postᵣ (λ b . Homs.of-arr {A} (k b)) lc)
+pairs-at→above-tot {A} {B} k Ψ = (postᵣ (fst {B} (λ b . Σ (z : A) . hom (tgtᵣ (k b)) z)) Ψ , pairs-at→above k Ψ)
+
+private
+is-equiv-pairs-at→above-tot ∷ {A B ∷ U} (k ∷ B → arrᵣ A) → is-equiv (pairs-at→above-tot k)
+is-equiv-pairs-at→above-tot {A} {B} k =
+  let T ∷ U = Homs.total A in
+  let Sq : U = Σ (β : boundary A) . squares β in
+  let r ∷ B → A = λ b . tgtᵣ (k b) in
+  let ab : (𝕀 →ᵣ B) → U = λ lc . above (postᵣ (λ b . Homs.of-arr {A} (k b)) lc) in
+  let eof : is-equiv (Homs.of-arr {A}) = ((Homs.to-arr {A} , Homs.of-arr-retr {A}) , (Homs.to-arr {A} , λ f . refl)) in
+  let g : (lc : 𝕀 →ᵣ B) → (Σ (G : 𝕀 →ᵣ T) . postᵣ r lc ≡ postᵣ (Homs.src {A}) G) → ab lc = λ lc w .
+    (fam-sq-tot (fst _ w) , cong (Homs.of-arr {A}) (snd _ w)) in
+  let eg : (lc : 𝕀 →ᵣ B) → is-equiv (g lc) = λ lc .
+    let Q : Sq → U = λ y . Homs.of-arr (postᵣ r lc) ≡ bdry-bottom (fst _ y) in
+    let g1 : (Σ (G : 𝕀 →ᵣ T) . postᵣ r lc ≡ postᵣ (Homs.src {A}) G) → Σ (G : 𝕀 →ᵣ T) . Q (fam-sq-tot G) =
+      tot {𝕀 →ᵣ T} {λ G . postᵣ r lc ≡ postᵣ (Homs.src {A}) G} {λ G . Q (fam-sq-tot G)}
+        (λ G . cong (Homs.of-arr {A}) {postᵣ r lc} {postᵣ (Homs.src {A}) G}) in
+    is-equiv-htpy {Σ (G : 𝕀 →ᵣ T) . postᵣ r lc ≡ postᵣ (Homs.src {A}) G} {ab lc}
+      {λ w . Σ-base (fam-sq-tot {A}) Q (g1 w)} {g lc}
+      (fun (G , e) → refl)
+      (is-equiv-circ (Σ-base (fam-sq-tot {A}) Q) g1 (is-equiv-Σ-base (fam-sq-tot {A}) (is-equiv-fam-sq-tot {A}) Q)
+        (is-equiv-tot {𝕀 →ᵣ T} {λ G . postᵣ r lc ≡ postᵣ (Homs.src {A}) G} {λ G . Q (fam-sq-tot G)}
+          (λ G . cong (Homs.of-arr {A}) {postᵣ r lc} {postᵣ (Homs.src {A}) G})
+          (λ G . ap-equiv (Homs.of-arr {A}) eof (postᵣ r lc) (postᵣ (Homs.src {A}) G)))) in
+  let G2 : (Σ (lc : 𝕀 →ᵣ B) . Σ (G : 𝕀 →ᵣ T) . postᵣ r lc ≡ postᵣ (Homs.src {A}) G) → Σ (lc : 𝕀 →ᵣ B) . ab lc =
+    tot {𝕀 →ᵣ B} {λ lc . Σ (G : 𝕀 →ᵣ T) . postᵣ r lc ≡ postᵣ (Homs.src {A}) G} {ab} g in
+  is-equiv-htpy {𝕀 →ᵣ pairs-at k} {Σ (lc : 𝕀 →ᵣ B) . ab lc} {λ Ψ . G2 (homs-from→glued (λ b . tgtᵣ (k b)) Ψ)} {pairs-at→above-tot k}
+    (λ Ψ . refl)
+    (is-equiv-circ G2 (homs-from→glued (λ b . tgtᵣ (k b)))
+      (is-equiv-tot {𝕀 →ᵣ B} {λ lc . Σ (G : 𝕀 →ᵣ T) . postᵣ r lc ≡ postᵣ (Homs.src {A}) G} {ab} g eg)
+      (is-equiv-homs-from→glued (λ b . tgtᵣ (k b))))
+
+-- the squares above the square of the family of arrows k lc are the families of pairs over lc
+pairs-over→above ∷ {A B ∷ U} (k ∷ B → arrᵣ A) (lc : 𝕀 →ᵣ B) →
+  fib (postᵣ (fst {B} (λ b . Σ (z : A) . hom (tgtᵣ (k b)) z))) lc → above (postᵣ (λ b . Homs.of-arr {A} (k b)) lc)
+pairs-over→above {A} {B} k lc =
+  fib-over-map {𝕀 →ᵣ pairs-at k} {𝕀 →ᵣ B} {λ lc . above (postᵣ (λ b . Homs.of-arr {A} (k b)) lc)}
+    (postᵣ (fst {B} (λ b . Σ (z : A) . hom (tgtᵣ (k b)) z))) (pairs-at→above k) lc
+
+is-equiv-pairs-over→above ∷ {A B ∷ U} (k ∷ B → arrᵣ A) (lc : 𝕀 →ᵣ B) → is-equiv (pairs-over→above k lc)
+is-equiv-pairs-over→above {A} {B} k lc =
+  is-equiv-fib-over-map {𝕀 →ᵣ pairs-at k} {𝕀 →ᵣ B} {λ lc . above (postᵣ (λ b . Homs.of-arr {A} (k b)) lc)}
+    (postᵣ (fst {B} (λ b . Σ (z : A) . hom (tgtᵣ (k b)) z))) (pairs-at→above k) (is-equiv-pairs-at→above-tot k) lc
+
+-- the vertical composite of a square above the square of k lc is the square of the composites
+private
+comp-v-pairs-over-at ∷ {A B ∷ U} (sA : is-segalᵣ A) (k ∷ B → arrᵣ A) (Ψ : 𝕀 →ᵣ pairs-at k) {lc : 𝕀 →ᵣ B}
+  (e : postᵣ (fst {B} (λ b . Σ (z : A) . hom (tgtᵣ (k b)) z)) Ψ ≡ lc) →
+  comp-v-above sA (postᵣ (λ b . Homs.of-arr {A} (k b)) lc)
+    (subst {𝕀 →ᵣ B} (λ lc . above (postᵣ (λ b . Homs.of-arr {A} (k b)) lc)) e (pairs-at→above k Ψ))
+  ≡ fam-sq-tot (postᵣ (pair-comp sA) (postᵣ (pairs-at→pairs k) Ψ))
+comp-v-pairs-over-at {A} {B} sA k Ψ refl =
+  cong {squares (fam-bdry (postᵣ (pair-comp sA) (postᵣ (pairs-at→pairs k) Ψ)))} {Σ (β : boundary A) . squares β}
+    (λ σ . (fam-bdry (postᵣ (pair-comp sA) (postᵣ (pairs-at→pairs k) Ψ)) , σ)) (comp-v-pairs sA (postᵣ (pairs-at→pairs k) Ψ))
+
+comp-v-pairs-over ∷ {A B ∷ U} (sA : is-segalᵣ A) (k ∷ B → arrᵣ A) (lc : 𝕀 →ᵣ B)
+  (w : fib (postᵣ (fst {B} (λ b . Σ (z : A) . hom (tgtᵣ (k b)) z))) lc) →
+  comp-v-above sA (postᵣ (λ b . Homs.of-arr {A} (k b)) lc) (pairs-over→above k lc w)
+  ≡ fam-sq-tot (postᵣ (pair-comp sA) (postᵣ (pairs-at→pairs k) (fst _ w)))
+comp-v-pairs-over {A} {B} sA k lc w = comp-v-pairs-over-at sA k (fst _ w) (snd _ w)
 
 --
 -- Associativity of vertical composition

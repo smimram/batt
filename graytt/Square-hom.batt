@@ -192,26 +192,6 @@ is-equiv-tot-squares→bdry {A} =
       h1 y in
   ((bdry→tot-squares , sec) , (bdry→tot-squares , retr))
 
--- squares with a free boundary are oplax squares
-private
-bdry-squares→square ∷ {A ∷ U} → (Σ (β : boundary A) . squares β) → squareᵣ A
-bdry-squares→square {A} x = fst _ (snd _ x)
-
-private
-square→bdry-squares-at ∷ {A ∷ U} (s : squareᵣ A) {β : boundary A} (e : bdry s ≡ β) →
-  (bdry s , (s , refl)) ≡{Σ (β : boundary A) . squares β} (β , (s , e))
-square→bdry-squares-at s refl = refl
-
-private
-is-equiv-bdry-squares→square ∷ {A ∷ U} → is-equiv (bdry-squares→square {A})
-is-equiv-bdry-squares→square {A} =
-  let inv : squareᵣ A → Σ (β : boundary A) . squares β = λ s . (bdry s , (s , refl)) in
-  let retr : (x : Σ (β : boundary A) . squares β) → inv (bdry-squares→square x) ≡ x = fun (β , y) →
-    let h : (y : squares β) → inv (bdry-squares→square (β , y)) ≡{Σ (β : boundary A) . squares β} (β , y) =
-      fun (s , e) → square→bdry-squares-at s e in
-    h y in
-  ((inv , λ s . refl) , (inv , retr))
-
 -- the oplax square underlying a square with free sides
 private
 tot-squares→square ∷ {A ∷ U} → (Σ (z : tot-base A) . tot-squares z) → squareᵣ A

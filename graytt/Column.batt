@@ -1,0 +1,66 @@
+--
+-- Vertical composition with a lower square
+--
+-- For a square Θ with left side l, right side r, bottom side g and top side t, composing vertically
+-- with Θ sends the squares above Θ with a given right side k to the squares with bottom side g and
+-- right side r ; k (col-map). When this is an equivalence (is-column Θ k), squares above Θ are
+-- determined by their composite with Θ. This holds for connection squares, by vertical folding
+-- (is-column-connection, Vfold-square.batt).
+--
+-- Postulates: those of the exchange law (objectwise-equiv, univalence, truncation, is-set-𝕀).
+--
+
+open import Stdlib
+open import Hom
+open import Segal
+open import Composition
+open import HomSquare
+open import Vfold-square
+
+-- the squares above a square with top side t : c → d, with a given right side k : d → e
+col-dom ∷ {A ∷ U} {c d e : A} (t : hom c d) (k : hom d e) → U
+col-dom {A} {c} {d} {e} t k = Σ (x : A) . Σ (m : hom c x) . Σ (h : hom x e) . square m k t h
+
+-- the squares with bottom side g : a → b and a given right side n : b → e
+col-cod ∷ {A ∷ U} {a b e : A} (g : hom a b) (n : hom b e) → U
+col-cod {A} {a} {b} {e} g n = Σ (x : A) . Σ (m : hom a x) . Σ (h : hom x e) . square m n g h
+
+-- composing vertically with Θ
+col-map ∷ {A ∷ U} (sA : is-segalᵣ A) {a b c d e : A} {l : hom a c} {r : hom b d} {g : hom a b} {t : hom c d}
+  (Θ : square l r g t) (k : hom d e) → col-dom t k → col-cod g (comp-homᵣ sA r k)
+col-map {A} sA {a} {b} {c} {d} {e} {l} {r} {g} {t} Θ k w =
+  let x : A = fst _ w in
+  let m : hom c x = fst _ (snd _ w) in
+  let h : hom x e = fst _ (snd _ (snd _ w)) in
+  (x , (comp-homᵣ sA l m , (h , comp-v sA Θ (snd _ (snd _ (snd _ w))))))
+
+-- Θ is a column at k when composing with it is an equivalence
+is-column ∷ {A ∷ U} (sA : is-segalᵣ A) {a b c d e : A} {l : hom a c} {r : hom b d} {g : hom a b} {t : hom c d}
+  (Θ : square l r g t) (k : hom d e) → U
+is-column {A} sA Θ k = is-equiv (col-map sA Θ k)
+
+-- connection squares are columns, by vertical folding
+is-column-connection ∷ {A ∷ U} (sA : is-segalᵣ A) {a b d : A} (t : hom a b) (k : hom b d) → is-column sA (connection-tr t) k
+is-column-connection {A} sA {a} {b} {d} t k =
+  let S : (x : A) → hom a x → hom x d → U = λ x m h . square m k t h in
+  let S' : (x : A) → hom a x → hom x d → U = λ x m h . square m (comp-homᵣ sA t k) (Hom.id a) h in
+  let F : (x : A) → (Σ (h : hom x d) . Σ (m : hom a x) . S x m h) → Σ (h : hom x d) . Σ (m : hom a x) . S' x m h = λ x .
+    tot {hom x d} {λ h . Σ (m : hom a x) . S x m h} {λ h . Σ (m : hom a x) . S' x m h} (λ h . vfold-sq sA t k h) in
+  let G : (x : A) → (Σ (m : hom a x) . Σ (h : hom x d) . S x m h) → Σ (m : hom a x) . Σ (h : hom x d) . S' x m h = λ x w .
+    Σ-swap {hom x d} {hom a x} (λ h m . S' x m h) (F x (Σ-swap {hom a x} {hom x d} (S x) w)) in
+  let eG : (x : A) → is-equiv (G x) = λ x .
+    is-equiv-circ (Σ-swap {hom x d} {hom a x} (λ h m . S' x m h)) (λ w . F x (Σ-swap {hom a x} {hom x d} (S x) w))
+      (is-equiv-Σ-swap {hom x d} {hom a x} (λ h m . S' x m h))
+      (is-equiv-circ (F x) (Σ-swap {hom a x} {hom x d} (S x))
+        (is-equiv-tot {hom x d} {λ h . Σ (m : hom a x) . S x m h} {λ h . Σ (m : hom a x) . S' x m h}
+          (λ h . vfold-sq sA t k h) (λ h . is-equiv-vfold-sq sA t k h))
+        (is-equiv-Σ-swap {hom a x} {hom x d} (S x))) in
+  let T : col-dom t k → col-cod (Hom.id a) (comp-homᵣ sA t k) =
+    tot {A} {λ x . Σ (m : hom a x) . Σ (h : hom x d) . S x m h} {λ x . Σ (m : hom a x) . Σ (h : hom x d) . S' x m h} G in
+  let H : (w : col-dom t k) → T w ≡ col-map sA (connection-tr t) k w = fun (x , w1) →
+    let k1 : (w1 : Σ (m : hom a x) . Σ (h : hom x d) . S x m h) → T (x , w1) ≡ col-map sA (connection-tr t) k (x , w1) = fun (m , w2) →
+      let k2 : (w2 : Σ (h : hom x d) . S x m h) → T (x , (m , w2)) ≡ col-map sA (connection-tr t) k (x , (m , w2)) = fun (h , σ) → refl in
+      k2 w2 in
+    k1 w1 in
+  is-equiv-htpy {col-dom t k} {col-cod (Hom.id a) (comp-homᵣ sA t k)} {T} {col-map sA (connection-tr t) k} H
+    (is-equiv-tot {A} {λ x . Σ (m : hom a x) . Σ (h : hom x d) . S x m h} {λ x . Σ (m : hom a x) . Σ (h : hom x d) . S' x m h} G eG)
