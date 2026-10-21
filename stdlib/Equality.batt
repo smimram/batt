@@ -292,8 +292,8 @@ trans-cong2-cancel-l-core ∷ {A : U} {x y : A} (p : x ≡ y) {z : A} (q : y ≡
 trans-cong2-cancel-l-core {A} {x} {y} p refl = sym (trans-sym-l p)
 
 trans-cong2-cancel-l ∷
-  {X A B C : U} (g : A → X) (f : B → C → X) {t : X} {a : A} (p : t ≡ g a) {a' : A} (q : a ≡ a')
+  {A X B C : U} (g : A → X) (f : B → C → X) {t : X} {a : A} (p : t ≡ g a) {a' : A} (q : a ≡ a')
   {x x' : B} (d : x ≡ x') {y y' : C} (e : y ≡ y') (r : g a' ≡ f x' y') →
   sym (cong g (sym q)) · (r · cong (f x') (sym e))
     ≡ sym p · ((p · (cong g q · (r · sym (cong2 f d e)))) · cong (λ z . f z y) d)
-trans-cong2-cancel-l {X} {A} {B} {C} g f {t} {a} p refl {x} refl {y} refl r = trans-cong2-cancel-l-core p r
+trans-cong2-cancel-l {A} {X} {B} {C} g f {t} {a} p refl {x} refl {y} refl r = trans-cong2-cancel-l-core p r
