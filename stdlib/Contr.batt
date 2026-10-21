@@ -45,5 +45,5 @@ is-contr-Σ {A} P (a0 , κ) cP =
   ((a0 , c0) , λ (a , p) . J a0 (λ a e . (p : P a) → (a0 , c0) ≡{Σ (a : A) . P a} (a , p)) base (κ a) p)
 
 -- post-composition with a fixed path has contractible fibres
-trans-contr ∷ {A : U} {x y z : A} (q : y ≡ z) (r : x ≡ z) → is-contr (Σ (p : x ≡ y) . r ≡ trans p q)
-trans-contr {A} {x} {y} q r = J y (λ z q . (r : x ≡ z) → is-contr (Σ (p : x ≡ y) . r ≡ trans p q)) (λ w . is-contr-sing w) q r
+trans-contr ∷ {A : U} {x y z : A} (q : y ≡ z) (r : x ≡ z) → is-contr (Σ (p : x ≡ y) . r ≡ p · q)
+trans-contr {A} {x} {y} q r = J y (λ z q . (r : x ≡ z) → is-contr (Σ (p : x ≡ y) . r ≡ p · q)) (λ w . is-contr-sing w) q r
