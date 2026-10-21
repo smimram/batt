@@ -5,5 +5,5 @@ all: html
 
 html: $(HTML)
 
-%.html: %.md
-	pandoc $< -o $@
+%.html: %.md batt.css
+	pandoc -s -M lang=en --toc --shift-heading-level-by=-1 --css=batt.css $< -o $@
