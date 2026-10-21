@@ -18,9 +18,10 @@ jobs:
     - name: Build website
       run: |
         mkdir _site
-        cp -rL _build/default/web/* _site
-        sudo apt-get -y install mkdocs
-        mkdocs build --strict -f documentation/mkdocs.yml -d ../_site/documentation
+        cp -rL _build/default/web _site/demo
+        sudo apt-get -y install pandoc
+        make -C doc
+        cd doc && cp *.html *.css ../_site
     - name: Upload webpage
       uses: actions/upload-pages-artifact@v5
       with:
