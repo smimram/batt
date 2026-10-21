@@ -273,9 +273,10 @@ trans-sym-trans-cancel {A} {x} {y} {z} p q =
   J' (λ z' y' q' . (p' : x ≡ y') → trans (trans p' (sym q')) q' ≡ p') (λ y' p' . refl) q p
 
 -- a fibrewise map commutes with transport
-subst-fibrewise ∷ {A : Type} (F G : A → Type) (φ : (x : A) → F x → G x) {x y : A} (q : x ≡ y) (v : F x) →
-  φ y (subst F q v) ≡ subst G q (φ x v)
-subst-fibrewise {A} F G φ {x} refl v = refl
+subst-fibrewise ∷
+  {A : Type} (F G : A → Type) (f : (x : A) → F x → G x) {x y : A} (p : x ≡ y) (x' : F x) →
+  f y (subst F p x') ≡ subst G p (f x x')
+subst-fibrewise {A} F G f {x} refl x' = refl
 
 -- cancelling the second argument of cong2 f d e against cong (f x) e
 trans-cong2-cancel-r ∷ {T S1 S2 : U} (f : S1 → S2 → T) {t0 t1 t2 : T} (a : t0 ≡ t1) (b : t1 ≡ t2)
@@ -284,14 +285,15 @@ trans-cong2-cancel-r ∷ {T S1 S2 : U} (f : S1 → S2 → T) {t0 t1 t2 : T} (a :
     ≡ trans a (trans (trans b c) (cong (λ m . f m y') (sym d)))
 trans-cong2-cancel-r {T} {S1} {S2} f a b {x} refl {y} refl c = refl
 
--- cancelling the first argument of cong2 F d1 d2 against cong (λ x . F x b0) d1, under a
--- conjugation by c0 and a transport along e'
+-- cancelling the first argument of cong2 f d e against cong (λ z . f z y) d, under a
+-- conjugation by p and a transport along q
 private
-trans-cong2-cancel-l-core ∷ {T : U} {X0 Y0 : T} (c0 : X0 ≡ Y0) {Z0 : T} (h : Y0 ≡ Z0) → trans refl h ≡ trans (sym c0) (trans c0 (trans refl h))
-trans-cong2-cancel-l-core {T} {X0} {Y0} c0 refl = sym (trans-sym-l c0)
+trans-cong2-cancel-l-core ∷ {A : U} {x y : A} (p : x ≡ y) {z : A} (q : y ≡ z) → refl · q ≡ sym p · (p · (refl · q))
+trans-cong2-cancel-l-core {A} {x} {y} p refl = sym (trans-sym-l p)
 
-trans-cong2-cancel-l ∷ {M T P1 P2 : U} (P : M → T) (F : P1 → P2 → T) {X0 : T} {m : M} (c0 : X0 ≡ P m) {m' : M} (e' : m ≡ m')
-  {a0 a : P1} (d1 : a0 ≡ a) {b0 b : P2} (d2 : b0 ≡ b) (h : P m' ≡ F a b) →
-  trans (sym (cong P (sym e'))) (trans h (cong (F a) (sym d2)))
-  ≡ trans (sym c0) (trans (trans c0 (trans (cong P e') (trans h (sym (cong2 F d1 d2))))) (cong (λ x . F x b0) d1))
-trans-cong2-cancel-l {M} {T} {P1} {P2} P F {X0} {m} c0 refl {a0} refl {b0} refl h = trans-cong2-cancel-l-core c0 h
+trans-cong2-cancel-l ∷
+  {X A B C : U} (g : A → X) (f : B → C → X) {t : X} {a : A} (p : t ≡ g a) {a' : A} (q : a ≡ a')
+  {x x' : B} (d : x ≡ x') {y y' : C} (e : y ≡ y') (r : g a' ≡ f x' y') →
+  sym (cong g (sym q)) · (r · cong (f x') (sym e))
+    ≡ sym p · ((p · (cong g q · (r · sym (cong2 f d e)))) · cong (λ z . f z y) d)
+trans-cong2-cancel-l {X} {A} {B} {C} g f {t} {a} p refl {x} refl {y} refl r = trans-cong2-cancel-l-core p r
